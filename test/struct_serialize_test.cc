@@ -9,7 +9,7 @@ TEST_CASE("struct serialization") {
       int b_{0};
       int c_{0};
       cista::string d_;
-    } j;
+    } j_;
   };
 
   cista::byte_buf buf;
@@ -24,7 +24,7 @@ TEST_CASE("struct serialization") {
   auto const serialized =
       cista::deserialize<serialize_me>(&buf[0], &buf[0] + buf.size());
   CHECK(serialized->a_ == 1);
-  CHECK(serialized->j.b_ == 2);
-  CHECK(serialized->j.c_ == 3);
-  CHECK(serialized->j.d_ == cista::string{"testtes"});
+  CHECK(serialized->j_.b_ == 2);
+  CHECK(serialized->j_.c_ == 3);
+  CHECK(serialized->j_.d_ == cista::string{"testtes"});
 }

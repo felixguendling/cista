@@ -87,7 +87,6 @@ struct file {
 #else
 #include <cstdio>
 
-
 namespace cista {
 
 struct file {

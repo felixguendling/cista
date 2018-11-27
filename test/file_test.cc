@@ -9,13 +9,13 @@ using namespace cista;
 
 TEST_CASE("file") {
   struct test {
-    int a = 1;
-    int b = 2;
-    int c = 3;
+    int a_ = 1;
+    int b_ = 2;
+    int c_ = 3;
   } t;
 
   struct test1 {
-    uint64_t number = 77;
+    uint64_t number_ = 77;
   } t1;
 
   {
