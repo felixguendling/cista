@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="Cista++ is an open source, single file C++17 serialization library.">
+    <meta name="keywords" content="cista, serialization, C++, C++17, cpp, single header, single file">
+    <meta name="author" content="Felix Gündling">
+
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+    <title>Cista++</title>
+
+    <link href="bootstrap.min.css" rel="stylesheet">
+    <link href="prism.css" rel="stylesheet">
+
+    <style>
+    /*
+     * Globals
+     */
+
+    /* Links */
+    a,
+    a:focus,
+    a:hover {
+      color: #9763ff;
+    }
+
+    /* Custom default button */
+    .btn-secondary,
+    .btn-secondary:hover,
+    .btn-secondary:focus {
+      color: #333;
+      text-shadow: none; /* Prevent inheritance from `body` */
+      background-color: #fff;
+      border: .05rem solid #fff;
+    }
+
+    .btn-primary {
+      color: #fff;
+      background-color: #9763ff;
+      border-color: #9763ff;
+    }
+    .btn-primary:hover {
+      color: #fff;
+      background-color: #7f41fc;
+      border-color: #7f41fc;
+    }
+
+
+    /*
+     * Base structure
+     */
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      display: -ms-flexbox;
+      display: -webkit-box;
+      display: flex;
+    /*  box-shadow: inset 0 0 5rem rgba(0, 0, 0, .5);*/
+    }
+
+
+    /*
+     * Header
+     */
+    .masthead {
+      margin-bottom: 2rem;
+      color: #fff;
+    }
+
+    .masthead-brand {
+      margin-bottom: 0;
+    }
+
+    .nav-masthead .nav-link {
+      padding: .25rem 0;
+      font-weight: 700;
+      color: rgba(255, 255, 255, .5);
+      background-color: transparent;
+      border-bottom: .25rem solid transparent;
+    }
+
+    .nav-masthead .nav-link:hover,
+    .nav-masthead .nav-link:focus {
+      border-bottom-color: rgba(255, 255, 255, .25);
+    }
+
+    .nav-masthead .nav-link + .nav-link {
+      margin-left: 1rem;
+    }
+
+    .nav-masthead .active {
+      color: #fff;
+      border-bottom-color: #fff;
+    }
+
+    @media (min-width: 48em) {
+      .masthead-brand {
+        float: left;
+      }
+      .nav-masthead {
+        float: right;
+      }
+    }
+
+
+    /*
+     * Cover
+     */
+    .cover {
+      padding: 0 1rem;
+    }
+    .cover .btn-lg {
+      padding: .75rem 1.25rem;
+      font-weight: 700;
+    }
+    .message {
+      color: #fff;
+      text-shadow: 0 .05rem .1rem rgba(0, 0, 0, .5);
+    }
+
+
+    /*
+     * Footer
+     */
+    .mastfoot {
+      color: rgba(255, 255, 255, .5);
+    }
+
+    html {
+      background-color: #333;
+      background: url('trianglify.svg');
+      background-size: cover;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+    }
+
+    body {
+      background-color: transparent;
+    }
+
+    .container {
+      max-width: 68em;
+    }
+
+    .cover {
+      margin-top: auto;
+      margin-bottom: auto;
+    }
+
+    .masthead-brand a:hover {
+      text-decoration: none;
+    }
+
+    @media (max-width: 800px) {
+      .buttons {
+        margin-bottom: 2em;
+      }
+    }
+    </style>
+  </head>
+
+  <body>
+    <!-- ****  HOME **** -->
+    <div class="container d-flex h-100 p-3 mx-auto flex-column">
+      <header class="masthead mt-3">
+        <div class="inner">
+          <h3 class="masthead-brand text-center text-md-left mb-3">
+            <a href="#main" style="color:white">
+              <img style="position: relative; top: -3px" class="mr-3" src="logo.svg" alt="" width="64" height="64">
+              Cista++
+            </a>
+          </h3>
+          <nav class="nav nav-masthead justify-content-center">
+            <a class="nav-link active" href="#main">Home</a>
+            <a class="nav-link" href="#about">About</a>
+            <a class="nav-link" href="https://github.com/felixguendling/cista">GitHub</a>
+          </nav>
+        </div>
+      </header>
+
+      <main id="main" role="main" class="inner cover mb-5">
+        <div class="row message">
+          <div class="col">
+            <h1>Simple C++ Serialization.</h1>
+            <p class="lead">
+              Cista++ is a simple, open source (MIT license) C++17 compatible way of
+              (de-)serializing C++ data structures.<br/>
+              <b><i>Single header. No macros. No source code generation.</i></b>
+            </p>
+            <ul class="lead">
+              <li>Raw performance</li>
+              <li>No macro magic, no additional definition files, no generated source code</li>
+              <li>Supports complex and cyclic datastructures including cyclic references, recursive data structures, etc.</li>
+              <li>Compatible with Clang, GCC, and MSVC</li>
+            </ul>
+            <div class="buttons text-center mt-4">
+              <a href="#" style="margin-left: auto; margin-right: auto" class="btn btn-lg btn-primary mr-3">Download</a>
+              <a href="#about" style="margin-left: auto; margin-right: auto" class="btn btn-lg btn-secondary">Learn more</a>
+            </div>
+          </div>
+          <div class="col col-md-auto">
+            <pre class="box-shadow rounded p-4"><code class="language-cpp">struct my_struct {  // Define your struct.
+  int a_{0};
+  struct inner {
+    int b_{0};
+    utl::string d_;
+  } j;
+};
+
+std::vector&lt;unsigned char&gt; buf;
+{  // Serialize an object of class my_struct.
+  my_struct obj{1, {2, 3, utl::string{"test"}}};
+  buf = utl::serialize(obj);
+}  // End of life for the "obj" value
+
+// Deserialize and read.
+auto serialized = utl::deserialize&lt;my_struct&gt;(buf);
+assert(serialized->j.d_ == utl::string{"test"});</code></pre>
+        </div>
+      </main> <!-- MAIN END -->
+
+      <!-- ****  ABOUT **** -->
+      <main id="about" role="main" class="inner">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Use Cases</h5>
+            <p class="card-text">
+              <p>You can use this library to load data from <i>trusted</i> sources <i>ONLY</i>.</p>
+              <p>Reader and writer should run on the same architecture (e.g. 64 bit big endian).</p>
+              Examples:
+              <ul>
+                <li>Asset loading for all kinds of applications (i.e. game assets, GIS data, large graphs, etc.)</li>
+                <li>Transferring data over network to/from trusted parties</li>
+              </ul>
+              <p>
+                Currently, only C++17 software can read/write data.
+                But it should be possible to generate accessors
+                for other programming languages, too.
+              </p>
+            </p>
+          </div>
+        </div>
+
+        <div class="card mt-3">
+          <div class="card-body">
+            <h5 class="card-title">Alternatives</h5>
+            <p class="card-text">
+              <p>
+                If you need to be compatible with other programming languages,
+                need to process data from untrusted sources,
+                require protocol evolution (downward compatibility)
+                you should look for another solution.
+                The following libraries provide some/all of those features.
+              </p>
+              <p>Alternative libraries:</p>
+              <ul class="mt-2">
+                <li><a href="https://developers.google.com/protocol-buffers/">Protocol Buffers</a></li>
+                <li><a href="https://capnproto.org/">Cap’n Proto</a></li>
+                <li><a href="https://google.github.io/flatbuffers/">Flatbuffers</a></li>
+                <li><a href="https://uscilab.github.io/cereal/">cereal</a></li>
+                <li><a href="https://www.boost.org/doc/libs/1_68_0/libs/serialization/doc/index.html">Boost Serialization</a></li>
+                <li><a href="https://msgpack.org/">MessagePack</a></li>
+                <li><a href="https://en.wikipedia.org/wiki/Comparison_of_data_serialization_formats">... many more</a></li>
+              </ul>
+            </p>
+          </div>
+        </div>
+
+        <div class="card mt-3">
+          <div class="card-body">
+            <h5 class="card-title">Usage</h5>
+            <p class="card-text">
+              <ul>
+                <li>
+                  Declare the data structures you want to serialize as regular C++ structs
+                  (using scalar types, <code>utl::string</code>, <code>utl::unique_ptr&lt;T&gt;</code>,
+                  and <code>utl::vector&lt;T&gt;</code> -
+                  more types such as <code>map</code>/<code>set</code>/etc. may follow).
+                </li>
+                <li>Do <i>NOT</i> declare any constructors (reflection will not work otherwise).</li>
+                <li>Always use data types with known sizes such as <code>int32_t</code>, <code>uint8_t</code>.</li>
+                <li>To use pointers: store the object you want to reference as <code>utl::unique_ptr&lt;T&gt;</code> and use a raw pointer <code>T*</code> to reference it.</li>
+                <li>Optional: if you need deterministic buffer contents, you need to fill spare bytes in your structs.</li>
+              </ul>
+            </p>
+          </div>
+        </div>
+
+        <div class="card mt-3">
+          <div class="card-body">
+            <h5 class="card-title">Advanced Example</h5>
+            <p class="card-text">
+              <p>
+                The following example shows serialization and deserialization
+                of more complex data structures.
+              </p>
+              <h6>Data structure definition</h6>
+              <pre class="box-shadow rounded p-4"><code class="language-cpp">// Forward declare `node` to be able to use it in `edge`.
+struct node;
+
+// Always use types that have a fixed size on every
+// platform: (u)int16_t, (u)int32_t, ...
+using node_id_t = uint32_t;
+
+struct edge {
+  node* from_;
+  node* to_;
+};
+
+struct node {
+  void add_edge(edge* e) { edges_.emplace_back(e); }
+  node_id_t id() const { return id_; }
+
+  node_id_t id_{0};
+  node_id_t fill_{0};  // optional: zero out spare bytes for
+                       // deterministic buffer contents
+  utl::vector&lt;edge*&gt; edges_;
+  utl::string name_;
+};
+
+struct graph {
+  node* make_node(utl::string name) {
+    return nodes_
+        .emplace_back(utl::make_unique&lt;node&gt;(
+            node{next_node_id_++, 0, utl::vector&lt;edge*&gt;{0u},
+                 std::move(name)}))
+        .get();
+  }
+
+  edge* make_edge(node_id_t const from,
+                  node_id_t const to) {
+    return edges_
+        .emplace_back(utl::make_unique&lt;edge&gt;(
+            edge{nodes_[from].get(), nodes_[to].get()}))
+        .get();
+  }
+
+  // Use unique_ptr to enable pointers to these objects.
+  utl::vector&lt;utl::unique_ptr&lt;node&gt;&gt; nodes_;
+  utl::vector&lt;utl::unique_ptr&lt;edge&gt;&gt; edges_;
+  node_id_t next_node_id_{0};
+  node_id_t fill_{0};  // optional: zero out spare bytes for
+                       // deterministic buffer contents
+};</code></pre>
+            <h6>Creating the Graph and De-/Serialization</h6>
+            <pre class="box-shadow rounded p-4"><code class="language-cpp">// Create cyclic graph with nodes and edges.
+{
+  graph g;
+
+  auto const n1 = g.make_node(utl::string{"NODE A"});
+  auto const n2 = g.make_node(utl::string{"NODE B"});
+  auto const n3 = g.make_node(utl::string{"NODE C"});
+
+  auto const e1 = g.make_edge(n1->id(), n2->id());
+  auto const e2 = g.make_edge(n2->id(), n3->id());
+  auto const e3 = g.make_edge(n3->id(), n1->id());
+
+  n1->add_edge(e1);
+  n2->add_edge(e2);
+  n3->add_edge(e3);
+
+  // Serialize graph data structure to file.
+  utl::sfile f{"graph.bin", "wb"};
+  utl::serialize(f, g);
+}  // End of life for `g`.
+
+// Deserialize
+auto b = utl::file("test.bin", "r").content();
+auto const g =
+    utl::deserialize&lt;graph&gt;(b.begin(), b.end());
+
+// Read graph.
+use(g);</code></pre>
+            </p>
+          </div>
+        </div>
+
+        <div class="card mt-3">
+          <div class="card-body">
+            <h5 class="card-title">Custom (De-)Serialization Functions</h5>
+            <p class="card-text">
+              If you have 3rd-party structs, structs with constructors
+              or structs that manage memory, etc. you need to override
+              the serialize and deserialize functions.
+              <p>
+                <h6>Serialization</h6>
+                <pre class="box-shadow rounded p-4"><code class="language-cpp">template &lt;typename Ctx&gt;
+void serialize(Ctx&, YourType const*, utl::offset_t const) {}</code></pre>
+              </p>
+
+              <p>
+                <h6>Deserialization</h6>
+                <pre class="box-shadow rounded p-4"><code class="language-cpp">void deserialize(utl::deserialization_context const&, YourType*) {}</code></pre>
+              </p>
+            </p>
+          </div>
+        </div>
+
+      </main> <!-- ABOUT END -->
+
+      <footer class="mastfoot mt-auto">
+        <div class="inner text-center">
+          <div class="copyright pb-2 pt-2">
+            ©2018 made with
+            <span style="font-family: Times, serif">&#10084;</span> by
+            <a href="https://github.com/felixguendling" target="_blank">Felix Gündling</a>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script>window.jQuery || document.write('<script src="jquery-slim.min.js"><\/script>')</script>
+    <script src="prism.js"></script>
+    <script>
+    function nav(route) {
+      var routes = ['main', 'about'];
+      var path = (route || window.location.hash).slice(1).split('-');
+
+      // --- MAIN NAV ---
+      var route = path[0] || 'main';
+
+      // content
+      for (var r in routes) {
+        document.getElementById(routes[r]).style.display = 'none';
+      }
+      document.getElementById(route).style.display = '';
+
+      // link style
+      $('.nav-link').each(function (i, el) {
+        var href = el.href.slice(el.href.indexOf('#') + 1);
+        el.className = href === route ? 'active nav-link' : 'nav-link';
+      });
+    }
+
+    $(document).on('click', 'a[href^=\\#]', function (event) {
+      event.preventDefault();
+      history.pushState({}, "", this.href);
+      nav();
+    });
+
+    window.addEventListener("hashchange", function () { nav(); }, false);
+
+    nav();
+    </script>
+  </body>
+</html>
