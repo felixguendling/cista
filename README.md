@@ -163,5 +163,5 @@ void serialize(Ctx&, YourType const*, utl::offset_t const) {}`
 ## Deserialization
 
 ```cpp
-void deserialize(utl::deserialization_context const&, YourType*) {}`</pre>
+void deserialize(utl::deserialization_context const&, YourType*) {}
 ```
