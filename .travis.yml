@@ -1,0 +1,19 @@
+dist: xenial
+sudo: require
+language: cpp
+compiler: clang
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - llvm-toolchain-xenial-7.0
+    packages:
+      - cmake
+      - clang-7
+script:
+  - export CC=clang-7
+  - export CXX=clang++-7
+  - mkdir build && cd build
+  - cmake -DCMAKE_BUILD_TYPE=Release ..
+  - make cista-test
+  - ./cista-test
