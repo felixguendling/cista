@@ -5,6 +5,7 @@
 # Simple C++ Serialization.
 
 Cista++ is a simple, open source (MIT license) C++17 compatible way of (de-)serializing C++ data structures.
+
 *Single header. No macros. No source code generation.*
 
   - Raw performance
