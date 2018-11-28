@@ -22,6 +22,6 @@ build_script:
   - set CXXFLAGS="/std:c++latest"
   - cmake -GNinja -DCMAKE_BUILD_TYPE=%CONFIGURATION% ..
   - ninja cista-test
-test_scipt:
+test_script:
   - cista-test
 deploy: off
