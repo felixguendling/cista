@@ -10,6 +10,8 @@ addons:
     packages:
       - cmake
       - clang-7
+      - libc++-dev
+      - libc++abi-dev
 script:
   - export CC=clang-7
   - export CXX=clang++-7
