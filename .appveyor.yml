@@ -1,0 +1,27 @@
+shallow_clone: true
+image: Visual Studio 2017
+configuration:
+  - Debug
+  - Release
+environment:
+  matrix:
+    - CPP: latest
+cache:
+  - C:\ninja-1.8.2
+install:
+  - ps: |
+      if (![IO.File]::Exists("C:\ninja-1.8.2\ninja.exe")) {
+        Start-FileDownload 'https://github.com/ninja-build/ninja/releases/download/v1.8.2/ninja-win.zip'
+        7z x -y ninja-win.zip -oC:\ninja-1.8.2
+      }
+  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+  - cmake --version
+  - ninja --version
+build_script:
+  - mkdir build && cd build
+  - set CXXFLAGS="/std:c++latest"
+  - cmake -GNinja -DCMAKE_BUILD_TYPE=%CONFIGURATION% ..
+  - ninja cista-test
+test_scipt:
+  - cista-test
+deploy: off

@@ -15,7 +15,7 @@ inline HANDLE open_file(char const* path, char const* mode) {
   bool read = std::strcmp(mode, "r") == 0;
   bool write = std::strcmp(mode, "w+") == 0;
 
-  cista_verify(read || write, "invalid open file mode [%s]", mode);
+  cista_verify(read || write, "invalid open file mode");
 
   DWORD access = read ? GENERIC_READ : GENERIC_WRITE;
   DWORD create_mode = read ? OPEN_EXISTING : CREATE_ALWAYS;

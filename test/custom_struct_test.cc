@@ -1,5 +1,7 @@
 #include "doctest.h"
 
+#include <cinttypes>
+
 #include "cista.h"
 
 struct serialize_me {
