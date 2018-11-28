@@ -142,7 +142,7 @@ struct graph {
 // Deserialize
 auto b = utl::file("test.bin", "r").content();
 auto const g =
-    utl::deserialize<graph&>(b.begin(), b.end());
+    utl::deserialize<graph>(b.begin(), b.end());
 
 // Read graph.
 use(g);
