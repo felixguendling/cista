@@ -1,6 +1,6 @@
-#include "cista.h"
-
 #include "doctest.h"
+
+#include "cista.h"
 
 TEST_CASE("struct serialization") {
   struct serialize_me {
