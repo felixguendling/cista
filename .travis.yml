@@ -12,6 +12,7 @@ addons:
       - clang-7
       - libc++-7-dev
       - libc++abi-7-dev
+      - clang-tidy-7
 script:
   - export CC=clang-7
   - export CXX=clang++-7
