@@ -15,7 +15,7 @@ addons:
 script:
   - export CC=clang-7
   - export CXX=clang++-7
-  - export CXXFLAGS="-std=c++17 -stdlib=libc++"
+  - export CXXFLAGS="-std=c++17 -stdlib=libc++ -D_LIBCPP_VERSION=1"
   - export LDFLAGS="-stdlib=libc++"
   - mkdir build && cd build
   - cmake -DCMAKE_BUILD_TYPE=Release ..
