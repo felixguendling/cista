@@ -360,7 +360,7 @@ extern "C" __declspec(dllimport) void __stdcall DebugBreak();
 
 #if DOCTEST_CLANG
 // to detect if libc++ is being used with clang (the _LIBCPP_VERSION identifier)
-#include <ciso646>
+// #include <ciso646>
 #endif // clang
 
 // Forward declaring 'X' in namespace std is not permitted by the C++ Standard.
