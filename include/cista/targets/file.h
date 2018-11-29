@@ -4,6 +4,19 @@
 
 #include "cista/offset_t.h"
 #include "cista/verify.h"
+
+#ifdef _MSC_VER
+inline FILE* s_open_file(char const* path, char const* mode) {
+  FILE* ptr = nullptr;
+  fopen_s(&ptr, path, mode);
+  return ptr;
+}
+#else
+inline FILE* s_open_file(char const* path, char const* mode) {
+  return std::fopen(path, mode);
+}
+#endif
+
 namespace cista {
 
 struct sfile {
@@ -43,12 +56,6 @@ struct sfile {
     cista_verify(w == size, "write error");
     size_ = curr_offset + size;
     return curr_offset;
-  }
-
-  inline FILE* s_open_file(char const* path, char const* mode) {
-    FILE* ptr = nullptr;
-    fopen_s(&ptr, path, mode);
-    return ptr;
   }
 
   offset_t size_ = 0u;
