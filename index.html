@@ -211,19 +211,19 @@
   int a_{0};
   struct inner {
     int b_{0};
-    utl::string d_;
+    cista::string d_;
   } j;
 };
 
 std::vector&lt;unsigned char&gt; buf;
 {  // Serialize an object of class my_struct.
-  my_struct obj{1, {2, 3, utl::string{"test"}}};
-  buf = utl::serialize(obj);
+  my_struct obj{1, {2, 3, cista::string{"test"}}};
+  buf = cista::serialize(obj);
 }  // End of life for the "obj" value
 
 // Deserialize and read.
-auto serialized = utl::deserialize&lt;my_struct&gt;(buf);
-assert(serialized->j.d_ == utl::string{"test"});</code></pre>
+auto serialized = cista::deserialize&lt;my_struct&gt;(buf);
+assert(serialized->j.d_ == cista::string{"test"});</code></pre>
         </div>
       </main> <!-- MAIN END -->
 
@@ -281,13 +281,13 @@ assert(serialized->j.d_ == utl::string{"test"});</code></pre>
               <ul>
                 <li>
                   Declare the data structures you want to serialize as regular C++ structs
-                  (using scalar types, <code>utl::string</code>, <code>utl::unique_ptr&lt;T&gt;</code>,
-                  and <code>utl::vector&lt;T&gt;</code> -
+                  (using scalar types, <code>cista::string</code>, <code>cista::unique_ptr&lt;T&gt;</code>,
+                  and <code>cista::vector&lt;T&gt;</code> -
                   more types such as <code>map</code>/<code>set</code>/etc. may follow).
                 </li>
                 <li>Do <i>NOT</i> declare any constructors (reflection will not work otherwise).</li>
                 <li>Always use data types with known sizes such as <code>int32_t</code>, <code>uint8_t</code>.</li>
-                <li>To use pointers: store the object you want to reference as <code>utl::unique_ptr&lt;T&gt;</code> and use a raw pointer <code>T*</code> to reference it.</li>
+                <li>To use pointers: store the object you want to reference as <code>cista::unique_ptr&lt;T&gt;</code> and use a raw pointer <code>T*</code> to reference it.</li>
                 <li>Optional: if you need deterministic buffer contents, you need to fill spare bytes in your structs.</li>
               </ul>
             </p>
@@ -322,15 +322,15 @@ struct node {
   node_id_t id_{0};
   node_id_t fill_{0};  // optional: zero out spare bytes for
                        // deterministic buffer contents
-  utl::vector&lt;edge*&gt; edges_;
-  utl::string name_;
+  cista::vector&lt;edge*&gt; edges_;
+  cista::string name_;
 };
 
 struct graph {
-  node* make_node(utl::string name) {
+  node* make_node(cista::string name) {
     return nodes_
-        .emplace_back(utl::make_unique&lt;node&gt;(
-            node{next_node_id_++, 0, utl::vector&lt;edge*&gt;{0u},
+        .emplace_back(cista::make_unique&lt;node&gt;(
+            node{next_node_id_++, 0, cista::vector&lt;edge*&gt;{0u},
                  std::move(name)}))
         .get();
   }
@@ -338,14 +338,14 @@ struct graph {
   edge* make_edge(node_id_t const from,
                   node_id_t const to) {
     return edges_
-        .emplace_back(utl::make_unique&lt;edge&gt;(
+        .emplace_back(cista::make_unique&lt;edge&gt;(
             edge{nodes_[from].get(), nodes_[to].get()}))
         .get();
   }
 
   // Use unique_ptr to enable pointers to these objects.
-  utl::vector&lt;utl::unique_ptr&lt;node&gt;&gt; nodes_;
-  utl::vector&lt;utl::unique_ptr&lt;edge&gt;&gt; edges_;
+  cista::vector&lt;cista::unique_ptr&lt;node&gt;&gt; nodes_;
+  cista::vector&lt;cista::unique_ptr&lt;edge&gt;&gt; edges_;
   node_id_t next_node_id_{0};
   node_id_t fill_{0};  // optional: zero out spare bytes for
                        // deterministic buffer contents
@@ -355,9 +355,9 @@ struct graph {
 {
   graph g;
 
-  auto const n1 = g.make_node(utl::string{"NODE A"});
-  auto const n2 = g.make_node(utl::string{"NODE B"});
-  auto const n3 = g.make_node(utl::string{"NODE C"});
+  auto const n1 = g.make_node(cista::string{"NODE A"});
+  auto const n2 = g.make_node(cista::string{"NODE B"});
+  auto const n3 = g.make_node(cista::string{"NODE C"});
 
   auto const e1 = g.make_edge(n1->id(), n2->id());
   auto const e2 = g.make_edge(n2->id(), n3->id());
@@ -368,14 +368,14 @@ struct graph {
   n3->add_edge(e3);
 
   // Serialize graph data structure to file.
-  utl::sfile f{"graph.bin", "wb"};
-  utl::serialize(f, g);
+  cista::sfile f{"graph.bin", "wb"};
+  cista::serialize(f, g);
 }  // End of life for `g`.
 
 // Deserialize
-auto b = utl::file("test.bin", "r").content();
+auto b = cista::file("test.bin", "r").content();
 auto const g =
-    utl::deserialize&lt;graph&gt;(b.begin(), b.end());
+    cista::deserialize&lt;graph&gt;(b.begin(), b.end());
 
 // Read graph.
 use(g);</code></pre>
@@ -393,12 +393,12 @@ use(g);</code></pre>
               <p>
                 <h6>Serialization</h6>
                 <pre class="box-shadow rounded p-4"><code class="language-cpp">template &lt;typename Ctx&gt;
-void serialize(Ctx&, YourType const*, utl::offset_t const) {}</code></pre>
+void serialize(Ctx&, YourType const*, cista::offset_t const) {}</code></pre>
               </p>
 
               <p>
                 <h6>Deserialization</h6>
-                <pre class="box-shadow rounded p-4"><code class="language-cpp">void deserialize(utl::deserialization_context const&, YourType*) {}</code></pre>
+                <pre class="box-shadow rounded p-4"><code class="language-cpp">void deserialize(cista::deserialization_context const&, YourType*) {}</code></pre>
               </p>
             </p>
           </div>
