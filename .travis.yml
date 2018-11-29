@@ -19,5 +19,7 @@ script:
   - export LDFLAGS="-stdlib=libc++"
   - mkdir build && cd build
   - cmake -DCMAKE_BUILD_TYPE=Release ..
+  - make cista-format-check
+  - make cista-lint
   - make cista-test
   - ./cista-test
