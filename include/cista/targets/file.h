@@ -4,23 +4,10 @@
 
 #include "cista/offset_t.h"
 #include "cista/verify.h"
-
-#ifdef _MSC_VER
-inline FILE* open_file(char const* path, char const* mode) {
-  FILE* ptr = nullptr;
-  fopen_s(&ptr, path, mode);
-  return ptr;
-}
-#else
-inline FILE* open_file(char const* path, char const* mode) {
-  return std::fopen(path, mode);
-}
-#endif
-
 namespace cista {
 
 struct sfile {
-  sfile(char const* path, char const* mode) : f_(open_file(path, mode)) {
+  sfile(char const* path, char const* mode) : f_(s_open_file(path, mode)) {
     cista_verify(f_ != nullptr, "unable to open file");
   }
 
@@ -56,6 +43,12 @@ struct sfile {
     cista_verify(w == size, "write error");
     size_ = curr_offset + size;
     return curr_offset;
+  }
+
+  inline FILE* s_open_file(char const* path, char const* mode) {
+    FILE* ptr = nullptr;
+    fopen_s(&ptr, path, mode);
+    return ptr;
   }
 
   offset_t size_ = 0u;
