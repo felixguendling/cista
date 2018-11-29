@@ -53,7 +53,7 @@ add_custom_target(cista-lint
     ${CMAKE_CURRENT_SOURCE_DIR}/tools/run-clang-tidy.py
       -exit-on-error
       -quiet
-      -clang-tidy-binary clang-tidy
+      -clang-tidy-binary clang-tidy-7
       -header-filter "^${CMAKE_CURRENT_SOURCE_DIR}/(include/)"
       "^${CMAKE_CURRENT_SOURCE_DIR}/test/"
   COMMENT "Running clang-tidy"
