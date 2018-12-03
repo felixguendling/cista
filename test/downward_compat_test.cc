@@ -23,6 +23,7 @@ struct data_v2 {
 
 struct version_detection {
   int const version_{0};
+  int dummy_for_msvc_{0};
 };
 
 TEST_CASE("downward compatibility test") {
