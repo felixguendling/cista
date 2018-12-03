@@ -144,7 +144,8 @@ byte_buf serialize(T& el) {
 // DESERIALIZE
 // -----------------------------------------------------------------------------
 struct deserialization_context {
-  deserialization_context(uint8_t* from, uint8_t* to) : from_{from}, to_{to} {}
+  deserialization_context(bool checked, uint8_t* from, uint8_t* to)
+      : checked_{checked}, from_{from}, to_{to} {}
 
   template <typename T, typename Ptr>
   T deserialize(Ptr* ptr) const {
@@ -152,12 +153,18 @@ struct deserialization_context {
     if (offset == std::numeric_limits<offset_t>::max()) {
       return nullptr;
     }
-    if (to_ != nullptr && offset >= static_cast<offset_t>(to_ - from_)) {
-      throw std::runtime_error("pointer out of bounds");
-    }
     return reinterpret_cast<T>(from_ + offset);
   }
 
+  template <typename T>
+  void check(T* el, size_t size) const {
+    auto const* pos = reinterpret_cast<uint8_t*>(el);
+    if ((checked_ && to_) && (pos < from_ || pos + size > to_)) {
+      throw std::runtime_error("pointer out of bounds");
+    }
+  }
+
+  bool checked_;
   uint8_t *from_, *to_;
 };
 
@@ -166,6 +173,7 @@ void deserialize(deserialization_context const& c, T* el) {
   using written_type_t = std::remove_reference_t<std::remove_const_t<T>>;
   if constexpr (std::is_pointer_v<written_type_t>) {
     *el = c.deserialize<written_type_t>(*el);
+    c.check(*el, sizeof(*std::declval<written_type_t>()));
   } else if constexpr (std::is_scalar_v<written_type_t>) {
     return;
   } else {
@@ -196,11 +204,16 @@ void deserialize(deserialization_context const& c, cista::unique_ptr<T>* el) {
 }
 
 template <typename T>
-T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
-  deserialization_context c{from, to};
+T* deserialize(uint8_t* from, uint8_t* to = nullptr, bool checked = true) {
+  deserialization_context c{checked, from, to};
   auto const el = reinterpret_cast<T*>(from);
   deserialize(c, el);
   return el;
+}
+
+template <typename T, typename Container>
+T* deserialize(Container& c, bool checked = true) {
+  return deserialize<T>(&c[0], &c[c.size()], checked);
 }
 
 }  // namespace cista
