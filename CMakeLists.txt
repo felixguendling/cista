@@ -19,8 +19,8 @@ add_custom_target(unite
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/reflection/comparable.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/reflection/printable.h
   > ${CMAKE_CURRENT_BINARY_DIR}/cista.h
-  DEPENDS
-  ${cista-include-files}
+  DEPENDS ${cista-include-files}
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/cista.h
 )
 add_dependencies(unite uniter)
 
@@ -57,7 +57,7 @@ add_custom_target(cista-lint
     ${CMAKE_CURRENT_SOURCE_DIR}/tools/run-clang-tidy.py
       -exit-on-error
       -quiet
-      -clang-tidy-binary clang-tidy-7
+      -clang-tidy-binary clang-tidy
       -header-filter "^${CMAKE_CURRENT_SOURCE_DIR}/(include/)"
       "^${CMAKE_CURRENT_SOURCE_DIR}/test/"
   COMMENT "Running clang-tidy"
