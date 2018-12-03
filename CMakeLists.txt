@@ -11,8 +11,9 @@ add_subdirectory(tools/doctest EXCLUDE_FROM_ALL)
 file(GLOB_RECURSE cista-include-files include/*.h*)
 
 add_subdirectory(tools/uniter EXCLUDE_FROM_ALL)
-add_custom_target(unite
-  uniter
+add_custom_command(
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/cista.h
+  COMMAND uniter
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/file.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/serialization.h
@@ -20,15 +21,12 @@ add_custom_target(unite
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/reflection/printable.h
   > ${CMAKE_CURRENT_BINARY_DIR}/cista.h
   DEPENDS ${cista-include-files}
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/cista.h
 )
-add_dependencies(unite uniter)
 
 file(GLOB_RECURSE cista-test-files test/*.cc)
 add_executable(cista-test EXCLUDE_FROM_ALL ${cista-test-files} ${CMAKE_CURRENT_BINARY_DIR}/cista.h)
 target_link_libraries(cista-test doctest)
 target_include_directories(cista-test PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-add_dependencies(cista-test unite)
 
 add_custom_target(cista-format-check
   find
