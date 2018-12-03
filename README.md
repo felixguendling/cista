@@ -157,7 +157,19 @@ the serialize and deserialize functions.
 ## Serialization
 
 ```cpp
+template <typename Ctx>
 void serialize(Ctx&, YourType const*, cista::offset_t const) {}`
+```
+
+Where Ctx has the following methods:
+
+```cpp
+struct Ctx {
+  template <typename T>
+  void write(offset_t const pos, T const& val) {}
+
+  offset_t write(void const* ptr, offset_t const size, offset_t alignment) {}
+};
 ```
 
 ## Deserialization

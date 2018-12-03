@@ -12,6 +12,7 @@ addons:
       - clang-7
       - libc++-7-dev
       - libc++abi-7-dev
+#      - clang-tidy-7
 script:
   - export CC=clang-7
   - export CXX=clang++-7
@@ -20,6 +21,6 @@ script:
   - mkdir build && cd build
   - cmake -DCMAKE_BUILD_TYPE=Release ..
   - make cista-format-check
-  - make cista-lint
+#  - make cista-lint
   - make cista-test
   - ./cista-test
