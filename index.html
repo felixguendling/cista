@@ -11,7 +11,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
 
-    <title>Cista++</title>
+    <title>Cista++ | Homepage</title>
 
     <link href="bootstrap.min.css" rel="stylesheet">
     <link href="prism.css" rel="stylesheet">
@@ -390,20 +390,74 @@ use(g);</code></pre>
               If you have 3rd-party structs, structs with constructors
               or structs that manage memory, etc. you need to override
               the serialize and deserialize functions.
+
+              <h6>Serialization</h6>
               <p>
-                <h6>Serialization</h6>
+                By default, every value gets copied raw byte-by-byte.
+                For each type you would like serialize with a custom function,
+                you need to override the following function for your type.
+
                 <pre class="box-shadow rounded p-4"><code class="language-cpp">template &lt;typename Ctx&gt;
 void serialize(Ctx&, YourType const*, cista::offset_t const) {}</code></pre>
               </p>
 
               <p>
-                <h6>Deserialization</h6>
+                The Ctx (templated to support different <code>write()</code> implementations) object looks like this:
+
+                <pre class="box-shadow rounded p-4"><code class="language-cpp">struct serialization_context {
+  /**
+   * Writes the values at [ptr, ptr + size[ to
+   * the end of the serialization target buffer.
+   * Adjusts for alignment if needed and returns
+   * the new (aligned) offset the value was written to.
+   *
+   * Appends to the buffer (resize).
+   *
+   * \param ptr         points to the data to write
+   * \param size        number of bytes to write
+   * \param alignment   the alignment to consider
+   * \return the alignment adjusted offset
+   */
+  offset_t write(void const* ptr, offset_t const size,
+                 offset_t alignment = 0);
+
+  /**
+   * Overrides the value at `pos` with value `val`.
+   *
+   * Note: does not append to the buffer.
+   * The position `pos` needs to exist already
+   * and provide enough space to write `val`.
+   *
+   * \param pos  the position to write to
+   * \param val  the value to copy to position `pos`
+   */
+  template &lt;typename T&gt;
+  void write(offset_t const pos, T const& val);
+
+  /**
+   * Lookup table from original pointer
+   * to the offset the data was written to.
+   */
+  std::map&lt;void*, offset_t&gt; offsets_;
+
+  /**
+   * Pending pointers that could not yet get
+   * resolved (i.e. the value they point to has not
+   * yet been written yet but will be later).
+   */
+  std::vector&lt;pending_offset&gt; pending_;
+};</code></pre>
+                </p>
+
+
+
+              <h6>Deserialization</h6>
+              <p>
                 <pre class="box-shadow rounded p-4"><code class="language-cpp">void deserialize(cista::deserialization_context const&, YourType*) {}</code></pre>
               </p>
             </p>
           </div>
         </div>
-
       </main> <!-- ABOUT END -->
 
       <footer class="mastfoot mt-auto">
@@ -425,11 +479,14 @@ void serialize(Ctx&, YourType const*, cista::offset_t const) {}</code></pre>
     <script src="prism.js"></script>
     <script>
     function nav(route) {
+      var title = 'Cista++';
+      var separator = ' | ';
+      var route_names = {main: 'Homepage', about: 'About'};
       var routes = ['main', 'about'];
       var path = (route || window.location.hash).slice(1).split('-');
 
-      // --- MAIN NAV ---
       var route = path[0] || 'main';
+      document.title = title + ' ' + separator + ' ' + route_names[route];
 
       // content
       for (var r in routes) {
