@@ -4,6 +4,7 @@
 
 struct v1 {
   cista::string s_;
+  int dummy_for_msvc_{0};
 };
 
 struct v2 {
@@ -12,17 +13,17 @@ struct v2 {
 };
 
 struct data_v1 {
-  int const version_{1};
+  int version_{1};
   cista::vector<cista::unique_ptr<v1>> values_;
 };
 
 struct data_v2 {
-  int const version_{2};
+  int version_{2};
   cista::vector<cista::unique_ptr<v2>> values_;
 };
 
 struct version_detection {
-  int const version_{0};
+  int version_{0};
   int dummy_for_msvc_{0};
 };
 
