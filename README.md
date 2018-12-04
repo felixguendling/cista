@@ -148,6 +148,17 @@ auto const g =
 use(g);
 ```
 
+# How Does It Work?
+
+Basically, the only thing the <code>cista::serialize()</code>
+call does, is to copy everything into one coherent target
+(e.g. file or memory buffer) byte-by-byte.
+Additionally, each pointer gets converted to an offset
+at serialization and back to a real pointer at deserialization.
+Every data structure can be (de-)serialized using a custom
+(de-)serialization function (see below for more details).
+All this is done recursively.
+
 # Custom (De-)Serialization Functions
 
 If you have 3rd-party structs, structs with constructors
@@ -156,24 +167,121 @@ the serialize and deserialize functions.
 
 ## Serialization
 
+By default, every value gets copied raw byte-by-byte.
+For each type you would like serialize with a custom function,
+you need to override the following function for your type.
+
+This function will be called with
+  - The serialization context (described below).
+    It provides functions to write to the buffer
+    and to translate pointers to offsets.
+  - A pointer to the original value (i.e. not the serialized!)
+    of your struct.
+  - The offset value where the value of <code>YourType</code> has been
+    copied to. You can use this information to adjust certain
+    members of <code>YourType</code>. For example:
+    <code>ctx.write(pos + offsetof(cista::string, h_.ptr_), start)</code>.
+    This overrides the pointer contained in <code>cista::string</code>
+    with the offset, the bytes have been copied to by calling
+    <code>start = c.write(orig->data(), orig->size(), 1)</code>.
+
 ```cpp
-template <typename Ctx>
-void serialize(Ctx&, YourType const*, cista::offset_t const) {}`
+template &lt;typename Ctx&gt;
+void serialize(Ctx&, YourType const*, cista::offset_t const);
 ```
 
-Where Ctx has the following methods:
+
+The `Ctx` parameter is templated to support different
+serialization targets (e.g. file and buffer).
+`Ctx` provides the following members:
 
 ```cpp
-struct Ctx {
-  template <typename T>
-  void write(offset_t const pos, T const& val) {}
+struct serialization_context {
+  /**
+   * Writes the values at [ptr, ptr + size[ to
+   * the end of the serialization target buffer.
+   * Adjusts for alignment if needed and returns
+   * the new (aligned) offset the value was written to.
+   *
+   * Appends to the buffer (resize).
+   *
+   * \param ptr         points to the data to write
+   * \param size        number of bytes to write
+   * \param alignment   the alignment to consider
+   * \return the alignment adjusted offset
+   */
+  offset_t write(void const* ptr, offset_t const size,
+                 offset_t alignment = 0);
 
-  offset_t write(void const* ptr, offset_t const size, offset_t alignment) {}
+  /**
+   * Overrides the value at `pos` with value `val`.
+   *
+   * Note: does not append to the buffer.
+   * The position `pos` needs to exist already
+   * and provide enough space to write `val`.
+   *
+   * \param pos  the position to write to
+   * \param val  the value to copy to position `pos`
+   */
+  template &lt;typename T&gt;
+  void write(offset_t const pos, T const& val);
+
+  /**
+   * Lookup table from original pointer
+   * to the offset the data was written to.
+   */
+  std::map&lt;void*, offset_t&gt; offsets_;
+
+  /**
+   * Pending pointers that could not yet get
+   * resolved (i.e. the value they point to has not
+   * yet been written yet but will be later).
+   */
+  std::vector&lt;pending_offset&gt; pending_;
 };
 ```
 
 ## Deserialization
 
+To enable a custom deserialization, you need to create a specialized
+function for your type with the following signature:
+
 ```cpp
 void deserialize(cista::deserialization_context const&, YourType*) {}
+```
+
+With this function you should:
+  - convert offsets back to pointers using the
+    `deserialization_context::deserialize()`
+    member function.
+  - and check that pointers point to memory addresses
+    that are located inside the buffer
+    using `deserialization_context::check()`
+
+Both functions (`deserialize()` and `check()`)
+are provided by the `deserialization_context`:
+```cpp
+struct deserialization_context {
+  /**
+   * Converts a stored offset back to the original pointer
+   * by adding the base address.
+   *
+   * \param ptr  offset (given as a pointer)
+   * \return offset converted to pointer
+   */
+  template &lt;typename T, typename Ptr&gt;
+  T deserialize(Ptr* ptr) const;
+
+  /**
+   * Checks whether the pointer points to
+   * a valid memory address within the buffer
+   * where at least `size` bytes are available.
+   *
+   * \param el    the memory address to check
+   * \param size  the size to check for
+   * \throws if there are bytes outside the buffer
+   */
+  template &lt;typename T&gt;
+  void check(T* el, size_t size) const;
+};
 ```
