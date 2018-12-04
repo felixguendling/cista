@@ -186,7 +186,7 @@ This function will be called with
     <code>start = c.write(orig->data(), orig->size(), 1)</code>.
 
 ```cpp
-template &lt;typename Ctx&gt;
+template <typename Ctx>;
 void serialize(Ctx&, YourType const*, cista::offset_t const);
 ```
 
@@ -223,21 +223,21 @@ struct serialization_context {
    * \param pos  the position to write to
    * \param val  the value to copy to position `pos`
    */
-  template &lt;typename T&gt;
+  template <typename T>;
   void write(offset_t const pos, T const& val);
 
   /**
    * Lookup table from original pointer
    * to the offset the data was written to.
    */
-  std::map&lt;void*, offset_t&gt; offsets_;
+  std::map<void*, offset_t>; offsets_;
 
   /**
    * Pending pointers that could not yet get
    * resolved (i.e. the value they point to has not
    * yet been written yet but will be later).
    */
-  std::vector&lt;pending_offset&gt; pending_;
+  std::vector<pending_offset>; pending_;
 };
 ```
 
@@ -269,7 +269,7 @@ struct deserialization_context {
    * \param ptr  offset (given as a pointer)
    * \return offset converted to pointer
    */
-  template &lt;typename T, typename Ptr&gt;
+  template <typename T, typename Ptr>;
   T deserialize(Ptr* ptr) const;
 
   /**
@@ -281,7 +281,7 @@ struct deserialization_context {
    * \param size  the size to check for
    * \throws if there are bytes outside the buffer
    */
-  template &lt;typename T&gt;
+  template <typename T>;
   void check(T* el, size_t size) const;
 };
 ```
