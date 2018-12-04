@@ -383,6 +383,23 @@ use(g);</code></pre>
           </div>
         </div>
 
+
+        <div class="card mt-3">
+          <div class="card-body">
+            <h5 class="card-title">How Does It Work?</h5>
+            <p class="card-text">
+              Basically, the only thing the <code>cista::serialize()</code>
+              call does, is to copy everything into one coherent target
+              (e.g. file or memory buffer) byte-by-byte.
+              Additionally, each pointer gets converted to an offset
+              at serialization and back to a real pointer at deserialization.
+              Every data structure can be (de-)serialized using a custom
+              (de-)serialization function (see below for more details).
+              All this is done recursively.
+            </p>
+          </div>
+        </div>
+
         <div class="card mt-3">
           <div class="card-body">
             <h5 class="card-title">Custom (De-)Serialization Functions</h5>
@@ -397,12 +414,36 @@ use(g);</code></pre>
                 For each type you would like serialize with a custom function,
                 you need to override the following function for your type.
 
+                This function will be called with
+                <ul>
+                  <li>
+                    The serialization context (described below).
+                    It provides functions to write to the buffer
+                    and to translate pointers to offsets.
+                  </li>
+                  <li>
+                    A pointer to the original value (i.e. not the serialized!)
+                    of your struct.
+                  </li>
+                  <li>
+                    The offset value where the value of <code>YourType</code> has been
+                    copied to. You can use this information to adjust certain
+                    members of <code>YourType</code>. For example:
+                    <code>ctx.write(pos + offsetof(cista::string, h_.ptr_), start)</code>.
+                    This overrides the pointer contained in <code>cista::string</code>
+                    with the offset, the bytes have been copied to by calling
+                    <code>start = c.write(orig->data(), orig->size(), 1)</code>.
+                  </li>
+                </ul>
+
                 <pre class="box-shadow rounded p-4"><code class="language-cpp">template &lt;typename Ctx&gt;
-void serialize(Ctx&, YourType const*, cista::offset_t const) {}</code></pre>
+void serialize(Ctx&, YourType const*, cista::offset_t const);</code></pre>
               </p>
 
               <p>
-                The Ctx (templated to support different <code>write()</code> implementations) object looks like this:
+                The <code>Ctx</code> parameter is templated to support different
+                serialization targets (e.g. file and buffer).
+                <code>Ctx</code> provides the following members:
 
                 <pre class="box-shadow rounded p-4"><code class="language-cpp">struct serialization_context {
   /**
@@ -450,11 +491,54 @@ void serialize(Ctx&, YourType const*, cista::offset_t const) {}</code></pre>
                 </p>
 
 
-
               <h6>Deserialization</h6>
+
               <p>
+                To enable a custom deserialization, you need to create a specialized
+                function for your type with the following signature:
                 <pre class="box-shadow rounded p-4"><code class="language-cpp">void deserialize(cista::deserialization_context const&, YourType*) {}</code></pre>
               </p>
+
+              With this function you should:
+              <ul>
+                <li>
+                  convert offsets back to pointers using the
+                  <code>deserialization_context::deserialize()</code>
+                  member function.
+                </li>
+                <li>
+                  and check that pointers point to memory addresses
+                  that are located inside the buffer
+                  using <code>deserialization_context::check()</code>
+                </li>
+              </ul>
+
+              <p>
+                Both functions (<code>deserialize()</code> and <code>check()</code>)
+                are provided by the <code>deserialization_context</code>:
+                <pre class="box-shadow rounded p-4"><code class="language-cpp">struct deserialization_context {
+  /**
+   * Converts a stored offset back to the original pointer
+   * by adding the base address.
+   *
+   * \param ptr  offset (given as a pointer)
+   * \return offset converted to pointer
+   */
+  template &lt;typename T, typename Ptr&gt;
+  T deserialize(Ptr* ptr) const;
+
+  /**
+   * Checks whether the pointer points to
+   * a valid memory address within the buffer
+   * where at least `size` bytes are available.
+   *
+   * \param el    the memory address to check
+   * \param size  the size to check for
+   * \throws if there are bytes outside the buffer
+   */
+  template &lt;typename T&gt;
+  void check(T* el, size_t size) const;
+};</code></pre>
             </p>
           </div>
         </div>
