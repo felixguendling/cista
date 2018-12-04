@@ -14,7 +14,7 @@ addons:
       - libc++abi-7-dev
 env:
   - BUILD_TYPE=Release LDFLAGS="-stdlib=libc++" CC=clang-7 CXX=clang++-7 CXXFLAGS="-std=c++17 -stdlib=libc++ -D_LIBCPP_VERSION=1"
-  - BUILD_TYPE=Debug   LDFLAGS="-stdlib=libc++" CC=clang-7 CXX=clang++-7 CXXFLAGS="-std=c++17 -stdlib=libc++ -D_LIBCPP_VERSION=1 -fno-omit-frame-pointer -fsanitize=address -fsanitize=undefined"
+  - BUILD_TYPE=Debug   LDFLAGS="-stdlib=libc++" CC=clang-7 CXX=clang++-7 CXXFLAGS="-std=c++17 -stdlib=libc++ -D_LIBCPP_VERSION=1 -fno-omit-frame-pointer -fsanitize=address"
 script:
   - mkdir build && cd build
   - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
