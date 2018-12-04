@@ -158,7 +158,7 @@ struct deserialization_context {
 
   template <typename T>
   void check(T* el, size_t size) const {
-    auto const* pos = reinterpret_cast<uint8_t*>(el);
+    auto const* pos = reinterpret_cast<uint8_t const*>(el);
     if ((checked_ && to_) && (pos < from_ || pos + size > to_)) {
       throw std::runtime_error("pointer out of bounds");
     }
@@ -184,6 +184,8 @@ void deserialize(deserialization_context const& c, T* el) {
 template <typename T>
 void deserialize(deserialization_context const& c, cista::vector<T>* el) {
   el->el_ = c.deserialize<T*>(el->el_);
+  el->self_allocated_ = false;
+  c.check(el->el_, el->allocated_size_ * sizeof(T));
   for (auto& m : *el) {
     deserialize(c, &m);
   }
@@ -194,12 +196,15 @@ inline void deserialize(deserialization_context const& c, cista::string* el) {
     return;
   } else {
     el->h_.ptr_ = c.deserialize<char*>(el->h_.ptr_);
+    el->h_.self_allocated_ = false;
+    c.check(el->h_.ptr_, el->h_.size_);
   }
 }
 
 template <typename T>
 void deserialize(deserialization_context const& c, cista::unique_ptr<T>* el) {
   el->el_ = c.deserialize<T*>(el->el_);
+  el->self_allocated_ = false;
   deserialize(c, el->el_);
 }
 
