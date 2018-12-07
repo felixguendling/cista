@@ -13,7 +13,6 @@ Cista++ is a simple, open source (MIT license) C++17 compatible way of (de-)seri
   - Supports complex and cyclic datastructures including cyclic references, recursive data structures, etc.
   - Compatible with Clang, GCC, and MSVC
 
-
 # Use Cases
 
 You can use this library to load data from *trusted* sources *ONLY*.

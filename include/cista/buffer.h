@@ -53,6 +53,9 @@ struct buffer final {
   inline unsigned char* begin() { return data(); }
   inline unsigned char* end() { return data() + size_; }
 
+  unsigned char& operator[](size_t i) { return *(data() + i); }
+  unsigned char const& operator[](size_t i) const { return *(data() + i); }
+
   void* buf_;
   std::size_t size_;
 };

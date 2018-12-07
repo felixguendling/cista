@@ -143,6 +143,30 @@ byte_buf serialize(T& el) {
 // =============================================================================
 // DESERIALIZE
 // -----------------------------------------------------------------------------
+template <typename Arg, typename... Args>
+Arg checked_addition(Arg a1, Args... aN) {
+  auto add_if_ok = [&](auto x) {
+    if (a1 > std::numeric_limits<decltype(a1)>::max() - x) {
+      throw std::overflow_error("addition overflow");
+    }
+    a1 = a1 + x;
+  };
+  (add_if_ok(aN), ...);
+  return a1;
+}
+
+template <typename Arg, typename... Args>
+Arg checked_multiplication(Arg a1, Args... aN) {
+  auto multiply_if_ok = [&](auto x) {
+    if (a1 != 0 && ((std::numeric_limits<decltype(a1)>::max() / a1) < x)) {
+      throw std::overflow_error("addition overflow");
+    }
+    a1 = a1 * x;
+  };
+  (multiply_if_ok(aN), ...);
+  return a1;
+}
+
 struct deserialization_context {
   deserialization_context(bool checked, uint8_t* from, uint8_t* to)
       : checked_{checked}, from_{from}, to_{to} {}
@@ -159,8 +183,15 @@ struct deserialization_context {
   template <typename T>
   void check(T* el, size_t size) const {
     auto const* pos = reinterpret_cast<uint8_t const*>(el);
-    if ((checked_ && to_) && (pos < from_ || pos + size > to_)) {
+    if ((checked_ && to_) &&
+        (pos < from_ || checked_addition(pos, size) > to_)) {
       throw std::runtime_error("pointer out of bounds");
+    }
+  }
+
+  void check(bool condition, char const* msg) const {
+    if (!condition) {
+      throw std::runtime_error(msg);
     }
   }
 
@@ -175,6 +206,7 @@ void deserialize(deserialization_context const& c, T* el) {
     *el = c.deserialize<written_type_t>(*el);
     c.check(*el, sizeof(*std::declval<written_type_t>()));
   } else if constexpr (std::is_scalar_v<written_type_t>) {
+    c.check(el, sizeof(T));
     return;
   } else {
     cista::for_each_ptr_field(*el, [&](auto& f) { deserialize(c, f); });
@@ -184,8 +216,10 @@ void deserialize(deserialization_context const& c, T* el) {
 template <typename T>
 void deserialize(deserialization_context const& c, cista::vector<T>* el) {
   el->el_ = c.deserialize<T*>(el->el_);
-  el->self_allocated_ = false;
-  c.check(el->el_, el->allocated_size_ * sizeof(T));
+  c.check(el->el_, checked_multiplication(
+                       static_cast<size_t>(el->allocated_size_), sizeof(T)));
+  c.check(el->allocated_size_ == el->used_size_, "cista::vector size mismatch");
+  c.check(!el->self_allocated_, "cista::vector self-allocated");
   for (auto& m : *el) {
     deserialize(c, &m);
   }
@@ -196,15 +230,16 @@ inline void deserialize(deserialization_context const& c, cista::string* el) {
     return;
   } else {
     el->h_.ptr_ = c.deserialize<char*>(el->h_.ptr_);
-    el->h_.self_allocated_ = false;
     c.check(el->h_.ptr_, el->h_.size_);
+    c.check(!el->h_.self_allocated_, "cista::string self-allocated");
   }
 }
 
 template <typename T>
 void deserialize(deserialization_context const& c, cista::unique_ptr<T>* el) {
   el->el_ = c.deserialize<T*>(el->el_);
-  el->self_allocated_ = false;
+  c.check(el->el_, sizeof(T));
+  c.check(!el->self_allocated_, "cista::unique_ptr self-allocated");
   deserialize(c, el->el_);
 }
 
