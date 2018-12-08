@@ -23,5 +23,5 @@ build_script:
   - cmake -GNinja -DCMAKE_BUILD_TYPE=%CONFIGURATION% ..
   - ninja cista-test
 test_script:
-  - ./cista-test --test-case-exclude="downward compatibility test,graph serialization*"
+  - cista-test --test-case-exclude="downward compatibility test,graph serialization*"
 deploy: off
