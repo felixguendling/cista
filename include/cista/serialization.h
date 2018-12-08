@@ -158,8 +158,9 @@ Arg checked_addition(Arg a1, Args... aN) {
 
 template <typename Arg, typename... Args>
 Arg checked_multiplication(Arg a1, Args... aN) {
+  using Type = std::remove_reference_t<std::remove_const_t<Arg>>;
   auto multiply_if_ok = [&](auto x) {
-    if (a1 != 0 && ((std::numeric_limits<decltype(a1)>::max() / a1) < x)) {
+    if (a1 != 0 && ((std::numeric_limits<Type>::max() / a1) < x)) {
       throw std::overflow_error("addition overflow");
     }
     a1 = a1 * x;
