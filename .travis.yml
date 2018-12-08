@@ -22,7 +22,7 @@ before_install:
   - pip install --user cpp-coveralls
 script:
   - mkdir build && cd build
-  - cmake -GNinja -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
+  - cmake -GNinja -DCISTA_COVERAGE=On -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
   - ninja cista-format-check
   - ninja cista-test
   - ./cista-test
