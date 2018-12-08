@@ -9,9 +9,11 @@ addons:
       - build-essential
       - cmake
       - clang-7
+      - clang-tidy-7
       - g++-7
       - libc++-7-dev
       - libc++abi-7-dev
+      - ninja-build
 env:
   - BUILD_TYPE=Release LDFLAGS="-stdlib=libc++" CC="clang-7" CXX="clang++-7" CXXFLAGS="-std=c++17 -stdlib=libc++ -D_LIBCPP_VERSION=1"
   - BUILD_TYPE=Debug   LDFLAGS="-stdlib=libc++" CC="clang-7" CXX="clang++-7" CXXFLAGS="-std=c++17 -stdlib=libc++ -D_LIBCPP_VERSION=1 -fno-omit-frame-pointer -fsanitize=address"
@@ -19,7 +21,8 @@ env:
   - BUILD_TYPE=Debug                            CC="gcc-7"   CXX="g++-7"     CXXFLAGS="-std=c++17 -fno-omit-frame-pointer -fsanitize=address"
 script:
   - mkdir build && cd build
-  - cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
-  - make cista-format-check
-  - make cista-test
+  - cmake -GNinja -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
+  - ninja cista-format-check
+  - ninja cista-test
   - ./cista-test
+  - ninja cista-lint
