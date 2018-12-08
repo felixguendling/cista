@@ -9,7 +9,6 @@ addons:
       - build-essential
       - cmake
       - clang-7
-      - clang-tidy-7
       - g++-7
       - libc++-7-dev
       - libc++abi-7-dev
@@ -25,4 +24,3 @@ script:
   - ninja cista-format-check
   - ninja cista-test
   - ./cista-test
-  - ninja cista-lint
