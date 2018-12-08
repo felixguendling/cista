@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+option(CISTA_COVERAGE "generate coverage report" OFF)
+
 add_library(cista INTERFACE)
 target_include_directories(cista INTERFACE include)
 
@@ -27,6 +29,9 @@ file(GLOB_RECURSE cista-test-files test/*.cc)
 add_executable(cista-test EXCLUDE_FROM_ALL ${cista-test-files} ${CMAKE_CURRENT_BINARY_DIR}/cista.h)
 target_link_libraries(cista-test doctest)
 target_include_directories(cista-test PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+if(CMAKE_COMPILER_IS_GNUCXX AND CISTA_COVERAGE)
+  target_link_libraries(cista-test gcov)
+endif()
 
 add_custom_target(cista-format-check
   find
