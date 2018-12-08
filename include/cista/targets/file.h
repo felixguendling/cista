@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdio>
+#include <memory>
 
 #include "cista/offset_t.h"
 #include "cista/verify.h"

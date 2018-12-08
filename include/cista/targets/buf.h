@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <memory>
 
 #include "cista/offset_t.h"
 #include "cista/verify.h"
