@@ -145,8 +145,9 @@ byte_buf serialize(T& el) {
 // -----------------------------------------------------------------------------
 template <typename Arg, typename... Args>
 Arg checked_addition(Arg a1, Args... aN) {
+  using Type = std::remove_reference_t<std::remove_const_t<Arg>>;
   auto add_if_ok = [&](auto x) {
-    if (a1 > std::numeric_limits<decltype(a1)>::max() - x) {
+    if (a1 > std::numeric_limits<Type>::max() - x) {
       throw std::overflow_error("addition overflow");
     }
     a1 = a1 + x;
