@@ -6,8 +6,10 @@ addons:
       - ubuntu-toolchain-r-test
       - llvm-toolchain-xenial-7
     packages:
+      - build-essential
       - cmake
       - clang-7
+      - g++-7
       - libc++-7-dev
       - libc++abi-7-dev
 env:
