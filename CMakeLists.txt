@@ -29,8 +29,9 @@ file(GLOB_RECURSE cista-test-files test/*.cc)
 add_executable(cista-test EXCLUDE_FROM_ALL ${cista-test-files} ${CMAKE_CURRENT_BINARY_DIR}/cista.h)
 target_link_libraries(cista-test doctest)
 target_include_directories(cista-test PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-if(CMAKE_COMPILER_IS_GNUCXX AND CISTA_COVERAGE)
-  target_link_libraries(cista-test gcov)
+if(CISTA_COVERAGE)
+  target_compile_options(cista-test PRIVATE -fprofile-arcs -ftest-coverage)
+  set_target_properties(cista-test PROPERTIES LINK_FLAGS --coverage)
 endif()
 
 add_custom_target(cista-format-check
@@ -67,3 +68,14 @@ add_custom_target(cista-lint
   VERBATIM
 )
 add_dependencies(cista-lint cista-test)
+
+add_custom_target(cista-coverage
+  rm -rf *.info &&
+  lcov --directory . --capture --output-file cov.info &&
+  ./cista-test &&
+  lcov --directory . --capture --output-file cov.info &&
+  lcov -r cov.info "*doctest*" -o cov.info &&
+  lcov -r cov.info "*test/*.cc" -o cov.info &&
+  lcov -r cov.info "*v1*" -o cov.info
+)
+add_dependencies(cista-coverage cista-test)
