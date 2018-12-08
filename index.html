@@ -63,7 +63,6 @@
       display: -ms-flexbox;
       display: -webkit-box;
       display: flex;
-    /*  box-shadow: inset 0 0 5rem rgba(0, 0, 0, .5);*/
     }
 
 
@@ -125,6 +124,18 @@
       color: #fff;
       text-shadow: 0 .05rem .1rem rgba(0, 0, 0, .5);
     }
+    .message .badge {
+      text-shadow: none;
+    }
+    .try {
+      float: right;
+      position: absolute;
+      right: 15px;
+      top: 12px;
+    }
+    .code {
+      position: relative;
+    }
 
 
     /*
@@ -181,6 +192,7 @@
           <nav class="nav nav-masthead justify-content-center">
             <a class="nav-link active" href="#main">Home</a>
             <a class="nav-link" href="#about">About</a>
+            <a class="nav-link active" href="#reflection">Reflection</a>
             <a class="nav-link" href="https://github.com/felixguendling/cista">GitHub</a>
           </nav>
         </div>
@@ -196,7 +208,7 @@
               <b><i>Single header. No macros. No source code generation.</i></b>
             </p>
             <ul class="lead">
-              <li>Raw performance</li>
+              <li>Raw performance - use your native structs</li>
               <li>No macro magic, no additional definition files, no generated source code</li>
               <li>Supports complex and cyclic datastructures including cyclic references, recursive data structures, etc.</li>
               <li>Compatible with Clang, GCC, and MSVC</li>
@@ -207,8 +219,10 @@
             </div>
           </div>
           <div class="col col-md-auto">
-            <pre class="box-shadow rounded p-4"><code class="language-cpp">struct my_struct {  // Define your struct.
-  int a_{0};
+            <div class="code">
+              <a href="https://www.onlinegdb.com/r1WUlqYyN" class="try badge badge-warning" target="_blank">compile & run</a>
+              <pre class="box-shadow rounded p-4"><code class="language-cpp">struct my_struct {
+  int a_{0};  // Define your struct.
   struct inner {
     int b_{0};
     cista::string d_;
@@ -217,13 +231,14 @@
 
 std::vector&lt;unsigned char&gt; buf;
 {  // Serialize an object of class my_struct.
-  my_struct obj{1, {2, 3, cista::string{"test"}}};
+  my_struct obj{1, {2, cista::string{"test"}}};
   buf = cista::serialize(obj);
 }  // End of life for the "obj" value
 
 // Deserialize and read.
 auto serialized = cista::deserialize&lt;my_struct&gt;(buf);
 assert(serialized->j.d_ == cista::string{"test"});</code></pre>
+          </div>
         </div>
       </main> <!-- MAIN END -->
 
@@ -233,17 +248,15 @@ assert(serialized->j.d_ == cista::string{"test"});</code></pre>
           <div class="card-body">
             <h5 class="card-title">Use Cases</h5>
             <p class="card-text">
-              <p>You can use this library to load data from <i>trusted</i> sources <i>ONLY</i>.</p>
-              <p>Reader and writer should run on the same architecture (e.g. 64 bit big endian).</p>
-              Examples:
+              <p><i>Requirement</i>: reader and writer should run on the same architecture (e.g. 64 bit big endian).</p>
+              Example use cases:
               <ul>
                 <li>Asset loading for all kinds of applications (i.e. game assets, GIS data, large graphs, etc.)</li>
-                <li>Transferring data over network to/from trusted parties</li>
+                <li>Transferring data over network</li>
               </ul>
               <p>
                 Currently, only C++17 software can read/write data.
-                But it should be possible to generate accessors
-                for other programming languages, too.
+                It is possible to generate accessors for other programming languages, too.
               </p>
             </p>
           </div>
@@ -254,9 +267,8 @@ assert(serialized->j.d_ == cista::string{"test"});</code></pre>
             <h5 class="card-title">Alternatives</h5>
             <p class="card-text">
               <p>
-                If you need to be compatible with other programming languages,
-                need to process data from untrusted sources,
-                require protocol evolution (downward compatibility)
+                If you need to be compatible with other programming languages
+                or require protocol evolution (downward compatibility)
                 you should look for another solution.
                 The following libraries provide some/all of those features.
               </p>
@@ -351,7 +363,9 @@ struct graph {
                        // deterministic buffer contents
 };</code></pre>
             <h6>Creating the Graph and De-/Serialization</h6>
-            <pre class="box-shadow rounded p-4"><code class="language-cpp">// Create cyclic graph with nodes and edges.
+            <div class="code">
+              <a href="https://onlinegdb.com/HJ5q7qYkV" class="try badge badge-warning" target="_blank">compile & run</a>
+              <pre class="box-shadow rounded p-4"><code class="language-cpp">// Create cyclic graph with nodes and edges.
 {
   graph g;
 
@@ -379,10 +393,10 @@ auto const g =
 
 // Read graph.
 use(g);</code></pre>
+              </div>
             </p>
           </div>
         </div>
-
 
         <div class="card mt-3">
           <div class="card-body">
@@ -488,8 +502,7 @@ void serialize(Ctx&, YourType const*, cista::offset_t const);</code></pre>
    */
   std::vector&lt;pending_offset&gt; pending_;
 };</code></pre>
-                </p>
-
+              </p>
 
               <h6>Deserialization</h6>
 
@@ -544,6 +557,165 @@ void serialize(Ctx&, YourType const*, cista::offset_t const);</code></pre>
         </div>
       </main> <!-- ABOUT END -->
 
+      <!-- ****  Reflection **** -->
+      <main id="reflection" role="main" class="inner">
+        <div class="card-columns">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Human Readable to String</h5>
+              <p class="card-text">
+                <div class="code">
+                  <a href="https://onlinegdb.com/BJK5osYyE" class="try badge badge-light" target="_blank">compile & run</a>
+                  <pre class="box-shadow rounded p-2"><code class="language-cpp">struct a {
+  MAKE_PRINTABLE(a)
+  int i_ = 1;
+  int j_ = 2;
+  double d_ = 100.0;
+  std::string s_ = "hello world";
+};
+
+int main() {
+  a instance;
+  std::cout &lt;&lt; instance;
+  // "{1, 2, 100, hello world}"
+}</code></pre>
+                </div>
+              </p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Modify Struct as Tuple</h5>
+              <p class="card-text">
+                <div class="code">
+                  <a href="https://onlinegdb.com/BkxbaoKyE" class="try badge badge-light" target="_blank">compile & run</a>
+                  <pre class="box-shadow rounded p-2"><code class="language-cpp">struct a {
+  int i_ = 1;
+  int j_ = 2;
+  double d_ = 100.0;
+  std::string s_ = "hello";
+};
+
+int main() {
+  using cista::to_tuple;
+  using std::get;
+  a i;
+  get<0>(to_tuple(i)) = 5;
+  get<1>(to_tuple(i)) = 7;
+  get<2>(to_tuple(i)) = 2.0;
+  get<3>(to_tuple(i)) = "yeah";
+}</code></pre>
+                </div>
+              </p>
+            </div>
+          </div>
+          <div class="card text-white text-right p-3" style="background-color: #272822">
+            <blockquote class="blockquote mb-0">
+              <p>
+                The Cista++ Serialization is based on
+                a powerful reflection concept made possible
+                by the C++17 structured bindings feature.
+              </p>
+              <p>
+                This page presents some other
+                utilities enabled by this technique.
+              </p>
+              <footer class="blockquote-footer">
+                <small class="text-muted">
+                  <i>Credits:</i> based on the idea presented <a href="http://playfulprogramming.blogspot.com/2016/12/serializing-structs-with-c17-structured.html">here</a>.
+                </small>
+              </footer>
+            </blockquote>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Comparable: Generate Operators</h5>
+              <p class="card-text">
+                <div class="code">
+                  <a href="https://onlinegdb.com/BJScRjFkN" class="try badge badge-light" target="_blank">compile & run</a>
+                  <pre class="box-shadow rounded p-2"><code class="language-cpp">struct a {
+  MAKE_COMPARABLE()
+  int i_ = 1;
+  int j_ = 2;
+  double d_ = 100.0;
+  std::string s_ = "hello";
+};
+
+int main() {
+  a inst1, inst2;
+
+  CHECK(inst1 == inst2);
+
+  inst1.j_ = 1;
+
+  CHECK(!(inst1 == inst2));
+  CHECK(inst1 != inst2);
+  CHECK(inst1 &lt;= inst2);
+}</code></pre>
+                </div>
+              </p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Iterate Each Field</h5>
+              <p class="card-text">
+                <div class="code">
+                  <a href="https://onlinegdb.com/BJqBW2tk4" class="try badge badge-light" target="_blank">compile & run</a>
+                  <pre class="box-shadow rounded p-2"><code class="language-cpp">struct a {
+  int i_ = 1;
+  int j_ = 2;
+  double d_ = 100.0;
+  std::string s_ = "hello";
+};
+
+int main() {
+  a i;
+  cista::for_each_field(
+    i, [](auto&& m) { m = {}; });
+  CHECK(i.i_ == 0);
+  CHECK(i.j_ == 0);
+  CHECK(i.d_ == 0.0);
+  CHECK(i.s_ == "");
+}</code></pre>
+                </div>
+              </p>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Generate SQL Statements</h5>
+              <p class="card-text">
+                <div class="code">
+                  <a href="https://onlinegdb.com/B1LU43KyV" class="try badge badge-light" target="_blank">compile & run</a>
+                  <pre class="box-shadow rounded p-2"><code class="language-cpp">struct row {
+  sql_col&lt;
+    int, name("id"),
+    primary, not_null&gt; user_id;
+  sql_col&lt;
+    std::string, name("first"),
+    not_null&gt; first_name;
+  sql_col&lt;
+    std::string, name("last"),
+    not_null&gt; last_name;
+} r;
+
+int main() {
+  std::cout &lt;&lt;
+      create_table_statement(r);
+  // CREATE TABLE (
+  //   id INT PRIMARY NOT NULL,
+  //   firstName TEXT NOT NULL,
+  //   lastName TEXT NOT NULL
+  // );
+}</code></pre>
+                </div>
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
+
       <footer class="mastfoot mt-auto">
         <div class="text-center">
           <div class="copyright p-2">
@@ -565,8 +737,8 @@ void serialize(Ctx&, YourType const*, cista::offset_t const);</code></pre>
     function nav(route) {
       var title = 'Cista++';
       var separator = ' | ';
-      var route_names = {main: 'Homepage', about: 'About'};
-      var routes = ['main', 'about'];
+      var route_names = {main: 'Homepage', about: 'About', reflection: 'Reflection'};
+      var routes = ['main', 'about', 'reflection'];
       var path = (route || window.location.hash).slice(1).split('-');
 
       var route = path[0] || 'main';
