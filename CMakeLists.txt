@@ -76,6 +76,7 @@ add_custom_target(cista-coverage
   lcov --directory . --capture --output-file cov.info &&
   lcov -r cov.info "*doctest*" -o cov.info &&
   lcov -r cov.info "*test/*.cc" -o cov.info &&
-  lcov -r cov.info "*v1*" -o cov.info
+  lcov -r cov.info "*v1*" -o cov.info &&
+  lcov -r cov.info "/usr*" -o cov.info
 )
 add_dependencies(cista-coverage cista-test)
