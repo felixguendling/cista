@@ -71,7 +71,7 @@ add_dependencies(cista-lint cista-test)
 
 add_custom_target(cista-coverage
   rm -rf *.info &&
-  lcov --directory . --capture --output-file cov.info &&
+  find . -name "*.gcda" -delete &&
   ./cista-test &&
   lcov --directory . --capture --output-file cov.info &&
   lcov -r cov.info "*usr/include/*" -o cov.info &&
