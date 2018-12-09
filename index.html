@@ -60,6 +60,7 @@
     }
 
     body {
+      background-color: transparent;
       display: -ms-flexbox;
       display: -webkit-box;
       display: flex;
@@ -100,12 +101,19 @@
       border-bottom-color: #fff;
     }
 
+    footer {
+      display: none;
+    }
+
     @media (min-width: 48em) {
       .masthead-brand {
         float: left;
       }
       .nav-masthead {
         float: right;
+      }
+      footer {
+        display: block;
       }
     }
 
@@ -115,6 +123,8 @@
      */
     .cover {
       padding: 0 1rem;
+      margin-top: auto;
+      margin-bottom: auto;
     }
     .cover .btn-lg {
       padding: .75rem 1.25rem;
@@ -153,17 +163,8 @@
       background-repeat: no-repeat;
     }
 
-    body {
-      background-color: transparent;
-    }
-
     .container {
       max-width: 68em;
-    }
-
-    .cover {
-      margin-top: auto;
-      margin-bottom: auto;
     }
 
     .masthead-brand a:hover {
@@ -565,19 +566,19 @@ void serialize(Ctx&, YourType const*, cista::offset_t const);</code></pre>
               <h5 class="card-title">Human Readable to String</h5>
               <p class="card-text">
                 <div class="code">
-                  <a href="https://onlinegdb.com/BJK5osYyE" class="try badge badge-light" target="_blank">compile & run</a>
+                  <a href="https://onlinegdb.com/Sya7aUc1N" class="try badge badge-light" target="_blank">compile & run</a>
                   <pre class="box-shadow rounded p-2"><code class="language-cpp">struct a {
   MAKE_PRINTABLE(a)
   int i_ = 1;
   int j_ = 2;
   double d_ = 100.0;
-  std::string s_ = "hello world";
+  std::string s_ = "hello";
 };
 
 int main() {
   a instance;
   std::cout &lt;&lt; instance;
-  // "{1, 2, 100, hello world}"
+  // "{1, 2, 100, hello}"
 }</code></pre>
                 </div>
               </p>
