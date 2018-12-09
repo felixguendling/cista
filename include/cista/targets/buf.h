@@ -25,7 +25,7 @@ struct buf {
   offset_t write(void const* ptr, offset_t const size, offset_t alignment = 0) {
     auto aligned_size = size;
 
-    if (alignment != 0 && buf_.size() != 0) {
+    if (alignment != 0 && alignment != 1 && buf_.size() != 0) {
       auto unaligned_ptr = static_cast<void*>(addr(curr_offset_));
       auto space = static_cast<size_t>(alignment) * 8u;
       auto const aligned_ptr =

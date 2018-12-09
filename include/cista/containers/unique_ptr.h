@@ -25,7 +25,8 @@ struct unique_ptr {
     el_ = o.el_;
     self_allocated_ = o.self_allocated_;
     o.el_ = nullptr;
-    o.self_allocated = false;
+    o.self_allocated_ = false;
+    return *this;
   }
 
   ~unique_ptr() {

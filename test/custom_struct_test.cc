@@ -25,8 +25,7 @@ TEST_CASE("custom struct test") {
     buf = cista::serialize(obj);
   }  // EOL obj
 
-  auto const serialized =
-      cista::deserialize<serialize_me>(&buf[0], &buf[0] + buf.size());
+  auto const serialized = cista::deserialize<serialize_me>(buf);
   CHECK(1 == serialized->v1_);
   CHECK(2 == serialized->v2_);
   CHECK(3 == serialized->v3_);

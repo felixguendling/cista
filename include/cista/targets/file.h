@@ -42,7 +42,7 @@ struct sfile {
 
   offset_t write(void const* ptr, offset_t const size, offset_t alignment) {
     auto curr_offset = size_;
-    if (alignment != 0) {
+    if (alignment != 0 && alignment != 1) {
       auto unaligned_ptr = reinterpret_cast<void*>(size_);
       auto space = static_cast<size_t>(alignment) * 8u;
       auto const aligned_ptr =

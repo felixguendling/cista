@@ -186,8 +186,8 @@ struct vector {
     }
 
     auto next_size = next_power_of_two(new_size);
-    auto mem_buf =
-        static_cast<T*>(std::malloc(sizeof(T) * next_size));  // NOLINT
+    auto num_bytes = sizeof(T) * next_size;
+    auto mem_buf = static_cast<T*>(std::malloc(num_bytes));  // NOLINT
     if (mem_buf == nullptr) {
       throw std::bad_alloc();
     }
