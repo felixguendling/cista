@@ -49,6 +49,31 @@
       border-color: #7f41fc;
     }
 
+    .badge-run {
+      color: #fff;
+      background-color: #9763ff;
+      border-color: #9763ff;
+    }
+    .badge-run:hover {
+      color: #fff;
+      background-color: #7f41fc;
+      border-color: #7f41fc;
+      text-decoration: none;
+    }
+
+    /*
+    .badge-run {
+      color: #212529;
+      background-color: #ffc107;
+      border-color: #ffc107;
+    }
+    .badge-run:hover {
+      color: #212529;
+      background-color: #d39e00;
+      border-color: #212529;
+      text-decoration: none;
+    }
+    */
 
     /*
      * Base structure
@@ -213,7 +238,7 @@
           </div>
           <div class="col col-md-auto">
             <div class="code">
-              <a href="https://www.onlinegdb.com/r1WUlqYyN" class="try badge badge-warning" target="_blank">compile & run</a>
+              <a href="https://www.onlinegdb.com/r1WUlqYyN" class="try badge badge-run" target="_blank">compile & run</a>
               <pre class="box-shadow rounded p-4"><code class="language-cpp">struct my_struct {
   int a_{0};  // Define your struct.
   struct inner {
@@ -357,7 +382,7 @@ struct graph {
 };</code></pre>
             <h6>Creating the Graph and De-/Serialization</h6>
             <div class="code">
-              <a href="https://onlinegdb.com/HJ5q7qYkV" class="try badge badge-warning" target="_blank">compile & run</a>
+              <a href="https://onlinegdb.com/HJ5q7qYkV" class="try badge badge-run" target="_blank">compile & run</a>
               <pre class="box-shadow rounded p-4"><code class="language-cpp">// Create cyclic graph with nodes and edges.
 {
   graph g;
@@ -558,7 +583,7 @@ void serialize(Ctx&, YourType const*, cista::offset_t const);</code></pre>
               <h5 class="card-title">Human Readable to String</h5>
               <p class="card-text">
                 <div class="code">
-                  <a href="https://onlinegdb.com/Sya7aUc1N" class="try badge badge-light" target="_blank">compile & run</a>
+                  <a href="https://onlinegdb.com/Sya7aUc1N" class="try badge badge-run" target="_blank">compile & run</a>
                   <pre class="box-shadow rounded p-2"><code class="language-cpp">struct a {
   MAKE_PRINTABLE(a)
   int i_ = 1;
@@ -581,7 +606,7 @@ int main() {
               <h5 class="card-title">Modify Struct as Tuple</h5>
               <p class="card-text">
                 <div class="code">
-                  <a href="https://onlinegdb.com/BkxbaoKyE" class="try badge badge-light" target="_blank">compile & run</a>
+                  <a href="https://onlinegdb.com/BkxbaoKyE" class="try badge badge-run" target="_blank">compile & run</a>
                   <pre class="box-shadow rounded p-2"><code class="language-cpp">struct a {
   int i_ = 1;
   int j_ = 2;
@@ -625,7 +650,7 @@ int main() {
               <h5 class="card-title">Comparable: Generate Operators</h5>
               <p class="card-text">
                 <div class="code">
-                  <a href="https://onlinegdb.com/BJScRjFkN" class="try badge badge-light" target="_blank">compile & run</a>
+                  <a href="https://onlinegdb.com/BJScRjFkN" class="try badge badge-run" target="_blank">compile & run</a>
                   <pre class="box-shadow rounded p-2"><code class="language-cpp">struct a {
   MAKE_COMPARABLE()
   int i_ = 1;
@@ -654,7 +679,7 @@ int main() {
               <h5 class="card-title">Iterate Each Field</h5>
               <p class="card-text">
                 <div class="code">
-                  <a href="https://onlinegdb.com/BJqBW2tk4" class="try badge badge-light" target="_blank">compile & run</a>
+                  <a href="https://onlinegdb.com/BJqBW2tk4" class="try badge badge-run" target="_blank">compile & run</a>
                   <pre class="box-shadow rounded p-2"><code class="language-cpp">struct a {
   int i_ = 1;
   int j_ = 2;
@@ -680,7 +705,7 @@ int main() {
               <h5 class="card-title">Generate SQL Statements</h5>
               <p class="card-text">
                 <div class="code">
-                  <a href="https://onlinegdb.com/B1LU43KyV" class="try badge badge-light" target="_blank">compile & run</a>
+                  <a href="https://onlinegdb.com/B1LU43KyV" class="try badge badge-run" target="_blank">compile & run</a>
                   <pre class="box-shadow rounded p-2"><code class="language-cpp">struct row {
   sql_col&lt;
     int, name("id"),
