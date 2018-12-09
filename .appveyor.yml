@@ -3,9 +3,6 @@ image: Visual Studio 2017
 configuration:
   - Debug
   - Release
-environment:
-  matrix:
-    - CPP: latest
 cache:
   - C:\ninja-1.8.2
 install:
@@ -23,5 +20,5 @@ build_script:
   - cmake -GNinja -DCMAKE_BUILD_TYPE=%CONFIGURATION% ..
   - ninja cista-test
 test_script:
-  - cista-test --test-case-exclude="downward compatibility test,graph serialization*"
+  - cista-test --test-case-exclude="downward compatibility test,graph serialization*,sec*"
 deploy: off

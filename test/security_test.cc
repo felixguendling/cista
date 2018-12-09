@@ -2,7 +2,7 @@
 
 #include "doctest.h"
 
-TEST_CASE("value overflow") {
+TEST_CASE("sec value overflow") {
   struct serialize_me {
     int a_{0};
     struct inner {
@@ -25,7 +25,7 @@ TEST_CASE("value overflow") {
   CHECK_THROWS(cista::deserialize<serialize_me>(buf));
 }
 
-TEST_CASE("string overflow") {
+TEST_CASE("sec string overflow") {
   auto constexpr const long_str = "The quick brown fox jumps over the lazy dog";
 
   struct serialize_me {
@@ -50,7 +50,7 @@ TEST_CASE("string overflow") {
   CHECK_THROWS(cista::deserialize<serialize_me>(buf));
 }
 
-TEST_CASE("vector overflow") {
+TEST_CASE("sec vector overflow") {
   struct serialize_me {
     int a_{0};
     struct inner {
@@ -80,7 +80,7 @@ TEST_CASE("vector overflow") {
   CHECK_THROWS(cista::deserialize<serialize_me>(buf));
 }
 
-TEST_CASE("unique_ptr overflow unset") {
+TEST_CASE("sec unique_ptr overflow unset") {
   struct serialize_me {
     int a_{0};
     struct inner {
@@ -100,7 +100,7 @@ TEST_CASE("unique_ptr overflow unset") {
   CHECK_THROWS(cista::deserialize<serialize_me>(buf));
 }
 
-TEST_CASE("unique_ptr overflow set") {
+TEST_CASE("sec unique_ptr overflow set") {
   struct serialize_me {
     int a_{0};
     struct inner {
