@@ -5,7 +5,7 @@
 #include "cista.h"
 
 struct a {
-  MAKE_PRINTABLE(a)
+  CISTA_PRINTABLE(a)
   int i_ = 1;
   int j_ = 2;
   double d_ = 100.0;

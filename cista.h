@@ -1,6 +1,201 @@
 #pragma once
 
 
+
+#include <cstdlib>
+#include <cstring>
+
+#include <stdexcept>
+
+#define cista_verify(A, M)       \
+  if (!(A)) {                    \
+    throw std::runtime_error(M); \
+  }
+
+namespace cista {
+
+struct buffer final {
+  buffer() : buf_(nullptr), size_(0) {}
+
+  explicit buffer(std::size_t size) : buf_(malloc(size)), size_(size) {
+    cista_verify(buf_ != nullptr, "buffer initialization failed");
+  }
+
+  explicit buffer(char const* str) : buffer(std::strlen(str)) {
+    std::memcpy(buf_, str, size_);
+  }
+
+  buffer(char const* str, std::size_t size) : buffer(size) {
+    std::memcpy(buf_, str, size_);
+  }
+
+  ~buffer() {
+    std::free(buf_);
+    buf_ = nullptr;
+  }
+
+  buffer(buffer const&) = delete;
+  buffer& operator=(buffer const&) = delete;
+
+  buffer(buffer&& o) noexcept : buf_(o.buf_), size_(o.size_) {
+    o.buf_ = nullptr;
+    o.size_ = 0;
+  }
+
+  buffer& operator=(buffer&& o) noexcept {
+    buf_ = o.buf_;
+    size_ = o.size_;
+    o.buf_ = nullptr;
+    o.size_ = 0;
+    return *this;
+  }
+
+  inline std::size_t size() const { return size_; }
+
+  inline unsigned char* data() { return static_cast<unsigned char*>(buf_); }
+  inline unsigned char const* data() const {
+    return static_cast<unsigned char const*>(buf_);
+  }
+
+  inline unsigned char* begin() { return data(); }
+  inline unsigned char* end() { return data() + size_; }
+
+  unsigned char& operator[](size_t i) { return *(data() + i); }
+  unsigned char const& operator[](size_t i) const { return *(data() + i); }
+
+  void* buf_;
+  std::size_t size_;
+};
+
+}  // namespace cista
+
+#ifdef _MSC_VER
+#include <cstdio>
+
+#define NOMINMAX
+#include <windows.h>
+
+namespace cista {
+
+inline HANDLE open_file(char const* path, char const* mode) {
+  bool read = std::strcmp(mode, "r") == 0;
+  bool write = std::strcmp(mode, "w+") == 0;
+
+  cista_verify(read || write, "invalid open file mode");
+
+  DWORD access = read ? GENERIC_READ : GENERIC_WRITE;
+  DWORD create_mode = read ? OPEN_EXISTING : CREATE_ALWAYS;
+
+  return CreateFileA(path, access, 0, nullptr, create_mode,
+                     FILE_ATTRIBUTE_NORMAL, nullptr);
+}
+
+template <typename Fn>
+inline void chunk(unsigned const chunk_size, size_t const total, Fn fn) {
+  size_t offset = 0;
+  size_t remaining = total;
+  while (remaining > 0) {
+    auto const curr_chunk_size = static_cast<unsigned>(
+        std::min(remaining, static_cast<size_t>(chunk_size)));
+    fn(offset, curr_chunk_size);
+    offset += curr_chunk_size;
+    remaining -= curr_chunk_size;
+  }
+}
+
+struct file {
+  file(char const* path, char const* mode) : f_(open_file(path, mode)) {
+    cista_verify(f_ != INVALID_HANDLE_VALUE, "unable to open file");
+  }
+
+  ~file() {
+    if (f_ != nullptr) {
+      CloseHandle(f_);
+    }
+  }
+
+  size_t size() {
+    LARGE_INTEGER filesize;
+    GetFileSizeEx(f_, &filesize);
+    return filesize.QuadPart;
+  }
+
+  buffer content() {
+    constexpr auto block_size = 8192u;
+    size_t const file_size = size();
+
+    auto b = buffer(file_size);
+
+    chunk(block_size, size(), [&](size_t const from, unsigned block_size) {
+      OVERLAPPED overlapped = {0};
+      overlapped.Offset = static_cast<DWORD>(from);
+      overlapped.OffsetHigh = from >> 32u;
+      ReadFile(f_, b.data() + from, static_cast<DWORD>(block_size), nullptr,
+               &overlapped);
+    });
+
+    return b;
+  }
+
+  void write(void const* buf, size_t size) {
+    constexpr auto block_size = 8192u;
+    chunk(block_size, size, [&](size_t const from, unsigned block_size) {
+      OVERLAPPED overlapped = {0};
+      overlapped.Offset = static_cast<DWORD>(from);
+      overlapped.OffsetHigh = from >> 32u;
+      WriteFile(f_, static_cast<unsigned char const*>(buf) + from, block_size,
+                nullptr, &overlapped);
+    });
+  }
+
+  HANDLE f_;
+};
+#else
+#include <cstdio>
+
+namespace cista {
+
+struct file {
+  file(char const* path, char const* mode) : f_(std::fopen(path, mode)) {
+    cista_verify(f_ != nullptr, "unable to open file");
+  }
+
+  ~file() {
+    if (f_ != nullptr) {
+      fclose(f_);
+    }
+    f_ = nullptr;
+  }
+
+  size_t size() {
+    auto err = std::fseek(f_, 0, SEEK_END);
+    cista_verify(!err, "fseek to SEEK_END error");
+    auto size = std::ftell(f_);
+    std::rewind(f_);
+    return static_cast<size_t>(size);
+  }
+
+  buffer content() {
+    auto file_size = size();
+    auto b = buffer(file_size);
+    auto bytes_read = std::fread(b.data(), 1, file_size, f_);
+    cista_verify(bytes_read == file_size, "file read error");
+    return b;
+  }
+
+  void write(void const* buf, size_t size) {
+    auto bytes_written = std::fwrite(buf, 1, size, f_);
+    cista_verify(bytes_written == size, "file write error");
+  }
+
+  operator FILE*() { return f_; }
+
+  FILE* f_;
+};
+#endif
+
+}  // namespace cista
+
 #include <iostream>
 #include <limits>
 #include <map>
@@ -193,7 +388,8 @@ struct unique_ptr {
     el_ = o.el_;
     self_allocated_ = o.self_allocated_;
     o.el_ = nullptr;
-    o.self_allocated = false;
+    o.self_allocated_ = false;
+    return *this;
   }
 
   ~unique_ptr() {
@@ -406,8 +602,8 @@ struct vector {
     }
 
     auto next_size = next_power_of_two(new_size);
-    auto mem_buf =
-        static_cast<T*>(std::malloc(sizeof(T) * next_size));  // NOLINT
+    auto num_bytes = sizeof(T) * next_size;
+    auto mem_buf = static_cast<T*>(std::malloc(num_bytes));  // NOLINT
     if (mem_buf == nullptr) {
       throw std::bad_alloc();
     }
@@ -931,13 +1127,8 @@ inline void for_each_field(Fn&& fn) {
 
 #include <cstdio>
 #include <cstring>
+#include <memory>
 
-#include <stdexcept>
-
-#define cista_verify(A, M)       \
-  if (!(A)) {                    \
-    throw std::runtime_error(M); \
-  }
 
 namespace cista {
 
@@ -957,7 +1148,7 @@ struct buf {
   offset_t write(void const* ptr, offset_t const size, offset_t alignment = 0) {
     auto aligned_size = size;
 
-    if (alignment != 0 && buf_.size() != 0) {
+    if (alignment != 0 && alignment != 1 && buf_.size() != 0) {
       auto unaligned_ptr = static_cast<void*>(addr(curr_offset_));
       auto space = static_cast<size_t>(alignment) * 8u;
       auto const aligned_ptr =
@@ -991,16 +1182,17 @@ struct buf {
 }  // namespace cista
 
 #include <cstdio>
+#include <memory>
 
 
 #ifdef _MSC_VER
-inline FILE* open_file(char const* path, char const* mode) {
+inline FILE* s_open_file(char const* path, char const* mode) {
   FILE* ptr = nullptr;
   fopen_s(&ptr, path, mode);
   return ptr;
 }
 #else
-inline FILE* open_file(char const* path, char const* mode) {
+inline FILE* s_open_file(char const* path, char const* mode) {
   return std::fopen(path, mode);
 }
 #endif
@@ -1008,7 +1200,7 @@ inline FILE* open_file(char const* path, char const* mode) {
 namespace cista {
 
 struct sfile {
-  sfile(char const* path, char const* mode) : f_(open_file(path, mode)) {
+  sfile(char const* path, char const* mode) : f_(s_open_file(path, mode)) {
     cista_verify(f_ != nullptr, "unable to open file");
   }
 
@@ -1029,7 +1221,7 @@ struct sfile {
 
   offset_t write(void const* ptr, offset_t const size, offset_t alignment) {
     auto curr_offset = size_;
-    if (alignment != 0) {
+    if (alignment != 0 && alignment != 1) {
       auto unaligned_ptr = reinterpret_cast<void*>(size_);
       auto space = static_cast<size_t>(alignment) * 8u;
       auto const aligned_ptr =
@@ -1182,8 +1374,38 @@ byte_buf serialize(T& el) {
 // =============================================================================
 // DESERIALIZE
 // -----------------------------------------------------------------------------
+template <typename Arg, typename... Args>
+Arg checked_addition(Arg a1, Args... aN) {
+  using Type = std::remove_reference_t<std::remove_const_t<Arg>>;
+  auto add_if_ok = [&](auto x) {
+    if (a1 >
+        (std::is_pointer_v<Type> ? reinterpret_cast<Type>(0xffffffffffffffff)
+                                 : std::numeric_limits<Type>::max()) -
+            x) {
+      throw std::overflow_error("addition overflow");
+    }
+    a1 = a1 + x;
+  };
+  (add_if_ok(aN), ...);
+  return a1;
+}
+
+template <typename Arg, typename... Args>
+Arg checked_multiplication(Arg a1, Args... aN) {
+  using Type = std::remove_reference_t<std::remove_const_t<Arg>>;
+  auto multiply_if_ok = [&](auto x) {
+    if (a1 != 0 && ((std::numeric_limits<Type>::max() / a1) < x)) {
+      throw std::overflow_error("addition overflow");
+    }
+    a1 = a1 * x;
+  };
+  (multiply_if_ok(aN), ...);
+  return a1;
+}
+
 struct deserialization_context {
-  deserialization_context(uint8_t* from, uint8_t* to) : from_{from}, to_{to} {}
+  deserialization_context(bool checked, uint8_t* from, uint8_t* to)
+      : checked_{checked}, from_{from}, to_{to} {}
 
   template <typename T, typename Ptr>
   T deserialize(Ptr* ptr) const {
@@ -1191,12 +1413,25 @@ struct deserialization_context {
     if (offset == std::numeric_limits<offset_t>::max()) {
       return nullptr;
     }
-    if (to_ != nullptr && offset >= static_cast<offset_t>(to_ - from_)) {
-      throw std::runtime_error("pointer out of bounds");
-    }
     return reinterpret_cast<T>(from_ + offset);
   }
 
+  template <typename T>
+  void check(T* el, size_t size) const {
+    auto const* pos = reinterpret_cast<uint8_t const*>(el);
+    if (checked_ && to_ && pos != nullptr &&
+        (pos < from_ || checked_addition(pos, size) > to_)) {
+      throw std::runtime_error("pointer out of bounds");
+    }
+  }
+
+  void check(bool condition, char const* msg) const {
+    if (!condition) {
+      throw std::runtime_error(msg);
+    }
+  }
+
+  bool checked_;
   uint8_t *from_, *to_;
 };
 
@@ -1205,8 +1440,9 @@ void deserialize(deserialization_context const& c, T* el) {
   using written_type_t = std::remove_reference_t<std::remove_const_t<T>>;
   if constexpr (std::is_pointer_v<written_type_t>) {
     *el = c.deserialize<written_type_t>(*el);
+    c.check(*el, sizeof(*std::declval<written_type_t>()));
   } else if constexpr (std::is_scalar_v<written_type_t>) {
-    return;
+    c.check(el, sizeof(T));
   } else {
     cista::for_each_ptr_field(*el, [&](auto& f) { deserialize(c, f); });
   }
@@ -1214,218 +1450,112 @@ void deserialize(deserialization_context const& c, T* el) {
 
 template <typename T>
 void deserialize(deserialization_context const& c, cista::vector<T>* el) {
+  c.check(el, sizeof(cista::vector<T>));
   el->el_ = c.deserialize<T*>(el->el_);
+  c.check(el->el_, checked_multiplication(
+                       static_cast<size_t>(el->allocated_size_), sizeof(T)));
+  c.check(el->allocated_size_ == el->used_size_, "cista::vector size mismatch");
+  c.check(!el->self_allocated_, "cista::vector self-allocated");
   for (auto& m : *el) {
     deserialize(c, &m);
   }
 }
 
 inline void deserialize(deserialization_context const& c, cista::string* el) {
-  if (el->is_short()) {
-    return;
-  } else {
+  c.check(el, sizeof(cista::string));
+  if (!el->is_short()) {
     el->h_.ptr_ = c.deserialize<char*>(el->h_.ptr_);
+    c.check(el->h_.ptr_, el->h_.size_);
+    c.check(!el->h_.self_allocated_, "cista::string self-allocated");
   }
 }
 
 template <typename T>
 void deserialize(deserialization_context const& c, cista::unique_ptr<T>* el) {
+  c.check(el, sizeof(cista::unique_ptr<T>));
   el->el_ = c.deserialize<T*>(el->el_);
+  c.check(el->el_, sizeof(T));
+  c.check(!el->self_allocated_, "cista::unique_ptr self-allocated");
   deserialize(c, el->el_);
 }
 
 template <typename T>
-T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
-  deserialization_context c{from, to};
+T* deserialize(uint8_t* from, uint8_t* to = nullptr, bool checked = true) {
+  deserialization_context c{checked, from, to};
   auto const el = reinterpret_cast<T*>(from);
   deserialize(c, el);
   return el;
 }
 
+template <typename T, typename Container>
+T* deserialize(Container& c, bool checked = true) {
+  return deserialize<T>(&c[0], &c[c.size()], checked);
+}
+
 }  // namespace cista
 
 
-#include <cstdlib>
-#include <cstring>
-
-
-namespace cista {
-
-struct buffer final {
-  buffer() : buf_(nullptr), size_(0) {}
-
-  explicit buffer(std::size_t size) : buf_(malloc(size)), size_(size) {
-    cista_verify(buf_ != nullptr, "buffer initialization failed");
+#define MAKE_COMPARABLE()                                \
+  template <typename T>                                  \
+  bool operator==(T&& b) const {                         \
+    return cista::to_tuple(*this) == cista::to_tuple(b); \
+  }                                                      \
+                                                         \
+  template <typename T>                                  \
+  bool operator!=(T&& b) const {                         \
+    return cista::to_tuple(*this) != cista::to_tuple(b); \
+  }                                                      \
+                                                         \
+  template <typename T>                                  \
+  bool operator<(T&& b) const {                          \
+    return cista::to_tuple(*this) < cista::to_tuple(b);  \
+  }                                                      \
+                                                         \
+  template <typename T>                                  \
+  bool operator<=(T&& b) const {                         \
+    return cista::to_tuple(*this) <= cista::to_tuple(b); \
+  }                                                      \
+                                                         \
+  template <typename T>                                  \
+  bool operator>(T&& b) const {                          \
+    return cista::to_tuple(*this) > cista::to_tuple(b);  \
+  }                                                      \
+                                                         \
+  template <typename T>                                  \
+  bool operator>=(T&& b) const {                         \
+    return cista::to_tuple(*this) >= cista::to_tuple(b); \
   }
 
-  explicit buffer(char const* str) : buffer(std::strlen(str)) {
-    std::memcpy(buf_, str, size_);
-  }
+#include <ostream>
 
-  buffer(char const* str, std::size_t size) : buffer(size) {
-    std::memcpy(buf_, str, size_);
-  }
 
-  ~buffer() {
-    std::free(buf_);
-    buf_ = nullptr;
-  }
-
-  buffer(buffer const&) = delete;
-  buffer& operator=(buffer const&) = delete;
-
-  buffer(buffer&& o) noexcept : buf_(o.buf_), size_(o.size_) {
-    o.buf_ = nullptr;
-    o.size_ = 0;
-  }
-
-  buffer& operator=(buffer&& o) noexcept {
-    buf_ = o.buf_;
-    size_ = o.size_;
-    o.buf_ = nullptr;
-    o.size_ = 0;
-    return *this;
-  }
-
-  inline std::size_t size() const { return size_; }
-
-  inline unsigned char* data() { return static_cast<unsigned char*>(buf_); }
-  inline unsigned char const* data() const {
-    return static_cast<unsigned char const*>(buf_);
-  }
-
-  inline unsigned char* begin() { return data(); }
-  inline unsigned char* end() { return data() + size_; }
-
-  void* buf_;
-  std::size_t size_;
-};
-
-}  // namespace cista
-
-#ifdef _MSC_VER
-#include <cstdio>
-
-#define NOMINMAX
-#include <windows.h>
-
-namespace cista {
-
-inline HANDLE open_file(char const* path, char const* mode) {
-  bool read = std::strcmp(mode, "r") == 0;
-  bool write = std::strcmp(mode, "w+") == 0;
-
-  cista_verify(read || write, "invalid open file mode");
-
-  DWORD access = read ? GENERIC_READ : GENERIC_WRITE;
-  DWORD create_mode = read ? OPEN_EXISTING : CREATE_ALWAYS;
-
-  return CreateFileA(path, access, 0, nullptr, create_mode,
-                     FILE_ATTRIBUTE_NORMAL, nullptr);
-}
-
-template <typename Fn>
-inline void chunk(unsigned const chunk_size, size_t const total, Fn fn) {
-  size_t offset = 0;
-  size_t remaining = total;
-  while (remaining > 0) {
-    auto const curr_chunk_size = static_cast<unsigned>(
-        std::min(remaining, static_cast<size_t>(chunk_size)));
-    fn(offset, curr_chunk_size);
-    offset += curr_chunk_size;
-    remaining -= curr_chunk_size;
-  }
-}
-
-struct file {
-  file(char const* path, char const* mode) : f_(open_file(path, mode)) {
-    cista_verify(f_ != INVALID_HANDLE_VALUE, "unable to open file");
-  }
-
-  ~file() {
-    if (f_ != nullptr) {
-      CloseHandle(f_);
+#ifndef UTL_PRINTABLE_NO_VEC
+template <typename T>
+inline std::ostream& operator<<(std::ostream& out, std::vector<T> const& v) {
+  out << "[\n  ";
+  auto first = true;
+  for (auto const& e : v) {
+    if (!first) {
+      out << ",\n  ";
     }
+    out << e;
+    first = false;
   }
-
-  size_t size() {
-    LARGE_INTEGER filesize;
-    GetFileSizeEx(f_, &filesize);
-    return filesize.QuadPart;
-  }
-
-  buffer content() {
-    constexpr auto block_size = 8192u;
-    size_t const file_size = size();
-
-    auto b = buffer(file_size);
-
-    chunk(block_size, size(), [&](size_t const from, unsigned block_size) {
-      OVERLAPPED overlapped = {0};
-      overlapped.Offset = static_cast<DWORD>(from);
-      overlapped.OffsetHigh = from >> 32u;
-      ReadFile(f_, b.data() + from, static_cast<DWORD>(block_size), nullptr,
-               &overlapped);
-    });
-
-    return b;
-  }
-
-  void write(void const* buf, size_t size) {
-    constexpr auto block_size = 8192u;
-    chunk(block_size, size, [&](size_t const from, unsigned block_size) {
-      OVERLAPPED overlapped = {0};
-      overlapped.Offset = static_cast<DWORD>(from);
-      overlapped.OffsetHigh = from >> 32u;
-      WriteFile(f_, static_cast<unsigned char const*>(buf) + from, block_size,
-                nullptr, &overlapped);
-    });
-  }
-
-  HANDLE f_;
-};
-#else
-#include <cstdio>
-
-namespace cista {
-
-struct file {
-  file(char const* path, char const* mode) : f_(std::fopen(path, mode)) {
-    cista_verify(f_ != nullptr, "unable to open file");
-  }
-
-  ~file() {
-    if (f_ != nullptr) {
-      fclose(f_);
-    }
-    f_ = nullptr;
-  }
-
-  size_t size() {
-    auto err = std::fseek(f_, 0, SEEK_END);
-    cista_verify(!err, "fseek to SEEK_END error");
-    auto size = std::ftell(f_);
-    std::rewind(f_);
-    return static_cast<size_t>(size);
-  }
-
-  buffer content() {
-    auto file_size = size();
-    auto b = buffer(file_size);
-    auto bytes_read = std::fread(b.data(), 1, file_size, f_);
-    cista_verify(bytes_read == file_size, "file read error");
-    return b;
-  }
-
-  void write(void const* buf, size_t size) {
-    auto bytes_written = std::fwrite(buf, 1, size, f_);
-    cista_verify(bytes_written == size, "file write error");
-  }
-
-  operator FILE*() { return f_; }
-
-  FILE* f_;
-};
+  return out << "\n]";
+}
 #endif
 
-}  // namespace cista
+#define MAKE_PRINTABLE(class_name)                                          \
+  friend std::ostream& operator<<(std::ostream& out, class_name const& o) { \
+    bool first = true;                                                      \
+    out << "{";                                                             \
+    cista::for_each_field(o, [&](auto&& f) {                                \
+      if (first) {                                                          \
+        out << f;                                                           \
+        first = false;                                                      \
+      } else {                                                              \
+        out << ", " << f;                                                   \
+      }                                                                     \
+    });                                                                     \
+    return out << "}";                                                      \
+  }

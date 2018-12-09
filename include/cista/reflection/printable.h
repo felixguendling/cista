@@ -4,7 +4,7 @@
 
 #include "cista/reflection/for_each_field.h"
 
-#ifndef UTL_PRINTABLE_NO_VEC
+#ifndef CISTA_PRINTABLE_NO_VEC
 template <typename T>
 inline std::ostream& operator<<(std::ostream& out, std::vector<T> const& v) {
   out << "[\n  ";
@@ -20,7 +20,7 @@ inline std::ostream& operator<<(std::ostream& out, std::vector<T> const& v) {
 }
 #endif
 
-#define MAKE_PRINTABLE(class_name)                                          \
+#define CISTA_PRINTABLE(class_name)                                         \
   friend std::ostream& operator<<(std::ostream& out, class_name const& o) { \
     bool first = true;                                                      \
     out << "{";                                                             \
