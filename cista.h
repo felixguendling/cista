@@ -1495,7 +1495,7 @@ T* deserialize(Container& c, bool checked = true) {
 }  // namespace cista
 
 
-#define MAKE_COMPARABLE()                                \
+#define CISTA_COMPARABLE()                               \
   template <typename T>                                  \
   bool operator==(T&& b) const {                         \
     return cista::to_tuple(*this) == cista::to_tuple(b); \
@@ -1529,7 +1529,7 @@ T* deserialize(Container& c, bool checked = true) {
 #include <ostream>
 
 
-#ifndef UTL_PRINTABLE_NO_VEC
+#ifndef CISTA_PRINTABLE_NO_VEC
 template <typename T>
 inline std::ostream& operator<<(std::ostream& out, std::vector<T> const& v) {
   out << "[\n  ";
@@ -1545,7 +1545,7 @@ inline std::ostream& operator<<(std::ostream& out, std::vector<T> const& v) {
 }
 #endif
 
-#define MAKE_PRINTABLE(class_name)                                          \
+#define CISTA_PRINTABLE(class_name)                                         \
   friend std::ostream& operator<<(std::ostream& out, class_name const& o) { \
     bool first = true;                                                      \
     out << "{";                                                             \
