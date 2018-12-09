@@ -583,9 +583,9 @@ void serialize(Ctx&, YourType const*, cista::offset_t const);</code></pre>
               <h5 class="card-title">Human Readable to String</h5>
               <p class="card-text">
                 <div class="code">
-                  <a href="https://onlinegdb.com/Sya7aUc1N" class="try badge badge-run" target="_blank">compile & run</a>
+                  <a href="https://onlinegdb.com/SyE6anqkV" class="try badge badge-run" target="_blank">compile & run</a>
                   <pre class="box-shadow rounded p-2"><code class="language-cpp">struct a {
-  MAKE_PRINTABLE(a)
+  CISTA_PRINTABLE(a)
   int i_ = 1;
   int j_ = 2;
   double d_ = 100.0;
@@ -606,7 +606,7 @@ int main() {
               <h5 class="card-title">Modify Struct as Tuple</h5>
               <p class="card-text">
                 <div class="code">
-                  <a href="https://onlinegdb.com/BkxbaoKyE" class="try badge badge-run" target="_blank">compile & run</a>
+                  <a href="https://onlinegdb.com/SJKvTh5yE" class="try badge badge-run" target="_blank">compile & run</a>
                   <pre class="box-shadow rounded p-2"><code class="language-cpp">struct a {
   int i_ = 1;
   int j_ = 2;
@@ -650,9 +650,9 @@ int main() {
               <h5 class="card-title">Comparable: Generate Operators</h5>
               <p class="card-text">
                 <div class="code">
-                  <a href="https://onlinegdb.com/BJScRjFkN" class="try badge badge-run" target="_blank">compile & run</a>
+                  <a href="https://onlinegdb.com/rk0fTh5kN" class="try badge badge-run" target="_blank">compile & run</a>
                   <pre class="box-shadow rounded p-2"><code class="language-cpp">struct a {
-  MAKE_COMPARABLE()
+  CISTA_COMPARABLE()
   int i_ = 1;
   int j_ = 2;
   double d_ = 100.0;
@@ -679,7 +679,7 @@ int main() {
               <h5 class="card-title">Iterate Each Field</h5>
               <p class="card-text">
                 <div class="code">
-                  <a href="https://onlinegdb.com/BJqBW2tk4" class="try badge badge-run" target="_blank">compile & run</a>
+                  <a href="https://onlinegdb.com/ryRp33qkV" class="try badge badge-run" target="_blank">compile & run</a>
                   <pre class="box-shadow rounded p-2"><code class="language-cpp">struct a {
   int i_ = 1;
   int j_ = 2;
@@ -705,7 +705,7 @@ int main() {
               <h5 class="card-title">Generate SQL Statements</h5>
               <p class="card-text">
                 <div class="code">
-                  <a href="https://onlinegdb.com/B1LU43KyV" class="try badge badge-run" target="_blank">compile & run</a>
+                  <a href="https://onlinegdb.com/Byg5hhq1E" class="try badge badge-run" target="_blank">compile & run</a>
                   <pre class="box-shadow rounded p-2"><code class="language-cpp">struct row {
   sql_col&lt;
     int, name("id"),
