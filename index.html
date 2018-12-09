@@ -54,12 +54,8 @@
      * Base structure
      */
 
-    html,
     body {
       height: 100%;
-    }
-
-    body {
       background-color: transparent;
       display: -ms-flexbox;
       display: -webkit-box;
@@ -101,10 +97,6 @@
       border-bottom-color: #fff;
     }
 
-    footer {
-      display: none;
-    }
-
     @media (min-width: 48em) {
       .masthead-brand {
         float: left;
@@ -112,8 +104,8 @@
       .nav-masthead {
         float: right;
       }
-      footer {
-        display: block;
+      html {
+        height: 100%;
       }
     }
 
