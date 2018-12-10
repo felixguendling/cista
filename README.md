@@ -198,6 +198,11 @@ serialization targets (e.g. file and buffer).
 
 ```cpp
 struct serialization_context {
+  struct pending_offset {
+    void* origin_ptr_;
+    offset_t pos_;
+  };
+
   /**
    * Writes the values at [ptr, ptr + size[ to
    * the end of the serialization target buffer.
