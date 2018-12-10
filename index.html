@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="Cista++ is an open source, single file C++17 serialization library.">
-    <meta name="keywords" content="cista, serialization, C++, C++17, cpp, single header, single file">
+    <meta name="keywords" content="cista, serialization, C++, C++17, cpp, single header, marshalling">
     <meta name="author" content="Felix Gündling">
 
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
@@ -100,7 +100,7 @@
       margin-bottom: 0;
     }
 
-    .nav-masthead .nav-link {
+    .nav-masthead .nav-link, .nav-masthead .nav-icon {
       padding: .25rem 0;
       font-weight: 700;
       color: rgba(255, 255, 255, .5);
@@ -116,10 +116,16 @@
     .nav-masthead .nav-link + .nav-link {
       margin-left: 1rem;
     }
+    .nav-masthead .nav-link + .nav-icon {
+      margin-left: 2rem;
+    }
 
     .nav-masthead .active {
       color: #fff;
       border-bottom-color: #fff;
+    }
+    .nav-icon,.nav-icon:hover {
+      border: none !important;
     }
 
     @media (min-width: 48em) {
@@ -203,15 +209,17 @@
         <div class="inner">
           <h3 class="masthead-brand text-center text-md-left mb-3">
             <a href="#main" style="color:white">
-              <img style="position: relative; top: -3px" class="mr-3" src="logo.svg" alt="" width="64" height="64">
+              <img style="position: relative; top: -3px" class="mr-3" src="logo.svg" alt="" width="64" height="64"/>
               Cista++
             </a>
           </h3>
           <nav class="nav nav-masthead justify-content-center">
             <a class="nav-link active" href="#main">Home</a>
-            <a class="nav-link" href="#about">About</a>
-            <a class="nav-link active" href="#reflection">Reflection</a>
-            <a class="nav-link" href="https://github.com/felixguendling/cista">GitHub</a>
+            <a class="nav-link" href="#docs">Docs</a>
+            <a class="nav-link" href="#reflection">Reflection</a>
+            <a class="nav-icon" href="https://github.com/felixguendling/cista">
+              <img style="position: relative; top: -3px" class="mr-3" src="github.svg" alt="" width="32" height="32"/>
+            </a>
           </nav>
         </div>
       </header>
@@ -233,7 +241,7 @@
             </ul>
             <div class="buttons text-center mt-4">
               <a href="https://raw.githubusercontent.com/felixguendling/cista/master/cista.h" style="margin-left: auto; margin-right: auto" class="btn btn-lg btn-primary mr-3">Download</a>
-              <a href="#about" style="margin-left: auto; margin-right: auto" class="btn btn-lg btn-secondary">Learn more</a>
+              <a href="#docs" style="margin-left: auto; margin-right: auto" class="btn btn-lg btn-secondary">Learn more</a>
             </div>
           </div>
           <div class="col col-md-auto">
@@ -261,7 +269,7 @@ assert(serialized->j.d_ == cista::string{"test"});</code></pre>
       </main> <!-- MAIN END -->
 
       <!-- ****  ABOUT **** -->
-      <main id="about" role="main" class="inner">
+      <main id="docs" role="main" class="inner">
         <div class="card">
           <div class="card-body">
             <h5 class="card-title">Use Cases</h5>
@@ -331,6 +339,7 @@ assert(serialized->j.d_ == cista::string{"test"});</code></pre>
               <p>
                 The following example shows serialization and deserialization
                 of more complex data structures.
+                It is also available <a href="https://github.com/felixguendling/cista/blob/master/test/graph_serialize_test.cc">here</a>
               </p>
               <h6>Data structure definition</h6>
               <pre class="box-shadow rounded p-4"><code class="language-cpp">// Forward declare `node` to be able to use it in `edge`.
@@ -406,8 +415,7 @@ struct graph {
 
 // Deserialize
 auto b = cista::file("test.bin", "r").content();
-auto const g =
-    cista::deserialize&lt;graph&gt;(b.begin(), b.end());
+auto const g = cista::deserialize&lt;graph&gt;(b);
 
 // Read graph.
 use(g);</code></pre>
@@ -439,6 +447,8 @@ use(g);</code></pre>
               If you have 3rd-party structs, structs with constructors
               or structs that manage memory, etc. you need to override
               the serialize and deserialize functions.
+
+              A (very simple) example can be found <a href="https://github.com/felixguendling/cista/blob/master/test/custom_struct_test.cc">here</a>.
 
               <h6>Serialization</h6>
               <p>
@@ -755,8 +765,8 @@ int main() {
     function nav(route) {
       var title = 'Cista++';
       var separator = ' | ';
-      var route_names = {main: 'Homepage', about: 'About', reflection: 'Reflection'};
-      var routes = ['main', 'about', 'reflection'];
+      var route_names = {main: 'Homepage', docs: 'About', reflection: 'Reflection'};
+      var routes = ['main', 'docs', 'reflection'];
       var path = (route || window.location.hash).slice(1).split('-');
 
       var route = path[0] || 'main';
