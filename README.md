@@ -1,6 +1,6 @@
-[![](https://img.shields.io/badge/language-C%2B%2B17-blue.svg)](https://isocpp.org/) [![Build Status](https://travis-ci.org/felixguendling/cista.svg?branch=master)](https://travis-ci.org/felixguendling/cista) [![Build status](https://ci.appveyor.com/api/projects/status/cwcwp808uhaa5d3w?svg=true)](https://ci.appveyor.com/project/felixguendling/cista) [![Coverage Status](https://coveralls.io/repos/github/felixguendling/cista/badge.svg?branch=master)](https://coveralls.io/github/felixguendling/cista?branch=master) [![](https://img.shields.io/apm/l/vim-mode.svg)](https://opensource.org/licenses/MIT)
-
 <p align="center"><img src="logo.svg"></p>
+
+[![](https://img.shields.io/badge/language-C%2B%2B17-blue.svg)](https://isocpp.org/) [![Build Status](https://travis-ci.org/felixguendling/cista.svg?branch=master)](https://travis-ci.org/felixguendling/cista) [![Build status](https://ci.appveyor.com/api/projects/status/cwcwp808uhaa5d3w?svg=true)](https://ci.appveyor.com/project/felixguendling/cista) [![Coverage Status](https://coveralls.io/repos/github/felixguendling/cista/badge.svg?branch=master)](https://coveralls.io/github/felixguendling/cista?branch=master) [![](https://img.shields.io/apm/l/vim-mode.svg)](https://opensource.org/licenses/MIT)
 
 # Simple C++ Serialization.
 
@@ -15,13 +15,11 @@ Cista++ is a simple, open source (MIT license) C++17 compatible way of (de-)seri
 
 # Use Cases
 
-You can use this library to load data from *trusted* sources *ONLY*.
-
 Reader and writer should run on the same architecture (e.g. 64 bit big endian).
 Examples:
 
   - Asset loading for all kinds of applications (i.e. game assets, GIS data, large graphs, etc.)
-  - Transferring data over network to/from trusted parties
+  - Transferring data over network
 
 Currently, only C++17 software can read/write data.
 But it should be possible to generate accessors
@@ -289,3 +287,7 @@ struct deserialization_context {
   void check(T* el, size_t size) const;
 };
 ```
+
+# Contribute
+
+Feel free to contribute (bug reports, pull requests, etc.)!
