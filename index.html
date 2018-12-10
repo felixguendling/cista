@@ -169,7 +169,9 @@
     .code {
       position: relative;
     }
-
+    .lead > li + li {
+      padding-top: 0.4em;
+    }
 
     /*
      * Footer
@@ -234,9 +236,9 @@
               <b><i>Single header. No macros. No source code generation.</i></b>
             </p>
             <ul class="lead">
-              <li>Raw performance - use your native structs</li>
-              <li>No macro magic, no additional definition files, no generated source code</li>
-              <li>Supports complex and cyclic datastructures including cyclic references, recursive data structures, etc.</li>
+              <li>Raw performance - use your native structs.<br />Supports modification/resizing of deserialized data!</li>
+              <li>Supports complex and cyclic data structures including cyclic references, recursive data structures, etc.</li>
+              <li>Save 50% memory: serialize directly to the filesystem if needed, no intermediate buffer required.</li>
               <li>Compatible with Clang, GCC, and MSVC</li>
             </ul>
             <div class="buttons text-center mt-4">
@@ -436,6 +438,30 @@ use(g);</code></pre>
               Every data structure can be (de-)serialized using a custom
               (de-)serialization function (see below for more details).
               All this is done recursively.
+            </p>
+          </div>
+        </div>
+
+        <div class="card mt-3">
+          <div class="card-body">
+            <h5 class="card-title">Security</h5>
+            <p class="card-text">
+              <p>
+                Generally, all serialized data is checked so that every pointer
+                <code>T*</code> is either a <code>nullptr</code>
+                or points to a valid position within
+                the buffer with enough bytes for <code>T</code>.
+                Scalar values are checked to fit into the buffer at their position, too.
+                Code can be found <a href="https://github.com/felixguendling/cista/blob/master/include/cista/serialization.h#L175-L249">here</a>.
+              </p>
+
+              <p>
+                Note that modifying serialized data may corrupt it
+                in unexpected ways. Therefore, it is not safe to access
+                modified deserialized data coming from untrusted sources.
+                However, deserializing and reading data from untrusted
+                sources is safe.
+              </p>
             </p>
           </div>
         </div>
