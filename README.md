@@ -199,8 +199,8 @@ serialization targets (e.g. file and buffer).
 ```cpp
 struct serialization_context {
   struct pending_offset {
-    void* origin_ptr_;
-    offset_t pos_;
+    void* origin_ptr_;  // pointer to the original
+    offset_t pos_;      // offset where it is serialized
   };
 
   /**
