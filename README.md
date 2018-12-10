@@ -1,6 +1,6 @@
-<p align="center"><img src="logo.svg"></p>
-
 [![](https://img.shields.io/badge/language-C%2B%2B17-blue.svg)](https://isocpp.org/) [![Build Status](https://travis-ci.org/felixguendling/cista.svg?branch=master)](https://travis-ci.org/felixguendling/cista) [![Build status](https://ci.appveyor.com/api/projects/status/cwcwp808uhaa5d3w?svg=true)](https://ci.appveyor.com/project/felixguendling/cista) [![Coverage Status](https://coveralls.io/repos/github/felixguendling/cista/badge.svg?branch=master)](https://coveralls.io/github/felixguendling/cista?branch=master) [![](https://img.shields.io/apm/l/vim-mode.svg)](https://opensource.org/licenses/MIT)
+
+<p align="center"><img src="logo.svg"></p>
 
 # Simple C++ Serialization.
 
