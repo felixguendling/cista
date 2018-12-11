@@ -53,6 +53,12 @@ Alternative libraries:
   - To use pointers: store the object you want to reference as `cista::unique_ptr<T&>` and use a raw pointer `T*` to reference it.
   - Optional: if you need deterministic buffer contents, you need to fill spare bytes in your structs.
 
+# Security
+
+Generally, all serialized data is checked so that every pointer `T*` is either a `nullptr` or points to a valid position within the buffer with enough bytes for `T`. Scalar values are checked to fit into the buffer at their position, too. Code can be found [here](https://github.com/felixguendling/cista/blob/master/include/cista/serialization.h#L175-L249).
+
+Note that modifying serialized data may corrupt it in unexpected ways. Therefore, it is not safe to access modified deserialized data coming from untrusted sources. However, deserializing and reading data from untrusted sources is safe. 
+
 
 # Advanced Example
 
