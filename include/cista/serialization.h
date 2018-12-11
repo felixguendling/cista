@@ -258,7 +258,7 @@ T* deserialize(uint8_t* from, uint8_t* to = nullptr, bool checked = true) {
 
 template <typename T, typename Container>
 T* deserialize(Container& c, bool checked = true) {
-  return deserialize<T>(&c[0], &c[c.size()], checked);
+  return deserialize<T>(&c[0], &c[0] + c.size(), checked);
 }
 
 }  // namespace cista
