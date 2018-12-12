@@ -217,7 +217,7 @@
           </h3>
           <nav class="nav nav-masthead justify-content-center">
             <a class="nav-link active" href="#main">Home</a>
-            <a class="nav-link" href="#docs">Docs</a>
+            <a class="nav-link" href="#serialization">Serialization</a>
             <a class="nav-link" href="#reflection">Reflection</a>
             <a class="nav-icon" href="https://github.com/felixguendling/cista">
               <img style="position: relative; top: -3px" class="mr-3" src="github.svg" alt="" width="32" height="32"/>
@@ -243,7 +243,7 @@
             </ul>
             <div class="buttons text-center mt-4">
               <a href="https://raw.githubusercontent.com/felixguendling/cista/master/cista.h" style="margin-left: auto; margin-right: auto" class="btn btn-lg btn-primary mr-3">Download</a>
-              <a href="#docs" style="margin-left: auto; margin-right: auto" class="btn btn-lg btn-secondary">Learn more</a>
+              <a href="#serialization" style="margin-left: auto; margin-right: auto" class="btn btn-lg btn-secondary">Learn more</a>
             </div>
           </div>
           <div class="col col-md-auto">
@@ -271,7 +271,7 @@ assert(serialized->j.d_ == cista::string{"test"});</code></pre>
       </main> <!-- MAIN END -->
 
       <!-- ****  ABOUT **** -->
-      <main id="docs" role="main" class="inner">
+      <main id="serialization" role="main" class="inner">
         <div class="card">
           <div class="card-body">
             <h5 class="card-title">Use Cases</h5>
@@ -791,8 +791,8 @@ int main() {
     function nav(route) {
       var title = 'Cista++';
       var separator = ' | ';
-      var route_names = {main: 'Homepage', docs: 'About', reflection: 'Reflection'};
-      var routes = ['main', 'docs', 'reflection'];
+      var route_names = {main: 'Homepage', serialization: 'Serialization', reflection: 'Reflection'};
+      var routes = ['main', 'serialization', 'reflection'];
       var path = (route || window.location.hash).slice(1).split('-');
 
       var route = path[0] || 'main';
