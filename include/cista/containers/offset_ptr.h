@@ -63,6 +63,12 @@ struct offset_ptr {
   friend bool operator==(offset_ptr const& o, std::nullptr_t) {
     return o.offset_ == NULLPTR_OFFSET;
   }
+  friend bool operator!=(std::nullptr_t, offset_ptr const& o) {
+    return o.offset_ != NULLPTR_OFFSET;
+  }
+  friend bool operator!=(offset_ptr const& o, std::nullptr_t) {
+    return o.offset_ != NULLPTR_OFFSET;
+  }
 
   offset_t offset_;
 };

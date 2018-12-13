@@ -15,6 +15,9 @@
 
 namespace cista {
 
+template <typename T, typename TemplateSizeType = uint32_t>
+using o_vector = vector<T, offset_ptr<T>, TemplateSizeType>;
+
 // =============================================================================
 // SERIALIZE
 // -----------------------------------------------------------------------------
@@ -45,7 +48,7 @@ template <typename Ctx, typename T>
 void serialize(Ctx& c, T const* origin, offset_t const pos) {
   using Type = std::remove_reference_t<std::remove_const_t<T>>;
   if constexpr (!std::is_scalar_v<Type>) {
-    cista::for_each_ptr_field(*origin, [&](auto& member) {
+    for_each_ptr_field(*origin, [&](auto& member) {
       auto const member_offset =
           static_cast<offset_t>(reinterpret_cast<char const*>(member) -
                                 reinterpret_cast<char const*>(origin));
@@ -64,16 +67,15 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
 }
 
 template <typename Ctx, typename T>
-void serialize(Ctx& c, cista::vector<T> const* origin, offset_t const pos) {
+void serialize(Ctx& c, vector<T> const* origin, offset_t const pos) {
   auto const size = sizeof(T) * origin->used_size_;
   auto const start = origin->el_ == nullptr
                          ? NULLPTR_OFFSET
                          : c.write(origin->el_, size, std::alignment_of_v<T>);
 
-  c.write(pos + offsetof(cista::vector<T>, el_), start);
-  c.write(pos + offsetof(cista::vector<T>, allocated_size_),
-          origin->used_size_);
-  c.write(pos + offsetof(cista::vector<T>, self_allocated_), false);
+  c.write(pos + offsetof(vector<T>, el_), start);
+  c.write(pos + offsetof(vector<T>, allocated_size_), origin->used_size_);
+  c.write(pos + offsetof(vector<T>, self_allocated_), false);
 
   if (origin->el_ != nullptr) {
     auto i = 0u;
@@ -83,8 +85,26 @@ void serialize(Ctx& c, cista::vector<T> const* origin, offset_t const pos) {
   }
 }
 
+template <typename Ctx, typename T>
+void serialize(Ctx& c, o_vector<T> const* origin, offset_t const pos) {
+  auto const size = sizeof(T) * origin->used_size_;
+  auto const start = origin->el_ == nullptr ? NULLPTR_OFFSET
+                                            : c.write(origin->el_.get(), size,
+                                                      std::alignment_of_v<T>);
+
+  c.write(pos + offsetof(o_vector<T>, el_),
+          start - offsetof(vector<T>, el_) - pos);
+
+  if (origin->el_ != nullptr) {
+    auto i = 0u;
+    for (auto it = start; it != start + size; it += sizeof(T)) {
+      serialize(c, (origin->el_ + i++).get(), it);
+    }
+  }
+}
+
 template <typename Ctx>
-void serialize(Ctx& c, cista::string const* origin, offset_t const pos) {
+void serialize(Ctx& c, string const* origin, offset_t const pos) {
   if (origin->is_short()) {
     return;
   }
@@ -92,18 +112,18 @@ void serialize(Ctx& c, cista::string const* origin, offset_t const pos) {
   auto const start = (origin->h_.ptr_ == nullptr)
                          ? NULLPTR_OFFSET
                          : c.write(origin->data(), origin->size());
-  c.write(pos + offsetof(cista::string, h_.ptr_), start);
-  c.write(pos + offsetof(cista::string, h_.self_allocated_), false);
+  c.write(pos + offsetof(string, h_.ptr_), start);
+  c.write(pos + offsetof(string, h_.self_allocated_), false);
 }
 
 template <typename Ctx, typename T>
-void serialize(Ctx& c, cista::unique_ptr<T> const* origin, offset_t const pos) {
+void serialize(Ctx& c, unique_ptr<T> const* origin, offset_t const pos) {
   auto const start = origin->el_ == nullptr ? NULLPTR_OFFSET
                                             : c.write(origin->el_, sizeof(T),
                                                       std::alignment_of_v<T>);
 
-  c.write(pos + offsetof(cista::unique_ptr<T>, el_), start);
-  c.write(pos + offsetof(cista::unique_ptr<T>, self_allocated_), false);
+  c.write(pos + offsetof(unique_ptr<T>, el_), start);
+  c.write(pos + offsetof(unique_ptr<T>, self_allocated_), false);
 
   if (origin->el_ != nullptr) {
     c.offsets_[origin->el_] = start;
@@ -210,38 +230,38 @@ void deserialize(deserialization_context const& c, T* el) {
   } else if constexpr (std::is_scalar_v<written_type_t>) {
     c.check(el, sizeof(T));
   } else {
-    cista::for_each_ptr_field(*el, [&](auto& f) { deserialize(c, f); });
+    for_each_ptr_field(*el, [&](auto& f) { deserialize(c, f); });
   }
 }
 
 template <typename T>
-void deserialize(deserialization_context const& c, cista::vector<T>* el) {
-  c.check(el, sizeof(cista::vector<T>));
+void deserialize(deserialization_context const& c, vector<T>* el) {
+  c.check(el, sizeof(vector<T>));
   el->el_ = c.deserialize<T*>(el->el_);
   c.check(el->el_, checked_multiplication(
                        static_cast<size_t>(el->allocated_size_), sizeof(T)));
-  c.check(el->allocated_size_ == el->used_size_, "cista::vector size mismatch");
-  c.check(!el->self_allocated_, "cista::vector self-allocated");
+  c.check(el->allocated_size_ == el->used_size_, "vector size mismatch");
+  c.check(!el->self_allocated_, "vector self-allocated");
   for (auto& m : *el) {
     deserialize(c, &m);
   }
 }
 
-inline void deserialize(deserialization_context const& c, cista::string* el) {
-  c.check(el, sizeof(cista::string));
+inline void deserialize(deserialization_context const& c, string* el) {
+  c.check(el, sizeof(string));
   if (!el->is_short()) {
     el->h_.ptr_ = c.deserialize<char*>(el->h_.ptr_);
     c.check(el->h_.ptr_, el->h_.size_);
-    c.check(!el->h_.self_allocated_, "cista::string self-allocated");
+    c.check(!el->h_.self_allocated_, "string self-allocated");
   }
 }
 
 template <typename T>
-void deserialize(deserialization_context const& c, cista::unique_ptr<T>* el) {
-  c.check(el, sizeof(cista::unique_ptr<T>));
+void deserialize(deserialization_context const& c, unique_ptr<T>* el) {
+  c.check(el, sizeof(unique_ptr<T>));
   el->el_ = c.deserialize<T*>(el->el_);
   c.check(el->el_, sizeof(T));
-  c.check(!el->self_allocated_, "cista::unique_ptr self-allocated");
+  c.check(!el->self_allocated_, "unique_ptr self-allocated");
   deserialize(c, el->el_);
 }
 
