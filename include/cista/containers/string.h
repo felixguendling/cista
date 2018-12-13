@@ -4,9 +4,12 @@
 #include <cstring>
 #include <string_view>
 
+#include "cista/containers/offset_ptr.h"
+
 namespace cista {
 
-struct string {
+template <typename Ptr = char const*>
+struct basic_string {
   using msize_t = uint32_t;
 
   static msize_t mstrlen(char const* s) {
@@ -18,26 +21,30 @@ struct string {
   static constexpr struct non_owning_t {
   } non_owning{};
 
-  string() { std::memset(this, 0, sizeof(*this)); }
-  ~string() { reset(); }
+  basic_string() { std::memset(this, 0, sizeof(*this)); }
+  ~basic_string() { reset(); }
 
-  string(char const* s, owning_t) : string() { set_owning(s, mstrlen(s)); }
-  string(char const* s, non_owning_t) : string() { set_non_owning(s); }
-  string(char const* s) : string(s, non_owning) {}  // NOLINT
+  basic_string(char const* s, owning_t) : basic_string() {
+    set_owning(s, mstrlen(s));
+  }
+  basic_string(char const* s, non_owning_t) : basic_string() {
+    set_non_owning(s);
+  }
+  basic_string(char const* s) : basic_string(s, non_owning) {}  // NOLINT
 
-  string(string const& s) : string() { copy_from(s); }
+  basic_string(basic_string const& s) : basic_string() { copy_from(s); }
 
-  string(string&& s) {
+  basic_string(basic_string&& s) {
     std::memcpy(this, &s, sizeof(*this));
     std::memset(&s, 0, sizeof(*this));
   }
 
-  string& operator=(string const& s) {
+  basic_string& operator=(basic_string const& s) {
     copy_from(s);
     return *this;
   }
 
-  string& operator=(string&& s) {
+  basic_string& operator=(basic_string&& s) {
     std::memcpy(this, &s, sizeof(*this));
     return *this;
   }
@@ -46,7 +53,7 @@ struct string {
 
   void reset() {
     if (!h_.is_short_ && h_.ptr_ != nullptr && h_.self_allocated_) {
-      std::free(const_cast<char*>(h_.ptr_));
+      std::free(const_cast<char*>(data()));
     }
     std::memset(this, 0, sizeof(*this));
   }
@@ -72,7 +79,7 @@ struct string {
       }
       h_.size_ = size;
       h_.self_allocated_ = true;
-      std::memcpy(const_cast<char*>(h_.ptr_), str, size);
+      std::memcpy(const_cast<char*>(data()), str, size);
     }
   }
 
@@ -98,7 +105,7 @@ struct string {
     h_.size_ = size;
   }
 
-  void copy_from(string const& s) {
+  void copy_from(basic_string const& s) {
     reset();
     if (s.is_short()) {
       std::memcpy(this, &s, sizeof(s));
@@ -111,18 +118,24 @@ struct string {
 
   std::string_view view() const { return std::string_view{data(), size()}; }
 
-  char const* data() const { return is_short() ? s_.s_ : h_.ptr_; }
+  char const* data() const {
+    if constexpr (std::is_pointer_v<Ptr>) {
+      return is_short() ? s_.s_ : h_.ptr_;
+    } else {
+      return is_short() ? s_.s_ : h_.ptr_.get();
+    }
+  }
 
-  string& operator=(char const* s) {
+  basic_string& operator=(char const* s) {
     set_non_owning(s, mstrlen(s));
     return *this;
   }
 
-  friend bool operator==(string const& a, char const* b) {
+  friend bool operator==(basic_string const& a, char const* b) {
     return a.view() == std::string_view{b};
   }
 
-  friend bool operator==(string const& a, string const& b) {
+  friend bool operator==(basic_string const& a, basic_string const& b) {
     return a.view() == b.view();
   }
 
@@ -145,7 +158,7 @@ struct string {
     uint8_t __fill_2__{0};
     uint8_t __fill_3__{0};
     uint32_t size_{0};
-    char const* ptr_{nullptr};
+    Ptr ptr_{nullptr};
   };
 
   struct stack {
@@ -157,6 +170,9 @@ struct string {
     heap h_;
     stack s_;
   };
-};
+};  // namespace cista
+
+using string = basic_string<char const*>;
+using o_string = basic_string<offset_ptr<char const>>;
 
 }  // namespace cista

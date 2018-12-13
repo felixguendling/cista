@@ -18,7 +18,6 @@ add_custom_command(
   COMMAND uniter
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/file.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/containers/offset_ptr.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/serialization.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/reflection/comparable.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/reflection/printable.h

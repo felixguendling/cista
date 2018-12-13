@@ -6,14 +6,10 @@ namespace cista {
 
 template <typename T>
 struct offset_ptr {
+  offset_ptr() = default;
   offset_ptr(std::nullptr_t) : offset_{NULLPTR_OFFSET} {}
-  offset_ptr(T* p) : offset_{ptr_to_offset(p)} {}
   offset_ptr(T const* p) : offset_{ptr_to_offset(p)} {}
 
-  offset_ptr& operator=(T* p) {
-    offset_ = ptr_to_offset(p);
-    return *this;
-  }
   offset_ptr& operator=(T const* p) {
     offset_ = ptr_to_offset(p);
     return *this;
@@ -38,9 +34,9 @@ struct offset_ptr {
   }
 
   operator T*() { return get(); }
-  operator T const*() { return get(); }
+  operator T const*() const { return get(); }
   T& operator*() { return *get(); }
-  T& operator*() const { return *get(); }
+  T const& operator*() const { return *get(); }
 
   T const* get() const {
     return reinterpret_cast<T const*>(reinterpret_cast<uint8_t const*>(this) +

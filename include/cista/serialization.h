@@ -116,6 +116,20 @@ void serialize(Ctx& c, string const* origin, offset_t const pos) {
   c.write(pos + offsetof(string, h_.self_allocated_), false);
 }
 
+template <typename Ctx>
+void serialize(Ctx& c, o_string const* origin, offset_t const pos) {
+  if (origin->is_short()) {
+    return;
+  }
+
+  auto const start = (origin->h_.ptr_ == nullptr)
+                         ? NULLPTR_OFFSET
+                         : c.write(origin->data(), origin->size());
+  c.write(pos + offsetof(string, h_.ptr_),
+          start - offsetof(string, h_.ptr_) - pos);
+  c.write(pos + offsetof(string, h_.self_allocated_), false);
+}
+
 template <typename Ctx, typename T>
 void serialize(Ctx& c, unique_ptr<T> const* origin, offset_t const pos) {
   auto const start = origin->el_ == nullptr ? NULLPTR_OFFSET
