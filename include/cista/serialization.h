@@ -53,10 +53,9 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
     });
   } else if constexpr (std::is_pointer_v<Type>) {
     if (*origin == nullptr) {
-      c.write(pos, std::numeric_limits<offset_t>::max());
-      return;
-    }
-    if (auto const it = c.offsets_.find(*origin); it != end(c.offsets_)) {
+      c.write(pos, NULLPTR_OFFSET);
+    } else if (auto const it = c.offsets_.find(*origin);
+               it != end(c.offsets_)) {
       c.write(pos, it->second);
     } else {
       c.pending_.emplace_back(pending_offset{*origin, pos});
@@ -67,9 +66,9 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
 template <typename Ctx, typename T>
 void serialize(Ctx& c, cista::vector<T> const* origin, offset_t const pos) {
   auto const size = sizeof(T) * origin->used_size_;
-  auto const start = origin->el_ != nullptr
-                         ? c.write(origin->el_, size, std::alignment_of_v<T>)
-                         : std::numeric_limits<offset_t>::max();
+  auto const start = origin->el_ == nullptr
+                         ? NULLPTR_OFFSET
+                         : c.write(origin->el_, size, std::alignment_of_v<T>);
 
   c.write(pos + offsetof(cista::vector<T>, el_), start);
   c.write(pos + offsetof(cista::vector<T>, allocated_size_),
@@ -90,18 +89,18 @@ void serialize(Ctx& c, cista::string const* origin, offset_t const pos) {
     return;
   }
 
-  auto const start =
-      c.write(origin->data(), origin->size(), std::alignment_of_v<char>);
+  auto const start = (origin->h_.ptr_ == nullptr)
+                         ? NULLPTR_OFFSET
+                         : c.write(origin->data(), origin->size());
   c.write(pos + offsetof(cista::string, h_.ptr_), start);
   c.write(pos + offsetof(cista::string, h_.self_allocated_), false);
 }
 
 template <typename Ctx, typename T>
 void serialize(Ctx& c, cista::unique_ptr<T> const* origin, offset_t const pos) {
-  auto const start =
-      origin->el_ != nullptr
-          ? c.write(origin->el_, sizeof(T), std::alignment_of_v<T>)
-          : std::numeric_limits<offset_t>::max();
+  auto const start = origin->el_ == nullptr ? NULLPTR_OFFSET
+                                            : c.write(origin->el_, sizeof(T),
+                                                      std::alignment_of_v<T>);
 
   c.write(pos + offsetof(cista::unique_ptr<T>, el_), start);
   c.write(pos + offsetof(cista::unique_ptr<T>, self_allocated_), false);
@@ -179,10 +178,8 @@ struct deserialization_context {
   template <typename T, typename Ptr>
   T deserialize(Ptr* ptr) const {
     auto const offset = reinterpret_cast<offset_t>(ptr);
-    if (offset == std::numeric_limits<offset_t>::max()) {
-      return nullptr;
-    }
-    return reinterpret_cast<T>(from_ + offset);
+    return offset == NULLPTR_OFFSET ? nullptr
+                                    : reinterpret_cast<T>(from_ + offset);
   }
 
   template <typename T>
