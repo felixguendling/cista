@@ -39,13 +39,13 @@ struct offset_ptr {
   T const& operator*() const { return *get(); }
 
   T const* get() const {
-    return p == NULLPTR_OFFSET
+    return offset_ == NULLPTR_OFFSET
                ? nullptr
                : reinterpret_cast<T const*>(
                      reinterpret_cast<uint8_t const*>(this) + offset_);
   }
   T* get() {
-    return p == NULLPTR_OFFSET
+    return offset_ == NULLPTR_OFFSET
                ? nullptr
                : reinterpret_cast<T*>(reinterpret_cast<uint8_t*>(this) +
                                       offset_);
