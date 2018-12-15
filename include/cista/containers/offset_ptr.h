@@ -29,8 +29,8 @@ struct offset_ptr {
   offset_t ptr_to_offset(T const* p) const {
     return p == nullptr
                ? NULLPTR_OFFSET
-               : static_cast<offset_t>(reinterpret_cast<uint8_t const*>(p) -
-                                       reinterpret_cast<uint8_t const*>(this));
+               : static_cast<offset_t>(reinterpret_cast<uintptr_t>(p) -
+                                       reinterpret_cast<uintptr_t>(this));
   }
 
   operator T*() { return get(); }
@@ -39,16 +39,18 @@ struct offset_ptr {
   T const& operator*() const { return *get(); }
 
   T const* get() const {
-    return offset_ == NULLPTR_OFFSET
-               ? nullptr
-               : reinterpret_cast<T const*>(
-                     reinterpret_cast<uint8_t const*>(this) + offset_);
+    auto const ptr = offset_ == NULLPTR_OFFSET
+                         ? nullptr
+                         : reinterpret_cast<T const*>(
+                               reinterpret_cast<uintptr_t>(this) + offset_);
+    return ptr;
   }
   T* get() {
-    return offset_ == NULLPTR_OFFSET
-               ? nullptr
-               : reinterpret_cast<T*>(reinterpret_cast<uint8_t*>(this) +
-                                      offset_);
+    auto const ptr =
+        offset_ == NULLPTR_OFFSET
+            ? nullptr
+            : reinterpret_cast<T*>(reinterpret_cast<uintptr_t>(this) + offset_);
+    return ptr;
   }
 
   template <typename Int>
