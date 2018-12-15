@@ -67,6 +67,19 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
 }
 
 template <typename Ctx, typename T>
+void serialize(Ctx& c, offset_ptr<T> const* origin, offset_t const pos) {
+  if (*origin == nullptr) {
+    return;
+  } else if (auto const it = c.offsets_.find(const_cast<T*>(origin->get()));
+             it != end(c.offsets_)) {
+    c.write(pos, pos - it->second);
+  } else {
+    // TODO(felixguendling): Create a new pending map for offset_ptr.
+    // c.pending_.emplace_back(pending_offset{*origin, pos});
+  }
+}
+
+template <typename Ctx, typename T>
 void serialize(Ctx& c, vector<T> const* origin, offset_t const pos) {
   auto const size = sizeof(T) * origin->used_size_;
   auto const start = origin->el_ == nullptr
@@ -93,7 +106,8 @@ void serialize(Ctx& c, o_vector<T> const* origin, offset_t const pos) {
                                                       std::alignment_of_v<T>);
 
   c.write(pos + offsetof(o_vector<T>, el_),
-          start - offsetof(vector<T>, el_) - pos);
+          start == NULLPTR_OFFSET ? start
+                                  : start - offsetof(o_vector<T>, el_) - pos);
 
   if (origin->el_ != nullptr) {
     auto i = 0u;
@@ -125,9 +139,10 @@ void serialize(Ctx& c, o_string const* origin, offset_t const pos) {
   auto const start = (origin->h_.ptr_ == nullptr)
                          ? NULLPTR_OFFSET
                          : c.write(origin->data(), origin->size());
-  c.write(pos + offsetof(string, h_.ptr_),
-          start - offsetof(string, h_.ptr_) - pos);
-  c.write(pos + offsetof(string, h_.self_allocated_), false);
+  c.write(pos + offsetof(o_string, h_.ptr_),
+          start == NULLPTR_OFFSET ? start
+                                  : start - offsetof(o_string, h_.ptr_) - pos);
+  c.write(pos + offsetof(o_string, h_.self_allocated_), false);
 }
 
 template <typename Ctx, typename T>
@@ -142,6 +157,24 @@ void serialize(Ctx& c, unique_ptr<T> const* origin, offset_t const pos) {
   if (origin->el_ != nullptr) {
     c.offsets_[origin->el_] = start;
     serialize(c, origin->el_, start);
+  }
+}
+
+template <typename Ctx, typename T>
+void serialize(Ctx& c, o_unique_ptr<T> const* origin, offset_t const pos) {
+  auto const start = origin->el_ == nullptr ? NULLPTR_OFFSET
+                                            : c.write(origin->el_, sizeof(T),
+                                                      std::alignment_of_v<T>);
+
+  c.write(pos + offsetof(o_unique_ptr<T>, el_),
+          start == NULLPTR_OFFSET
+              ? start
+              : start - offsetof(o_unique_ptr<T>, el_) - pos);
+  c.write(pos + offsetof(o_unique_ptr<T>, self_allocated_), false);
+
+  if (origin->el_ != nullptr) {
+    c.offsets_[const_cast<int*>(origin->el_.get())] = start;
+    serialize(c, origin->el_.get(), start);
   }
 }
 

@@ -38,3 +38,34 @@ TEST_CASE("offset string serialize") {
   auto const str = reinterpret_cast<cista::o_string*>(&buf[0]);
   CHECK(*str == s);
 }
+
+TEST_CASE("offset unique_ptr serialize") {
+  cista::byte_buf buf;
+  {
+    auto const ptr = cista::make_o_unique<int>(33);
+    buf = serialize(ptr);
+  }
+
+  auto const ptr = reinterpret_cast<cista::o_unique_ptr<int>*>(&buf[0]);
+  CHECK(**ptr == 33);
+}
+
+// TODO(felixguendling): fix
+TEST_CASE("offset_ptr serialize" * doctest::skip(true)) {
+  struct serialize_me {
+    cista::o_unique_ptr<int> i_{cista::make_o_unique<int>(77)};
+    cista::offset_ptr<int> raw_{i_.get()};
+  };
+
+  cista::byte_buf buf;
+
+  {
+    serialize_me obj;
+    buf = cista::serialize(obj);
+  }  // EOL obj
+
+  auto const serialized = reinterpret_cast<serialize_me*>(&buf[0]);
+  CHECK(serialized->raw_.get() == serialized->i_.get());
+  CHECK(*serialized->raw_ == 77);
+  CHECK(*serialized->i_.get() == 77);
+}
