@@ -2,9 +2,11 @@
 
 #include <cinttypes>
 
+#include "cista/containers/offset_ptr.h"
+
 namespace cista {
 
-template <typename T>
+template <typename T, typename Ptr = T*>
 struct unique_ptr {
   using value_t = T;
 
@@ -31,24 +33,35 @@ struct unique_ptr {
 
   ~unique_ptr() {
     if (self_allocated_ && el_ != nullptr) {
-      delete el_;
+      delete get();
     }
   }
 
-  T* get() const { return el_; }
+  T* get() { return el_; }
+  T const* get() const { return el_; }
   T* operator->() { return el_; }
+  T& operator*() { return *el_; }
+  T const& operator*() const { return *el_; }
   T const* operator->() const { return el_; }
 
-  T* el_{nullptr};
+  Ptr el_{nullptr};
   bool self_allocated_{false};
   uint8_t __fill_0__{0};
   uint16_t __fill_1__{0};
   uint32_t __fill_2__{0};
 };
 
+template <typename T>
+using o_unique_ptr = unique_ptr<T, offset_ptr<T>>;
+
 template <typename T, typename... Args>
-cista::unique_ptr<T> make_unique(Args&&... args) {
-  return cista::unique_ptr<T>{new T{std::forward<Args>(args)...}, true};
+unique_ptr<T> make_unique(Args&&... args) {
+  return unique_ptr<T>{new T{std::forward<Args>(args)...}, true};
+}
+
+template <typename T, typename... Args>
+o_unique_ptr<T> make_o_unique(Args&&... args) {
+  return o_unique_ptr<T>{new T{std::forward<Args>(args)...}, true};
 }
 
 }  // namespace cista

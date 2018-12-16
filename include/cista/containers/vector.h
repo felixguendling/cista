@@ -11,7 +11,7 @@
 
 namespace cista {
 
-template <typename T, typename TemplateSizeType = uint32_t>
+template <typename T, typename Ptr = T*, typename TemplateSizeType = uint32_t>
 struct vector {
   using size_type = TemplateSizeType;
   using value_type = T;
@@ -234,7 +234,7 @@ struct vector {
 
   explicit operator std::string() const { return to_string(); }
 
-  T* el_{nullptr};
+  Ptr el_{nullptr};
   TemplateSizeType used_size_{0};
   TemplateSizeType allocated_size_{0};
   bool self_allocated_{false};
