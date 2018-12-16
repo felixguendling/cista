@@ -21,7 +21,7 @@ using o_vector = vector<T, offset_ptr<T>, TemplateSizeType>;
 // =============================================================================
 // SERIALIZE
 // -----------------------------------------------------------------------------
-enum class pointer_type { ABSOLUTE, RELATIVE };
+enum class pointer_type { ABSOLUTE_PTR, RELATIVE_PTR };
 struct pending_offset {
   void* origin_ptr_;
   offset_t pos_;
@@ -64,7 +64,7 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
       c.write(pos, it->second);
     } else {
       c.pending_.emplace_back(
-          pending_offset{*origin, pos, pointer_type::ABSOLUTE});
+          pending_offset{*origin, pos, pointer_type::ABSOLUTE_PTR});
     }
   }
 }
@@ -78,7 +78,7 @@ void serialize(Ctx& c, offset_ptr<T> const* origin, offset_t const pos) {
     c.write(pos, it->second - pos);
   } else {
     c.pending_.emplace_back(pending_offset{const_cast<T*>(origin->get()), pos,
-                                           pointer_type::RELATIVE});
+                                           pointer_type::RELATIVE_PTR});
   }
 }
 
@@ -194,7 +194,7 @@ void serialize(Target& t, T& value) {
 
   for (auto& p : c.pending_) {
     if (auto const it = c.offsets_.find(p.origin_ptr_); it != end(c.offsets_)) {
-      c.write(p.pos_, (p.type_ == pointer_type::ABSOLUTE)
+      c.write(p.pos_, (p.type_ == pointer_type::ABSOLUTE_PTR)
                           ? it->second
                           : it->second - p.pos_);
     } else {
