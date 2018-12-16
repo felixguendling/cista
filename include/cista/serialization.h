@@ -21,9 +21,11 @@ using o_vector = vector<T, offset_ptr<T>, TemplateSizeType>;
 // =============================================================================
 // SERIALIZE
 // -----------------------------------------------------------------------------
+enum class pointer_type { ABSOLUTE, RELATIVE };
 struct pending_offset {
   void* origin_ptr_;
   offset_t pos_;
+  pointer_type type_;
 };
 
 template <typename Target>
@@ -61,7 +63,8 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
                it != end(c.offsets_)) {
       c.write(pos, it->second);
     } else {
-      c.pending_.emplace_back(pending_offset{*origin, pos});
+      c.pending_.emplace_back(
+          pending_offset{*origin, pos, pointer_type::ABSOLUTE});
     }
   }
 }
@@ -72,10 +75,10 @@ void serialize(Ctx& c, offset_ptr<T> const* origin, offset_t const pos) {
     return;
   } else if (auto const it = c.offsets_.find(const_cast<T*>(origin->get()));
              it != end(c.offsets_)) {
-    c.write(pos, pos - it->second);
+    c.write(pos, it->second - pos);
   } else {
-    // TODO(felixguendling): Create a new pending map for offset_ptr.
-    // c.pending_.emplace_back(pending_offset{*origin, pos});
+    c.pending_.emplace_back(pending_offset{const_cast<T*>(origin->get()), pos,
+                                           pointer_type::RELATIVE});
   }
 }
 
@@ -173,7 +176,7 @@ void serialize(Ctx& c, o_unique_ptr<T> const* origin, offset_t const pos) {
   c.write(pos + offsetof(o_unique_ptr<T>, self_allocated_), false);
 
   if (origin->el_ != nullptr) {
-    c.offsets_[const_cast<int*>(origin->el_.get())] = start;
+    c.offsets_[const_cast<T*>(origin->el_.get())] = start;
     serialize(c, origin->el_.get(), start);
   }
 }
@@ -191,7 +194,9 @@ void serialize(Target& t, T& value) {
 
   for (auto& p : c.pending_) {
     if (auto const it = c.offsets_.find(p.origin_ptr_); it != end(c.offsets_)) {
-      c.write(p.pos_, it->second);
+      c.write(p.pos_, (p.type_ == pointer_type::ABSOLUTE)
+                          ? it->second
+                          : it->second - p.pos_);
     } else {
       std::cout << "warning: dangling pointer " << p.origin_ptr_
                 << " serialized at offset " << p.pos_ << "\n";

@@ -56,12 +56,12 @@ using o_unique_ptr = unique_ptr<T, offset_ptr<T>>;
 
 template <typename T, typename... Args>
 unique_ptr<T> make_unique(Args&&... args) {
-  return cista::unique_ptr<T>{new T{std::forward<Args>(args)...}, true};
+  return unique_ptr<T>{new T{std::forward<Args>(args)...}, true};
 }
 
 template <typename T, typename... Args>
 o_unique_ptr<T> make_o_unique(Args&&... args) {
-  return cista::o_unique_ptr<T>{new T{std::forward<Args>(args)...}, true};
+  return o_unique_ptr<T>{new T{std::forward<Args>(args)...}, true};
 }
 
 }  // namespace cista

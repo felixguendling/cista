@@ -38,6 +38,9 @@ struct offset_ptr {
   T& operator*() { return *get(); }
   T const& operator*() const { return *get(); }
 
+  T* operator->() { return get(); }
+  T const* operator->() const { return get(); }
+
   T const* get() const {
     auto const ptr = offset_ == NULLPTR_OFFSET
                          ? nullptr

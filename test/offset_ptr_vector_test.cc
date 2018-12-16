@@ -50,8 +50,7 @@ TEST_CASE("offset unique_ptr serialize") {
   CHECK(**ptr == 33);
 }
 
-// TODO(felixguendling): fix
-TEST_CASE("offset_ptr serialize" * doctest::skip(true)) {
+TEST_CASE("offset_ptr serialize") {
   struct serialize_me {
     cista::o_unique_ptr<int> i_{cista::make_o_unique<int>(77)};
     cista::offset_ptr<int> raw_{i_.get()};
@@ -61,6 +60,26 @@ TEST_CASE("offset_ptr serialize" * doctest::skip(true)) {
 
   {
     serialize_me obj;
+    buf = cista::serialize(obj);
+  }  // EOL obj
+
+  auto const serialized = reinterpret_cast<serialize_me*>(&buf[0]);
+  CHECK(serialized->raw_.get() == serialized->i_.get());
+  CHECK(*serialized->raw_ == 77);
+  CHECK(*serialized->i_.get() == 77);
+}
+
+TEST_CASE("offset_ptr serialize pending") {
+  struct serialize_me {
+    cista::offset_ptr<int> raw_;
+    cista::o_unique_ptr<int> i_{cista::make_o_unique<int>(77)};
+  };
+
+  cista::byte_buf buf;
+
+  {
+    serialize_me obj;
+    obj.raw_ = obj.i_.get();
     buf = cista::serialize(obj);
   }  // EOL obj
 
