@@ -5,18 +5,13 @@
 #include <map>
 #include <vector>
 
-#include "cista/containers/string.h"
-#include "cista/containers/unique_ptr.h"
-#include "cista/containers/vector.h"
+#include "cista/containers.h"
 #include "cista/offset_t.h"
 #include "cista/reflection/for_each_field.h"
 #include "cista/targets/buf.h"
 #include "cista/targets/file.h"
 
 namespace cista {
-
-template <typename T, typename TemplateSizeType = uint32_t>
-using o_vector = vector<T, offset_ptr<T>, TemplateSizeType>;
 
 // =============================================================================
 // SERIALIZE
@@ -83,15 +78,15 @@ void serialize(Ctx& c, offset_ptr<T> const* origin, offset_t const pos) {
 }
 
 template <typename Ctx, typename T>
-void serialize(Ctx& c, vector<T> const* origin, offset_t const pos) {
+void serialize(Ctx& c, raw::vector<T> const* origin, offset_t const pos) {
   auto const size = sizeof(T) * origin->used_size_;
   auto const start = origin->el_ == nullptr
                          ? NULLPTR_OFFSET
                          : c.write(origin->el_, size, std::alignment_of_v<T>);
 
-  c.write(pos + offsetof(vector<T>, el_), start);
-  c.write(pos + offsetof(vector<T>, allocated_size_), origin->used_size_);
-  c.write(pos + offsetof(vector<T>, self_allocated_), false);
+  c.write(pos + offsetof(raw::vector<T>, el_), start);
+  c.write(pos + offsetof(raw::vector<T>, allocated_size_), origin->used_size_);
+  c.write(pos + offsetof(raw::vector<T>, self_allocated_), false);
 
   if (origin->el_ != nullptr) {
     auto i = 0u;
@@ -102,15 +97,16 @@ void serialize(Ctx& c, vector<T> const* origin, offset_t const pos) {
 }
 
 template <typename Ctx, typename T>
-void serialize(Ctx& c, o_vector<T> const* origin, offset_t const pos) {
+void serialize(Ctx& c, offset::vector<T> const* origin, offset_t const pos) {
   auto const size = sizeof(T) * origin->used_size_;
   auto const start = origin->el_ == nullptr ? NULLPTR_OFFSET
                                             : c.write(origin->el_.get(), size,
                                                       std::alignment_of_v<T>);
 
-  c.write(pos + offsetof(o_vector<T>, el_),
-          start == NULLPTR_OFFSET ? start
-                                  : start - offsetof(o_vector<T>, el_) - pos);
+  c.write(pos + offsetof(offset::vector<T>, el_),
+          start == NULLPTR_OFFSET
+              ? start
+              : start - offsetof(offset::vector<T>, el_) - pos);
 
   if (origin->el_ != nullptr) {
     auto i = 0u;
@@ -121,7 +117,7 @@ void serialize(Ctx& c, o_vector<T> const* origin, offset_t const pos) {
 }
 
 template <typename Ctx>
-void serialize(Ctx& c, string const* origin, offset_t const pos) {
+void serialize(Ctx& c, raw::string const* origin, offset_t const pos) {
   if (origin->is_short()) {
     return;
   }
@@ -129,12 +125,12 @@ void serialize(Ctx& c, string const* origin, offset_t const pos) {
   auto const start = (origin->h_.ptr_ == nullptr)
                          ? NULLPTR_OFFSET
                          : c.write(origin->data(), origin->size());
-  c.write(pos + offsetof(string, h_.ptr_), start);
-  c.write(pos + offsetof(string, h_.self_allocated_), false);
+  c.write(pos + offsetof(raw::string, h_.ptr_), start);
+  c.write(pos + offsetof(raw::string, h_.self_allocated_), false);
 }
 
 template <typename Ctx>
-void serialize(Ctx& c, o_string const* origin, offset_t const pos) {
+void serialize(Ctx& c, offset::string const* origin, offset_t const pos) {
   if (origin->is_short()) {
     return;
   }
@@ -142,20 +138,21 @@ void serialize(Ctx& c, o_string const* origin, offset_t const pos) {
   auto const start = (origin->h_.ptr_ == nullptr)
                          ? NULLPTR_OFFSET
                          : c.write(origin->data(), origin->size());
-  c.write(pos + offsetof(o_string, h_.ptr_),
-          start == NULLPTR_OFFSET ? start
-                                  : start - offsetof(o_string, h_.ptr_) - pos);
-  c.write(pos + offsetof(o_string, h_.self_allocated_), false);
+  c.write(pos + offsetof(offset::string, h_.ptr_),
+          start == NULLPTR_OFFSET
+              ? start
+              : start - offsetof(offset::string, h_.ptr_) - pos);
+  c.write(pos + offsetof(offset::string, h_.self_allocated_), false);
 }
 
 template <typename Ctx, typename T>
-void serialize(Ctx& c, unique_ptr<T> const* origin, offset_t const pos) {
+void serialize(Ctx& c, raw::unique_ptr<T> const* origin, offset_t const pos) {
   auto const start = origin->el_ == nullptr ? NULLPTR_OFFSET
                                             : c.write(origin->el_, sizeof(T),
                                                       std::alignment_of_v<T>);
 
-  c.write(pos + offsetof(unique_ptr<T>, el_), start);
-  c.write(pos + offsetof(unique_ptr<T>, self_allocated_), false);
+  c.write(pos + offsetof(raw::unique_ptr<T>, el_), start);
+  c.write(pos + offsetof(raw::unique_ptr<T>, self_allocated_), false);
 
   if (origin->el_ != nullptr) {
     c.offsets_[origin->el_] = start;
@@ -164,16 +161,17 @@ void serialize(Ctx& c, unique_ptr<T> const* origin, offset_t const pos) {
 }
 
 template <typename Ctx, typename T>
-void serialize(Ctx& c, o_unique_ptr<T> const* origin, offset_t const pos) {
+void serialize(Ctx& c, offset::unique_ptr<T> const* origin,
+               offset_t const pos) {
   auto const start = origin->el_ == nullptr ? NULLPTR_OFFSET
                                             : c.write(origin->el_, sizeof(T),
                                                       std::alignment_of_v<T>);
 
-  c.write(pos + offsetof(o_unique_ptr<T>, el_),
+  c.write(pos + offsetof(offset::unique_ptr<T>, el_),
           start == NULLPTR_OFFSET
               ? start
-              : start - offsetof(o_unique_ptr<T>, el_) - pos);
-  c.write(pos + offsetof(o_unique_ptr<T>, self_allocated_), false);
+              : start - offsetof(offset::unique_ptr<T>, el_) - pos);
+  c.write(pos + offsetof(offset::unique_ptr<T>, self_allocated_), false);
 
   if (origin->el_ != nullptr) {
     c.offsets_[const_cast<T*>(origin->el_.get())] = start;
@@ -287,8 +285,8 @@ void deserialize(deserialization_context const& c, T* el) {
 }
 
 template <typename T>
-void deserialize(deserialization_context const& c, vector<T>* el) {
-  c.check(el, sizeof(vector<T>));
+void deserialize(deserialization_context const& c, raw::vector<T>* el) {
+  c.check(el, sizeof(raw::vector<T>));
   el->el_ = c.deserialize<T*>(el->el_);
   c.check(el->el_, checked_multiplication(
                        static_cast<size_t>(el->allocated_size_), sizeof(T)));
@@ -299,8 +297,8 @@ void deserialize(deserialization_context const& c, vector<T>* el) {
   }
 }
 
-inline void deserialize(deserialization_context const& c, string* el) {
-  c.check(el, sizeof(string));
+inline void deserialize(deserialization_context const& c, raw::string* el) {
+  c.check(el, sizeof(raw::string));
   if (!el->is_short()) {
     el->h_.ptr_ = c.deserialize<char*>(el->h_.ptr_);
     c.check(el->h_.ptr_, el->h_.size_);
@@ -309,13 +307,21 @@ inline void deserialize(deserialization_context const& c, string* el) {
 }
 
 template <typename T>
-void deserialize(deserialization_context const& c, unique_ptr<T>* el) {
-  c.check(el, sizeof(unique_ptr<T>));
+void deserialize(deserialization_context const& c, raw::unique_ptr<T>* el) {
+  c.check(el, sizeof(raw::unique_ptr<T>));
   el->el_ = c.deserialize<T*>(el->el_);
   c.check(el->el_, sizeof(T));
   c.check(!el->self_allocated_, "unique_ptr self-allocated");
   deserialize(c, el->el_);
 }
+
+template <typename T>
+void deserialize(deserialization_context const& c, offset::vector<T>* el) {}
+
+inline void deserialize(deserialization_context const& c, offset::string* el) {}
+
+template <typename T>
+void deserialize(deserialization_context const& c, offset::unique_ptr<T>* el) {}
 
 template <typename T>
 T* deserialize(uint8_t* from, uint8_t* to = nullptr, bool checked = true) {

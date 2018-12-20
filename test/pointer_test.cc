@@ -2,9 +2,11 @@
 
 #include "doctest.h"
 
+namespace data = cista::raw;
+
 TEST_CASE("pointer serialization") {
   struct serialize_me {
-    cista::unique_ptr<int> i_{cista::make_unique<int>(77)};
+    data::unique_ptr<int> i_{data::make_unique<int>(77)};
     int* raw_{i_.get()};
   };
 

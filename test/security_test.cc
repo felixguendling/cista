@@ -2,20 +2,22 @@
 
 #include "doctest.h"
 
+namespace data = cista::raw;
+
 TEST_CASE("sec value overflow") {
   struct serialize_me {
     int a_{0};
     struct inner {
       int b_{0};
       int c_{0};
-      cista::string d_;
+      data::string d_;
     } j_;
   };
 
   cista::byte_buf buf;
 
   {
-    serialize_me obj{1, {2, 3, cista::string{"testtes"}}};
+    serialize_me obj{1, {2, 3, data::string{"testtes"}}};
     buf = cista::serialize(obj);
   }  // EOL obj
 
@@ -33,14 +35,14 @@ TEST_CASE("sec string overflow") {
     struct inner {
       int b_{0};
       int c_{0};
-      cista::string d_;
+      data::string d_;
     } j_;
   };
 
   cista::byte_buf buf;
 
   {
-    serialize_me obj{1, {2, 3, cista::string{long_str}}};
+    serialize_me obj{1, {2, 3, data::string{long_str}}};
     buf = cista::serialize(obj);
   }  // EOL obj
 
@@ -56,14 +58,14 @@ TEST_CASE("sec vector overflow") {
     struct inner {
       int b_{0};
       int c_{0};
-      cista::vector<int> d_;
+      data::vector<int> d_;
     } j_;
   };
 
   cista::byte_buf buf;
 
   {
-    serialize_me obj{1, {2, 3, cista::vector<int>{}}};
+    serialize_me obj{1, {2, 3, data::vector<int>{}}};
     obj.j_.d_.push_back(1);
     buf = cista::serialize(obj);
   }  // EOL obj
@@ -73,7 +75,7 @@ TEST_CASE("sec vector overflow") {
   CHECK_THROWS(cista::deserialize<serialize_me>(buf));
 
   {
-    serialize_me obj{1, {2, 3, cista::vector<int>{}}};
+    serialize_me obj{1, {2, 3, data::vector<int>{}}};
     buf = cista::serialize(obj);
   }
   buf.resize(buf.size() - 1);
@@ -86,14 +88,14 @@ TEST_CASE("sec unique_ptr overflow unset") {
     struct inner {
       int b_{0};
       int c_{0};
-      cista::unique_ptr<int> d_;
+      data::unique_ptr<int> d_;
     } j_;
   };
 
   cista::byte_buf buf;
 
   {
-    serialize_me obj{1, {2, 3, cista::unique_ptr<int>{}}};
+    serialize_me obj{1, {2, 3, data::unique_ptr<int>{}}};
     buf = cista::serialize(obj);
   }
   buf.resize(buf.size() - 1);
@@ -106,15 +108,15 @@ TEST_CASE("sec unique_ptr overflow set") {
     struct inner {
       int b_{0};
       int c_{0};
-      cista::unique_ptr<int> d_;
+      data::unique_ptr<int> d_;
     } j_;
   };
 
   cista::byte_buf buf;
 
   {
-    serialize_me obj{1, {2, 3, cista::unique_ptr<int>{}}};
-    obj.j_.d_ = cista::make_unique<int>(3);
+    serialize_me obj{1, {2, 3, data::unique_ptr<int>{}}};
+    obj.j_.d_ = data::make_unique<int>(3);
     buf = cista::serialize(obj);
   }  // EOL obj
 

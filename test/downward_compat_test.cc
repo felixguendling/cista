@@ -2,6 +2,10 @@
 
 #include "cista.h"
 
+namespace cista {
+using namespace cista::raw;
+}  // namespace cista
+
 struct v1 {
   cista::string s_;
   int dummy_for_msvc_{0};

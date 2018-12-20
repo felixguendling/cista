@@ -4,7 +4,7 @@
 
 #include "doctest.h"
 
-using cista::string;
+using cista::raw::string;
 
 constexpr auto const CORNER_CASE_SHORT_14 = "01234567891234";
 constexpr auto const CORNER_CASE_SHORT_15 = "012345678912345";
@@ -20,7 +20,7 @@ TEST_CASE("string init") {
 }
 
 TEST_CASE("string long short corner 14") {
-  auto s = string{CORNER_CASE_SHORT_14, cista::string::owning};
+  auto s = string{CORNER_CASE_SHORT_14, string::owning};
   CHECK(s.is_short());
   CHECK(s.size() == std::strlen(CORNER_CASE_SHORT_14));
   CHECK(s.view() == CORNER_CASE_SHORT_14);
