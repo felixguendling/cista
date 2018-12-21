@@ -23,8 +23,12 @@ struct offset_ptr {
   offset_ptr(offset_ptr&& o) : offset_ptr{o.get()} {}
   offset_ptr& operator=(offset_ptr const& o) {
     offset_ = ptr_to_offset(o.get());
+    return *this;
   }
-  offset_ptr& operator=(offset_ptr&& o) { offset_ = ptr_to_offset(o.get()); }
+  offset_ptr& operator=(offset_ptr&& o) {
+    offset_ = ptr_to_offset(o.get());
+    return *this;
+  }
 
   offset_t ptr_to_offset(T const* p) const {
     return p == nullptr
