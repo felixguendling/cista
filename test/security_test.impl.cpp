@@ -1,10 +1,12 @@
-#include "cista.h"
-
 #include "doctest.h"
 
-namespace data = cista::raw;
+#include "cista.h"
 
-TEST_CASE("sec value overflow") {
+using namespace cista;
+
+namespace data = CISTA_PTR_TYPE;
+
+inline void test_sec_value_overflow() {
   struct serialize_me {
     int a_{0};
     struct inner {
@@ -27,7 +29,7 @@ TEST_CASE("sec value overflow") {
   CHECK_THROWS(cista::deserialize<serialize_me>(buf));
 }
 
-TEST_CASE("sec string overflow") {
+inline void test_sec_string_overflow() {
   auto constexpr const long_str = "The quick brown fox jumps over the lazy dog";
 
   struct serialize_me {
@@ -52,7 +54,7 @@ TEST_CASE("sec string overflow") {
   CHECK_THROWS(cista::deserialize<serialize_me>(buf));
 }
 
-TEST_CASE("sec vector overflow") {
+inline void test_sec_vector_overflow() {
   struct serialize_me {
     int a_{0};
     struct inner {
@@ -82,7 +84,7 @@ TEST_CASE("sec vector overflow") {
   CHECK_THROWS(cista::deserialize<serialize_me>(buf));
 }
 
-TEST_CASE("sec unique_ptr overflow unset") {
+inline void test_sec_unique_ptr_overflow_unset() {
   struct serialize_me {
     int a_{0};
     struct inner {
@@ -102,7 +104,7 @@ TEST_CASE("sec unique_ptr overflow unset") {
   CHECK_THROWS(cista::deserialize<serialize_me>(buf));
 }
 
-TEST_CASE("sec unique_ptr overflow set") {
+inline void test_sec_unique_ptr_overflow_set() {
   struct serialize_me {
     int a_{0};
     struct inner {

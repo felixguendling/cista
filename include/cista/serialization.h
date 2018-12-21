@@ -107,6 +107,9 @@ void serialize(Ctx& c, offset::vector<T> const* origin, offset_t const pos) {
           start == NULLPTR_OFFSET
               ? start
               : start - offsetof(offset::vector<T>, el_) - pos);
+  c.write(pos + offsetof(offset::vector<T>, allocated_size_),
+          origin->used_size_);
+  c.write(pos + offsetof(offset::vector<T>, self_allocated_), false);
 
   if (origin->el_ != nullptr) {
     auto i = 0u;
@@ -316,12 +319,39 @@ void deserialize(deserialization_context const& c, raw::unique_ptr<T>* el) {
 }
 
 template <typename T>
-void deserialize(deserialization_context const& c, offset::vector<T>* el) {}
-
-inline void deserialize(deserialization_context const& c, offset::string* el) {}
+void deserialize(deserialization_context const& c, offset_ptr<T>* el) {
+  using written_type_t = std::remove_reference_t<std::remove_const_t<T>>;
+  c.check(el->get(), sizeof(std::declval<written_type_t>()));
+}
 
 template <typename T>
-void deserialize(deserialization_context const& c, offset::unique_ptr<T>* el) {}
+void deserialize(deserialization_context const& c, offset::vector<T>* el) {
+  c.check(el, sizeof(offset::vector<T>));
+  c.check(el->el_.get(),
+          checked_multiplication(static_cast<size_t>(el->allocated_size_),
+                                 sizeof(T)));
+  c.check(el->allocated_size_ == el->used_size_, "vector size mismatch");
+  c.check(!el->self_allocated_, "vector self-allocated");
+  for (auto& m : *el) {
+    deserialize(c, &m);
+  }
+}
+
+inline void deserialize(deserialization_context const& c, offset::string* el) {
+  c.check(el, sizeof(offset::string));
+  if (!el->is_short()) {
+    c.check(el->h_.ptr_.get(), el->h_.size_);
+    c.check(!el->h_.self_allocated_, "string self-allocated");
+  }
+}
+
+template <typename T>
+void deserialize(deserialization_context const& c, offset::unique_ptr<T>* el) {
+  c.check(el, sizeof(offset::unique_ptr<T>));
+  c.check(el->el_.get(), sizeof(T));
+  c.check(!el->self_allocated_, "unique_ptr self-allocated");
+  deserialize(c, el->el_.get());
+}
 
 template <typename T>
 T* deserialize(uint8_t* from, uint8_t* to = nullptr, bool checked = true) {
@@ -334,6 +364,17 @@ T* deserialize(uint8_t* from, uint8_t* to = nullptr, bool checked = true) {
 template <typename T, typename Container>
 T* deserialize(Container& c, bool checked = true) {
   return deserialize<T>(&c[0], &c[0] + c.size(), checked);
+}
+
+template <typename T>
+T* unsafe_offset_deserialize(uint8_t* from, uint8_t* to = nullptr,
+                             bool checked = true) {
+  return reinterpret_cast<T*>(from);
+}
+
+template <typename T, typename Container>
+T* unsafe_offset_deserialize(Container& c, bool checked = true) {
+  return unsafe_offset_deserialize<T>(&c[0], &c[0] + c.size(), checked);
 }
 
 }  // namespace cista
