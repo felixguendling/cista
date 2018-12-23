@@ -170,9 +170,6 @@ struct basic_string {
     heap h_;
     stack s_;
   };
-};  // namespace cista
-
-using string = basic_string<char const*>;
-using o_string = basic_string<offset_ptr<char const>>;
+};
 
 }  // namespace cista

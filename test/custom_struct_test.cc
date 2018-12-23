@@ -4,6 +4,9 @@
 
 #include "cista.h"
 
+using namespace cista;
+using namespace cista::raw;
+
 struct serialize_me {
   uint32_t v1_ : 10;
   uint32_t v2_ : 10;
@@ -13,19 +16,19 @@ struct serialize_me {
 };
 
 template <typename Ctx>
-void serialize(Ctx&, serialize_me const*, cista::offset_t const) {}
+void serialize(Ctx&, serialize_me const*, offset_t const) {}
 
-void deserialize(cista::deserialization_context const&, serialize_me*) {}
+void unchecked_deserialize(deserialization_context const&, serialize_me*) {}
 
 TEST_CASE("custom struct test") {
-  cista::byte_buf buf;
+  byte_buf buf;
 
   {
     serialize_me obj{1, 2, 3, 0, 1};
-    buf = cista::serialize(obj);
+    buf = serialize(obj);
   }  // EOL obj
 
-  auto const serialized = cista::deserialize<serialize_me>(buf);
+  auto const serialized = unchecked_deserialize<serialize_me>(buf);
   CHECK(1 == serialized->v1_);
   CHECK(2 == serialized->v2_);
   CHECK(3 == serialized->v3_);

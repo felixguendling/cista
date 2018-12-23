@@ -7,23 +7,24 @@
 namespace cista {
 
 template <typename T, typename Ptr = T*>
-struct unique_ptr {
+struct basic_unique_ptr {
   using value_t = T;
 
-  unique_ptr() = default;
+  basic_unique_ptr() = default;
 
-  explicit unique_ptr(T* el, bool take_ownership = true)
+  explicit basic_unique_ptr(T* el, bool take_ownership = true)
       : el_{el}, self_allocated_{take_ownership} {}
 
-  unique_ptr(unique_ptr const&) = delete;
-  unique_ptr& operator=(unique_ptr const&) = delete;
+  basic_unique_ptr(basic_unique_ptr const&) = delete;
+  basic_unique_ptr& operator=(basic_unique_ptr const&) = delete;
 
-  unique_ptr(unique_ptr&& o) : el_{o.el_}, self_allocated_{o.self_allocated_} {
+  basic_unique_ptr(basic_unique_ptr&& o)
+      : el_{o.el_}, self_allocated_{o.self_allocated_} {
     o.el_ = nullptr;
     o.self_allocated_ = false;
   }
 
-  unique_ptr& operator=(unique_ptr&& o) {
+  basic_unique_ptr& operator=(basic_unique_ptr&& o) {
     el_ = o.el_;
     self_allocated_ = o.self_allocated_;
     o.el_ = nullptr;
@@ -31,7 +32,7 @@ struct unique_ptr {
     return *this;
   }
 
-  ~unique_ptr() {
+  ~basic_unique_ptr() {
     if (self_allocated_ && el_ != nullptr) {
       delete get();
     }
@@ -50,18 +51,5 @@ struct unique_ptr {
   uint16_t __fill_1__{0};
   uint32_t __fill_2__{0};
 };
-
-template <typename T>
-using o_unique_ptr = unique_ptr<T, offset_ptr<T>>;
-
-template <typename T, typename... Args>
-unique_ptr<T> make_unique(Args&&... args) {
-  return unique_ptr<T>{new T{std::forward<Args>(args)...}, true};
-}
-
-template <typename T, typename... Args>
-o_unique_ptr<T> make_o_unique(Args&&... args) {
-  return o_unique_ptr<T>{new T{std::forward<Args>(args)...}, true};
-}
 
 }  // namespace cista
