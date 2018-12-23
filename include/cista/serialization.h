@@ -377,20 +377,23 @@ void unchecked_deserialize(deserialization_context const& c, vector<T>* el) {
   }
 }
 
-inline void unchecked_deserialize(deserialization_context const& c, string* el) {
+inline void unchecked_deserialize(deserialization_context const& c,
+                                  string* el) {
   if (!el->is_short()) {
     el->h_.ptr_ = c.deserialize<char*>(el->h_.ptr_);
   }
 }
 
 template <typename T>
-void unchecked_deserialize(deserialization_context const& c, unique_ptr<T>* el) {
+void unchecked_deserialize(deserialization_context const& c,
+                           unique_ptr<T>* el) {
   el->el_ = c.deserialize<T*>(el->el_);
   unchecked_deserialize(c, el->el_);
 }
 
 template <typename T>
-T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr, bool checked = true) {
+T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr,
+                         bool checked = true) {
   deserialization_context c{checked, from, to};
   auto const el = reinterpret_cast<T*>(from);
   unchecked_deserialize(c, el);
@@ -477,7 +480,7 @@ T* deserialize(Container& c, bool checked = true) {
 
 template <typename T>
 T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr,
-                     bool checked = true) {
+                         bool checked = true) {
   return reinterpret_cast<T*>(from);
 }
 
