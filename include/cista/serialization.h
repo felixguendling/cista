@@ -274,6 +274,19 @@ struct deserialization_context {
   uint8_t *from_, *to_;
 };
 
+namespace raw {
+
+template <typename T>
+void deserialize(deserialization_context const& c, T* el);
+
+template <typename T>
+void deserialize(deserialization_context const& c, vector<T>* el);
+
+inline void deserialize(deserialization_context const& c, string* el);
+
+template <typename T>
+void deserialize(deserialization_context const& c, unique_ptr<T>* el);
+
 template <typename T>
 void deserialize(deserialization_context const& c, T* el) {
   using written_type_t = std::remove_reference_t<std::remove_const_t<T>>;
@@ -288,8 +301,8 @@ void deserialize(deserialization_context const& c, T* el) {
 }
 
 template <typename T>
-void deserialize(deserialization_context const& c, raw::vector<T>* el) {
-  c.check(el, sizeof(raw::vector<T>));
+void deserialize(deserialization_context const& c, vector<T>* el) {
+  c.check(el, sizeof(vector<T>));
   el->el_ = c.deserialize<T*>(el->el_);
   c.check(el->el_, checked_multiplication(
                        static_cast<size_t>(el->allocated_size_), sizeof(T)));
@@ -300,8 +313,8 @@ void deserialize(deserialization_context const& c, raw::vector<T>* el) {
   }
 }
 
-inline void deserialize(deserialization_context const& c, raw::string* el) {
-  c.check(el, sizeof(raw::string));
+inline void deserialize(deserialization_context const& c, string* el) {
+  c.check(el, sizeof(string));
   if (!el->is_short()) {
     el->h_.ptr_ = c.deserialize<char*>(el->h_.ptr_);
     c.check(el->h_.ptr_, el->h_.size_);
@@ -310,12 +323,108 @@ inline void deserialize(deserialization_context const& c, raw::string* el) {
 }
 
 template <typename T>
-void deserialize(deserialization_context const& c, raw::unique_ptr<T>* el) {
-  c.check(el, sizeof(raw::unique_ptr<T>));
+void deserialize(deserialization_context const& c, unique_ptr<T>* el) {
+  c.check(el, sizeof(unique_ptr<T>));
   el->el_ = c.deserialize<T*>(el->el_);
   c.check(el->el_, sizeof(T));
   c.check(!el->self_allocated_, "unique_ptr self-allocated");
   deserialize(c, el->el_);
+}
+
+template <typename T>
+T* deserialize(uint8_t* from, uint8_t* to = nullptr, bool checked = true) {
+  deserialization_context c{checked, from, to};
+  auto const el = reinterpret_cast<T*>(from);
+  deserialize(c, el);
+  return el;
+}
+
+template <typename T, typename Container>
+T* deserialize(Container& c, bool checked = true) {
+  return deserialize<T>(&c[0], &c[0] + c.size(), checked);
+}
+
+// -----------------------------------------------------------------------------
+
+template <typename T>
+void unchecked_deserialize(deserialization_context const& c, T* el);
+
+template <typename T>
+void unchecked_deserialize(deserialization_context const& c, vector<T>* el);
+
+inline void unchecked_deserialize(deserialization_context const& c, string* el);
+
+template <typename T>
+void unchecked_deserialize(deserialization_context const& c, unique_ptr<T>* el);
+
+template <typename T>
+void unchecked_deserialize(deserialization_context const& c, T* el) {
+  using written_type_t = std::remove_reference_t<std::remove_const_t<T>>;
+  if constexpr (std::is_pointer_v<written_type_t>) {
+    *el = c.deserialize<written_type_t>(*el);
+  } else if constexpr (std::is_scalar_v<written_type_t>) {
+    // Do nothing.
+  } else {
+    for_each_ptr_field(*el, [&](auto& f) { unchecked_deserialize(c, f); });
+  }
+}
+
+template <typename T>
+void unchecked_deserialize(deserialization_context const& c, vector<T>* el) {
+  el->el_ = c.deserialize<T*>(el->el_);
+  for (auto& m : *el) {
+    unchecked_deserialize(c, &m);
+  }
+}
+
+inline void unchecked_deserialize(deserialization_context const& c, string* el) {
+  if (!el->is_short()) {
+    el->h_.ptr_ = c.deserialize<char*>(el->h_.ptr_);
+  }
+}
+
+template <typename T>
+void unchecked_deserialize(deserialization_context const& c, unique_ptr<T>* el) {
+  el->el_ = c.deserialize<T*>(el->el_);
+  unchecked_deserialize(c, el->el_);
+}
+
+template <typename T>
+T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr, bool checked = true) {
+  deserialization_context c{checked, from, to};
+  auto const el = reinterpret_cast<T*>(from);
+  unchecked_deserialize(c, el);
+  return el;
+}
+
+template <typename T, typename Container>
+T* unchecked_deserialize(Container& c, bool checked = true) {
+  return unchecked_deserialize<T>(&c[0], &c[0] + c.size(), checked);
+}
+
+}  // namespace raw
+
+namespace offset {
+
+template <typename T>
+void deserialize(deserialization_context const& c, offset_ptr<T>* el);
+
+template <typename T>
+void deserialize(deserialization_context const& c, vector<T>* el);
+
+void deserialize(deserialization_context const& c, string* el);
+
+template <typename T>
+void deserialize(deserialization_context const& c, unique_ptr<T>* el);
+
+template <typename T>
+void deserialize(deserialization_context const& c, T* el) {
+  using written_type_t = std::remove_reference_t<std::remove_const_t<T>>;
+  if constexpr (std::is_scalar_v<written_type_t>) {
+    c.check(el, sizeof(T));
+  } else {
+    for_each_ptr_field(*el, [&](auto& f) { deserialize(c, f); });
+  }
 }
 
 template <typename T>
@@ -325,8 +434,8 @@ void deserialize(deserialization_context const& c, offset_ptr<T>* el) {
 }
 
 template <typename T>
-void deserialize(deserialization_context const& c, offset::vector<T>* el) {
-  c.check(el, sizeof(offset::vector<T>));
+void deserialize(deserialization_context const& c, vector<T>* el) {
+  c.check(el, sizeof(vector<T>));
   c.check(el->el_.get(),
           checked_multiplication(static_cast<size_t>(el->allocated_size_),
                                  sizeof(T)));
@@ -337,8 +446,8 @@ void deserialize(deserialization_context const& c, offset::vector<T>* el) {
   }
 }
 
-inline void deserialize(deserialization_context const& c, offset::string* el) {
-  c.check(el, sizeof(offset::string));
+inline void deserialize(deserialization_context const& c, string* el) {
+  c.check(el, sizeof(string));
   if (!el->is_short()) {
     c.check(el->h_.ptr_.get(), el->h_.size_);
     c.check(!el->h_.self_allocated_, "string self-allocated");
@@ -346,8 +455,8 @@ inline void deserialize(deserialization_context const& c, offset::string* el) {
 }
 
 template <typename T>
-void deserialize(deserialization_context const& c, offset::unique_ptr<T>* el) {
-  c.check(el, sizeof(offset::unique_ptr<T>));
+void deserialize(deserialization_context const& c, unique_ptr<T>* el) {
+  c.check(el, sizeof(unique_ptr<T>));
   c.check(el->el_.get(), sizeof(T));
   c.check(!el->self_allocated_, "unique_ptr self-allocated");
   deserialize(c, el->el_.get());
@@ -367,14 +476,16 @@ T* deserialize(Container& c, bool checked = true) {
 }
 
 template <typename T>
-T* unsafe_offset_deserialize(uint8_t* from, uint8_t* to = nullptr,
-                             bool checked = true) {
+T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr,
+                     bool checked = true) {
   return reinterpret_cast<T*>(from);
 }
 
 template <typename T, typename Container>
-T* unsafe_offset_deserialize(Container& c, bool checked = true) {
-  return unsafe_offset_deserialize<T>(&c[0], &c[0] + c.size(), checked);
+T* unchecked_deserialize(Container& c, bool checked = true) {
+  return unchecked_deserialize<T>(&c[0], &c[0] + c.size(), checked);
 }
+
+}  // namespace offset
 
 }  // namespace cista

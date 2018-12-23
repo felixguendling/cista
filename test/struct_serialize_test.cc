@@ -22,7 +22,7 @@ TEST_CASE("struct serialization") {
   CHECK(buf.size() == sizeof(serialize_me));
 
   auto const serialized =
-      cista::deserialize<serialize_me>(&buf[0], &buf[0] + buf.size());
+      cista::raw::deserialize<serialize_me>(&buf[0], &buf[0] + buf.size());
   CHECK(serialized->a_ == 1);
   CHECK(serialized->j_.b_ == 2);
   CHECK(serialized->j_.c_ == 3);

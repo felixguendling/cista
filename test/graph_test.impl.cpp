@@ -98,7 +98,7 @@ inline void graph_serialization_file() {
   }  // EOL graph
 
   auto b = cista::file("test.bin", "r").content();
-  auto const g = cista::deserialize<graph>(b);
+  auto const g = data::deserialize<graph>(b);
   auto const visited = bfs(g->nodes_[0].get());
   unsigned i = 0;
   CHECK((*std::next(begin(visited), i++))->name_ == data::string{"NODE A"});
@@ -126,7 +126,7 @@ inline void graph_serialization_buf() {
     buf = cista::serialize(g);
   }  // EOL graph
 
-  auto const g = cista::deserialize<graph>(buf);
+  auto const g = data::deserialize<graph>(buf);
   auto const visited = bfs(g->nodes_[0].get());
   unsigned i = 0;
   CHECK((*std::next(begin(visited), i++))->name_ == data::string{"NODE A"});
