@@ -58,6 +58,8 @@ TEST_CASE("downward compatibility test") {
         buf = cista::serialize(values);
         break;
       }
+
+      default:;
     }
 
     if (cista::deserialize<version_detection>(buf)->version_ == 1) {
