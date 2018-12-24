@@ -29,14 +29,14 @@ void sha1sum::update(const std::string& s) {
 
 void sha1sum::update(std::istream& is) {
   std::string rest_of_buffer;
-  read(is, rest_of_buffer, BLOCK_BYTES - buffer.size());
+  read(is, rest_of_buffer);
   buffer += rest_of_buffer;
 
   while (is) {
     uint32 block[BLOCK_INTS];
     buffer_to_block(buffer, block);
     transform(block);
-    read(is, buffer, BLOCK_BYTES);
+    read(is, buffer);
   }
 }
 
@@ -50,7 +50,7 @@ std::string sha1sum::final() {
 
   /* Padding */
   buffer += 0x80;
-  unsigned int orig_size = buffer.size();
+  auto const orig_size = buffer.size();
   while (buffer.size() < BLOCK_BYTES) {
     buffer += (char)0x00;
   }
@@ -250,8 +250,8 @@ void sha1sum::buffer_to_block(const std::string& buffer,
   }
 }
 
-void sha1sum::read(std::istream& is, std::string& s, int max) {
-  char sbuf[max];
-  is.read(sbuf, max);
+void sha1sum::read(std::istream& is, std::string& s) {
+  char sbuf[BLOCK_BYTES];
+  is.read(sbuf, BLOCK_BYTES);
   s.assign(sbuf, is.gcount());
 }
