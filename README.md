@@ -90,7 +90,7 @@ The following functions exist in `cista::offset` and `cista::raw`:
 
   - **`std::vector<uint8_t> serialize<T>(T const&)`** serializes an object of type `T`and returns a buffer containing the serialized object.
   - **`void serialize<Target, T>(Target&, T const&)`** serializes an object of type `T` to the specified target. Targets are either `cista::buf` or `cista::sfile`. Custom target sturcts should provide `write` functions as described [here](#serialization).
-  - **`T* deserialize<T, Container>(Container&)`** deserializes an object from a `std::vector<uint8_t>` or similar data structure. This function throws a `std::runtimer_error` if the data is not well-formed. functions as described [here](#serialization).
+  - **`T* deserialize<T, Container>(Container&)`** deserializes an object from a `std::vector<uint8_t>` or similar data structure. This function throws a `std::runtimer_error` if the data is not well-formed.
   - **`T* deserialize<T>(uint8_t* from, uint8_t* to)`** deserializes an object from a pointer range. This function throws a `std::runtimer_error` if the data is not well-formed.
   - **`T* unchecked_deserialize<T, Container>(Container&)`** deserializes an object from a `std::vector<uint8_t>` or similar data structure. No checking is performed!
   - **`T* unchecked_deserialize<T>(uint8_t* from, uint8_t* to)`** deserializes an object from a pointer range. No checking is performed!
