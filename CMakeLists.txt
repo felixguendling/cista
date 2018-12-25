@@ -9,6 +9,7 @@ add_library(cista INTERFACE)
 target_include_directories(cista INTERFACE include)
 
 add_subdirectory(tools/doctest EXCLUDE_FROM_ALL)
+add_subdirectory(tools/sha1sum EXCLUDE_FROM_ALL)
 
 file(GLOB_RECURSE cista-include-files include/*.h*)
 
@@ -27,7 +28,7 @@ add_custom_command(
 
 file(GLOB_RECURSE cista-test-files test/*.cc)
 add_executable(cista-test EXCLUDE_FROM_ALL ${cista-test-files} ${CMAKE_CURRENT_BINARY_DIR}/cista.h)
-target_link_libraries(cista-test doctest)
+target_link_libraries(cista-test doctest sha1sum)
 target_include_directories(cista-test PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 if(CISTA_COVERAGE)
   target_compile_options(cista-test PRIVATE -fprofile-arcs -ftest-coverage)
