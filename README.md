@@ -80,7 +80,7 @@ The following data structures exist in `cista::offset` and `cista::raw`:
   - **`vector<T>`**: serializable version of `std::vector<T>`
   - **`string`**: serializable version of `std::string`
   - **`unique_ptr<T>`**: serializable version of `std::unique_ptr<T>`
-  - **`ptr<T>`**: serializable pointer: `cista::raw::ptr<T>` is just a `T*`, `cista::offset::ptr<T>` is a specialized data structure.
+  - **`ptr<T>`**: serializable pointer: `cista::raw::ptr<T>` is just a `T*`, `cista::offset::ptr<T>` is a specialized data structure that behaves mostly like a `T*` (overloaded `->`, `*`, etc. operators).
 
 Currently, they do not provide exactly the same interface as their `std::` equivalents. Standard compliance was not a goal. This can be changed in future releases.
 
