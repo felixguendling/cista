@@ -8,9 +8,9 @@ Cista++ is a simple, open source (MIT license) C++17 compatible way of (de-)seri
 
 *Single header. No macros. No source code generation.*
 
-  - Raw performance
-  - No macro magic, no additional definition files, no generated source code
-  - Supports complex and cyclic datastructures including cyclic references, recursive data structures, etc.
+  - Raw performance - use your native structs. Supports modification/resizing of deserialized data!
+  - Supports complex and cyclic data structures including cyclic references, recursive data structures, etc.
+  - Save 50% memory: serialize directly to the filesystem if needed, no intermediate buffer required.
   - Compatible with Clang, GCC, and MSVC
 
 # Use Cases
@@ -20,6 +20,7 @@ Examples:
 
   - Asset loading for all kinds of applications (i.e. game assets, GIS data, large graphs, etc.)
   - Transferring data over network
+  - shared memory applications
 
 Currently, only C++17 software can read/write data.
 But it should be possible to generate accessors
@@ -46,12 +47,55 @@ Alternative libraries:
 # Usage
 
   - Declare the data structures you want to serialize as regular C++ structs
-    (using scalar types, `cista::string`, `cista::unique_ptr<T&>`,
-    and `cista::vector<T&>` - more types such as `map`/`set`/etc. may follow).
+    (using scalar types, `cista::raw/offset::string`, `cista::raw/offset::unique_ptr<T&>`,
+    and `cista::raw/offset::vector<T&>` - more types such as `map`/`set`/etc. may follow).
   - Do *NOT* declare any constructors (reflection will not work otherwise).
   - Always use data types with known sizes such as `int32_t`, `uint8_t`.
-  - To use pointers: store the object you want to reference as `cista::unique_ptr<T&>` and use a raw pointer `T*` to reference it.
+  - To use pointers: store the object you want to reference as `cista::raw/offset::unique_ptr<T&>` and use a raw pointer `T*` to reference it.
   - Optional: if you need deterministic buffer contents, you need to fill spare bytes in your structs.
+
+Cista++ supports two serialization formats:
+
+### Offset Based Data Structures
+
+:white_check_mark: can be read without any deserialization step  
+:white_check_mark: suitable for shared memory applications  
+:x: slower at runtime (pointers needs to be resolved using on more add)  
+
+### Raw Data Structures
+
+:x: deserialize step takes time (but still very fast also for GBs of data)  
+:x: the buffer containing the serialized data needs to be modified  
+:white_check_mark: fast runtime access (raw access)  
+
+
+# API Documentation
+
+Both namespaces `cista::offset` and `cista::raw` have the same structure. They provide the same data structures and functions. They have the same behavior.
+
+### Data Structures
+
+The following data structures exist in `cista::offset` and `cista::raw`:
+
+  - **`vector<T>`**: serializable version of `std::vector<T>`
+  - **`string`**: serializable version of `std::string`
+  - **`unique_ptr<T>`**: serializable version of `std::unique_ptr<T>`
+  - **`ptr<T>`**: serializable pointer: `cista::raw::ptr<T>` is just a `T*`, `cista::offset::ptr<T>` is a specialized data structure that behaves mostly like a `T*` (overloaded `->`, `*`, etc. operators).
+
+Currently, `vector`, `string`, and `unique_ptr` do not provide exactly the same interface as their `std::` equivalents. Standard compliance was not a goal. This can change in future releases. It is possible to add more data structures to Cista++.
+
+### Serialization and Deserialization Functions
+
+The following functions exist in `cista::offset` and `cista::raw`:
+
+  - **`std::vector<uint8_t> serialize<T>(T const&)`** serializes an object of type `T`and returns a buffer containing the serialized object.
+  - **`void serialize<Target, T>(Target&, T const&)`** serializes an object of type `T` to the specified target. Targets are either `cista::buf` or `cista::sfile`. Custom target sturcts should provide `write` functions as described [here](#serialization).
+  - **`T* deserialize<T, Container>(Container&)`** deserializes an object from a `std::vector<uint8_t>` or similar data structure. This function throws a `std::runtimer_error` if the data is not well-formed.
+  - **`T* deserialize<T>(uint8_t* from, uint8_t* to)`** deserializes an object from a pointer range. This function throws a `std::runtimer_error` if the data is not well-formed.
+  - **`T* unchecked_deserialize<T, Container>(Container&)`** deserializes an object from a `std::vector<uint8_t>` or similar data structure. No checking is performed!
+  - **`T* unchecked_deserialize<T>(uint8_t* from, uint8_t* to)`** deserializes an object from a pointer range. No checking is performed!
+
+`cista::offset::unchecked_deserialize` performs just a pointer cast!
 
 # Advanced Example
 
