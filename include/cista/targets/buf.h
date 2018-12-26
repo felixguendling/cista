@@ -27,7 +27,7 @@ struct buf {
 
     if (alignment != 0 && alignment != 1 && buf_.size() != 0) {
       auto unaligned_ptr = static_cast<void*>(addr(curr_offset_));
-      auto space = static_cast<size_t>(alignment) * 8u;
+      auto space = std::numeric_limits<std::size_t>::max();
       auto const aligned_ptr =
           std::align(alignment, size, unaligned_ptr, space);
       auto const new_offset = static_cast<offset_t>(

@@ -73,7 +73,7 @@ TEST_CASE("offset_ptr serialize") {
 
 TEST_CASE("offset_ptr serialize pending") {
   struct serialize_me {
-    data::ptr<int> raw_;
+    data::ptr<int> raw_{nullptr};
     data::unique_ptr<int> i_{data::make_unique<int>(77)};
   };
 

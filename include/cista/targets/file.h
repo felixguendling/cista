@@ -44,7 +44,7 @@ struct sfile {
     auto curr_offset = size_;
     if (alignment != 0 && alignment != 1) {
       auto unaligned_ptr = reinterpret_cast<void*>(size_);
-      auto space = static_cast<size_t>(alignment) * 8u;
+      auto space = std::numeric_limits<std::size_t>::max();
       auto const aligned_ptr =
           std::align(alignment, size, unaligned_ptr, space);
       curr_offset =

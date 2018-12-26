@@ -62,13 +62,14 @@ TEST_CASE("downward compatibility test") {
       default:;
     }
 
-    if (cista::deserialize<version_detection>(buf)->version_ == 1) {
-      auto const v1 = cista::deserialize<data_v1>(buf, false);
+    if (cista::unchecked_deserialize<version_detection>(buf)->version_ == 1) {
+      auto const v1 = cista::unchecked_deserialize<data_v1>(buf);
       CHECK(v1->values_[0]->s_ == "A");
       CHECK(v1->values_[1]->s_ == "B");
       CHECK(v1->values_[2]->s_ == "C");
-    } else if (cista::deserialize<version_detection>(buf)->version_ == 2) {
-      auto const v2 = cista::deserialize<data_v2>(buf, false);
+    } else if (cista::unchecked_deserialize<version_detection>(buf)->version_ ==
+               2) {
+      auto const v2 = cista::unchecked_deserialize<data_v2>(buf);
       CHECK(v2->values_[0]->s1_ == "A");
       CHECK(v2->values_[1]->s1_ == "B");
       CHECK(v2->values_[2]->s1_ == "C");

@@ -245,8 +245,7 @@ Arg checked_multiplication(Arg a1, Args... aN) {
 }
 
 struct deserialization_context {
-  deserialization_context(bool checked, uint8_t* from, uint8_t* to)
-      : checked_{checked}, from_{from}, to_{to} {}
+  deserialization_context(uint8_t* from, uint8_t* to) : from_{from}, to_{to} {}
 
   template <typename T, typename Ptr>
   T deserialize(Ptr* ptr) const {
@@ -258,7 +257,7 @@ struct deserialization_context {
   template <typename T>
   void check(T* el, size_t size) const {
     auto const* pos = reinterpret_cast<uint8_t const*>(el);
-    if (checked_ && to_ && pos != nullptr &&
+    if (to_ != nullptr && pos != nullptr &&
         (pos < from_ || checked_addition(pos, size) > to_)) {
       throw std::runtime_error("pointer out of bounds");
     }
@@ -270,7 +269,6 @@ struct deserialization_context {
     }
   }
 
-  bool checked_;
   uint8_t *from_, *to_;
 };
 
@@ -332,16 +330,16 @@ void deserialize(deserialization_context const& c, unique_ptr<T>* el) {
 }
 
 template <typename T>
-T* deserialize(uint8_t* from, uint8_t* to = nullptr, bool checked = true) {
-  deserialization_context c{checked, from, to};
+T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
+  deserialization_context c{from, to};
   auto const el = reinterpret_cast<T*>(from);
   deserialize(c, el);
   return el;
 }
 
 template <typename T, typename Container>
-T* deserialize(Container& c, bool checked = true) {
-  return deserialize<T>(&c[0], &c[0] + c.size(), checked);
+T* deserialize(Container& c) {
+  return deserialize<T>(&c[0], &c[0] + c.size());
 }
 
 // -----------------------------------------------------------------------------
@@ -392,17 +390,16 @@ void unchecked_deserialize(deserialization_context const& c,
 }
 
 template <typename T>
-T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr,
-                         bool checked = true) {
-  deserialization_context c{checked, from, to};
+T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr) {
+  deserialization_context c{from, to};
   auto const el = reinterpret_cast<T*>(from);
   unchecked_deserialize(c, el);
   return el;
 }
 
 template <typename T, typename Container>
-T* unchecked_deserialize(Container& c, bool checked = true) {
-  return unchecked_deserialize<T>(&c[0], &c[0] + c.size(), checked);
+T* unchecked_deserialize(Container& c) {
+  return unchecked_deserialize<T>(&c[0], &c[0] + c.size());
 }
 
 }  // namespace raw
@@ -466,27 +463,26 @@ void deserialize(deserialization_context const& c, unique_ptr<T>* el) {
 }
 
 template <typename T>
-T* deserialize(uint8_t* from, uint8_t* to = nullptr, bool checked = true) {
-  deserialization_context c{checked, from, to};
+T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
+  deserialization_context c{from, to};
   auto const el = reinterpret_cast<T*>(from);
   deserialize(c, el);
   return el;
 }
 
 template <typename T, typename Container>
-T* deserialize(Container& c, bool checked = true) {
-  return deserialize<T>(&c[0], &c[0] + c.size(), checked);
+T* deserialize(Container& c) {
+  return deserialize<T>(&c[0], &c[0] + c.size());
 }
 
 template <typename T>
-T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr,
-                         bool checked = true) {
+T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr) {
   return reinterpret_cast<T*>(from);
 }
 
 template <typename T, typename Container>
-T* unchecked_deserialize(Container& c, bool checked = true) {
-  return unchecked_deserialize<T>(&c[0], &c[0] + c.size(), checked);
+T* unchecked_deserialize(Container& c) {
+  return unchecked_deserialize<T>(&c[0], &c[0] + c.size());
 }
 
 }  // namespace offset
