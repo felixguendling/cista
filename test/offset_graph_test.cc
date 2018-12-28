@@ -100,7 +100,7 @@ TEST_CASE("graph offset serialize file") {
   }  // EOL graph
 
   auto b = cista::file("test.bin", "r").content();
-  CHECK("d0794ac9487828335eaf9e896863b969c19fd38a" ==
+  CHECK("01b9503e0aa4cfed41411e00a31aeebc28551678" ==
         sha1sum::from_buf(std::vector<unsigned char>(b.begin(), b.end())));
 
   auto const g = data::deserialize<graph>(b);
@@ -131,7 +131,7 @@ TEST_CASE("graph offset serialize buf") {
     buf = cista::serialize(g);
   }  // EOL graph
 
-  CHECK("d0794ac9487828335eaf9e896863b969c19fd38a" == sha1sum::from_buf(buf));
+  CHECK("01b9503e0aa4cfed41411e00a31aeebc28551678" == sha1sum::from_buf(buf));
 
   auto const g = data::deserialize<graph>(buf);
   auto const visited = bfs(g->nodes_[0].get());

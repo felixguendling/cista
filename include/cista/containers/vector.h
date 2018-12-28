@@ -32,7 +32,9 @@ struct basic_vector {
     return n;
   }
 
-  explicit basic_vector(TemplateSizeType size = 0) { resize(size); }
+  basic_vector() : basic_vector(0u) {}
+
+  explicit basic_vector(TemplateSizeType size) { resize(size); }
 
   explicit basic_vector(const char* str) {
     auto length = static_cast<size_type>(std::strlen(str) + 1);

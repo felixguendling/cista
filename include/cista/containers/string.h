@@ -21,7 +21,10 @@ struct basic_string {
   static constexpr struct non_owning_t {
   } non_owning{};
 
-  basic_string() { std::memset(this, 0, sizeof(*this)); }
+  basic_string() {
+    std::memset(this, 0, sizeof(*this));
+    h_.ptr_ = nullptr;
+  }
   ~basic_string() { reset(); }
 
   basic_string(char const* s, owning_t) : basic_string() {
@@ -35,8 +38,16 @@ struct basic_string {
   basic_string(basic_string const& s) : basic_string() { copy_from(s); }
 
   basic_string(basic_string&& s) {
-    std::memcpy(this, &s, sizeof(*this));
-    std::memset(&s, 0, sizeof(*this));
+    if constexpr (std::is_pointer_v<Ptr>) {
+      std::memcpy(this, &s, sizeof(*this));
+      std::memset(&s, 0, sizeof(*this));
+    } else {
+      std::memcpy(this, &s, sizeof(*this));
+      if (!s.is_short()) {
+        h_.ptr_ = s.h_.ptr_;
+        s.h_.ptr_ = nullptr;
+      }
+    }
   }
 
   basic_string& operator=(basic_string const& s) {
@@ -46,6 +57,9 @@ struct basic_string {
 
   basic_string& operator=(basic_string&& s) {
     std::memcpy(this, &s, sizeof(*this));
+    if constexpr (std::is_pointer_v<Ptr>) {
+      h_.ptr_ = s.h_.ptr_;
+    }
     return *this;
   }
 
@@ -56,6 +70,7 @@ struct basic_string {
       std::free(const_cast<char*>(data()));
     }
     std::memset(this, 0, sizeof(*this));
+    h_.ptr_ = nullptr;
   }
 
   void set_owning(std::string_view s) {
@@ -64,22 +79,22 @@ struct basic_string {
 
   void set_owning(char const* str) { set_owning(str, mstrlen(str)); }
 
-  void set_owning(char const* str, msize_t const size) {
+  void set_owning(char const* str, msize_t const len) {
     reset();
-    if (str == nullptr || size == 0) {
+    if (str == nullptr || len == 0) {
       return;
     }
-    s_.is_short_ = (size <= 15);
+    s_.is_short_ = (len <= 15);
     if (s_.is_short_) {
-      std::memcpy(s_.s_, str, size);
+      std::memcpy(s_.s_, str, len);
     } else {
-      h_.ptr_ = static_cast<char*>(std::malloc(size));
+      h_.ptr_ = static_cast<char*>(std::malloc(len));
       if (h_.ptr_ == nullptr) {
         throw std::bad_alloc{};
       }
-      h_.size_ = size;
+      h_.size_ = len;
       h_.self_allocated_ = true;
-      std::memcpy(const_cast<char*>(data()), str, size);
+      std::memcpy(const_cast<char*>(data()), str, len);
     }
   }
 
@@ -89,20 +104,20 @@ struct basic_string {
 
   void set_non_owning(char const* str) { set_non_owning(str, mstrlen(str)); }
 
-  void set_non_owning(char const* str, msize_t const size) {
+  void set_non_owning(char const* str, msize_t const len) {
     reset();
-    if (str == nullptr || size == 0) {
+    if (str == nullptr || len == 0) {
       return;
     }
 
-    if (size <= 15) {
-      return set_owning(str, size);
+    if (len <= 15) {
+      return set_owning(str, len);
     }
 
     h_.is_short_ = false;
     h_.self_allocated_ = false;
     h_.ptr_ = str;
-    h_.size_ = size;
+    h_.size_ = len;
   }
 
   void copy_from(basic_string const& s) {
