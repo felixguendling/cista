@@ -63,6 +63,28 @@ struct basic_string {
     return *this;
   }
 
+  char* begin() { return data(); }
+  char* end() { return data() + size(); }
+  char const* begin() const { return data(); }
+  char const* end() const { return data() + size(); }
+
+  void resize(msize_t const len) {
+    reset();
+    if (len == 0) {
+      return;
+    }
+    s_.is_short_ = (len <= 15);
+    if (!s_.is_short_) {
+      h_.ptr_ = static_cast<char*>(std::malloc(len));
+      if (h_.ptr_ == nullptr) {
+        throw std::bad_alloc{};
+      }
+      h_.size_ = len;
+      h_.self_allocated_ = true;
+      std::memset(data(), 0, len);
+    }
+  }
+
   bool is_short() const { return s_.is_short_; }
 
   void reset() {
@@ -132,6 +154,15 @@ struct basic_string {
   }
 
   std::string_view view() const { return std::string_view{data(), size()}; }
+
+  char* data() {
+    if constexpr (std::is_pointer_v<Ptr>) {
+      return is_short() ? const_cast<char*>(s_.s_) : const_cast<char*>(h_.ptr_);
+    } else {
+      return is_short() ? const_cast<char*>(s_.s_)
+                        : const_cast<char*>(h_.ptr_.get());
+    }
+  }
 
   char const* data() const {
     if constexpr (std::is_pointer_v<Ptr>) {
