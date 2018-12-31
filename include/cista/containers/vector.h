@@ -32,7 +32,7 @@ struct basic_vector {
     return n;
   }
 
-  basic_vector() : basic_vector(0u) {}
+  basic_vector() = default;
 
   explicit basic_vector(TemplateSizeType size) { resize(size); }
 
@@ -171,6 +171,9 @@ struct basic_vector {
   void resize(size_type size) {
     reserve(size);
     used_size_ = size;
+    for (auto& e : *this) {
+      new (&e) T();
+    }
   }
 
   void clear() {
