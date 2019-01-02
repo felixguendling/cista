@@ -58,15 +58,15 @@ Cista++ supports two serialization formats:
 
 ### Offset Based Data Structures
 
-:white_check_mark: can be read without any deserialization step  
-:white_check_mark: suitable for shared memory applications  
-:x: slower at runtime (pointers needs to be resolved using on more add)  
+  - `+` can be read without any deserialization step  
+  - `+` suitable for shared memory applications  
+  - `-` slower at runtime (pointers need to be resolved using on more add)
 
 ### Raw Data Structures
 
-:x: deserialize step takes time (but still very fast also for GBs of data)  
-:x: the buffer containing the serialized data needs to be modified  
-:white_check_mark: fast runtime access (raw access)  
+  - `-` deserialize step takes time (but still very fast also for GBs of data)  
+  - `-` the buffer containing the serialized data needs to be modified  
+  - `+` fast runtime access (raw access)  
 
 
 # API Documentation
