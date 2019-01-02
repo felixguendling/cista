@@ -170,10 +170,10 @@ struct basic_vector {
 
   void resize(size_type size) {
     reserve(size);
-    used_size_ = size;
-    for (auto& e : *this) {
-      new (&e) T();
+    for (auto i = used_size_; i < size; ++i) {
+      new (el_ + i) T();
     }
+    used_size_ = size;
   }
 
   void clear() {
