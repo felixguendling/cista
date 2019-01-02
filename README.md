@@ -13,6 +13,50 @@ Cista++ is a simple, open source (MIT license) C++17 compatible way of (de-)seri
   - Save 50% memory: serialize directly to the filesystem if needed, no intermediate buffer required.
   - Compatible with Clang, GCC, and MSVC
 
+**Example:**
+
+Download the [latest release](https://github.com/felixguendling/cista/releases/download/v0.4/cista.h) or try it [online](https://www.onlinegdb.com/By_4vD9-N).
+
+```cpp
+#include <cassert>
+#include "cista.h"
+
+int main() {
+    namespace data = cista::offset;
+  
+    struct my_struct {  // Define your struct.
+      int a_{0};
+      struct inner {
+        int b_{0};
+        data::string d_;
+      } j;
+    };
+    
+    std::vector<unsigned char> buf;
+    {  // Serialize an object of class my_struct.
+      my_struct obj{1, {2, data::string{"test"}}};
+      buf = cista::serialize(obj);
+    }  // End of life for the "obj" value
+    
+    // Deserialize and read.
+    auto serialized = data::deserialize<my_struct>(buf);
+    assert(serialized->j.d_ == data::string{"test"});
+}
+```
+
+# Benchmarks
+
+Have a look at the [benchmark repository](https://github.com/felixguendling/cpp-serialization-benchmark) for more details.
+
+| Library                                               | Serialize    | Deserialize   | Fast Deserialize | Traverse | Deserialize & Traverse |  Size  |
+| :---                                                  |         ---: |          ---: |             ---: |       ---: |                   ---: |   ---: |
+| [Cap’n Proto](https://capnproto.org/capnp-tool.html)  |       105 ms |  **0.002 ms** |       **0.0 ms** |     356 ms |                 353 ms |    50.5M   |
+| [cereal](https://uscilab.github.io/cereal/index.html) |       239 ms |    197.000 ms |                - |     125 ms |                 322 ms |    37.8M   |
+| [Cista++](https://cista.rocks/) `offset`              |    **72 ms** |      0.053 ms |       **0.0 ms** |     132 ms |                 132 ms | **25.3M** |
+| [Cista++](https://cista.rocks/) `raw`                 |      3555 ms |     68.900 ms |          21.5 ms | **112 ms** |                 133 ms |   176.4M   |
+| [Flatbuffers](https://google.github.io/flatbuffers/)  |      2349 ms |     15.400 ms |       **0.0 ms** |     136 ms |                 133 ms |   378.0M   |
+
+
 # Use Cases
 
 Reader and writer should run on the same architecture (e.g. 64 bit big endian).
@@ -28,13 +72,9 @@ for other programming languages, too.
 
 # Alternatives
 
-If you need to be compatible with other programming languages,
-need to process data from untrusted sources,
-require protocol evolution (downward compatibility)
-you should look for another solution.
-The following libraries provide some/all of those features.
-
-Alternative libraries:
+If you need to be compatible with other programming languages
+or require protocol evolution (downward compatibility)
+you should look for another solution:
 
   - [Protocol Buffers](https://developers.google.com/protocol-buffers/)
   - [Cap’n Proto](https://capnproto.org/)
@@ -50,19 +90,19 @@ Alternative libraries:
     (using scalar types, `cista::raw/offset::string`, `cista::raw/offset::unique_ptr<T&>`,
     and `cista::raw/offset::vector<T&>` - more types such as `map`/`set`/etc. may follow).
   - Do *NOT* declare any constructors (reflection will not work otherwise).
-  - Always use data types with known sizes such as `int32_t`, `uint8_t`.
+  - Always use data types with known sizes such as `int32_t`, `uint8_t` for compatibility across platforms (with the same architecture).
   - To use pointers: store the object you want to reference as `cista::raw/offset::unique_ptr<T&>` and use a raw pointer `T*` to reference it.
-  - Optional: if you need deterministic buffer contents, you need to fill spare bytes in your structs.
+  - Optional: if you need deterministic buffer contents, you need to fill spare bytes in your structs (see the advanced example below).
 
 Cista++ supports two serialization formats:
 
-### Offset Based Data Structures
+*Offset Based Data Structures*
 
   - `+` can be read without any deserialization step  
   - `+` suitable for shared memory applications  
   - `-` slower at runtime (pointers need to be resolved using on more add)
 
-### Raw Data Structures
+*Raw Data Structures*
 
   - `-` deserialize step takes time (but still very fast also for GBs of data)  
   - `-` the buffer containing the serialized data needs to be modified  
@@ -112,6 +152,9 @@ of more complex data structures.
 ## Data structure definition
 
 ```cpp
+// Use the raw serialization format.
+namespace data = cista::raw;
+
 // Forward declare `node` to be able to use it in `edge`.
 struct node;
 
@@ -120,8 +163,8 @@ struct node;
 using node_id_t = uint32_t;
 
 struct edge {
-  node* from_;
-  node* to_;
+  data::ptr<node> from_;
+  data::ptr<node> to_;
 };
 
 struct node {
@@ -129,32 +172,30 @@ struct node {
   node_id_t id() const { return id_; }
 
   node_id_t id_{0};
-  node_id_t fill_{0};  // optional: zero out spare bytes for
-                       // deterministic buffer contents
-  cista::vector<edge*&> edges_;
-  cista::string name_;
+  node_id_t fill_{0};
+  data::vector<data::ptr<edge>> edges_;
+  data::string name_;
 };
 
 struct graph {
-  node* make_node(cista::string name) {
+  node* make_node(data::string name) {
     return nodes_
-        .emplace_back(cista::make_unique<node&>(
-            node{next_node_id_++, 0, cista::vector<edge*&>{0u},
+        .emplace_back(data::make_unique<node>(
+            node{next_node_id_++, 0, data::vector<data::ptr<edge>>{0u},
                  std::move(name)}))
         .get();
   }
 
-  edge* make_edge(node_id_t const from,
-                  node_id_t const to) {
+  edge* make_edge(node_id_t const from, node_id_t const to) {
     return edges_
-        .emplace_back(cista::make_unique<edge&>(
-            edge{nodes_[from].get(), nodes_[to].get()}))
+        .emplace_back(
+            data::make_unique<edge>(edge{nodes_[from].get(), nodes_[to].get()}))
         .get();
   }
 
   // Use unique_ptr to enable pointers to these objects.
-  cista::vector<cista::unique_ptr<node&>&> nodes_;
-  cista::vector<cista::unique_ptr<edge&>&> edges_;
+  data::vector<data::unique_ptr<node>> nodes_;
+  data::vector<data::unique_ptr<edge>> edges_;
   node_id_t next_node_id_{0};
   node_id_t fill_{0};  // optional: zero out spare bytes for
                        // deterministic buffer contents
@@ -168,9 +209,9 @@ struct graph {
 {
   graph g;
 
-  auto const n1 = g.make_node(cista::string{"NODE A"});
-  auto const n2 = g.make_node(cista::string{"NODE B"});
-  auto const n3 = g.make_node(cista::string{"NODE C"});
+  auto const n1 = g.make_node(data::string{"NODE A"});
+  auto const n2 = g.make_node(data::string{"NODE B"});
+  auto const n3 = g.make_node(data::string{"NODE C"});
 
   auto const e1 = g.make_edge(n1->id(), n2->id());
   auto const e2 = g.make_edge(n2->id(), n3->id());
@@ -180,17 +221,13 @@ struct graph {
   n2->add_edge(e2);
   n3->add_edge(e3);
 
-  // Serialize graph data structure to file.
-  cista::sfile f{"graph.bin", "wb"};
+  cista::sfile f{"test.bin", "wb"};
   cista::serialize(f, g);
-}  // End of life for `g`.
+}  // EOL graph
 
-// Deserialize
 auto b = cista::file("test.bin", "r").content();
-auto const g =
-    cista::deserialize<graph>(b.begin(), b.end());
+auto const g = data::deserialize<graph>(b);
 
-// Read graph.
 use(g);
 ```
 
@@ -198,7 +235,7 @@ use(g);
 
 Basically, the only thing the <code>cista::serialize()</code>
 call does, is to copy everything into one coherent target
-(e.g. file or memory buffer) byte-by-byte.
+(e.g. file or memory buffer) byte-by-byte recursively.
 Additionally, each pointer gets converted to an offset
 at serialization and back to a real pointer at deserialization.
 Every data structure can be (de-)serialized using a custom
@@ -207,9 +244,9 @@ All this is done recursively.
 
 # Security
 
-Generally, all serialized data is checked so that every pointer `T*` is either a `nullptr` or points to a valid position within the buffer with enough bytes for `T`. Scalar values are checked to fit into the buffer at their position, too. Code can be found [here](https://github.com/felixguendling/cista/blob/master/include/cista/serialization.h#L175-L249).
+Generally, all serialized data is checked so that every pointer `T*` is either a `nullptr` or points to a valid position within the buffer with enough bytes for `T`. Scalar values are checked to fit into the buffer at their position, too. Code can be found [here](https://github.com/felixguendling/cista/blob/master/include/cista/serialization.h#L215).
 
-Note that modifying serialized data may corrupt it in unexpected ways. Therefore, it is not safe to access modified deserialized data coming from untrusted sources. However, deserializing and reading data from untrusted sources is safe. 
+Note that modifying serialized data may corrupt it in unexpected ways. Therefore, it is not safe to access modified deserialized data coming from untrusted sources. However, deserializing and reading data from untrusted sources (without modifying the data) is safe. 
 
 # Custom (De-)Serialization Functions
 
@@ -304,16 +341,19 @@ To enable a custom deserialization, you need to create a specialized
 function for your type with the following signature:
 
 ```cpp
-void deserialize(cista::deserialization_context const&, YourType*) {}
+void deserialize(cista::deserialization_context const&, YourType*);
+void unchecked_deserialize(cista::deserialization_context const&, YourType*);
 ```
 
 With this function you should:
+  - for the non-"unchecked" version: check that
+    everything fits into the buffer and that
+    pointers point to memory addresses
+    that are located inside the buffer
+    using `deserialization_context::check()`
   - convert offsets back to pointers using the
     `deserialization_context::deserialize()`
     member function.
-  - and check that pointers point to memory addresses
-    that are located inside the buffer
-    using `deserialization_context::check()`
 
 Both functions (`deserialize()` and `check()`)
 are provided by the `deserialization_context`:
