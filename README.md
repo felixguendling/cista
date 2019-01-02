@@ -151,6 +151,8 @@ of more complex data structures.
 
 ## Data structure definition
 
+Try it [online](https://onlinegdb.com/rJ-DDD9ZN)!
+
 ```cpp
 // Use the raw serialization format.
 namespace data = cista::raw;
