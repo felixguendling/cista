@@ -86,10 +86,17 @@ Currently, `vector`, `string`, and `unique_ptr` do not provide exactly the same 
 
 ### Serialization and Deserialization Functions
 
+#### Serialization
+
+The following methods can be used to serialize either to a `std::vector<unsigned char>` (default) or to an arbitrary serialization target.
+
+  - **`std::vector<uint8_t> cista::serialize<T>(T const&)`** serializes an object of type `T`and returns a buffer containing the serialized object.
+  - **`void cista::serialize<Target, T>(Target&, T const&)`** serializes an object of type `T` to the specified target. Targets are either `cista::buf` or `cista::sfile`. Custom target sturcts should provide `write` functions as described [here](#serialization).
+
+#### Deserialization
+
 The following functions exist in `cista::offset` and `cista::raw`:
 
-  - **`std::vector<uint8_t> serialize<T>(T const&)`** serializes an object of type `T`and returns a buffer containing the serialized object.
-  - **`void serialize<Target, T>(Target&, T const&)`** serializes an object of type `T` to the specified target. Targets are either `cista::buf` or `cista::sfile`. Custom target sturcts should provide `write` functions as described [here](#serialization).
   - **`T* deserialize<T, Container>(Container&)`** deserializes an object from a `std::vector<uint8_t>` or similar data structure. This function throws a `std::runtimer_error` if the data is not well-formed.
   - **`T* deserialize<T>(uint8_t* from, uint8_t* to)`** deserializes an object from a pointer range. This function throws a `std::runtimer_error` if the data is not well-formed.
   - **`T* unchecked_deserialize<T, Container>(Container&)`** deserializes an object from a `std::vector<uint8_t>` or similar data structure. No checking is performed!
