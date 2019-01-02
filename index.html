@@ -242,30 +242,31 @@
               <li>Compatible with Clang, GCC, and MSVC</li>
             </ul>
             <div class="buttons text-center mt-4">
-              <a href="https://github.com/felixguendling/cista/releases/download/v0.3/cista.h" style="margin-left: auto; margin-right: auto" class="btn btn-lg btn-primary mr-3">Download</a>
+              <a href="https://github.com/felixguendling/cista/releases/download/v0.4/cista.h" style="margin-left: auto; margin-right: auto" class="btn btn-lg btn-primary mr-3">Download</a>
               <a href="#serialization" style="margin-left: auto; margin-right: auto" class="btn btn-lg btn-secondary">Learn more</a>
             </div>
           </div>
           <div class="col col-md-auto pt-3">
             <div class="code">
-              <a href="https://onlinegdb.com/r12hxT9JE" class="try badge badge-run" target="_blank">compile & run</a>
-              <pre class="box-shadow rounded p-4"><code class="language-cpp">struct my_struct {
-  int a_{0};  // Define your struct.
+              <a href="https://onlinegdb.com/By_4vD9-N" class="try badge badge-run" target="_blank">compile & run</a>
+              <pre class="box-shadow rounded p-4"><code class="language-cpp">// Define your struct.
+struct my_struct {
+  int a_{0};
   struct inner {
     int b_{0};
-    cista::string d_;
+    data::string d_;
   } j;
 };
 
 std::vector&lt;unsigned char&gt; buf;
 {  // Serialize an object of class my_struct.
-  my_struct obj{1, {2, cista::string{"test"}}};
+  my_struct obj{1, {2, data::string{"test"}}};
   buf = cista::serialize(obj);
 }  // End of life for the "obj" value
 
 // Deserialize and read.
-auto serialized = cista::deserialize&lt;my_struct&gt;(buf);
-assert(serialized->j.d_ == cista::string{"test"});</code></pre>
+auto serialized = data::deserialize&lt;my_struct&gt;(buf);
+assert(serialized-&gt;j.d_ == data::string{"test"});</code></pre>
           </div>
         </div>
       </main> <!-- MAIN END -->
@@ -341,10 +342,12 @@ assert(serialized->j.d_ == cista::string{"test"});</code></pre>
               <p>
                 The following example shows serialization and deserialization
                 of more complex data structures.
-                It is also available <a href="https://github.com/felixguendling/cista/blob/master/test/graph_serialize_test.cc">here</a>
+                It is also available <a href="https://github.com/felixguendling/cista/blob/master/test/offset_graph_test.cc">here</a>
               </p>
               <h6>Data structure definition</h6>
-              <pre class="box-shadow rounded p-4"><code class="language-cpp">// Forward declare `node` to be able to use it in `edge`.
+              <pre class="box-shadow rounded p-4"><code class="language-cpp">namespace data = cista::raw;
+
+// Forward declare `node` to be able to use it in `edge`.
 struct node;
 
 // Always use types that have a fixed size on every
@@ -352,8 +355,8 @@ struct node;
 using node_id_t = uint32_t;
 
 struct edge {
-  node* from_;
-  node* to_;
+  data::ptr&lt;node&gt; from_;
+  data::ptr&lt;node&gt; to_;
 };
 
 struct node {
@@ -361,66 +364,62 @@ struct node {
   node_id_t id() const { return id_; }
 
   node_id_t id_{0};
-  node_id_t fill_{0};  // optional: zero out spare bytes for
-                       // deterministic buffer contents
-  cista::vector&lt;edge*&gt; edges_;
-  cista::string name_;
+  node_id_t fill_{0};
+  data::vector&lt;data::ptr&lt;edge&gt;&gt; edges_;
+  data::string name_;
 };
 
 struct graph {
-  node* make_node(cista::string name) {
+  node* make_node(data::string name) {
     return nodes_
-        .emplace_back(cista::make_unique&lt;node&gt;(
-            node{next_node_id_++, 0, cista::vector&lt;edge*&gt;{0u},
+        .emplace_back(data::make_unique&lt;node&gt;(
+            node{next_node_id_++, 0, data::vector&lt;data::ptr&lt;edge&gt;&gt;{0u},
                  std::move(name)}))
         .get();
   }
 
-  edge* make_edge(node_id_t const from,
-                  node_id_t const to) {
+  edge* make_edge(node_id_t const from, node_id_t const to) {
     return edges_
-        .emplace_back(cista::make_unique&lt;edge&gt;(
-            edge{nodes_[from].get(), nodes_[to].get()}))
+        .emplace_back(
+            data::make_unique&lt;edge&gt;(edge{nodes_[from].get(), nodes_[to].get()}))
         .get();
   }
 
   // Use unique_ptr to enable pointers to these objects.
-  cista::vector&lt;cista::unique_ptr&lt;node&gt;&gt; nodes_;
-  cista::vector&lt;cista::unique_ptr&lt;edge&gt;&gt; edges_;
+  data::vector&lt;data::unique_ptr&lt;node&gt;&gt; nodes_;
+  data::vector&lt;data::unique_ptr&lt;edge&gt;&gt; edges_;
   node_id_t next_node_id_{0};
   node_id_t fill_{0};  // optional: zero out spare bytes for
                        // deterministic buffer contents
 };</code></pre>
             <h6>Creating the Graph and De-/Serialization</h6>
             <div class="code">
-              <a href="https://onlinegdb.com/Sy5kmTcyV" class="try badge badge-run" target="_blank">compile & run</a>
+              <a href="https://onlinegdb.com/rJ-DDD9ZN" class="try badge badge-run" target="_blank">compile & run</a>
               <pre class="box-shadow rounded p-4"><code class="language-cpp">// Create cyclic graph with nodes and edges.
 {
   graph g;
 
-  auto const n1 = g.make_node(cista::string{"NODE A"});
-  auto const n2 = g.make_node(cista::string{"NODE B"});
-  auto const n3 = g.make_node(cista::string{"NODE C"});
+  auto const n1 = g.make_node(data::string{"NODE A"});
+  auto const n2 = g.make_node(data::string{"NODE B"});
+  auto const n3 = g.make_node(data::string{"NODE C"});
 
-  auto const e1 = g.make_edge(n1->id(), n2->id());
-  auto const e2 = g.make_edge(n2->id(), n3->id());
-  auto const e3 = g.make_edge(n3->id(), n1->id());
+  auto const e1 = g.make_edge(n1-&gt;id(), n2-&gt;id());
+  auto const e2 = g.make_edge(n2-&gt;id(), n3-&gt;id());
+  auto const e3 = g.make_edge(n3-&gt;id(), n1-&gt;id());
 
-  n1->add_edge(e1);
-  n2->add_edge(e2);
-  n3->add_edge(e3);
+  n1-&gt;add_edge(e1);
+  n2-&gt;add_edge(e2);
+  n3-&gt;add_edge(e3);
 
-  // Serialize graph data structure to file.
-  cista::sfile f{"graph.bin", "wb"};
+  cista::sfile f{"test.bin", "wb"};
   cista::serialize(f, g);
-}  // End of life for `g`.
+}  // EOL graph
 
-// Deserialize
 auto b = cista::file("test.bin", "r").content();
-auto const g = cista::deserialize&lt;graph&gt;(b);
+auto const g = data::deserialize&lt;graph&gt;(b);
 
-// Read graph.
-use(g);</code></pre>
+use(g);
+</code></pre>
               </div>
             </p>
           </div>
