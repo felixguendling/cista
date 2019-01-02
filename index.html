@@ -277,16 +277,85 @@ assert(serialized-&gt;j.d_ == data::string{"test"});</code></pre>
           <div class="card-body">
             <h5 class="card-title">Use Cases</h5>
             <p class="card-text">
-              <p><i>Requirement</i>: reader and writer should run on the same architecture (e.g. 64 bit big endian).</p>
-              Example use cases:
+              <p>Reader and writer should run on the same architecture (e.g. 64 bit big endian). Examples:</p>
               <ul>
                 <li>Asset loading for all kinds of applications (i.e. game assets, GIS data, large graphs, etc.)</li>
                 <li>Transferring data over network</li>
+                <li>Shared memory applications</li>
               </ul>
               <p>
                 Currently, only C++17 software can read/write data.
                 It is possible to generate accessors for other programming languages, too.
               </p>
+            </p>
+          </div>
+        </div>
+
+        <div class="card mt-3">
+          <div class="card-body">
+            <h5 class="card-title">Benchmarks</h5>
+            <p class="card-text">
+              <p>Have a look at the <a href="https://github.com/felixguendling/cpp-serialization-benchmark">benchmark repository</a> for more details.</p>
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th scope="col" align="left">Library</th>
+                    <th scope="col" align="right">Serialize</th>
+                    <th scope="col" align="right">Deserialize</th>
+                    <th scope="col" align="right">Fast Deserialize</th>
+                    <th scope="col" align="right">Traverse</th>
+                    <th scope="col" align="right">Deserialize &amp; Traverse</th>
+                    <th scope="col" align="right">Size</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td align="left"><a href="https://capnproto.org/capnp-tool.html" rel="nofollow">Cap’n Proto</a></td>
+                    <td align="right">105 ms</td>
+                    <td align="right"><strong>0.002 ms</strong></td>
+                    <td align="right"><strong>0.0 ms</strong></td>
+                    <td align="right">356 ms</td>
+                    <td align="right">353 ms</td>
+                    <td align="right">50.5M</td>
+                  </tr>
+                  <tr>
+                    <td align="left"><a href="https://uscilab.github.io/cereal/index.html" rel="nofollow">cereal</a></td>
+                    <td align="right">239 ms</td>
+                    <td align="right">197.000 ms</td>
+                    <td align="right">-</td>
+                    <td align="right">125 ms</td>
+                    <td align="right">322 ms</td>
+                    <td align="right">37.8M</td>
+                  </tr>
+                  <tr>
+                    <td align="left"><a href="https://cista.rocks/" rel="nofollow">Cista++</a> <code>offset</code></td>
+                    <td align="right"><strong>72 ms</strong></td>
+                    <td align="right">0.053 ms</td>
+                    <td align="right"><strong>0.0 ms</strong></td>
+                    <td align="right">132 ms</td>
+                    <td align="right"><strong>132 ms</strong></td>
+                    <td align="right"><strong>25.3M</strong></td>
+                  </tr>
+                  <tr>
+                    <td align="left"><a href="https://cista.rocks/" rel="nofollow">Cista++</a> <code>raw</code></td>
+                    <td align="right">3555 ms</td>
+                    <td align="right">68.900 ms</td>
+                    <td align="right">21.5 ms</td>
+                    <td align="right"><strong>112 ms</strong></td>
+                    <td align="right"><strong>133 ms</strong></td>
+                    <td align="right">176.4M</td>
+                  </tr>
+                  <tr>
+                    <td align="left"><a href="https://google.github.io/flatbuffers/" rel="nofollow">Flatbuffers</a></td>
+                    <td align="right">2349 ms</td>
+                    <td align="right">15.400 ms</td>
+                    <td align="right"><strong>0.0 ms</strong></td>
+                    <td align="right">136 ms</td>
+                    <td align="right"><strong>133 ms</strong></td>
+                    <td align="right">378.0M</td>
+                  </tr>
+                </tbody>
+              </table>
             </p>
           </div>
         </div>
@@ -320,17 +389,69 @@ assert(serialized-&gt;j.d_ == data::string{"test"});</code></pre>
             <h5 class="card-title">Usage</h5>
             <p class="card-text">
               <ul>
-                <li>
-                  Declare the data structures you want to serialize as regular C++ structs
-                  (using scalar types, <code>cista::string</code>, <code>cista::unique_ptr&lt;T&gt;</code>,
-                  and <code>cista::vector&lt;T&gt;</code> -
-                  more types such as <code>map</code>/<code>set</code>/etc. may follow).
-                </li>
-                <li>Do <i>NOT</i> declare any constructors (reflection will not work otherwise).</li>
-                <li>Always use data types with known sizes such as <code>int32_t</code>, <code>uint8_t</code>.</li>
-                <li>To use pointers: store the object you want to reference as <code>cista::unique_ptr&lt;T&gt;</code> and use a raw pointer <code>T*</code> to reference it.</li>
-                <li>Optional: if you need deterministic buffer contents, you need to fill spare bytes in your structs.</li>
+                <li>Declare the data structures you want to serialize as regular C++ structs
+                (using scalar types, <code>cista::raw/offset::string</code>, <code>cista::raw/offset::unique_ptr&lt;T&amp;&gt;</code>,
+                and <code>cista::raw/offset::vector&lt;T&amp;&gt;</code> - more types such as <code>map</code>/<code>set</code>/etc. may follow).</li>
+                <li>Do <em>NOT</em> declare any constructors (reflection will not work otherwise).</li>
+                <li>Always use data types with known sizes such as <code>int32_t</code>, <code>uint8_t</code> for compatibility across platforms (with the same architecture).</li>
+                <li>To use pointers: store the object you want to reference as <code>cista::raw/offset::unique_ptr&lt;T&amp;&gt;</code> and use a raw pointer <code>T*</code> to reference it.</li>
+                <li>Optional: if you need deterministic buffer contents, you need to fill spare bytes in your structs (see the advanced example below).</li>
               </ul>
+
+              <p>Cista++ supports two serialization formats:</p>
+
+              <p><em>Offset Based Data Structures</em></p>
+              <ul>
+                <li><code>+</code> can be read without any deserialization step</li>
+                <li><code>+</code> suitable for shared memory applications</li>
+                <li><code>-</code> slower at runtime (pointers need to be resolved using on more add)</li>
+              </ul>
+
+              <p><em>Raw Data Structures</em></p>
+              <ul>
+                <li><code>-</code> deserialize step takes time (but still very fast also for GBs of data)</li>
+                <li><code>-</code> the buffer containing the serialized data needs to be modified</li>
+                <li><code>+</code> fast runtime access (raw access)</li>
+              </ul>
+            </p>
+          </div>
+        </div>
+
+        <div class="card mt-3">
+          <div class="card-body">
+            <h5 class="card-title">API Documentation</h5>
+            <p class="card-text">
+              <p>Both namespaces <code>cista::offset</code> and <code>cista::raw</code> have the same structure. They provide the same data structures and functions. They have the same behavior.</p>
+
+              <h6>Data Structures</h6>
+              <p>The following data structures exist in <code>cista::offset</code> and <code>cista::raw</code>:</p>
+              <ul>
+                <li><strong><code>vector&lt;T&gt;</code></strong>: serializable version of <code>std::vector&lt;T&gt;</code></li>
+                <li><strong><code>string</code></strong>: serializable version of <code>std::string</code></li>
+                <li><strong><code>unique_ptr&lt;T&gt;</code></strong>: serializable version of <code>std::unique_ptr&lt;T&gt;</code></li>
+                <li><strong><code>ptr&lt;T&gt;</code></strong>: serializable pointer: <code>cista::raw::ptr&lt;T&gt;</code> is just a <code>T*</code>, <code>cista::offset::ptr&lt;T&gt;</code> is a specialized data structure that behaves mostly like a <code>T*</code> (overloaded <code>-&gt;</code>, <code>*</code>, etc. operators).</li>
+              </ul>
+
+              <p>Currently, <code>vector</code>, <code>string</code>, and <code>unique_ptr</code> do not provide exactly the same interface as their <code>std::</code> equivalents. Standard compliance was not a goal. This can change in future releases. It is possible to add more data structures to Cista++.</p>
+
+              <h6>Serialization and Deserialization Functions</h6>
+
+              <h7>Serialization</h7>
+              <p>The following methods can be used to serialize either to a <code>std::vector&lt;uint8_t&gt;</code> (default) or to an arbitrary serialization target.</p>
+              <ul>
+                <li><strong><code>std::vector&lt;uint8_t&gt; cista::serialize&lt;T&gt;(T const&amp;)</code></strong> serializes an object of type <code>T</code>and returns a buffer containing the serialized object.</li>
+                <li><strong><code>void cista::serialize&lt;Target, T&gt;(Target&amp;, T const&amp;)</code></strong> serializes an object of type <code>T</code> to the specified target. Targets are either <code>cista::buf</code> or <code>cista::sfile</code>. Custom target sturcts should provide <code>write</code> functions as described <a href="#serialization">here</a>.</li>
+              </ul>
+
+              <h7>Deserialization</h7>
+              <p>The following functions exist in <code>cista::offset</code> and <code>cista::raw</code>:</p>
+              <ul>
+                <li><strong><code>T* deserialize&lt;T, Container&gt;(Container&amp;)</code></strong> deserializes an object from a <code>std::vector&lt;uint8_t&gt;</code> or similar data structure. This function throws a <code>std::runtimer_error</code> if the data is not well-formed.</li>
+                <li><strong><code>T* deserialize&lt;T&gt;(uint8_t* from, uint8_t* to)</code></strong> deserializes an object from a pointer range. This function throws a <code>std::runtimer_error</code> if the data is not well-formed.</li>
+                <li><strong><code>T* unchecked_deserialize&lt;T, Container&gt;(Container&amp;)</code></strong> deserializes an object from a <code>std::vector&lt;uint8_t&gt;</code> or similar data structure. No checking is performed!</li>
+                <li><strong><code>T* unchecked_deserialize&lt;T&gt;(uint8_t* from, uint8_t* to)</code></strong> deserializes an object from a pointer range. No checking is performed!</li>
+              </ul>
+              <p><code>cista::offset::unchecked_deserialize</code> performs just a pointer cast!</p>
             </p>
           </div>
         </div>
@@ -451,7 +572,7 @@ use(g);
                 or points to a valid position within
                 the buffer with enough bytes for <code>T</code>.
                 Scalar values are checked to fit into the buffer at their position, too.
-                Code can be found <a href="https://github.com/felixguendling/cista/blob/master/include/cista/serialization.h#L175-L249">here</a>.
+                Code can be found <a href="https://github.com/felixguendling/cista/blob/master/include/cista/serialization.h#L215">here</a>.
               </p>
 
               <p>
