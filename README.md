@@ -15,7 +15,7 @@ Cista++ is a simple, open source (MIT license) C++17 compatible way of (de-)seri
 
 **Example:**
 
-Download the [latest release](https://github.com/felixguendling/cista/releases/download/v0.4/cista.h) or try it [online](https://www.onlinegdb.com/By_4vD9-N).
+Download the [latest release](https://github.com/felixguendling/cista/releases/download/v0.4/cista.h) or try it [online](https://onlinegdb.com/ByuE4jo-4).
 
 ```cpp
 #include <cassert>
@@ -39,8 +39,8 @@ int main() {
     }  // End of life for the "obj" value
     
     // Deserialize and read.
-    auto serialized = data::deserialize<my_struct>(buf);
-    assert(serialized->j.d_ == data::string{"test"});
+    auto deserialized = data::deserialize<my_struct>(buf);
+    assert(deserialized->j.d_ == data::string{"test"});
 }
 ```
 
