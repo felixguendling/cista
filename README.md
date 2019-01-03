@@ -256,6 +256,8 @@ If you have 3rd-party structs, structs with constructors
 or structs that manage memory, etc. you need to override
 the serialize and deserialize functions.
 
+*Note that usually you should not need to do this! Every combination of the cista::offset/raw data structures should work without custom (de-)serialzation functions.*
+
 ## Serialization
 
 By default, every value gets copied raw byte-by-byte.
