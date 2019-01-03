@@ -54,7 +54,7 @@ constexpr auto is_paren_constructible()
   return {};
 }
 
-#define MAKE_ARITY_FUNC(count)                                              \
+#define CISTA_MAKE_ARITY_FUNC(count)                                        \
   template <typename T,                                                     \
             typename =                                                      \
                 std::enable_if_t<is_brace_constructible<T, count>() &&      \
@@ -64,25 +64,27 @@ constexpr auto is_paren_constructible()
     return {};                                                              \
   }
 
-MAKE_ARITY_FUNC(1)
-MAKE_ARITY_FUNC(2)
-MAKE_ARITY_FUNC(3)
-MAKE_ARITY_FUNC(4)
-MAKE_ARITY_FUNC(5)
-MAKE_ARITY_FUNC(6)
-MAKE_ARITY_FUNC(7)
-MAKE_ARITY_FUNC(8)
-MAKE_ARITY_FUNC(9)
-MAKE_ARITY_FUNC(10)
-MAKE_ARITY_FUNC(11)
-MAKE_ARITY_FUNC(12)
-MAKE_ARITY_FUNC(13)
-MAKE_ARITY_FUNC(14)
-MAKE_ARITY_FUNC(15)
-MAKE_ARITY_FUNC(16)
-MAKE_ARITY_FUNC(17)
-MAKE_ARITY_FUNC(18)
-MAKE_ARITY_FUNC(19)
-MAKE_ARITY_FUNC(20)
+CISTA_MAKE_ARITY_FUNC(1)
+CISTA_MAKE_ARITY_FUNC(2)
+CISTA_MAKE_ARITY_FUNC(3)
+CISTA_MAKE_ARITY_FUNC(4)
+CISTA_MAKE_ARITY_FUNC(5)
+CISTA_MAKE_ARITY_FUNC(6)
+CISTA_MAKE_ARITY_FUNC(7)
+CISTA_MAKE_ARITY_FUNC(8)
+CISTA_MAKE_ARITY_FUNC(9)
+CISTA_MAKE_ARITY_FUNC(10)
+CISTA_MAKE_ARITY_FUNC(11)
+CISTA_MAKE_ARITY_FUNC(12)
+CISTA_MAKE_ARITY_FUNC(13)
+CISTA_MAKE_ARITY_FUNC(14)
+CISTA_MAKE_ARITY_FUNC(15)
+CISTA_MAKE_ARITY_FUNC(16)
+CISTA_MAKE_ARITY_FUNC(17)
+CISTA_MAKE_ARITY_FUNC(18)
+CISTA_MAKE_ARITY_FUNC(19)
+CISTA_MAKE_ARITY_FUNC(20)
+
+#undef CISTA_MAKE_ARITY_FUNC
 
 }  // namespace cista

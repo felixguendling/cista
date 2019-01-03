@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cista/reflection/to_tuple.hpp"
+#include "cista/reflection/to_tuple.h"
 
 #define CISTA_COMPARABLE()                               \
   template <typename T>                                  \

@@ -4,7 +4,7 @@
 #include <utility>
 
 #include "cista/reflection/arity.h"
-#include "cista/reflection/to_tuple.hpp"
+#include "cista/reflection/to_tuple.h"
 
 namespace cista {
 
