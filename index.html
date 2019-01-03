@@ -248,7 +248,7 @@
           </div>
           <div class="col col-md-auto pt-3">
             <div class="code">
-              <a href="https://onlinegdb.com/By_4vD9-N" class="try badge badge-run" target="_blank">compile & run</a>
+              <a href="https://onlinegdb.com/ByuE4jo-4" class="try badge badge-run" target="_blank">compile & run</a>
               <pre class="box-shadow rounded p-4"><code class="language-cpp">// Define your struct.
 struct my_struct {
   int a_{0};
@@ -265,8 +265,8 @@ std::vector&lt;unsigned char&gt; buf;
 }  // End of life for the "obj" value
 
 // Deserialize and read.
-auto serialized = data::deserialize&lt;my_struct&gt;(buf);
-assert(serialized-&gt;j.d_ == data::string{"test"});</code></pre>
+auto deserialized = data::deserialize&lt;my_struct&gt;(buf);
+assert(deserialized-&gt;j.d_ == data::string{"test"});</code></pre>
           </div>
         </div>
       </main> <!-- MAIN END -->
