@@ -29,7 +29,7 @@ before_install:
 script:
   - mkdir build && cd build
   - cmake -GNinja -DCISTA_COVERAGE=$COVERAGE -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
-  - ninja cista-format-check
+# - ninja cista-format-check
   - ninja cista-test
   - |
     if [ $COVERAGE == "On" ]; then
