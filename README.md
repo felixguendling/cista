@@ -2,7 +2,7 @@
 
 [![](https://img.shields.io/badge/language-C%2B%2B17-blue.svg)](https://isocpp.org/) [![Build Status](https://travis-ci.org/felixguendling/cista.svg?branch=master)](https://travis-ci.org/felixguendling/cista) [![Build status](https://ci.appveyor.com/api/projects/status/cwcwp808uhaa5d3w?svg=true)](https://ci.appveyor.com/project/felixguendling/cista) [![Coverage Status](https://coveralls.io/repos/github/felixguendling/cista/badge.svg?branch=master)](https://coveralls.io/github/felixguendling/cista?branch=master) [![](https://img.shields.io/apm/l/vim-mode.svg)](https://opensource.org/licenses/MIT)
 
-# Simple C++ Serialization.
+# Simple C++ Serialization & Reflection.
 
 Cista++ is a simple, open source (MIT license) C++17 compatible way of (de-)serializing C++ data structures.
 
@@ -12,6 +12,8 @@ Cista++ is a simple, open source (MIT license) C++17 compatible way of (de-)seri
   - Supports complex and cyclic data structures including cyclic references, recursive data structures, etc.
   - Save 50% memory: serialize directly to the filesystem if needed, no intermediate buffer required.
   - Compatible with Clang, GCC, and MSVC
+
+The underlying reflection mechanism can be used in [other ways](https://cista.rocks/#reflection), too!
 
 **Example:**
 
