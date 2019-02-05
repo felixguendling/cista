@@ -67,6 +67,28 @@ struct offset_ptr {
     return r;
   }
 
+  offset_ptr& operator++() {
+    offset_ += sizeof(T);
+    return *this;
+  }
+
+  offset_ptr& operator--() {
+    offset_ -= sizeof(T);
+    return *this;
+  }
+
+  offset_ptr operator++(int) const {
+    offset_ptr r = *this;
+    r.offset_ += sizeof(T);
+    return r;
+  }
+
+  offset_ptr operator--(int) const {
+    offset_ptr r = *this;
+    r.offset_ -= sizeof(T);
+    return r;
+  }
+
   friend bool operator==(std::nullptr_t, offset_ptr const& o) {
     return o.offset_ == NULLPTR_OFFSET;
   }
