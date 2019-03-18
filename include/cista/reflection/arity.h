@@ -64,7 +64,13 @@ constexpr auto is_paren_constructible()
     return {};                                                              \
   }
 
-CISTA_MAKE_ARITY_FUNC(1)
+template <typename T,
+          typename = std::enable_if_t<is_brace_constructible<T, 1>() &&
+                                      !is_brace_constructible<T, 2>()>>
+constexpr field_count<1> arity(T&) {
+  return {};
+}
+
 CISTA_MAKE_ARITY_FUNC(2)
 CISTA_MAKE_ARITY_FUNC(3)
 CISTA_MAKE_ARITY_FUNC(4)
