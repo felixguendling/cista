@@ -38,14 +38,7 @@ struct arity_impl<
 template <typename Aggregate>
 constexpr std::size_t arity() {
   using AggregateDecay = std::remove_reference_t<std::remove_cv_t<Aggregate>>;
-
-  if constexpr (std::is_aggregate_v<AggregateDecay> &&
-                std::is_standard_layout_v<AggregateDecay> &&
-                !std::is_polymorphic_v<AggregateDecay>) {
-    return detail::arity_impl<AggregateDecay>().size();
-  } else {
-    return 0;
-  }
+  return detail::arity_impl<AggregateDecay>().size();
 }
 
 }  // namespace cista
