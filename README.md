@@ -1,6 +1,7 @@
 <p align="center"><img src="logo.svg"></p>
 
-[![](https://img.shields.io/badge/language-C%2B%2B17-blue.svg)](https://isocpp.org/) [![Build Status](https://travis-ci.org/felixguendling/cista.svg?branch=master)](https://travis-ci.org/felixguendling/cista) [![Build status](https://ci.appveyor.com/api/projects/status/cwcwp808uhaa5d3w?svg=true)](https://ci.appveyor.com/project/felixguendling/cista) [![Coverage Status](https://coveralls.io/repos/github/felixguendling/cista/badge.svg?branch=master)](https://coveralls.io/github/felixguendling/cista?branch=master) [![](https://img.shields.io/apm/l/vim-mode.svg)](https://opensource.org/licenses/MIT)
+[![](https://img.shields.io/badge/language-C%2B%2B17-blue.svg)](https://isocpp.org/) [![Build Status](https://travis-ci.org/felixguendling/cista.svg?branch=master)](https://travis-ci.org/felixguendling/cista) [![Build status](https://ci.appveyor.com/api/projects/status/cwcwp808uhaa5d3w/branch/master?svg=true)](https://ci.appveyor.com/project/felixguendling/cista/branch/master)
+ [![Coverage Status](https://coveralls.io/repos/github/felixguendling/cista/badge.svg?branch=master)](https://coveralls.io/github/felixguendling/cista?branch=master) [![](https://img.shields.io/apm/l/vim-mode.svg)](https://opensource.org/licenses/MIT)
 
 # Simple C++ Serialization & Reflection.
 
@@ -102,7 +103,7 @@ Cista++ supports two serialization formats:
 
   - `+` can be read without any deserialization step  
   - `+` suitable for shared memory applications  
-  - `-` slower at runtime (pointers need to be resolved using on more add)
+  - `-` slower at runtime (pointers need to be resolved using one more add)
 
 *Raw Data Structures*
 
