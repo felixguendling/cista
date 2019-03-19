@@ -45,6 +45,10 @@ template <typename Ctx, typename T>
 void serialize(Ctx& c, T const* origin, offset_t const pos) {
   using Type = std::remove_reference_t<std::remove_const_t<T>>;
   if constexpr (!std::is_scalar_v<Type>) {
+    static_assert(std::is_aggregate_v<Type> &&
+                      std::is_standard_layout_v<Type> &&
+                      !std::is_polymorphic_v<Type>,
+                  "Please implement custom serializer.");
     for_each_ptr_field(*origin, [&](auto& member) {
       auto const member_offset =
           static_cast<offset_t>(reinterpret_cast<char const*>(member) -
