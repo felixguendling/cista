@@ -142,7 +142,9 @@ struct basic_vector {
   template <typename It>
   void set(It begin_it, It end_it) {
     auto range_size = std::distance(begin_it, end_it);
-    reserve(range_size);
+    assert(range_size <= std::numeric_limits<TemplateSizeType>::max() &&
+           "size tpye overflow");
+    reserve(static_cast<TemplateSizeType>(range_size));
 
     auto copy_source = begin_it;
     auto copy_target = el_;
