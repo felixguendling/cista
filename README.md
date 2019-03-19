@@ -25,25 +25,25 @@ Download the [latest release](https://github.com/felixguendling/cista/releases/d
 #include "cista.h"
 
 int main() {
-   namespace data = cista::offset;
+  namespace data = cista::offset;
 
-   struct my_struct {  // Define your struct.
-     int a_{0};
-     struct inner {
-       int b_{0};
-       data::string d_;
-     } j;
-   };
+  struct my_struct {  // Define your struct.
+    int a_{0};
+    struct inner {
+      int b_{0};
+      data::string d_;
+    } j;
+  };
 
-   std::vector<unsigned char> buf;
-   {  // Serialize an object of class my_struct.
-     my_struct obj{1, {2, data::string{"test"}}};
-     buf = cista::serialize(obj);
-   }  // End of life for the "obj" value
+  std::vector<unsigned char> buf;
+  {  // Serialize an object of class my_struct.
+    my_struct obj{1, {2, data::string{"test"}}};
+    buf = cista::serialize(obj);
+  }  // End of life for the "obj" value
 
-   // Deserialize and read.
-   auto deserialized = data::deserialize<my_struct>(buf);
-   assert(deserialized->j.d_ == data::string{"test"});
+  // Deserialize and read.
+  auto deserialized = data::deserialize<my_struct>(buf);
+  assert(deserialized->j.d_ == data::string{"test"});
 }
 ```
 
