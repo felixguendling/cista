@@ -2,8 +2,8 @@
 
 #include <type_traits>
 
-// Credits: Implementation by ChemiaAion
-// https://gist.github.com/ChemiaAion/4118a3598f0b120b7f9c5884e9799a8b
+// Credits: Implementation by Anatoliy V. Tomilov (@tomilov),
+//          based on gist by Rafal T. Janik (@ChemiaAion)
 //
 // Resources:
 // https://playfulprogramming.blogspot.com/2016/12/serializing-structs-with-c17-structured.html
