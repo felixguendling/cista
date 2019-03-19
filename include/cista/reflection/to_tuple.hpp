@@ -128,56 +128,53 @@ inline auto to_ptr_tuple(T& t) {
     return std::make_tuple(&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10);
   } else if constexpr (a == 11) {
     auto& [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11] = t;
-    return std::make_tuple(&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10,
-                           &p11);
+    return std::make_tuple(&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10, &p11);
   } else if constexpr (a == 12) {
     auto& [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12] = t;
-    return std::make_tuple(&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10,
-                           &p11, &p12);
+    return std::make_tuple(&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10, &p11,
+                    &p12);
   } else if constexpr (a == 13) {
     auto& [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13] = t;
-    return std::make_tuple(&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10,
-                           &p11, &p12, &p13);
+    return std::make_tuple(&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10, &p11,
+                    &p12, &p13);
   } else if constexpr (a == 14) {
     auto& [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14] = t;
-    return std::make_tuple(&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10,
-                           &p11, &p12, &p13, &p14);
+    return std::make_tuple(&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10, &p11,
+                    &p12, &p13, &p14);
   } else if constexpr (a == 15) {
     auto& [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15] =
         t;
-    return std::make_tuple(&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10,
-                           &p11, &p12, &p13, &p14, &p15);
+    return std::make_tuple(&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10, &p11,
+                    &p12, &p13, &p14, &p15);
   } else if constexpr (a == 16) {
     auto& [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15,
            p16] = t;
-    return std::make_tuple(&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10,
-                           &p11, &p12, &p13, &p14, &p15, &p16);
+    return std::make_tuple(&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10, &p11,
+                    &p12, &p13, &p14, &p15, &p16);
   } else if constexpr (a == 17) {
     auto& [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15,
            p16,
            p17] = t;
-    return std::make_tuple(&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10,
-                           &p11, &p12, &p13, &p14, &p15, &p16, &p17);
+    return std::make_tuple(&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10, &p11,
+                    &p12, &p13, &p14, &p15, &p16, &p17);
   } else if constexpr (a == 18) {
     auto& [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15,
            p16, p17,
            p18] = t;
-    return std::make_tuple(&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10,
-                           &p11, &p12, &p13, &p14, &p15, &p16, &p17, &p18);
+    return std::make_tuple(&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10, &p11,
+                    &p12, &p13, &p14, &p15, &p16, &p17, &p18);
   } else if constexpr (a == 19) {
     auto& [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15,
            p16, p17, p18,
            p19] = t;
-    return std::make_tuple(&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10,
-                           &p11, &p12, &p13, &p14, &p15, &p16, &p17, &p18,
-                           &p19);
+    return std::make_tuple(&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10, &p11,
+                    &p12, &p13, &p14, &p15, &p16, &p17, &p18, &p19);
   } else if constexpr (a == 20) {
     auto& [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15,
            p16, p17, p18, p19,
            p20] = t;
-    return std::make_tuple(&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10,
-                           &p12, &p13, &p14, &p15, &p16, &p17, &p18, &p19,
-                           &p20);
+    return std::make_tuple(&p1, &p2, &p3, &p4, &p5, &p6, &p7, &p8, &p9, &p10, &p12,
+                    &p13, &p14, &p15, &p16, &p17, &p18, &p19, &p20);
   }
 }
 
