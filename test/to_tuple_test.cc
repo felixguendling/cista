@@ -19,10 +19,11 @@ TEST_CASE("to_tuple") {
   CHECK(instance.d_ == 100.0);
   CHECK(instance.s_ == "hello world");
 
-  std::get<0>(cista::to_tuple(instance)) = 5;
-  std::get<1>(cista::to_tuple(instance)) = 7;
-  std::get<2>(cista::to_tuple(instance)) = 2.0;
-  std::get<3>(cista::to_tuple(instance)) = "yeah";
+  auto t = cista::to_tuple(instance);
+  std::get<0>(t) = 5;
+  std::get<1>(t) = 7;
+  std::get<2>(t) = 2.0;
+  std::get<3>(t) = "yeah";
 
   CHECK(instance.i_ == 5);
   CHECK(instance.j_ == 7);
