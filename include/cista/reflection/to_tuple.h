@@ -8,7 +8,8 @@ namespace cista {
 
 template <typename T>
 inline auto to_tuple(T& t) {
-  if constexpr (auto const a = arity<T>(); a == 0) {
+  constexpr auto const a = arity<T>();
+  if constexpr (a == 0) {
     return std::tie();
   } else if constexpr (a == 1) {
     auto& [p1] = t;
@@ -94,7 +95,8 @@ inline auto to_tuple(T& t) {
 
 template <typename T>
 inline auto to_ptr_tuple(T& t) {
-  if constexpr (auto const a = arity<T>(); a == 0) {
+  constexpr auto const a = arity<T>();
+  if constexpr (a == 0) {
     return std::make_tuple();
   } else if constexpr (a == 1) {
     auto& [p1] = t;
