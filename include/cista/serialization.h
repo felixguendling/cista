@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "cista/containers.h"
+#include "cista/decay.h"
 #include "cista/offset_t.h"
 #include "cista/reflection/for_each_field.h"
 #include "cista/targets/buf.h"
@@ -43,7 +44,7 @@ struct serialization_context {
 
 template <typename Ctx, typename T>
 void serialize(Ctx& c, T const* origin, offset_t const pos) {
-  using Type = std::remove_reference_t<std::remove_const_t<T>>;
+  using Type = decay_t<T>;
   if constexpr (!std::is_scalar_v<Type>) {
     static_assert(std::is_aggregate_v<Type> &&
                       std::is_standard_layout_v<Type> &&
@@ -190,12 +191,9 @@ template <typename Target, typename T>
 void serialize(Target& t, T& value) {
   serialization_context<Target> c{t};
 
-  serialize(
-      c, &value,
-      c.write(
-          &value, sizeof(value),
-          std::alignment_of_v<
-              std::remove_reference_t<std::remove_const_t<decltype(value)>>>));
+  serialize(c, &value,
+            c.write(&value, sizeof(value),
+                    std::alignment_of_v<decay_t<decltype(value)>>));
 
   for (auto& p : c.pending_) {
     if (auto const it = c.offsets_.find(p.origin_ptr_); it != end(c.offsets_)) {
@@ -221,7 +219,7 @@ byte_buf serialize(T& el) {
 // -----------------------------------------------------------------------------
 template <typename Arg, typename... Args>
 Arg checked_addition(Arg a1, Args... aN) {
-  using Type = std::remove_reference_t<std::remove_const_t<Arg>>;
+  using Type = decay_t<Arg>;
   auto add_if_ok = [&](auto x) {
     if (a1 >
         (std::is_pointer_v<Type> ? reinterpret_cast<Type>(0xffffffffffffffff)
@@ -237,7 +235,7 @@ Arg checked_addition(Arg a1, Args... aN) {
 
 template <typename Arg, typename... Args>
 Arg checked_multiplication(Arg a1, Args... aN) {
-  using Type = std::remove_reference_t<std::remove_const_t<Arg>>;
+  using Type = decay_t<Arg>;
   auto multiply_if_ok = [&](auto x) {
     if (a1 != 0 && ((std::numeric_limits<Type>::max() / a1) < x)) {
       throw std::overflow_error("addition overflow");
@@ -291,7 +289,7 @@ void deserialize(deserialization_context const& c, unique_ptr<T>* el);
 
 template <typename T>
 void deserialize(deserialization_context const& c, T* el) {
-  using written_type_t = std::remove_reference_t<std::remove_const_t<T>>;
+  using written_type_t = decay_t<T>;
   if constexpr (std::is_pointer_v<written_type_t>) {
     *el = c.deserialize<written_type_t>(*el);
     c.check(*el, sizeof(*std::declval<written_type_t>()));
@@ -361,7 +359,7 @@ void unchecked_deserialize(deserialization_context const& c, unique_ptr<T>* el);
 
 template <typename T>
 void unchecked_deserialize(deserialization_context const& c, T* el) {
-  using written_type_t = std::remove_reference_t<std::remove_const_t<T>>;
+  using written_type_t = decay_t<T>;
   if constexpr (std::is_pointer_v<written_type_t>) {
     *el = c.deserialize<written_type_t>(*el);
   } else if constexpr (std::is_scalar_v<written_type_t>) {
@@ -423,7 +421,7 @@ void deserialize(deserialization_context const& c, unique_ptr<T>* el);
 
 template <typename T>
 void deserialize(deserialization_context const& c, T* el) {
-  using written_type_t = std::remove_reference_t<std::remove_const_t<T>>;
+  using written_type_t = decay_t<T>;
   if constexpr (std::is_scalar_v<written_type_t>) {
     c.check(el, sizeof(T));
   } else {
@@ -433,7 +431,7 @@ void deserialize(deserialization_context const& c, T* el) {
 
 template <typename T>
 void deserialize(deserialization_context const& c, offset_ptr<T>* el) {
-  using written_type_t = std::remove_reference_t<std::remove_const_t<T>>;
+  using written_type_t = decay_t<T>;
   c.check(el->get(), sizeof(std::declval<written_type_t>()));
 }
 

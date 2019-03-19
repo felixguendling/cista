@@ -2,6 +2,8 @@
 
 #include <type_traits>
 
+#include "cista/decay.h"
+
 // Credits: Implementation by Anatoliy V. Tomilov (@tomilov),
 //          based on gist by Rafal T. Janik (@ChemiaAion)
 //
@@ -35,10 +37,9 @@ struct arity_impl<
 
 }  // namespace detail
 
-template <typename Aggregate>
+template <typename T>
 constexpr std::size_t arity() {
-  using AggregateDecay = std::remove_reference_t<std::remove_cv_t<Aggregate>>;
-  return detail::arity_impl<AggregateDecay>().size();
+  return detail::arity_impl<decay_t<T>>().size();
 }
 
 }  // namespace cista
