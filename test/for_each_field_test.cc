@@ -22,9 +22,7 @@ std::vector<std::string> encode(T&& m) {
   std::vector<std::string> fields = {std::to_string(Type::id)};
   std::stringstream ss;
   cista::for_each_field(m, [&](auto&& f) {
-    if constexpr (!std::is_same_v<
-                      std::remove_const_t<std::remove_reference_t<decltype(f)>>,
-                      ignore>) {
+    if constexpr (!std::is_same_v<cista::decay_t<decltype(f)>, ignore>) {
       ss << f;
       fields.emplace_back(ss.str());
       ss.str("");
