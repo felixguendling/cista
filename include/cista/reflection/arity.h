@@ -14,6 +14,8 @@
 
 namespace cista {
 
+namespace detail {
+
 struct instance {
   template <typename Type>
   operator Type() const;
@@ -31,14 +33,16 @@ struct arity_impl<
     : arity_impl<Aggregate,
                  std::index_sequence<Indices..., sizeof...(Indices)>> {};
 
+}  // namespace detail
+
 template <typename Aggregate>
 constexpr std::size_t arity() {
-  using aggregate_decay = std::remove_reference_t<std::remove_cv_t<Aggregate>>;
+  using AggregateDecay = std::remove_reference_t<std::remove_cv_t<Aggregate>>;
 
-  if constexpr (std::is_aggregate_v<aggregate_decay> &&
-                std::is_standard_layout_v<aggregate_decay> &&
-                !std::is_polymorphic_v<aggregate_decay>) {
-    return arity_impl<aggregate_decay>().size();
+  if constexpr (std::is_aggregate_v<AggregateDecay> &&
+                std::is_standard_layout_v<AggregateDecay> &&
+                !std::is_polymorphic_v<AggregateDecay>) {
+    return detail::arity_impl<AggregateDecay>().size();
   } else {
     return 0;
   }
