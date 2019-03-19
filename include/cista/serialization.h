@@ -188,7 +188,6 @@ void serialize(Ctx& c, offset::unique_ptr<T> const* origin,
 
 template <typename Target, typename T>
 void serialize(Target& t, T& value) {
-  using aggregate_decay = std::remove_reference_t<std::remove_cv_t<T>>;
   serialization_context<Target> c{t};
 
   serialize(
