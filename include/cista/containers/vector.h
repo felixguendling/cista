@@ -152,7 +152,7 @@ struct basic_vector {
       new (copy_target) T(*copy_source);
     }
 
-    used_size_ = range_size;
+    used_size_ = static_cast<TemplateSizeType>(range_size);
   }
 
   void push_back(T const& el) {
