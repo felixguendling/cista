@@ -24,6 +24,11 @@ struct pending_offset {
   pointer_type type_;
 };
 
+template <typename T>
+constexpr size_t serialized_size() {
+  return sizeof(decay_t<T>);
+}
+
 template <typename Target>
 struct serialization_context {
   explicit serialization_context(Target& t) : t_{t} {}
@@ -84,7 +89,7 @@ void serialize(Ctx& c, offset_ptr<T> const* origin, offset_t const pos) {
 
 template <typename Ctx, typename T>
 void serialize(Ctx& c, raw::vector<T> const* origin, offset_t const pos) {
-  auto const size = sizeof(T) * origin->used_size_;
+  auto const size = serialized_size<T>() * origin->used_size_;
   auto const start = origin->el_ == nullptr
                          ? NULLPTR_OFFSET
                          : c.write(origin->el_, size, std::alignment_of_v<T>);
@@ -95,7 +100,7 @@ void serialize(Ctx& c, raw::vector<T> const* origin, offset_t const pos) {
 
   if (origin->el_ != nullptr) {
     auto i = 0u;
-    for (auto it = start; it != start + size; it += sizeof(T)) {
+    for (auto it = start; it != start + size; it += serialized_size<T>()) {
       serialize(c, origin->el_ + i++, it);
     }
   }
@@ -103,7 +108,7 @@ void serialize(Ctx& c, raw::vector<T> const* origin, offset_t const pos) {
 
 template <typename Ctx, typename T>
 void serialize(Ctx& c, offset::vector<T> const* origin, offset_t const pos) {
-  auto const size = sizeof(T) * origin->used_size_;
+  auto const size = serialized_size<T>() * origin->used_size_;
   auto const start = origin->el_ == nullptr ? NULLPTR_OFFSET
                                             : c.write(origin->el_.get(), size,
                                                       std::alignment_of_v<T>);
@@ -118,7 +123,7 @@ void serialize(Ctx& c, offset::vector<T> const* origin, offset_t const pos) {
 
   if (origin->el_ != nullptr) {
     auto i = 0u;
-    for (auto it = start; it != start + size; it += sizeof(T)) {
+    for (auto it = start; it != start + size; it += serialized_size<T>()) {
       serialize(c, (origin->el_ + i++).get(), it);
     }
   }
@@ -155,9 +160,10 @@ void serialize(Ctx& c, offset::string const* origin, offset_t const pos) {
 
 template <typename Ctx, typename T>
 void serialize(Ctx& c, raw::unique_ptr<T> const* origin, offset_t const pos) {
-  auto const start = origin->el_ == nullptr ? NULLPTR_OFFSET
-                                            : c.write(origin->el_, sizeof(T),
-                                                      std::alignment_of_v<T>);
+  auto const start =
+      origin->el_ == nullptr
+          ? NULLPTR_OFFSET
+          : c.write(origin->el_, serialized_size<T>(), std::alignment_of_v<T>);
 
   c.write(pos + offsetof(raw::unique_ptr<T>, el_), start);
   c.write(pos + offsetof(raw::unique_ptr<T>, self_allocated_), false);
@@ -171,9 +177,10 @@ void serialize(Ctx& c, raw::unique_ptr<T> const* origin, offset_t const pos) {
 template <typename Ctx, typename T>
 void serialize(Ctx& c, offset::unique_ptr<T> const* origin,
                offset_t const pos) {
-  auto const start = origin->el_ == nullptr ? NULLPTR_OFFSET
-                                            : c.write(origin->el_, sizeof(T),
-                                                      std::alignment_of_v<T>);
+  auto const start =
+      origin->el_ == nullptr
+          ? NULLPTR_OFFSET
+          : c.write(origin->el_, serialized_size<T>(), std::alignment_of_v<T>);
 
   c.write(pos + offsetof(offset::unique_ptr<T>, el_),
           start == NULLPTR_OFFSET
@@ -187,12 +194,21 @@ void serialize(Ctx& c, offset::unique_ptr<T> const* origin,
   }
 }
 
+template <typename Ctx, typename T, size_t Size>
+void serialize(Ctx& c, array<T, Size> const* origin, offset_t const pos) {
+  auto const size = serialized_size<T>() * origin->size();
+  auto i = 0u;
+  for (auto it = pos; it != pos + size; it += serialized_size<T>()) {
+    serialize(c, origin->el_ + i++, it);
+  }
+}
+
 template <typename Target, typename T>
 void serialize(Target& t, T& value) {
   serialization_context<Target> c{t};
 
   serialize(c, &value,
-            c.write(&value, sizeof(value),
+            c.write(&value, serialized_size<T>(),
                     std::alignment_of_v<decay_t<decltype(value)>>));
 
   for (auto& p : c.pending_) {
@@ -277,15 +293,18 @@ struct deserialization_context {
 namespace raw {
 
 template <typename T>
-void deserialize(deserialization_context const& c, T* el);
+void deserialize(deserialization_context const&, T*);
 
 template <typename T>
-void deserialize(deserialization_context const& c, vector<T>* el);
+void deserialize(deserialization_context const&, vector<T>*);
 
-inline void deserialize(deserialization_context const& c, string* el);
+inline void deserialize(deserialization_context const&, string*);
 
 template <typename T>
-void deserialize(deserialization_context const& c, unique_ptr<T>* el);
+void deserialize(deserialization_context const&, unique_ptr<T>*);
+
+template <typename T, size_t Size>
+void deserialize(deserialization_context const&, array<T, Size>*);
 
 template <typename T>
 void deserialize(deserialization_context const& c, T* el) {
@@ -331,6 +350,14 @@ void deserialize(deserialization_context const& c, unique_ptr<T>* el) {
   deserialize(c, el->el_);
 }
 
+template <typename T, size_t Size>
+void deserialize(deserialization_context const& c, array<T, Size>* el) {
+  c.check(el, sizeof(array<T, Size>));
+  for (auto& m : *el) {
+    deserialize(c, &m);
+  }
+}
+
 template <typename T>
 T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
   deserialization_context c{from, to};
@@ -347,15 +374,18 @@ T* deserialize(Container& c) {
 // -----------------------------------------------------------------------------
 
 template <typename T>
-void unchecked_deserialize(deserialization_context const& c, T* el);
+void unchecked_deserialize(deserialization_context const&, T*);
 
 template <typename T>
-void unchecked_deserialize(deserialization_context const& c, vector<T>* el);
+void unchecked_deserialize(deserialization_context const&, vector<T>*);
 
-inline void unchecked_deserialize(deserialization_context const& c, string* el);
+inline void unchecked_deserialize(deserialization_context const&, string*);
 
 template <typename T>
-void unchecked_deserialize(deserialization_context const& c, unique_ptr<T>* el);
+void unchecked_deserialize(deserialization_context const&, unique_ptr<T>*);
+
+template <typename T, size_t Size>
+void unchecked_deserialize(deserialization_context const&, array<T, Size>*);
 
 template <typename T>
 void unchecked_deserialize(deserialization_context const& c, T* el) {
@@ -391,6 +421,14 @@ void unchecked_deserialize(deserialization_context const& c,
   unchecked_deserialize(c, el->el_);
 }
 
+template <typename T, size_t Size>
+void unchecked_deserialize(deserialization_context const& c,
+                           array<T, Size>* el) {
+  for (auto& m : *el) {
+    unchecked_deserialize(c, &m);
+  }
+}
+
 template <typename T>
 T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr) {
   deserialization_context c{from, to};
@@ -409,15 +447,18 @@ T* unchecked_deserialize(Container& c) {
 namespace offset {
 
 template <typename T>
-void deserialize(deserialization_context const& c, offset_ptr<T>* el);
+void deserialize(deserialization_context const&, offset_ptr<T>*);
 
 template <typename T>
-void deserialize(deserialization_context const& c, vector<T>* el);
+void deserialize(deserialization_context const&, vector<T>*);
 
-void deserialize(deserialization_context const& c, string* el);
+void deserialize(deserialization_context const&, string*);
 
 template <typename T>
-void deserialize(deserialization_context const& c, unique_ptr<T>* el);
+void deserialize(deserialization_context const&, unique_ptr<T>*);
+
+template <typename T, size_t Size>
+void deserialize(deserialization_context const&, array<T, Size>*);
 
 template <typename T>
 void deserialize(deserialization_context const& c, T* el) {
@@ -462,6 +503,14 @@ void deserialize(deserialization_context const& c, unique_ptr<T>* el) {
   c.check(el->el_.get(), sizeof(T));
   c.check(!el->self_allocated_, "unique_ptr self-allocated");
   deserialize(c, el->el_.get());
+}
+
+template <typename T, size_t Size>
+void deserialize(deserialization_context const& c, array<T, Size>* el) {
+  c.check(el, sizeof(array<T, Size>));
+  for (auto& m : *el) {
+    deserialize(c, &m);
+  }
 }
 
 template <typename T>
