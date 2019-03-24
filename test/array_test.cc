@@ -16,22 +16,22 @@ void reset() {
   dtor = 0;
 }
 
-struct a {
-  a(int i) : i_{i} { ++ctor; }
-  a() { ++ctor; }
-  a(a const& o) : i_{o.i_} { ++cpy_ctor; }
-  a(a&& o) : i_{o.i_} { ++mov_ctor; }
-  a& operator=(a const& o) {
+struct array_test_struct {
+  array_test_struct(int i) : i_{i} { ++ctor; }
+  array_test_struct() { ++ctor; }
+  array_test_struct(array_test_struct const& o) : i_{o.i_} { ++cpy_ctor; }
+  array_test_struct(array_test_struct&& o) : i_{o.i_} { ++mov_ctor; }
+  array_test_struct& operator=(array_test_struct const& o) {
     i_ = o.i_;
     ++cpy_assign;
     return *this;
   }
-  a& operator=(a&& o) {
+  array_test_struct& operator=(array_test_struct&& o) {
     i_ = o.i_;
     ++mov_assign;
     return *this;
   }
-  ~a() { ++dtor; }
+  ~array_test_struct() { ++dtor; }
   int i_{0};
 };
 
@@ -39,7 +39,7 @@ TEST_CASE("array test move reverse") {
   reset();
 
   {
-    data::array<a, 2> arr1, arr2;
+    data::array<array_test_struct, 2> arr1, arr2;
     arr1[0].i_ = 1;
     arr1[1].i_ = 2;
 
@@ -62,7 +62,7 @@ TEST_CASE("array test copy forward") {
   reset();
 
   {
-    data::array<a, 2> arr1, arr2;
+    data::array<array_test_struct, 2> arr1, arr2;
     arr1[0].i_ = 1;
     arr1[1].i_ = 2;
 
