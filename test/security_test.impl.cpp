@@ -126,3 +126,28 @@ inline void test_sec_unique_ptr_overflow_set() {
   buf.resize(buf.size() - 1);
   CHECK_THROWS(data::deserialize<serialize_me>(buf));
 }
+
+inline void test_sec_array_overflow() {
+  struct serialize_me {
+    int a_{0};
+    struct inner {
+      int b_{0};
+      int c_{0};
+      data::array<int, 3> d_;
+    } j_;
+  };
+
+  cista::byte_buf buf;
+
+  {
+    serialize_me obj{1, {2, 3, {}}};
+    obj.j_.d_[0] = 1;
+    obj.j_.d_[1] = 2;
+    obj.j_.d_[2] = 3;
+    buf = cista::serialize(obj);
+  }  // EOL obj
+
+  CHECK(buf.size() == sizeof(serialize_me));
+  buf.resize(buf.size() - 1);
+  CHECK_THROWS(data::deserialize<serialize_me>(buf));
+}

@@ -1,11 +1,15 @@
 #pragma once
 
+#include "cista/containers/array.h"
 #include "cista/containers/string.h"
 #include "cista/containers/unique_ptr.h"
 #include "cista/containers/vector.h"
 
 // Helper macro to prevent copy&paste.
 #define CISTA_DEFINITIONS                                           \
+  template <typename T, size_t Size>                                \
+  using array = cista::array<T, Size>;                              \
+                                                                    \
   template <typename T>                                             \
   using unique_ptr = cista::basic_unique_ptr<T, ptr<T>>;            \
                                                                     \

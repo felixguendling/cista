@@ -10,3 +10,4 @@ TEST_CASE("sec raw test unique ptr overflow unset") {
 TEST_CASE("sec raw test unique ptr overflow set") {
   test_sec_unique_ptr_overflow_set();
 }
+TEST_CASE("sec raw test array overflow") { test_sec_array_overflow(); }
