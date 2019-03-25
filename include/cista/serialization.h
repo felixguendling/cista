@@ -25,7 +25,7 @@ struct pending_offset {
 };
 
 template <typename T>
-constexpr size_t serialized_size() {
+static inline constexpr size_t serialized_size() {
   return sizeof(decay_t<T>);
 }
 
