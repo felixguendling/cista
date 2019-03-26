@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "cista/offset_t.h"
+#include "cista/serialized_size.h"
 #include "cista/verify.h"
 
 namespace cista {
@@ -18,8 +19,9 @@ struct buf {
 
   template <typename T>
   void write(offset_t const pos, T const& val) {
-    cista_verify(buf_.size() >= pos + sizeof(val), "out of bounds write");
-    std::memcpy(&buf_[pos], &val, sizeof(val));
+    cista_verify(buf_.size() >= pos + serialized_size<T>(),
+                 "out of bounds write");
+    std::memcpy(&buf_[pos], &val, serialized_size<T>());
   }
 
   offset_t write(void const* ptr, offset_t const size, offset_t alignment = 0) {
