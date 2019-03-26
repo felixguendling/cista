@@ -9,6 +9,7 @@
 #include "cista/decay.h"
 #include "cista/offset_t.h"
 #include "cista/reflection/for_each_field.h"
+#include "cista/serialized_size.h"
 #include "cista/targets/buf.h"
 #include "cista/targets/file.h"
 
@@ -23,11 +24,6 @@ struct pending_offset {
   offset_t pos_;
   pointer_type type_;
 };
-
-template <typename T>
-static inline constexpr size_t serialized_size() {
-  return sizeof(decay_t<T>);
-}
 
 template <typename Target>
 struct serialization_context {

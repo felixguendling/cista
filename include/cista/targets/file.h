@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "cista/offset_t.h"
+#include "cista/serialized_size.h"
 #include "cista/verify.h"
 
 #ifdef _MSC_VER
@@ -36,8 +37,8 @@ struct sfile {
   void write(offset_t const pos, T const& val) {
     std::fseek(f_, static_cast<long>(pos), SEEK_SET);
     auto const w = std::fwrite(reinterpret_cast<unsigned char const*>(&val), 1,
-                               sizeof(val), f_);
-    cista_verify(w == sizeof(val), "write error");
+                               serialized_size<T>(), f_);
+    cista_verify(w == serialized_size<T>(), "write error");
   }
 
   offset_t write(void const* ptr, offset_t const size, offset_t alignment) {
