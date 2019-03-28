@@ -72,4 +72,6 @@ TEST_CASE("vector test") {
   CHECK(serialized[1][0] == 4);
   CHECK(serialized[1][1] == 5);
   CHECK(serialized[2][0] == 6);
+
+  serialized.~vector();
 }
