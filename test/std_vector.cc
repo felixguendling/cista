@@ -51,27 +51,28 @@ inline void unchecked_deserialize(cista::deserialization_context const& c,
 namespace data = cista::raw;
 
 TEST_CASE("vector test") {
+  using serialize_me = std::vector<data::vector<std::vector<int64_t>>>;
+
   cista::byte_buf buf;
 
   {
-    std::vector<data::vector<int64_t>> obj(3);
-    obj[0].emplace_back(1);
-    obj[0].emplace_back(2);
-    obj[0].emplace_back(3);
-    obj[1].emplace_back(4);
-    obj[1].emplace_back(5);
-    obj[2].emplace_back(6);
+    serialize_me obj(3);
+    obj[0].emplace_back(std::vector<int64_t>({1, 2, 3}));
+    obj[0].emplace_back(std::vector<int64_t>({2, 3, 4}));
+    obj[0].emplace_back(std::vector<int64_t>({3, 4, 5}));
+    obj[1].emplace_back(std::vector<int64_t>({4, 5, 6}));
+    obj[1].emplace_back(std::vector<int64_t>({5, 6, 7}));
+    obj[2].emplace_back(std::vector<int64_t>({6, 7, 8}));
     buf = serialize(obj);
   }  // EOL obj
 
-  auto const& serialized =
-      *data::unchecked_deserialize<std::vector<data::vector<int64_t>>>(buf);
-  CHECK(serialized[0][0] == 1);
-  CHECK(serialized[0][1] == 2);
-  CHECK(serialized[0][2] == 3);
-  CHECK(serialized[1][0] == 4);
-  CHECK(serialized[1][1] == 5);
-  CHECK(serialized[2][0] == 6);
+  auto const& serialized = *data::unchecked_deserialize<serialize_me>(buf);
+  CHECK(serialized[0][0][0] == 1);
+  CHECK(serialized[0][1][0] == 2);
+  CHECK(serialized[0][2][0] == 3);
+  CHECK(serialized[1][0][0] == 4);
+  CHECK(serialized[1][1][0] == 5);
+  CHECK(serialized[2][0][0] == 6);
 
   serialized.~vector();
 }
