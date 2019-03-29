@@ -74,5 +74,10 @@ TEST_CASE("vector test") {
   CHECK(serialized[1][1][0] == 5);
   CHECK(serialized[2][0][0] == 6);
 
+  for (auto& v1 : serialized) {
+    for (auto& v2 : v1) {
+      v2.~vector();
+    }
+  }
   serialized.~vector();
 }
