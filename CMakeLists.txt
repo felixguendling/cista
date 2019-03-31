@@ -18,6 +18,7 @@ add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/cista.h
   COMMAND uniter
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/hash.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/file.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/serialization.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/reflection/comparable.h
