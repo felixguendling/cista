@@ -10,10 +10,92 @@
 #include "cista/offset_t.h"
 #include "cista/reflection/for_each_field.h"
 #include "cista/serialized_size.h"
+#include "cista/sha1.h"
 #include "cista/targets/buf.h"
 #include "cista/targets/file.h"
+#include "cista/type_hash.h"
 
 namespace cista {
+
+// =============================================================================
+// HASH
+// -----------------------------------------------------------------------------
+template <typename T>
+struct use_standard_hash : public std::false_type {};
+
+template <typename T>
+hash_t type_hash(T const& el, hash_t hash) {
+  constexpr auto const POINTER = fnv1a_hash("pointer");
+  constexpr auto const STRUCT = fnv1a_hash("struct");
+
+  using Type = decay_t<T>;
+  if constexpr (use_standard_hash<T>()) {
+    return fnv1a_hash(detail::nameof_type<Type>(), hash);
+  } else if constexpr (!std::is_scalar_v<Type>) {
+    static_assert(std::is_aggregate_v<Type> &&
+                      std::is_standard_layout_v<Type> &&
+                      !std::is_polymorphic_v<Type>,
+                  "Please implement custom type hash.");
+    hash = hash_combine(hash, STRUCT);
+    for_each_field(el,
+                   [&](auto const& member) { hash = type_hash(member, hash); });
+    return hash;
+  } else if constexpr (std::is_pointer_v<Type>) {
+    hash = hash_combine(hash, POINTER);
+    return type_hash(typename std::remove_pointer_t<Type>{}, hash);
+  } else if constexpr (std::is_enum_v<Type>) {
+    return fnv1a_hash(detail::nameof_enum<Type>(), hash);
+  } else {
+    return fnv1a_hash(detail::nameof_type<Type>(), hash);
+  }
+}
+
+template <typename T, size_t Size>
+hash_t type_hash(cista::array<T, Size> const&, hash_t hash) {
+  hash = hash_combine(hash, fnv1a_hash("CISTA_ARRAY"));
+  return type_hash(T{}, hash);
+}
+
+template <typename T>
+hash_t type_hash(offset::ptr<T> const&, hash_t hash) {
+  hash = hash_combine(hash, fnv1a_hash("CISTA_OFFSET_PTR"));
+  return type_hash(T{}, hash);
+}
+
+template <typename T>
+hash_t type_hash(offset::vector<T> const&, hash_t hash) {
+  hash = hash_combine(hash, fnv1a_hash("CISTA_OFFSET_VECTOR"));
+  return type_hash(T{}, hash);
+}
+
+template <typename T>
+hash_t type_hash(offset::unique_ptr<T> const&, hash_t hash) {
+  hash = hash_combine(hash, fnv1a_hash("CISTA_OFFSET_UNIQUE_PTR"));
+  return type_hash(T{}, hash);
+}
+
+template <typename T>
+hash_t type_hash(raw::vector<T> const&, hash_t hash) {
+  hash = hash_combine(hash, fnv1a_hash("CISTA_RAW_VECTOR"));
+  return type_hash(T{}, hash);
+}
+
+template <typename T>
+hash_t type_hash(raw::unique_ptr<T> const&, hash_t hash) {
+  hash = hash_combine(hash, fnv1a_hash("CISTA_RAW_UNIQUE_PTR"));
+  return type_hash(T{}, hash);
+}
+
+template <>
+struct use_standard_hash<offset::string> : public std::true_type {};
+
+template <>
+struct use_standard_hash<raw::string> : public std::true_type {};
+
+template <typename T>
+hash_t hash_me(T const& el) {
+  return type_hash(el, fnv1a_hash());
+}
 
 // =============================================================================
 // SERIALIZE
@@ -199,9 +281,30 @@ void serialize(Ctx& c, array<T, Size> const* origin, offset_t const pos) {
   }
 }
 
+enum class mode { NONE = 0, WITH_VERSION = 1 << 1, WITH_INTEGRITY = 1 << 2 };
+inline mode operator|(mode const& a, mode const& b) {
+  return mode{static_cast<std::underlying_type_t<mode>>(a) |
+              static_cast<std::underlying_type_t<mode>>(b)};
+}
+inline mode operator&(mode const& a, mode const& b) {
+  return mode{static_cast<std::underlying_type_t<mode>>(a) &
+              static_cast<std::underlying_type_t<mode>>(b)};
+}
+
 template <typename Target, typename T>
-void serialize(Target& t, T& value) {
+void serialize(Target& t, T& value, mode const m = mode::NONE) {
   serialization_context<Target> c{t};
+
+  if ((m & mode::WITH_VERSION) == mode::WITH_VERSION) {
+    auto const hash = hash_me(value);
+    c.write(&hash, sizeof(hash));
+  }
+
+  // auto integrity_offset = offset_t{0};
+  // if ((m & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
+  //   auto const hash = hash_t{};
+  //   integrity_offset = c.write(&hash, sizeof(hash));
+  // }
 
   serialize(c, &value,
             c.write(&value, serialized_size<T>(),
@@ -217,10 +320,15 @@ void serialize(Target& t, T& value) {
                 << " serialized at offset " << p.pos_ << "\n";
     }
   }
+
+  // if (m & mode::WITH_INTEGRITY == mode::WITH_INTEGRITY) {
+  //   compute_sha1_hash({&});
+  //   c.write(integrity_offset, );
+  // }
 }
 
 template <typename T>
-byte_buf serialize(T& el) {
+byte_buf serialize(T& el, mode const m = mode::NONE) {
   auto b = buf{};
   serialize(b, el);
   return std::move(b.buf_);

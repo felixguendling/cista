@@ -3,6 +3,7 @@
 #include "cista.h"
 
 namespace data = cista::offset;
+using namespace cista;
 
 unsigned ctor{0}, cpy_ctor{0}, mov_ctor{0}, cpy_assign{0}, mov_assign{0},
     dtor{0};
@@ -34,6 +35,10 @@ struct array_test_struct {
   ~array_test_struct() { ++dtor; }
   int i_{0};
 };
+
+hash_t type_hash(array_test_struct const&, hash_t hash) {
+  return hash_combine(hash, fnv1a_hash("ARRAY_TEST_STRUCT"));
+}
 
 TEST_CASE("array test move reverse") {
   reset();

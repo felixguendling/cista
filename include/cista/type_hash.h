@@ -15,6 +15,9 @@
 #define CISTA_NAMEOF_ENUM_MAX_SEARCH_DEPTH 128
 
 namespace cista {
+
+using hash_t = std::uint64_t;
+
 namespace detail {
 
 template <typename T>
@@ -248,49 +251,22 @@ constexpr std::string_view nameof_type() noexcept {
   return detail::nameof_type_impl<detail::identity<T>>();
 }
 
-// See http://www.isthe.com/chongo/tech/comp/fnv/#FNV-param
-using hash_t = std::uint64_t;
+}  // namespace detail
 
+// See http://www.isthe.com/chongo/tech/comp/fnv/#FNV-param
 template <typename T>
-constexpr hash_t combine(hash_t const hash, T const& val) {
+constexpr hash_t hash_combine(hash_t const hash, T const& val) {
   constexpr hash_t prime = 1099511628211ull;
   return (hash ^ val) * prime;
 }
 
 constexpr hash_t fnv1a_hash(std::string_view s, hash_t hash) noexcept {
-  return s.empty() ? hash : fnv1a_hash(s.substr(1), combine(hash, s[0]));
+  return s.empty() ? hash : fnv1a_hash(s.substr(1), hash_combine(hash, s[0]));
 }
 
 constexpr hash_t fnv1a_hash(std::string_view s = "") {
   constexpr hash_t basis = 14695981039346656037ull;
   return fnv1a_hash(s, basis);
-}
-
-}  // namespace detail
-
-template <typename T>
-detail::hash_t type_hash(detail::hash_t hash = detail::fnv1a_hash()) {
-  constexpr auto POINTER = 1;
-  constexpr auto STRUCT = 2;
-
-  using Type = decay_t<T>;
-  if constexpr (!std::is_scalar_v<Type>) {
-    static_assert(std::is_aggregate_v<Type> &&
-                      std::is_standard_layout_v<Type> &&
-                      !std::is_polymorphic_v<Type>,
-                  "Please implement custom hash.");
-    hash = detail::combine(hash, STRUCT);
-    for_each_field<Type>(
-        [&](auto& member) { hash = type_hash<decltype(member)>(hash); });
-    return hash;
-  } else if constexpr (std::is_pointer_v<Type>) {
-    hash = detail::combine(hash, POINTER);
-    return type_hash<decltype(*std::declval<Type>())>(hash);
-  } else if constexpr (std::is_enum_v<Type>) {
-    return detail::fnv1a_hash(detail::nameof_enum<Type>(), hash);
-  } else {
-    return detail::fnv1a_hash(detail::nameof_type<Type>(), hash);
-  }
 }
 
 }  // namespace cista

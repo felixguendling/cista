@@ -6,9 +6,10 @@ TEST_CASE("hash test") {
   struct test {
     int i;
     int* j;
-  };
+  } a;
 
-  CHECK(cista::type_hash<int>() != cista::type_hash<test>());
+  int b;
+  CHECK(cista::hash_me(a) != cista::hash_me(b));
 }
 
 TEST_CASE("hash test") {
@@ -17,13 +18,13 @@ TEST_CASE("hash test") {
     struct {
       int j;
     } k;
-  };
+  } a;
   struct s2 {
     struct {
       int i;
     } j;
     int k;
-  };
+  } b;
 
-  CHECK(cista::type_hash<s1>() != cista::type_hash<s2>());
+  CHECK(cista::hash_me(a) != cista::hash_me(b));
 }

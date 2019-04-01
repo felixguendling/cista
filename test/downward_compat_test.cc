@@ -2,28 +2,26 @@
 
 #include "cista.h"
 
-namespace cista {
-using namespace cista::raw;
-}  // namespace cista
+namespace data = cista::raw;
 
 struct v1 {
-  cista::string s_;
+  data::string s_;
   int dummy_for_msvc_{0};
 };
 
 struct v2 {
-  cista::string s1_, s2_;
+  data::string s1_, s2_;
   double arr_;
 };
 
 struct data_v1 {
   int version_{1};
-  cista::vector<cista::unique_ptr<v1>> values_;
+  data::vector<data::unique_ptr<v1>> values_;
 };
 
 struct data_v2 {
   int version_{2};
-  cista::vector<cista::unique_ptr<v2>> values_;
+  data::vector<data::unique_ptr<v2>> values_;
 };
 
 struct version_detection {
@@ -38,11 +36,11 @@ TEST_CASE("downward compatibility test") {
       case 1: {
         data_v1 values;
         values.values_.emplace_back(
-            cista::make_unique<v1>(v1{cista::string{"A"}}));
+            data::make_unique<v1>(v1{data::string{"A"}}));
         values.values_.emplace_back(
-            cista::make_unique<v1>(v1{cista::string{"B"}}));
+            data::make_unique<v1>(v1{data::string{"B"}}));
         values.values_.emplace_back(
-            cista::make_unique<v1>(v1{cista::string{"C"}}));
+            data::make_unique<v1>(v1{data::string{"C"}}));
         buf = cista::serialize(values);
         break;
       }
@@ -50,11 +48,11 @@ TEST_CASE("downward compatibility test") {
       case 2: {
         data_v2 values;
         values.values_.emplace_back(
-            cista::make_unique<v2>(v2{cista::string{"A"}}));
+            data::make_unique<v2>(v2{data::string{"A"}}));
         values.values_.emplace_back(
-            cista::make_unique<v2>(v2{cista::string{"B"}}));
+            data::make_unique<v2>(v2{data::string{"B"}}));
         values.values_.emplace_back(
-            cista::make_unique<v2>(v2{cista::string{"C"}}));
+            data::make_unique<v2>(v2{data::string{"C"}}));
         buf = cista::serialize(values);
         break;
       }
@@ -62,14 +60,14 @@ TEST_CASE("downward compatibility test") {
       default:;
     }
 
-    if (cista::unchecked_deserialize<version_detection>(buf)->version_ == 1) {
-      auto const v1 = cista::unchecked_deserialize<data_v1>(buf);
+    if (data::unchecked_deserialize<version_detection>(buf)->version_ == 1) {
+      auto const v1 = data::unchecked_deserialize<data_v1>(buf);
       CHECK(v1->values_[0]->s_ == "A");
       CHECK(v1->values_[1]->s_ == "B");
       CHECK(v1->values_[2]->s_ == "C");
-    } else if (cista::unchecked_deserialize<version_detection>(buf)->version_ ==
+    } else if (data::unchecked_deserialize<version_detection>(buf)->version_ ==
                2) {
-      auto const v2 = cista::unchecked_deserialize<data_v2>(buf);
+      auto const v2 = data::unchecked_deserialize<data_v2>(buf);
       CHECK(v2->values_[0]->s1_ == "A");
       CHECK(v2->values_[1]->s1_ == "B");
       CHECK(v2->values_[2]->s1_ == "C");

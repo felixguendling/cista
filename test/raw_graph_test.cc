@@ -3,8 +3,6 @@
 
 #include "doctest.h"
 
-#include "sha1sum.h"
-
 #include "cista.h"
 
 using namespace cista;
@@ -101,7 +99,7 @@ TEST_CASE("graph raw serialize file") {
 
   auto b = cista::file("test.bin", "r").content();
   CHECK("6eda6fb0f6d7b81c2c0ce0996e35cb4af608a64e" ==
-        sha1sum::from_buf(std::vector<unsigned char>(b.begin(), b.end())));
+        sha1::from_buf(std::vector<unsigned char>(b.begin(), b.end())));
 
   auto const g = data::deserialize<graph>(b);
   auto const visited = bfs(g->nodes_[0].get());
@@ -131,7 +129,7 @@ TEST_CASE("graph raw serialize buf") {
     buf = cista::serialize(g);
   }  // EOL graph
 
-  CHECK("6eda6fb0f6d7b81c2c0ce0996e35cb4af608a64e" == sha1sum::from_buf(buf));
+  CHECK("6eda6fb0f6d7b81c2c0ce0996e35cb4af608a64e" == sha1::from_buf(buf));
 
   auto const g = data::deserialize<graph>(buf);
   auto const visited = bfs(g->nodes_[0].get());
