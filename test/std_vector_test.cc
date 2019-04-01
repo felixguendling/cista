@@ -46,17 +46,13 @@ inline void unchecked_deserialize(cista::deserialization_context const& c,
   }
 }
 
-}  // namespace std
-
-namespace cista {
-
 template <typename T>
-hash_t type_hash(std::vector<T> const&, hash_t hash) {
-  hash = hash_combine(hash, fnv1a_hash("CISTA_RAW_VECTOR"));
-  return type_hash(T{}, hash);
+cista::hash_t type_hash(std::vector<T> const&, cista::hash_t hash) {
+  hash = cista::hash_combine(hash, cista::fnv1a_hash("CISTA_RAW_VECTOR"));
+  return cista::type_hash(T{}, hash);
 }
 
-}  // namespace cista
+}  // namespace std
 
 namespace data = cista::raw;
 
