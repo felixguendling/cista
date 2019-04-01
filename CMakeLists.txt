@@ -3,6 +3,28 @@ cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  set(cista-compile-flags
+     -std=c++17
+     -Wno-global-constructors
+     -Wno-exit-time-destructors
+     -fno-strict-aliasing
+     -Weverything
+     -Wno-c++98-compat
+     -Wno-c++98-compat-pedantic
+     -Wno-newline-eof
+     -Wno-missing-prototypes
+     -Wno-padded
+     -Wno-double-promotion
+     -Wno-undef
+     -Wno-undefined-reinterpret-cast
+     -Wno-float-conversion
+     -Wno-return-std-move-in-c++11
+     -Wno-gnu-zero-variadic-macro-argument
+     -Werror
+  )
+endif()
+
 option(CISTA_COVERAGE "generate coverage report" OFF)
 
 add_library(cista INTERFACE)
@@ -29,6 +51,7 @@ file(GLOB_RECURSE cista-test-files test/*.cc)
 add_executable(cista-test EXCLUDE_FROM_ALL ${cista-test-files} ${CMAKE_CURRENT_BINARY_DIR}/cista.h)
 target_link_libraries(cista-test doctest)
 target_include_directories(cista-test PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_compile_options(cista-test PRIVATE ${cista-compile-flags})
 if(CISTA_COVERAGE)
   target_compile_options(cista-test PRIVATE -fprofile-arcs -ftest-coverage)
   set_target_properties(cista-test PROPERTIES LINK_FLAGS --coverage)
