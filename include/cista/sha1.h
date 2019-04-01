@@ -127,9 +127,9 @@ inline hash_t compute_sha1_hash(std::string_view const& src) {
   unsigned w[80];
 
   // Loop through all complete 64byte blocks.
-  const int end_of_full_blocks = src.size() - 64;
-  int end_of_current_block;
-  int current_block = 0;
+  size_t const end_of_full_blocks = src.size() - 64;
+  size_t end_of_current_block;
+  size_t current_block = 0;
 
   while (current_block <= end_of_full_blocks) {
     end_of_current_block = current_block + 64;
