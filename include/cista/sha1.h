@@ -161,7 +161,9 @@ inline hash_t compute_sha1_hash(std::string_view const& src) {
     inner_hash(result, w);
     clear_w_buffert(w);
   }
-  w[15] = src.size() << 3;
+
+  // XXX possible overflow for src.size() > 4GB?
+  w[15] = static_cast<unsigned>(src.size()) << 3;
   inner_hash(result, w);
 
   // Store hash in result pointer, and make sure we get in in the correct order
