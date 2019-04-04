@@ -25,6 +25,7 @@ TEST_CASE("hash test") {
     } j;
     int k;
   } b;
-
   CHECK(cista::type_hash(a) != cista::type_hash(b));
+  CHECK(0xC2E1EA98D8A77A15 == cista::type_hash(a));
+  CHECK(0x5576E826CC0B117D == cista::type_hash(b));
 }
