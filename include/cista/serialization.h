@@ -36,7 +36,11 @@ hash_t type_hash(T const& el, hash_t hash) {
 #pragma warning(pop)
 
   using Type = decay_t<T>;
-  if constexpr (use_standard_hash<T>()) {
+  using DeRefType = std::remove_pointer_t<Type>;
+  if constexpr (use_standard_hash<DeRefType>() && std::is_enum_v<DeRefType>) {
+    return fnv1a_hash(detail::nameof_enum<Type>(), hash);
+  } else if constexpr (use_standard_hash<DeRefType>() &&
+                       !std::is_enum_v<DeRefType>) {
     return fnv1a_hash(detail::nameof_type<Type>(), hash);
   } else if constexpr (!std::is_scalar_v<Type>) {
     static_assert(std::is_aggregate_v<Type> &&

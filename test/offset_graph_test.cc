@@ -5,11 +5,10 @@
 
 #include "cista.h"
 
-using namespace cista;
-
-namespace data = offset;
+namespace data = cista::offset;
 
 namespace {
+
 struct node;
 
 using node_id_t = uint32_t;
@@ -51,6 +50,11 @@ struct graph {
   node_id_t fill_{0};
 };
 
+}  // namespace
+
+template <>
+struct ::cista::use_standard_hash<node> : public std::true_type {};
+
 inline std::set<node const*> bfs(node const* entry) {
   std::queue<node const*> q;
   std::set<node const*> visited;
@@ -75,11 +79,11 @@ inline std::set<node const*> bfs(node const* entry) {
   return visited;
 }
 
-}  // namespace
-
 TEST_CASE("graph offset serialize file") {
   {
     graph g;
+
+    CHECK(0x978597D049C1F391 == cista::type_hash(g));
 
     auto const n1 = g.make_node(data::string{"NODE A"});
     auto const n2 = g.make_node(data::string{"NODE B"});
