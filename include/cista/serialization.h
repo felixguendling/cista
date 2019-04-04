@@ -30,7 +30,7 @@ struct use_standard_hash : public std::false_type {};
 template <typename T>
 hash_t type_hash(T const& el, hash_t hash) {
 #pragma warning(push)
-#pragma warning(disable : 4307)
+#pragma warning(disable : 4307)  // overflow is desired behaviour in fnv1a_hash
   constexpr auto const POINTER = fnv1a_hash("pointer");
   constexpr auto const STRUCT = fnv1a_hash("struct");
 #pragma warning(pop)
