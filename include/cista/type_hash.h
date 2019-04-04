@@ -259,7 +259,7 @@ constexpr hash_t hash_combine(hash_t const hash, T const& val) {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunknown-pragmas"
 #pragma warning(push)
-#pragma warning(disable : 1893)
+#pragma warning(disable : 4307)
   constexpr hash_t prime = 1099511628211ull;
   return (hash ^ static_cast<hash_t>(val)) * prime;
 #pragma warning(pop)
