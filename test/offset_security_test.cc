@@ -1,4 +1,4 @@
-#define CISTA_PTR_TYPE offset
+#define CISTA_PTR_TYPE cista::offset
 #include "./security_test.impl.cpp"
 
 TEST_CASE("sec offset test value overflow") { test_sec_value_overflow(); }

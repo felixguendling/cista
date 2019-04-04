@@ -1,4 +1,4 @@
-#define CISTA_PTR_TYPE raw
+#define CISTA_PTR_TYPE cista::raw
 #include "./security_test.impl.cpp"
 
 TEST_CASE("sec raw test value overflow") { test_sec_value_overflow(); }

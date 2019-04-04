@@ -5,7 +5,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   set(cista-compile-flags
-     -std=c++17
      -Wno-global-constructors
      -Wno-exit-time-destructors
      -fno-strict-aliasing
@@ -20,7 +19,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
      -Wno-undefined-reinterpret-cast
      -Wno-float-conversion
      -Wno-return-std-move-in-c++11
-     -Wno-gnu-zero-variadic-macro-argument
+     -Wno-gnu-zero-variadic-macro-arguments
      -Werror
   )
 endif()

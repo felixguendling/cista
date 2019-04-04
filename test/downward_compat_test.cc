@@ -47,12 +47,12 @@ TEST_CASE("downward compatibility test") {
 
       case 2: {
         data_v2 values;
-        values.values_.emplace_back(
-            data::make_unique<v2>(v2{data::string{"A"}}));
-        values.values_.emplace_back(
-            data::make_unique<v2>(v2{data::string{"B"}}));
-        values.values_.emplace_back(
-            data::make_unique<v2>(v2{data::string{"C"}}));
+        values.values_.emplace_back(data::make_unique<v2>(
+            v2{data::string{"A"}, data::string{"1"}, .0}));
+        values.values_.emplace_back(data::make_unique<v2>(
+            v2{data::string{"B"}, data::string{"2"}, .1}));
+        values.values_.emplace_back(data::make_unique<v2>(
+            v2{data::string{"C"}, data::string{"3"}, .2}));
         buf = cista::serialize(values);
         break;
       }

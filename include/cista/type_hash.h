@@ -257,7 +257,7 @@ constexpr std::string_view nameof_type() noexcept {
 template <typename T>
 constexpr hash_t hash_combine(hash_t const hash, T const& val) {
   constexpr hash_t prime = 1099511628211ull;
-  return (hash ^ val) * prime;
+  return (hash ^ static_cast<hash_t>(val)) * prime;
 }
 
 constexpr hash_t fnv1a_hash(std::string_view s, hash_t hash) noexcept {

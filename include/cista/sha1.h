@@ -47,7 +47,7 @@ using hash_t = std::array<std::uint8_t, 20>;
 namespace {
 
 // Rotate an integer value to left.
-inline const unsigned rol(unsigned const value, unsigned const steps) {
+inline unsigned rol(unsigned const value, unsigned const steps) {
   return ((value << steps) | (value >> (32 - steps)));
 }
 
@@ -121,7 +121,7 @@ inline hash_t compute_sha1_hash(std::string_view const& src) {
                         0xc3d2e1f0};
 
   // Cast the void src pointer to be the byte array we can work with.
-  const unsigned char* sarray = (const unsigned char*)(&src[0]);
+  auto const sarray = reinterpret_cast<uint8_t const*>(&src[0]);
 
   // The reusable round buffer
   unsigned w[80];
@@ -139,10 +139,10 @@ inline hash_t compute_sha1_hash(std::string_view const& src) {
          current_block += 4) {
       // This line will swap endian on big endian and keep endian on little
       // endian.
-      w[roundPos++] = (unsigned)sarray[current_block + 3] |
-                      (((unsigned)sarray[current_block + 2]) << 8) |
-                      (((unsigned)sarray[current_block + 1]) << 16) |
-                      (((unsigned)sarray[current_block]) << 24);
+      w[roundPos++] = static_cast<unsigned>(sarray[current_block + 3]) |
+                      (static_cast<unsigned>(sarray[current_block + 2]) << 8) |
+                      (static_cast<unsigned>(sarray[current_block + 1]) << 16) |
+                      (static_cast<unsigned>(sarray[current_block]) << 24);
     }
     inner_hash(result, w);
   }
@@ -150,14 +150,14 @@ inline hash_t compute_sha1_hash(std::string_view const& src) {
   // Handle the last and not full 64 byte block if existing.
   end_of_current_block = src.size() - current_block;
   clear_w_buffert(w);
-  int last_block_bytes = 0;
+  auto last_block_bytes = 0U;
   for (; last_block_bytes < end_of_current_block; ++last_block_bytes) {
-    w[last_block_bytes >> 2] |=
-        (unsigned)sarray[last_block_bytes + current_block]
-        << ((3 - (last_block_bytes & 3)) << 3);
+    w[last_block_bytes >> 2U] |=
+        static_cast<unsigned>(sarray[last_block_bytes + current_block])
+        << ((3U - (last_block_bytes & 3U)) << 3U);
   }
-  w[last_block_bytes >> 2] |= 0x80 << ((3 - (last_block_bytes & 3)) << 3);
-  if (end_of_current_block >= 56) {
+  w[last_block_bytes >> 2U] |= 0x80U << ((3U - (last_block_bytes & 3U)) << 3U);
+  if (end_of_current_block >= 56U) {
     inner_hash(result, w);
     clear_w_buffert(w);
   }
@@ -168,24 +168,34 @@ inline hash_t compute_sha1_hash(std::string_view const& src) {
 
   // Store hash in result pointer, and make sure we get in in the correct order
   // on both endian models.
-  for (int hash_byte = 20; --hash_byte >= 0;) {
+  auto hash_byte = 20U;
+  while (true) {
     hash[hash_byte] =
-        (result[hash_byte >> 2] >> (((3 - hash_byte) & 0x3) << 3)) & 0xff;
+        (result[hash_byte >> 2U] >> (((3U - hash_byte) & 0x3U) << 3U)) & 0xffU;
+    if (hash_byte == 0) {
+      break;
+    }
+    --hash_byte;
   }
 
   return hash;
 }
 
 inline std::string to_hex_str(hash_t const& hash) {
-  const char hexDigits[] = {"0123456789abcdef"};
+  const char hex_digits[] = {"0123456789abcdef"};
 
-  std::string hexstring;
-  hexstring.resize(40);
-  for (int hash_byte = 20; --hash_byte >= 0;) {
-    hexstring[hash_byte << 1] = hexDigits[(hash[hash_byte] >> 4) & 0xf];
-    hexstring[(hash_byte << 1) + 1] = hexDigits[hash[hash_byte] & 0xf];
+  std::string hex_str;
+  hex_str.resize(40);
+  auto hash_byte = 20U;
+  while (true) {
+    hex_str[hash_byte << 1U] = hex_digits[(hash[hash_byte] >> 4U) & 0xfU];
+    hex_str[(hash_byte << 1U) + 1U] = hex_digits[hash[hash_byte] & 0xfU];
+    if (hash_byte == 0) {
+      break;
+    }
+    --hash_byte;
   }
-  return hexstring;
+  return hex_str;
 }
 
 inline std::string from_buf(std::vector<std::uint8_t> const& buf) {

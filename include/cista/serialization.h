@@ -15,6 +15,10 @@
 #include "cista/targets/file.h"
 #include "cista/type_hash.h"
 
+#ifndef cista_member_offset
+#define cista_member_offset(s, m) (static_cast<cista::offset_t>(offsetof(s, m)))
+#endif
+
 namespace cista {
 
 // =============================================================================
@@ -111,13 +115,14 @@ template <typename Target>
 struct serialization_context {
   explicit serialization_context(Target& t) : t_{t} {}
 
-  offset_t write(void const* ptr, offset_t const size, offset_t alignment = 0) {
+  offset_t write(void const* ptr, std::size_t const size,
+                 std::size_t const alignment = 0) {
     return t_.write(ptr, size, alignment);
   }
 
   template <typename T>
   void write(offset_t const pos, T const& val) {
-    t_.write(pos, val);
+    t_.write(static_cast<std::size_t>(pos), val);
   }
 
   std::map<void*, offset_t> offsets_;
@@ -172,13 +177,15 @@ void serialize(Ctx& c, raw::vector<T> const* origin, offset_t const pos) {
                          ? NULLPTR_OFFSET
                          : c.write(origin->el_, size, std::alignment_of_v<T>);
 
-  c.write(pos + offsetof(raw::vector<T>, el_), start);
-  c.write(pos + offsetof(raw::vector<T>, allocated_size_), origin->used_size_);
-  c.write(pos + offsetof(raw::vector<T>, self_allocated_), false);
+  c.write(pos + cista_member_offset(raw::vector<T>, el_), start);
+  c.write(pos + cista_member_offset(raw::vector<T>, allocated_size_),
+          origin->used_size_);
+  c.write(pos + cista_member_offset(raw::vector<T>, self_allocated_), false);
 
   if (origin->el_ != nullptr) {
     auto i = 0u;
-    for (auto it = start; it != start + size; it += serialized_size<T>()) {
+    for (auto it = start; it != start + static_cast<offset_t>(size);
+         it += serialized_size<T>()) {
       serialize(c, origin->el_ + i++, it);
     }
   }
@@ -191,17 +198,18 @@ void serialize(Ctx& c, offset::vector<T> const* origin, offset_t const pos) {
                                             : c.write(origin->el_.get(), size,
                                                       std::alignment_of_v<T>);
 
-  c.write(pos + offsetof(offset::vector<T>, el_),
+  c.write(pos + cista_member_offset(offset::vector<T>, el_),
           start == NULLPTR_OFFSET
               ? start
-              : start - offsetof(offset::vector<T>, el_) - pos);
-  c.write(pos + offsetof(offset::vector<T>, allocated_size_),
+              : start - cista_member_offset(offset::vector<T>, el_) - pos);
+  c.write(pos + cista_member_offset(offset::vector<T>, allocated_size_),
           origin->used_size_);
-  c.write(pos + offsetof(offset::vector<T>, self_allocated_), false);
+  c.write(pos + cista_member_offset(offset::vector<T>, self_allocated_), false);
 
   if (origin->el_ != nullptr) {
     auto i = 0u;
-    for (auto it = start; it != start + size; it += serialized_size<T>()) {
+    for (auto it = start; it != start + static_cast<offset_t>(size);
+         it += serialized_size<T>()) {
       serialize(c, (origin->el_ + i++).get(), it);
     }
   }
@@ -216,8 +224,8 @@ void serialize(Ctx& c, raw::string const* origin, offset_t const pos) {
   auto const start = (origin->h_.ptr_ == nullptr)
                          ? NULLPTR_OFFSET
                          : c.write(origin->data(), origin->size());
-  c.write(pos + offsetof(raw::string, h_.ptr_), start);
-  c.write(pos + offsetof(raw::string, h_.self_allocated_), false);
+  c.write(pos + cista_member_offset(raw::string, h_.ptr_), start);
+  c.write(pos + cista_member_offset(raw::string, h_.self_allocated_), false);
 }
 
 template <typename Ctx>
@@ -229,11 +237,11 @@ void serialize(Ctx& c, offset::string const* origin, offset_t const pos) {
   auto const start = (origin->h_.ptr_ == nullptr)
                          ? NULLPTR_OFFSET
                          : c.write(origin->data(), origin->size());
-  c.write(pos + offsetof(offset::string, h_.ptr_),
+  c.write(pos + cista_member_offset(offset::string, h_.ptr_),
           start == NULLPTR_OFFSET
               ? start
-              : start - offsetof(offset::string, h_.ptr_) - pos);
-  c.write(pos + offsetof(offset::string, h_.self_allocated_), false);
+              : start - cista_member_offset(offset::string, h_.ptr_) - pos);
+  c.write(pos + cista_member_offset(offset::string, h_.self_allocated_), false);
 }
 
 template <typename Ctx, typename T>
@@ -243,8 +251,9 @@ void serialize(Ctx& c, raw::unique_ptr<T> const* origin, offset_t const pos) {
           ? NULLPTR_OFFSET
           : c.write(origin->el_, serialized_size<T>(), std::alignment_of_v<T>);
 
-  c.write(pos + offsetof(raw::unique_ptr<T>, el_), start);
-  c.write(pos + offsetof(raw::unique_ptr<T>, self_allocated_), false);
+  c.write(pos + cista_member_offset(raw::unique_ptr<T>, el_), start);
+  c.write(pos + cista_member_offset(raw::unique_ptr<T>, self_allocated_),
+          false);
 
   if (origin->el_ != nullptr) {
     c.offsets_[origin->el_] = start;
@@ -260,11 +269,12 @@ void serialize(Ctx& c, offset::unique_ptr<T> const* origin,
           ? NULLPTR_OFFSET
           : c.write(origin->el_, serialized_size<T>(), std::alignment_of_v<T>);
 
-  c.write(pos + offsetof(offset::unique_ptr<T>, el_),
+  c.write(pos + cista_member_offset(offset::unique_ptr<T>, el_),
           start == NULLPTR_OFFSET
               ? start
-              : start - offsetof(offset::unique_ptr<T>, el_) - pos);
-  c.write(pos + offsetof(offset::unique_ptr<T>, self_allocated_), false);
+              : start - cista_member_offset(offset::unique_ptr<T>, el_) - pos);
+  c.write(pos + cista_member_offset(offset::unique_ptr<T>, self_allocated_),
+          false);
 
   if (origin->el_ != nullptr) {
     c.offsets_[const_cast<T*>(origin->el_.get())] = start;
@@ -274,7 +284,8 @@ void serialize(Ctx& c, offset::unique_ptr<T> const* origin,
 
 template <typename Ctx, typename T, size_t Size>
 void serialize(Ctx& c, array<T, Size> const* origin, offset_t const pos) {
-  auto const size = serialized_size<T>() * origin->size();
+  auto const size =
+      static_cast<offset_t>(serialized_size<T>() * origin->size());
   auto i = 0u;
   for (auto it = pos; it != pos + size; it += serialized_size<T>()) {
     serialize(c, origin->el_ + i++, it);
@@ -330,7 +341,7 @@ void serialize(Target& t, T& value, mode const m = mode::NONE) {
 template <typename T>
 byte_buf serialize(T& el, mode const m = mode::NONE) {
   auto b = buf{};
-  serialize(b, el);
+  serialize(b, el, m);
   return std::move(b.buf_);
 }
 
@@ -632,6 +643,7 @@ T* deserialize(Container& c) {
 
 template <typename T>
 T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr) {
+  (void)to;
   return reinterpret_cast<T*>(from);
 }
 
@@ -643,3 +655,5 @@ T* unchecked_deserialize(Container& c) {
 }  // namespace offset
 
 }  // namespace cista
+
+#undef cista_member_offset

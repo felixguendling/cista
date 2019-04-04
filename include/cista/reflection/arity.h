@@ -28,10 +28,10 @@ template <typename Aggregate, typename IndexSequence = std::index_sequence<>,
 struct arity_impl : IndexSequence {};
 
 template <typename Aggregate, std::size_t... Indices>
-struct arity_impl<
-    Aggregate, std::index_sequence<Indices...>,
-    std::void_t<decltype(Aggregate{(Indices, std::declval<instance>())...,
-                                   std::declval<instance>()})>>
+struct arity_impl<Aggregate, std::index_sequence<Indices...>,
+                  std::void_t<decltype(Aggregate{
+                      (static_cast<void>(Indices), std::declval<instance>())...,
+                      std::declval<instance>()})>>
     : arity_impl<Aggregate,
                  std::index_sequence<Indices..., sizeof...(Indices)>> {};
 

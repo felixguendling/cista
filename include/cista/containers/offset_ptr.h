@@ -49,14 +49,14 @@ struct offset_ptr {
     auto const ptr = offset_ == NULLPTR_OFFSET
                          ? nullptr
                          : reinterpret_cast<T const*>(
-                               reinterpret_cast<uintptr_t>(this) + offset_);
+                               reinterpret_cast<intptr_t>(this) + offset_);
     return ptr;
   }
   T* get() {
     auto const ptr =
         offset_ == NULLPTR_OFFSET
             ? nullptr
-            : reinterpret_cast<T*>(reinterpret_cast<uintptr_t>(this) + offset_);
+            : reinterpret_cast<T*>(reinterpret_cast<intptr_t>(this) + offset_);
     return ptr;
   }
 

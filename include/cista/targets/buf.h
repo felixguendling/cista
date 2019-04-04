@@ -18,13 +18,15 @@ struct buf {
   uint8_t* base() { return &buf_[0]; }
 
   template <typename T>
-  void write(offset_t const pos, T const& val) {
-    cista_verify(buf_.size() >= pos + serialized_size<T>(),
-                 "out of bounds write");
+  void write(std::size_t const pos, T const& val) {
+    cista_verify(
+        buf_.size() >= pos + serialized_size<T>(),
+        "out of bounds write")
     std::memcpy(&buf_[pos], &val, serialized_size<T>());
   }
 
-  offset_t write(void const* ptr, offset_t const size, offset_t alignment = 0) {
+  offset_t write(void const* ptr, std::size_t const size,
+                 std::size_t alignment = 0) {
     auto aligned_size = size;
 
     if (alignment != 0 && alignment != 1 && buf_.size() != 0) {
@@ -34,7 +36,8 @@ struct buf {
           std::align(alignment, size, unaligned_ptr, space);
       auto const new_offset = static_cast<offset_t>(
           aligned_ptr ? static_cast<uint8_t*>(aligned_ptr) - base() : 0);
-      auto const adjustment = new_offset - curr_offset_;
+      auto const adjustment =
+          static_cast<std::size_t>(new_offset - curr_offset_);
       curr_offset_ += adjustment;
       aligned_size += adjustment;
     }
@@ -42,7 +45,7 @@ struct buf {
     auto const space_left =
         static_cast<int64_t>(buf_.size()) - static_cast<int64_t>(curr_offset_);
     if (space_left < static_cast<int64_t>(aligned_size)) {
-      auto const missing = static_cast<offset_t>(
+      auto const missing = static_cast<std::size_t>(
           static_cast<int64_t>(aligned_size) - space_left);
       buf_.resize(buf_.size() + missing);
     }

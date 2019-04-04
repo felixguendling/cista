@@ -18,10 +18,12 @@ inline void serialize(Ctx& c, std::vector<T> const* origin,
                                    std::alignment_of_v<T>);
 
   c.write(offset, static_cast<uint64_t>(origin->size()));
-  c.write(offset + sizeof(uint64_t), start);
+  c.write(offset + static_cast<cista::offset_t>(sizeof(uint64_t)), start);
 
-  for (auto i = size_t{0}; i < origin->size(); ++i) {
-    cista::serialize(c, &(*origin)[i], start + i * cista::serialized_size<T>());
+  for (auto i = 0u; i < origin->size(); ++i) {
+    cista::serialize(
+        c, &(*origin)[i],
+        start + static_cast<cista::offset_t>(i * cista::serialized_size<T>()));
   }
 }
 

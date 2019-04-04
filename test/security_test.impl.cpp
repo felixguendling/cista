@@ -2,8 +2,6 @@
 
 #include "cista.h"
 
-using namespace cista;
-
 namespace data = CISTA_PTR_TYPE;
 
 inline void test_sec_value_overflow() {
