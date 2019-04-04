@@ -52,8 +52,10 @@ struct graph {
 
 }  // namespace
 
+namespace cista {
 template <>
-struct ::cista::use_standard_hash<node> : public std::true_type {};
+struct use_standard_hash<node> : public std::true_type {};
+}  // namespace cista
 
 inline std::set<node const*> bfs(node const* entry) {
   std::queue<node const*> q;
