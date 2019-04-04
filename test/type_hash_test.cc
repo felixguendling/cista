@@ -9,7 +9,7 @@ TEST_CASE("hash test") {
   } a;
 
   int b;
-  CHECK(cista::hash_me(a) != cista::hash_me(b));
+  CHECK(cista::type_hash(a) != cista::type_hash(b));
 }
 
 TEST_CASE("hash test") {
@@ -26,5 +26,5 @@ TEST_CASE("hash test") {
     int k;
   } b;
 
-  CHECK(cista::hash_me(a) != cista::hash_me(b));
+  CHECK(cista::type_hash(a) != cista::type_hash(b));
 }

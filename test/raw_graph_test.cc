@@ -98,8 +98,7 @@ TEST_CASE("graph raw serialize file") {
   }  // EOL graph
 
   auto b = cista::file("test.bin", "r").content();
-  CHECK("6eda6fb0f6d7b81c2c0ce0996e35cb4af608a64e" ==
-        sha1::from_buf(std::vector<unsigned char>(b.begin(), b.end())));
+  CHECK(0x406821FA09374065 == cista::crc64(b));
 
   auto const g = data::deserialize<graph>(b);
   auto const visited = bfs(g->nodes_[0].get());
@@ -129,7 +128,7 @@ TEST_CASE("graph raw serialize buf") {
     buf = cista::serialize(g);
   }  // EOL graph
 
-  CHECK("6eda6fb0f6d7b81c2c0ce0996e35cb4af608a64e" == sha1::from_buf(buf));
+  CHECK(0x406821FA09374065 == cista::crc64(buf));
 
   auto const g = data::deserialize<graph>(buf);
   auto const visited = bfs(g->nodes_[0].get());

@@ -6,11 +6,11 @@
 #include <vector>
 
 #include "cista/containers.h"
+#include "cista/crc64.h"
 #include "cista/decay.h"
 #include "cista/offset_t.h"
 #include "cista/reflection/for_each_field.h"
 #include "cista/serialized_size.h"
-#include "cista/sha1.h"
 #include "cista/targets/buf.h"
 #include "cista/targets/file.h"
 #include "cista/type_hash.h"
@@ -90,16 +90,16 @@ hash_t type_hash(raw::unique_ptr<T> const&, hash_t hash) {
   return type_hash(T{}, hash);
 }
 
+template <typename T>
+hash_t type_hash(T const& el) {
+  return type_hash(el, cista::fnv1a_hash());
+}
+
 template <>
 struct use_standard_hash<offset::string> : public std::true_type {};
 
 template <>
 struct use_standard_hash<raw::string> : public std::true_type {};
-
-template <typename T>
-hash_t hash_me(T const& el) {
-  return type_hash(el, fnv1a_hash());
-}
 
 // =============================================================================
 // SERIALIZE
@@ -307,7 +307,7 @@ void serialize(Target& t, T& value, mode const m = mode::NONE) {
   serialization_context<Target> c{t};
 
   if ((m & mode::WITH_VERSION) == mode::WITH_VERSION) {
-    auto const hash = hash_me(value);
+    auto const hash = type_hash(value);
     c.write(&hash, sizeof(hash));
   }
 
