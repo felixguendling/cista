@@ -125,6 +125,12 @@ struct serialization_context {
     t_.write(static_cast<std::size_t>(pos), val);
   }
 
+  uint64_t crc64(offset_t const from) const {
+    (void)from;
+    // t_.crc64(from);
+    return 0ull;
+  }
+
   std::map<void*, offset_t> offsets_;
   std::vector<pending_offset> pending_;
   Target& t_;
@@ -311,11 +317,11 @@ void serialize(Target& t, T& value, mode const m = mode::NONE) {
     c.write(&hash, sizeof(hash));
   }
 
-  // auto integrity_offset = offset_t{0};
-  // if ((m & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
-  //   auto const hash = hash_t{};
-  //   integrity_offset = c.write(&hash, sizeof(hash));
-  // }
+  auto integrity_offset = offset_t{0};
+  if ((m & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
+    auto const hash = uint64_t{};
+    integrity_offset = c.write(&hash, sizeof(hash));
+  }
 
   serialize(c, &value,
             c.write(&value, serialized_size<T>(),
@@ -332,10 +338,9 @@ void serialize(Target& t, T& value, mode const m = mode::NONE) {
     }
   }
 
-  // if (m & mode::WITH_INTEGRITY == mode::WITH_INTEGRITY) {
-  //   compute_sha1_hash({&});
-  //   c.write(integrity_offset, );
-  // }
+  if ((m & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
+    c.write(integrity_offset, c.crc64(integrity_offset));
+  }
 }
 
 template <typename T>

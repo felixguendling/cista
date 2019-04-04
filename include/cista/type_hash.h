@@ -256,8 +256,14 @@ constexpr std::string_view nameof_type() noexcept {
 // See http://www.isthe.com/chongo/tech/comp/fnv/#FNV-param
 template <typename T>
 constexpr hash_t hash_combine(hash_t const hash, T const& val) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunknown-pragmas"
+#pragma warning(push)
+#pragma warning(disable : 1893)
   constexpr hash_t prime = 1099511628211ull;
   return (hash ^ static_cast<hash_t>(val)) * prime;
+#pragma warning(pop)
+#pragma clang diagnostic pop
 }
 
 constexpr hash_t fnv1a_hash(std::string_view s, hash_t hash) noexcept {
