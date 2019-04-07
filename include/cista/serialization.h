@@ -13,100 +13,13 @@
 #include "cista/serialized_size.h"
 #include "cista/targets/buf.h"
 #include "cista/targets/file.h"
-#include "cista/type_hash.h"
+#include "cista/type_hash/type_hash.h"
 
 #ifndef cista_member_offset
 #define cista_member_offset(s, m) (static_cast<cista::offset_t>(offsetof(s, m)))
 #endif
 
 namespace cista {
-
-// =============================================================================
-// HASH
-// -----------------------------------------------------------------------------
-template <typename T>
-struct use_standard_hash : public std::false_type {};
-
-template <typename T>
-hash_t type_hash(T const& el, hash_t hash) {
-#pragma warning(push)
-#pragma warning(disable : 4307)  // overflow is desired behaviour in fnv1a_hash
-  constexpr auto const POINTER = fnv1a_hash("pointer");
-  constexpr auto const STRUCT = fnv1a_hash("struct");
-#pragma warning(pop)
-
-  using Type = decay_t<T>;
-  using DeRefType = std::remove_pointer_t<Type>;
-  if constexpr (use_standard_hash<DeRefType>() && std::is_enum_v<DeRefType>) {
-    return fnv1a_hash(detail::nameof_enum<Type>(), hash);
-  } else if constexpr (use_standard_hash<DeRefType>() &&
-                       !std::is_enum_v<DeRefType>) {
-    return fnv1a_hash(detail::nameof_type<Type>(), hash);
-  } else if constexpr (!std::is_scalar_v<Type>) {
-    static_assert(std::is_aggregate_v<Type> &&
-                      std::is_standard_layout_v<Type> &&
-                      !std::is_polymorphic_v<Type>,
-                  "Please implement custom type hash.");
-    hash = hash_combine(hash, STRUCT);
-    for_each_field(el,
-                   [&](auto const& member) { hash = type_hash(member, hash); });
-    return hash;
-  } else if constexpr (std::is_pointer_v<Type>) {
-    hash = hash_combine(hash, POINTER);
-    return type_hash(typename std::remove_pointer_t<Type>{}, hash);
-  } else if constexpr (std::is_enum_v<Type>) {
-    return fnv1a_hash(detail::nameof_enum<Type>(), hash);
-  } else {
-    return fnv1a_hash(detail::nameof_type<Type>(), hash);
-  }
-}
-
-template <typename T, size_t Size>
-hash_t type_hash(cista::array<T, Size> const&, hash_t hash) {
-  hash = hash_combine(hash, fnv1a_hash("CISTA_ARRAY"));
-  return type_hash(T{}, hash);
-}
-
-template <typename T>
-hash_t type_hash(offset::ptr<T> const&, hash_t hash) {
-  hash = hash_combine(hash, fnv1a_hash("CISTA_OFFSET_PTR"));
-  return type_hash(T{}, hash);
-}
-
-template <typename T>
-hash_t type_hash(offset::vector<T> const&, hash_t hash) {
-  hash = hash_combine(hash, fnv1a_hash("CISTA_OFFSET_VECTOR"));
-  return type_hash(T{}, hash);
-}
-
-template <typename T>
-hash_t type_hash(offset::unique_ptr<T> const&, hash_t hash) {
-  hash = hash_combine(hash, fnv1a_hash("CISTA_OFFSET_UNIQUE_PTR"));
-  return type_hash(T{}, hash);
-}
-
-template <typename T>
-hash_t type_hash(raw::vector<T> const&, hash_t hash) {
-  hash = hash_combine(hash, fnv1a_hash("CISTA_RAW_VECTOR"));
-  return type_hash(T{}, hash);
-}
-
-template <typename T>
-hash_t type_hash(raw::unique_ptr<T> const&, hash_t hash) {
-  hash = hash_combine(hash, fnv1a_hash("CISTA_RAW_UNIQUE_PTR"));
-  return type_hash(T{}, hash);
-}
-
-template <typename T>
-hash_t type_hash(T const& el) {
-  return type_hash(el, cista::fnv1a_hash());
-}
-
-template <>
-struct use_standard_hash<offset::string> : public std::true_type {};
-
-template <>
-struct use_standard_hash<raw::string> : public std::true_type {};
 
 // =============================================================================
 // SERIALIZE
