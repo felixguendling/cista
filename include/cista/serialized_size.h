@@ -7,7 +7,8 @@
 namespace cista {
 
 template <typename T>
-static inline constexpr size_t serialized_size() {
+static inline constexpr size_t serialized_size(void* param = nullptr) {
+  (void)param;
   return sizeof(decay_t<T>);
 }
 
