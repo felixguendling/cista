@@ -16,6 +16,10 @@ TEST_CASE("canonicalize type name test") {
   cista::canonicalize_type_name(a);
   CHECK(a == clang);
   CHECK(a == gcc);
+
+  CHECK(4753065846318391081ULL == cista::hash(clang));
+  CHECK(4753065846318391081ULL == cista::hash(gcc));
+  CHECK(4753065846318391081ULL == cista::hash(a));
 }
 
 // constexpr gcc =
