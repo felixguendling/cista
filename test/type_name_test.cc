@@ -23,5 +23,3 @@ TEST_CASE("canonicalize type name test") {
   CHECK(4753065846318391081ULL == cista::hash(gcc));
 }
 #endif
-
-// constexpr gcc =
