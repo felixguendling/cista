@@ -2,6 +2,7 @@
 
 #include "cista.h"
 
+#ifdef _MSC_VER
 TEST_CASE("canonicalize type name test") {
   std::string msvc =
       R"(struct cista::basic_vector<struct cista::basic_unique_ptr<struct graphns::offset::node,struct cista::offset_ptr<struct graphns::offset::node> >,struct cista::offset_ptr<struct cista::basic_unique_ptr<struct graphns::offset::node,struct cista::offset_ptr<struct graphns::offset::node> > >,unsigned int>)";
@@ -21,5 +22,6 @@ TEST_CASE("canonicalize type name test") {
   CHECK(4753065846318391081ULL == cista::hash(clang));
   CHECK(4753065846318391081ULL == cista::hash(gcc));
 }
+#endif
 
 // constexpr gcc =

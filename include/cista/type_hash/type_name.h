@@ -8,7 +8,11 @@
 
 namespace cista {
 
-inline void canonicalize_type_name_msvc(std::string& s) {
+
+
+#if defined(_MSC_VER)
+#define CISTA_SIG __FUNCSIG__
+inline void canonicalize_type_name(std::string& s) {
   constexpr std::string_view const struct_str = "struct ";
 
   auto pos = std::size_t{};
@@ -24,10 +28,6 @@ inline void canonicalize_type_name_msvc(std::string& s) {
     s.insert(size_t{pos + 1}, 1, ' ');
   }
 }
-
-#if defined(_MSC_VER)
-#define CISTA_SIG __FUNCSIG__
-using canonicalize_type_name = canonicalize_type_name_msvc;
 #elif defined(__clang__) || defined(__GNUC__)
 inline void canonicalize_type_name(std::string&) {}
 #define CISTA_SIG __PRETTY_FUNCTION__
