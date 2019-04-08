@@ -16,19 +16,11 @@ constexpr hash_t hash_combine(hash_t const h, T const val) {
   return (h ^ static_cast<hash_t>(val)) * prime;
 }
 
-inline hash_t hash(std::string_view s = "",
-                   hash_t h = 14695981039346656037ull) {
-  auto const initial = h;
-  printf("==============\n");
-  printf("hash(\"%.*s\", %" PRIu64 ")\n", static_cast<int>(s.size()), s.data(),
-         h);
+constexpr hash_t hash(std::string_view s = "",
+                      hash_t h = 14695981039346656037ull) {
   for (auto i = size_t{0ULL}; i < s.size(); ++i) {
     h = hash_combine(h, s[i]);
-    printf("%zu\t%c\t%" PRIu64 "\n", i, s[i], h);
   }
-  printf("hash(\"%.*s\", %" PRIu64 ") = %" PRIu64 "\n",
-         static_cast<int>(s.size()), s.data(), initial, h);
-  printf("--------------\n\n");
   return h;
 }
 

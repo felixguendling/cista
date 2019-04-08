@@ -11,7 +11,7 @@ hash_t type_hash() {
   auto const s = canonical_type_str<T>();
   printf("%24" PRIu64 "\tlength=%-4zu\t[%.*s] \n", hash(type_str<T>()),
          s.size(), static_cast<int>(s.size()), s.data());
-  return hash(type_str<T>());
+  return hash(s);
 }
 
 template <typename T>
@@ -19,7 +19,7 @@ hash_t type_hash(T const&) {
   auto const s = canonical_type_str<T>();
   printf("%24" PRIu64 "\tlength=%-4zu\t[%.*s]\n", hash(type_str<T>()), s.size(),
          static_cast<int>(s.size()), s.data());
-  return hash(type_str<T>());
+  return hash(s);
 }
 
 template <typename T>
