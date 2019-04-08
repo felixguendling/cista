@@ -49,9 +49,9 @@ inline void unchecked_deserialize(cista::deserialization_context const& c,
 }
 
 template <typename T>
-cista::hash_t type_hash(std::vector<T> const&, cista::hash_t hash) {
-  hash = cista::hash_combine(hash, cista::type_hash<std::vector<T>>());
-  return cista::type_hash(T{}, hash);
+cista::hash_t type_hash(std::vector<T> const&, cista::hash_t h) {
+  h = cista::hash_combine(h, cista::type_hash<std::vector<T>>());
+  return cista::type_hash(T{}, h);
 }
 
 }  // namespace std

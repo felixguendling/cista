@@ -36,8 +36,8 @@ struct array_test_struct {
   int i_{0};
 };
 
-hash_t type_hash(array_test_struct const&, hash_t hash) {
-  return hash_combine(hash, cista::type_hash<array_test_struct>());
+hash_t type_hash(array_test_struct const&, hash_t const h) {
+  return hash_combine(h, cista::type_hash<array_test_struct>());
 }
 
 TEST_CASE("array test move reverse") {

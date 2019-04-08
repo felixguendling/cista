@@ -233,14 +233,14 @@ void serialize(Target& t, T& value, mode const m = mode::NONE) {
   serialization_context<Target> c{t};
 
   if ((m & mode::WITH_VERSION) == mode::WITH_VERSION) {
-    auto const hash = type_hash(value);
-    c.write(&hash, sizeof(hash));
+    auto const h = type_hash(value);
+    c.write(&h, sizeof(h));
   }
 
   auto integrity_offset = offset_t{0};
   if ((m & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
-    auto const hash = uint64_t{};
-    integrity_offset = c.write(&hash, sizeof(hash));
+    auto const h = uint64_t{};
+    integrity_offset = c.write(&h, sizeof(h));
   }
 
   serialize(c, &value,
