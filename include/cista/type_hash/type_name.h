@@ -50,7 +50,6 @@ std::string_view type_str() {
 #endif
 
   auto sig = std::string_view{CISTA_SIG};
-  printf("[%.*s]\n", static_cast<int>(sig.size()), sig.data());
   sig.remove_prefix(prefix.size());
   sig.remove_suffix(suffix.size());
   return sig;

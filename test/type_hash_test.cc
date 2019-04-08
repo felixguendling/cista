@@ -2,31 +2,31 @@
 
 #include "cista.h"
 
-TEST_CASE("hash int struct != int") {
-  struct test {
-    int i;
-  } a;
+namespace hash_test {
+static struct s1 {
+  int i;
+  struct {
+    int j;
+  } k;
+} a;
 
+static struct s2 {
+  struct {
+    int i;
+  } j;
+  int k;
+} b;
+}  // namespace hash_test
+
+TEST_CASE("hash int struct != int") {
   int b;
-  CHECK(cista::type_hash(a, cista::hash()) !=
+  CHECK(cista::type_hash(hash_test::a, cista::hash()) !=
         cista::type_hash(b, cista::hash()));
 }
 
-TEST_CASE("hash test sturct field order") {
-  struct s1 {
-    int i;
-    struct {
-      int j;
-    } k;
-  } a;
-  struct s2 {
-    struct {
-      int i;
-    } j;
-    int k;
-  } b;
-  CHECK(cista::type_hash(a, cista::hash()) !=
-        cista::type_hash(b, cista::hash()));
-  CHECK(637539755847373129ULL == cista::type_hash(a));
-  CHECK(637536457312488496ULL == cista::type_hash(b));
+TEST_CASE("hash test struct field order") {
+  CHECK(cista::type_hash(hash_test::a, cista::hash()) !=
+        cista::type_hash(hash_test::b, cista::hash()));
+  CHECK(3410441071354815250ULL == cista::type_hash(hash_test::a));
+  CHECK(3410439971843187039ULL == cista::type_hash(hash_test::b));
 }
