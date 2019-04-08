@@ -13,8 +13,10 @@
 
 namespace cista {
 
+inline void transform(std::string& msvc) { (void)msvc; }
+
 template <typename T>
-constexpr std::string_view type_str() {
+std::string_view type_str() {
 #if defined(__clang__)
   constexpr std::string_view prefix =
       "std::string_view cista::type_str() [T = ";
@@ -30,6 +32,8 @@ constexpr std::string_view type_str() {
   constexpr std::string_view suffix =
       "; std::string_view = std::basic_string_view<char>]";
 #endif
+
+  printf("%s\n", CISTA_SIG);
 
   auto sig = std::string_view{CISTA_SIG};
   sig.remove_prefix(prefix.size());
