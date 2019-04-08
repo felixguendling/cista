@@ -32,7 +32,7 @@ inline void canonicalize_type_name(std::string& s) {
 }
 
 template <typename T>
-std::string_view type_str() {
+constexpr std::string_view type_str() {
 #if defined(__clang__)
   constexpr std::string_view prefix =
       "std::string_view cista::type_str() [T = ";
@@ -44,7 +44,7 @@ std::string_view type_str() {
   constexpr std::string_view suffix = ">(void)";
 #else
   constexpr std::string_view prefix =
-      "std::string_view cista::type_str() [with T = ";
+      "constexpr std::string_view cista::type_str() [with T = ";
   constexpr std::string_view suffix =
       "; std::string_view = std::basic_string_view<char>]";
 #endif
