@@ -3,6 +3,7 @@
 // Credits: Manu Sánchez (@Manu343726)
 // https://github.com/Manu343726/ctti/blob/master/include/ctti/detail/pretty_function.hpp
 
+#include <string>
 #include <string_view>
 
 #if defined(_MSC_VER)
@@ -13,7 +14,22 @@
 
 namespace cista {
 
-inline void transform(std::string& msvc) { (void)msvc; }
+inline void canonicalize_type_name(std::string& s) {
+  constexpr std::string_view const struct_str = "struct ";
+
+  auto pos = std::size_t{};
+  while ((pos = s.find(struct_str, pos)) != std::string::npos) {
+    s.erase(pos, struct_str.length());
+  }
+
+  for (pos = s.find(','); pos != std::string::npos;
+       pos = s.find(',', pos + 1)) {
+    if (pos >= s.length() - 1 || s[pos + 1] == ' ') {
+      continue;
+    }
+    s.insert(size_t{pos + 1}, 1, ' ');
+  }
+}
 
 template <typename T>
 std::string_view type_str() {
@@ -32,8 +48,6 @@ std::string_view type_str() {
   constexpr std::string_view suffix =
       "; std::string_view = std::basic_string_view<char>]";
 #endif
-
-  printf("%s\n", CISTA_SIG);
 
   auto sig = std::string_view{CISTA_SIG};
   sig.remove_prefix(prefix.size());
