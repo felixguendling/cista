@@ -8,8 +8,6 @@
 
 namespace cista {
 
-
-
 #if defined(_MSC_VER)
 #define CISTA_SIG __FUNCSIG__
 inline void canonicalize_type_name(std::string& s) {
