@@ -87,7 +87,7 @@ TEST_CASE("graph raw serialize file") {
   {
     graph g;
 
-    // CHECK(8294030070925330150ULL == cista::type_hash(g));
+    CHECK(8294030070925330150ULL == cista::type_hash(g));
     cista::type_hash(g, cista::hash());
 
     auto const n1 = g.make_node(data::string{"NODE A"});
