@@ -32,7 +32,7 @@ inline void canonicalize_type_name(std::string& s) {
 }
 
 template <typename T>
-std::string_view type_str() {
+constexpr std::string_view type_str() {
 #if defined(__clang__)
   constexpr std::string_view prefix =
       "std::string_view cista::type_str() [T = ";
@@ -53,6 +53,14 @@ std::string_view type_str() {
   sig.remove_prefix(prefix.size());
   sig.remove_suffix(suffix.size());
   return sig;
+}
+
+template <typename T>
+std::string canonical_type_str() {
+  constexpr auto const base = type_str<T>();
+  std::string s{base.data(), base.length()};
+  canonicalize_type_name(s);
+  return s;
 }
 
 }  // namespace cista

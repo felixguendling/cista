@@ -8,14 +8,14 @@ namespace cista {
 
 template <typename T>
 hash_t type_hash() {
-  auto const s = type_str<T>();
+  auto const s = canonical_type_str<T>();
   printf("%.*s\n", static_cast<int>(s.size()), s.data());
   return hash(type_str<T>());
 }
 
 template <typename T>
 hash_t type_hash(T const&) {
-  auto const s = type_str<T>();
+  auto const s = canonical_type_str<T>();
   printf("%.*s\n", static_cast<int>(s.size()), s.data());
   return hash(type_str<T>());
 }
