@@ -38,8 +38,9 @@ hash_t type_hash(T const& el, hash_t hash) {
                    [&](auto const& member) { hash = type_hash(member, hash); });
     return hash;
   } else if constexpr (std::is_pointer_v<Type>) {
+    using PointedTo = std::remove_pointer_t<Type>;
     hash = hash_combine(hash, type_hash<Type>());
-    return hash_combine(hash, type_hash(*el, hash));
+    return hash_combine(hash, type_hash(PointedTo{}, hash));
   } else {
     return hash_combine(hash, type_hash<Type>());
   }
