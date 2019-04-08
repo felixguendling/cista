@@ -12,14 +12,16 @@ TEST_CASE("canonicalize type name test") {
   std::string gcc =
       R"(cista::basic_vector<cista::basic_unique_ptr<graphns::offset::node, cista::offset_ptr<graphns::offset::node> >, cista::offset_ptr<cista::basic_unique_ptr<graphns::offset::node, cista::offset_ptr<graphns::offset::node> > >, unsigned int>)";
 
-  std::string a = msvc;
-  cista::canonicalize_type_name(a);
-  CHECK(a == clang);
-  CHECK(a == gcc);
+  cista::canonicalize_type_name(msvc);
+  cista::canonicalize_type_name(clang);
+  cista::canonicalize_type_name(gcc);
 
+  CHECK(clang == gcc);
+  CHECK(clang == msvc);
+
+  CHECK(4753065846318391081ULL == cista::hash(msvc));
   CHECK(4753065846318391081ULL == cista::hash(clang));
   CHECK(4753065846318391081ULL == cista::hash(gcc));
-  CHECK(4753065846318391081ULL == cista::hash(a));
 }
 
 // constexpr gcc =
