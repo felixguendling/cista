@@ -30,7 +30,7 @@ inline void canonicalize_type_name(std::string& s) {
 inline void canonicalize_type_name(std::string&) {}
 #define CISTA_SIG __PRETTY_FUNCTION__
 #else
-#error "unsupported compiler")
+#error unsupported compiler
 #endif
 
 template <typename T>
