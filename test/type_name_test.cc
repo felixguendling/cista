@@ -13,7 +13,7 @@ TEST_CASE("canonicalize type name test") {
   std::string gcc =
       R"(cista::basic_vector<cista::basic_unique_ptr<graphns::offset::node, cista::offset_ptr<graphns::offset::node> >, cista::offset_ptr<cista::basic_unique_ptr<graphns::offset::node, cista::offset_ptr<graphns::offset::node> > >, unsigned int>)";
 
-  cista::canonicalize_type_name_msvc(msvc);
+  cista::canonicalize_type_name(msvc);
 
   CHECK(clang == gcc);
   CHECK(clang == msvc);
