@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "cista/containers.h"
-#include "cista/crc64.h"
 #include "cista/decay.h"
 #include "cista/offset_t.h"
 #include "cista/reflection/for_each_field.h"
@@ -45,11 +44,7 @@ struct serialization_context {
     t_.write(static_cast<std::size_t>(pos), val);
   }
 
-  uint64_t crc64(offset_t const from) const {
-    (void)from;
-    // t_.crc64(from);
-    return 0ull;
-  }
+  uint64_t checksum(offset_t const from) const { return t_.checksum(from); }
 
   std::map<void*, offset_t> offsets_;
   std::vector<pending_offset> pending_;
@@ -259,7 +254,8 @@ void serialize(Target& t, T& value, mode const m = mode::NONE) {
   }
 
   if ((m & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
-    c.write(integrity_offset, c.crc64(integrity_offset));
+    auto const csum = c.checksum(integrity_offset);
+    c.write(integrity_offset, csum);
   }
 }
 

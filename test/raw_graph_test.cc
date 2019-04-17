@@ -102,8 +102,10 @@ TEST_CASE("graph raw serialize file") {
     n2->add_edge(e2);
     n3->add_edge(e3);
 
-    cista::sfile f{"test.bin", "wb"};
+    cista::sfile f{"test.bin", "w+"};
     cista::serialize(f, g);
+
+    CHECK(f.checksum() == 4640996773785452645);
   }  // EOL graph
 
   auto b = cista::file("test.bin", "r").content();
@@ -134,7 +136,12 @@ TEST_CASE("graph raw serialize buf") {
     n2->add_edge(e2);
     n3->add_edge(e3);
 
-    buf = cista::serialize(g);
+    cista::buf b;
+    cista::serialize(b, g);
+
+    CHECK(b.checksum() == 4640996773785452645);
+
+    buf = std::move(b.buf_);
   }  // EOL graph
 
   CHECK(0x406821FA09374065 == cista::crc64(buf));

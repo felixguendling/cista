@@ -4,6 +4,8 @@
 #include <cstring>
 #include <memory>
 
+#include "cista/chunk.h"
+#include "cista/crc64.h"
 #include "cista/offset_t.h"
 #include "cista/serialized_size.h"
 #include "cista/verify.h"
@@ -17,11 +19,16 @@ struct buf {
   uint8_t* addr(offset_t const offset) { return (&buf_[0]) + offset; }
   uint8_t* base() { return &buf_[0]; }
 
+  uint64_t checksum(offset_t const start = 0) const {
+    return crc64(std::string_view{
+        reinterpret_cast<char const*>(&buf_[static_cast<size_t>(start)]),
+        buf_.size() - static_cast<size_t>(start)});
+  }
+
   template <typename T>
   void write(std::size_t const pos, T const& val) {
-    cista_verify(
-        buf_.size() >= pos + serialized_size<T>(),
-        "out of bounds write")
+    cista_verify(buf_.size() >= pos + serialized_size<T>(),
+                 "out of bounds write");
     std::memcpy(&buf_[pos], &val, serialized_size<T>());
   }
 

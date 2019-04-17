@@ -11,7 +11,7 @@ struct buffer final {
   buffer() : buf_(nullptr), size_(0) {}
 
   explicit buffer(std::size_t size) : buf_(malloc(size)), size_(size) {
-    cista_verify(buf_ != nullptr, "buffer initialization failed")
+    cista_verify(buf_ != nullptr, "buffer initialization failed");
   }
 
   explicit buffer(char const* str) : buffer(std::strlen(str)) {

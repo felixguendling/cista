@@ -3,6 +3,8 @@
 #include <cstdio>
 #include <memory>
 
+#include "cista/chunk.h"
+#include "cista/crc64.h"
 #include "cista/offset_t.h"
 #include "cista/serialized_size.h"
 #include "cista/verify.h"
@@ -23,7 +25,7 @@ namespace cista {
 
 struct sfile {
   sfile(char const* path, char const* mode) : f_(s_open_file(path, mode)) {
-    cista_verify(f_ != nullptr, "unable to open file")
+    cista_verify(f_ != nullptr, "unable to open file");
   }
 
   ~sfile() {
@@ -33,12 +35,25 @@ struct sfile {
     f_ = nullptr;
   }
 
+  uint64_t checksum(offset_t const start = 0) const {
+    constexpr auto const block_size = 512 * 1024;  // 512kB
+    std::fseek(f_, start, SEEK_SET);
+    auto c = uint64_t{0ULL};
+    char buf[block_size];
+    chunk(block_size, size_ - static_cast<size_t>(start),
+          [&](auto const, auto const size) {
+            cista_verify(std::fread(buf, 1, size, f_) == size, "invalid read");
+            c = crc64(std::string_view{buf, size}, c);
+          });
+    return c;
+  }
+
   template <typename T>
   void write(std::size_t const pos, T const& val) {
     std::fseek(f_, static_cast<long>(pos), SEEK_SET);
     auto const w = std::fwrite(reinterpret_cast<unsigned char const*>(&val), 1,
                                serialized_size<T>(), f_);
-    cista_verify(w == serialized_size<T>(), "write error")
+    cista_verify(w == serialized_size<T>(), "write error");
   }
 
   offset_t write(void const* ptr, std::size_t const size,
@@ -56,7 +71,7 @@ struct sfile {
       std::fseek(f_, 0, SEEK_END);
     }
     auto const w = std::fwrite(ptr, 1, size, f_);
-    cista_verify(w == size, "write error")
+    cista_verify(w == size, "write error");
     size_ = curr_offset + size;
     return static_cast<offset_t>(curr_offset);
   }

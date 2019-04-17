@@ -1,8 +1,11 @@
 #include <stdexcept>
 
-#ifndef cista_verify
-#define cista_verify(A, M)       \
-  if (!(A)) {                    \
-    throw std::runtime_error(M); \
+namespace cista {
+
+inline void cista_verify(bool const condition, char const* msg) {
+  if (!condition) {
+    throw std::runtime_error(msg);
   }
-#endif
+}
+
+}  // namespace cista
