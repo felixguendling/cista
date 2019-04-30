@@ -37,7 +37,7 @@ struct sfile {
 
   uint64_t checksum(offset_t const start = 0) const {
     constexpr auto const block_size = 512 * 1024;  // 512kB
-    std::fseek(f_, start, SEEK_SET);
+    std::fseek(f_, static_cast<long>(start), SEEK_SET);
     auto c = uint64_t{0ULL};
     char buf[block_size];
     chunk(block_size, size_ - static_cast<size_t>(start),

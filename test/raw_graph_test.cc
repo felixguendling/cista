@@ -120,6 +120,10 @@ TEST_CASE("graph raw serialize file") {
 }
 
 TEST_CASE("graph raw serialize buf") {
+  constexpr auto const EXPECTED_BUF_CHECKSUM = 6935791021898481953;
+  constexpr auto const MODE =
+      cista::mode::WITH_INTEGRITY | cista::mode::WITH_VERSION;
+
   cista::byte_buf buf;
   {
     graph g;
@@ -137,16 +141,16 @@ TEST_CASE("graph raw serialize buf") {
     n3->add_edge(e3);
 
     cista::buf b;
-    cista::serialize(b, g);
+    cista::serialize(b, g, MODE);
 
-    CHECK(b.checksum() == 4640996773785452645);
+    CHECK(b.checksum() == EXPECTED_BUF_CHECKSUM);
 
     buf = std::move(b.buf_);
   }  // EOL graph
 
-  CHECK(0x406821FA09374065 == cista::crc64(buf));
+  CHECK(cista::crc64(buf) == EXPECTED_BUF_CHECKSUM);
 
-  auto const g = data::deserialize<graph>(buf);
+  auto const g = data::deserialize<graph>(buf, MODE);
   auto const visited = bfs(g->nodes_[0].get());
   unsigned i = 0;
   CHECK((*std::next(begin(visited), i++))->name_ == data::string{"NODE A"});
