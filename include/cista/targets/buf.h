@@ -27,8 +27,7 @@ struct buf {
 
   template <typename T>
   void write(std::size_t const pos, T const& val) {
-    cista_verify(buf_.size() >= pos + serialized_size<T>(),
-                 "out of bounds write");
+    verify(buf_.size() >= pos + serialized_size<T>(), "out of bounds write");
     std::memcpy(&buf_[pos], &val, serialized_size<T>());
   }
 

@@ -12,6 +12,7 @@
 #include "cista/targets/buf.h"
 #include "cista/targets/file.h"
 #include "cista/type_hash/type_hash.h"
+#include "cista/verify.h"
 
 #ifndef cista_member_offset
 #define cista_member_offset(s, m) (static_cast<cista::offset_t>(offsetof(s, m)))
@@ -341,15 +342,19 @@ struct deserialization_context {
 
 template <typename T>
 void check(mode const m, uint8_t const* from, uint8_t const* to) {
+  verify(to - from > data_start(m), "invalid range");
+
+  if ((m & mode::WITH_VERSION) == mode::WITH_VERSION) {
+    verify(*reinterpret_cast<hash_t const*>(from) == type_hash<T>(),
+           "invalid version");
+  }
+
   if ((m & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
-    auto const stored_checksum =
-        *reinterpret_cast<uint64_t const*>(from + integrity_start(m));
-    auto const computed_checksum = crc64(
-        std::string_view{reinterpret_cast<char const*>(from + data_start(m)),
-                         static_cast<size_t>(to - from - data_start(m))});
-    if (stored_checksum != computed_checksum) {
-      throw std::runtime_error{"invalid checksum"};
-    }
+    verify(*reinterpret_cast<uint64_t const*>(from + integrity_start(m)) ==
+               crc64(std::string_view{
+                   reinterpret_cast<char const*>(from + data_start(m)),
+                   static_cast<size_t>(to - from - data_start(m))}),
+           "invalid checksum");
   }
 }
 

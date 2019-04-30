@@ -25,7 +25,7 @@ namespace cista {
 
 struct sfile {
   sfile(char const* path, char const* mode) : f_(s_open_file(path, mode)) {
-    cista_verify(f_ != nullptr, "unable to open file");
+    verify(f_ != nullptr, "unable to open file");
   }
 
   ~sfile() {
@@ -42,7 +42,7 @@ struct sfile {
     char buf[block_size];
     chunk(block_size, size_ - static_cast<size_t>(start),
           [&](auto const, auto const size) {
-            cista_verify(std::fread(buf, 1, size, f_) == size, "invalid read");
+            verify(std::fread(buf, 1, size, f_) == size, "invalid read");
             c = crc64(std::string_view{buf, size}, c);
           });
     return c;
@@ -53,7 +53,7 @@ struct sfile {
     std::fseek(f_, static_cast<long>(pos), SEEK_SET);
     auto const w = std::fwrite(reinterpret_cast<unsigned char const*>(&val), 1,
                                serialized_size<T>(), f_);
-    cista_verify(w == serialized_size<T>(), "write error");
+    verify(w == serialized_size<T>(), "write error");
   }
 
   offset_t write(void const* ptr, std::size_t const size,
@@ -71,7 +71,7 @@ struct sfile {
       std::fseek(f_, 0, SEEK_END);
     }
     auto const w = std::fwrite(ptr, 1, size, f_);
-    cista_verify(w == size, "write error");
+    verify(w == size, "write error");
     size_ = curr_offset + size;
     return static_cast<offset_t>(curr_offset);
   }
