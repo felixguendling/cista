@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <limits>
 #include <map>
 #include <vector>
@@ -214,13 +213,27 @@ void serialize(Ctx& c, array<T, Size> const* origin, offset_t const pos) {
 }
 
 enum class mode { NONE = 0, WITH_VERSION = 1 << 1, WITH_INTEGRITY = 1 << 2 };
-inline mode operator|(mode const& a, mode const& b) {
+constexpr mode operator|(mode const& a, mode const& b) {
   return mode{static_cast<std::underlying_type_t<mode>>(a) |
               static_cast<std::underlying_type_t<mode>>(b)};
 }
-inline mode operator&(mode const& a, mode const& b) {
+constexpr mode operator&(mode const& a, mode const& b) {
   return mode{static_cast<std::underlying_type_t<mode>>(a) &
               static_cast<std::underlying_type_t<mode>>(b)};
+}
+constexpr offset_t integrity_start(mode const m) {
+  offset_t start = 0;
+  if ((m & mode::WITH_VERSION) == mode::WITH_VERSION) {
+    start += sizeof(uint64_t);
+  }
+  return start;
+}
+constexpr offset_t data_start(mode const m) {
+  auto start = integrity_start(m);
+  if ((m & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
+    start += sizeof(uint64_t);
+  }
+  return start;
 }
 
 template <typename Target, typename T>
@@ -248,8 +261,8 @@ void serialize(Target& t, T& value, mode const m = mode::NONE) {
                           ? it->second
                           : it->second - p.pos_);
     } else {
-      std::cout << "warning: dangling pointer " << p.origin_ptr_
-                << " serialized at offset " << p.pos_ << "\n";
+      printf("warning: dangling pointer %p serialized at offset %" PRId64 "\n",
+             p.origin_ptr_, p.pos_);
     }
   }
 
@@ -326,6 +339,20 @@ struct deserialization_context {
   uint8_t *from_, *to_;
 };
 
+template <typename T>
+void check(mode const m, uint8_t const* from, uint8_t const* to) {
+  if ((m & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
+    auto const stored_checksum =
+        *reinterpret_cast<uint64_t const*>(from + integrity_start(m));
+    auto const computed_checksum = crc64(
+        std::string_view{reinterpret_cast<char const*>(from + data_start(m)),
+                         static_cast<size_t>(to - from - data_start(m))});
+    if (stored_checksum != computed_checksum) {
+      throw std::runtime_error{"invalid checksum"};
+    }
+  }
+}
+
 namespace raw {
 
 template <typename T>
@@ -395,16 +422,18 @@ void deserialize(deserialization_context const& c, array<T, Size>* el) {
 }
 
 template <typename T>
-T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
+T* deserialize(uint8_t* from, uint8_t* to = nullptr,
+               mode const m = mode::NONE) {
+  check<T>(m, from, to);
   deserialization_context c{from, to};
-  auto const el = reinterpret_cast<T*>(from);
+  auto const el = reinterpret_cast<T*>(from + data_start(m));
   deserialize(c, el);
   return el;
 }
 
 template <typename T, typename Container>
-T* deserialize(Container& c) {
-  return deserialize<T>(&c[0], &c[0] + c.size());
+T* deserialize(Container& c, mode const m = mode::NONE) {
+  return deserialize<T>(&c[0], &c[0] + c.size(), m);
 }
 
 // -----------------------------------------------------------------------------
@@ -466,16 +495,18 @@ void unchecked_deserialize(deserialization_context const& c,
 }
 
 template <typename T>
-T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr) {
+T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr,
+                         mode const m = mode::NONE) {
+  check<T>(m, from, to);
   deserialization_context c{from, to};
-  auto const el = reinterpret_cast<T*>(from);
+  auto const el = reinterpret_cast<T*>(from + data_start(m));
   unchecked_deserialize(c, el);
   return el;
 }
 
 template <typename T, typename Container>
-T* unchecked_deserialize(Container& c) {
-  return unchecked_deserialize<T>(&c[0], &c[0] + c.size());
+T* unchecked_deserialize(Container& c, mode const m = mode::NONE) {
+  return unchecked_deserialize<T>(&c[0], &c[0] + c.size(), m);
 }
 
 }  // namespace raw
@@ -550,31 +581,34 @@ void deserialize(deserialization_context const& c, array<T, Size>* el) {
 }
 
 template <typename T>
-T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
+T* deserialize(uint8_t* from, uint8_t* to = nullptr,
+               mode const m = mode::NONE) {
+  check<T>(m, from, to);
   deserialization_context c{from, to};
-  auto const el = reinterpret_cast<T*>(from);
+  auto const el = reinterpret_cast<T*>(from + data_start(m));
   deserialize(c, el);
   return el;
 }
 
 template <typename T, typename Container>
-T* deserialize(Container& c) {
-  return deserialize<T>(&c[0], &c[0] + c.size());
+T* deserialize(Container& c, mode const m = mode::NONE) {
+  return deserialize<T>(&c[0], &c[0] + c.size(), m);
 }
 
 template <typename T>
-T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr) {
+T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr,
+                         mode const m = mode::NONE) {
   (void)to;
-  return reinterpret_cast<T*>(from);
+  check<T>(m, from, to);
+  return reinterpret_cast<T*>(from + data_start(m));
 }
 
 template <typename T, typename Container>
-T* unchecked_deserialize(Container& c) {
-  return unchecked_deserialize<T>(&c[0], &c[0] + c.size());
+T* unchecked_deserialize(Container& c, mode const m = mode::NONE) {
+  return unchecked_deserialize<T>(&c[0], &c[0] + c.size(), m);
 }
 
 }  // namespace offset
-
 }  // namespace cista
 
 #undef cista_member_offset

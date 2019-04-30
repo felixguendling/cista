@@ -120,6 +120,10 @@ TEST_CASE("graph offset serialize file") {
 }
 
 TEST_CASE("graph offset serialize buf") {
+  constexpr auto const EXPECTED_BUF_CHECKSUM = 4816058666750034966ULL;
+  constexpr auto const MODE =
+      cista::mode::WITH_INTEGRITY | cista::mode::WITH_VERSION;
+
   cista::byte_buf buf;
   {
     graph g;
@@ -137,16 +141,16 @@ TEST_CASE("graph offset serialize buf") {
     n3->add_edge(e3);
 
     cista::buf b;
-    cista::serialize(b, g);
+    cista::serialize(b, g, MODE);
 
-    CHECK(b.checksum() == 3447315727130902250);
+    CHECK(b.checksum() == EXPECTED_BUF_CHECKSUM);
 
     buf = std::move(b.buf_);
-  }  // EOL graph
+  }  // EOL graphx
 
-  CHECK(0x2FD75363A0413EEA == cista::crc64(buf));
+  CHECK(cista::crc64(buf) == EXPECTED_BUF_CHECKSUM);
 
-  auto const g = data::deserialize<graph>(buf);
+  auto const g = data::deserialize<graph>(buf, MODE);
   auto const visited = bfs(g->nodes_[0].get());
   unsigned i = 0;
   CHECK((*std::next(begin(visited), i++))->name_ == data::string{"NODE A"});
