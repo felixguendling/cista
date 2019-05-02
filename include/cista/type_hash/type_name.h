@@ -10,28 +10,26 @@ namespace cista {
 
 #if defined(_MSC_VER)
 #define CISTA_SIG __FUNCSIG__
-inline void canonicalize_type_name(std::string& s) {
-  constexpr std::string_view const struct_str = "struct ";
-
-  auto pos = std::size_t{};
-  while ((pos = s.find(struct_str, pos)) != std::string::npos) {
-    s.erase(pos, struct_str.length());
-  }
-
-  for (pos = s.find(','); pos != std::string::npos;
-       pos = s.find(',', pos + 1)) {
-    if (pos >= s.length() - 1 || s[pos + 1] == ' ') {
-      continue;
-    }
-    s.insert(size_t{pos + 1}, 1, ' ');
-  }
-}
 #elif defined(__clang__) || defined(__GNUC__)
-inline void canonicalize_type_name(std::string&) {}
 #define CISTA_SIG __PRETTY_FUNCTION__
 #else
 #error unsupported compiler
 #endif
+
+inline void remove_all(std::string& s, std::string_view substr) {
+  auto pos = std::size_t{};
+  while ((pos = s.find(substr, pos)) != std::string::npos) {
+    s.erase(pos, substr.length());
+  }
+}
+
+inline void canonicalize_type_name(std::string& s) {
+  remove_all(s, "{anonymous}::");  // GCC
+  remove_all(s, "(anonymous namespace)::");  // Clang
+  remove_all(s, "`anonymous-namespace'::");  // MSVC
+  remove_all(s, "struct ");  // MSVC
+  remove_all(s, " ");  // MSVC
+}
 
 template <typename T>
 constexpr std::string_view type_str() {
