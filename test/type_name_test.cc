@@ -14,6 +14,8 @@ TEST_CASE("canonicalize type name test") {
       R"(cista::basic_vector<cista::basic_unique_ptr<graphns::offset::node, cista::offset_ptr<graphns::offset::node> >, cista::offset_ptr<cista::basic_unique_ptr<graphns::offset::node, cista::offset_ptr<graphns::offset::node> > >, unsigned int>)";
 
   cista::canonicalize_type_name(msvc);
+  cista::canonicalize_type_name(clang);
+  cista::canonicalize_type_name(gcc);
 
   CHECK(clang == gcc);
   CHECK(clang == msvc);
