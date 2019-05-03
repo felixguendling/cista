@@ -1,7 +1,22 @@
 <p align="center"><img src="logo.svg"></p>
 
-[![](https://img.shields.io/badge/language-C%2B%2B17-blue.svg)](https://isocpp.org/) [![Build Status](https://travis-ci.org/felixguendling/cista.svg?branch=master)](https://travis-ci.org/felixguendling/cista) [![Build status](https://ci.appveyor.com/api/projects/status/cwcwp808uhaa5d3w/branch/master?svg=true)](https://ci.appveyor.com/project/felixguendling/cista/branch/master)
- [![Coverage Status](https://coveralls.io/repos/github/felixguendling/cista/badge.svg?branch=master)](https://coveralls.io/github/felixguendling/cista?branch=master) [![](https://img.shields.io/apm/l/vim-mode.svg)](https://opensource.org/licenses/MIT)
+<p align="center">
+    <a href="https://isocpp.org/">
+        <img src="https://img.shields.io/badge/language-C%2B%2B17-blue.svg">
+    </a>
+    <a href="https://travis-ci.org/felixguendling/cista">
+        <img src="https://travis-ci.org/felixguendling/cista.svg?branch=master">
+    </a>
+    <a href="https://ci.appveyor.com/project/felixguendling/cista/branch/master">
+        <img src="https://ci.appveyor.com/api/projects/status/cwcwp808uhaa5d3w/branch/master?svg=true">
+    </a>
+    <a href="https://coveralls.io/github/felixguendling/cista?branch=master">
+        <img src="https://coveralls.io/repos/github/felixguendling/cista/badge.svg?branch=master">
+    </a>
+    <a href="https://opensource.org/licenses/MIT" >
+        <img src="https://img.shields.io/apm/l/vim-mode.svg">
+    </a>
+</p>
 
 # Simple C++ Serialization & Reflection.
 
