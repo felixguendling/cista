@@ -20,8 +20,8 @@ TEST_CASE("canonicalize type name test") {
   CHECK(clang == gcc);
   CHECK(clang == msvc);
 
-  CHECK(4753065846318391081ULL == cista::hash(msvc));
-  CHECK(4753065846318391081ULL == cista::hash(clang));
-  CHECK(4753065846318391081ULL == cista::hash(gcc));
+  CHECK(13128622470683179033ULL == cista::hash(msvc));
+  CHECK(13128622470683179033ULL == cista::hash(clang));
+  CHECK(13128622470683179033ULL == cista::hash(gcc));
 }
 #endif
