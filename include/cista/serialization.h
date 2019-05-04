@@ -237,17 +237,17 @@ constexpr offset_t data_start(mode const m) {
   return start;
 }
 
-template <typename Target, typename T>
-void serialize(Target& t, T& value, mode const m = mode::NONE) {
+template <typename Target, typename T, mode const Mode = mode::NONE>
+void serialize(Target& t, T& value) {
   serialization_context<Target> c{t};
 
-  if ((m & mode::WITH_VERSION) == mode::WITH_VERSION) {
+  if constexpr ((Mode & mode::WITH_VERSION) == mode::WITH_VERSION) {
     auto const h = type_hash(value);
     c.write(&h, sizeof(h));
   }
 
   auto integrity_offset = offset_t{0};
-  if ((m & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
+  if constexpr ((Mode & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
     auto const h = uint64_t{};
     integrity_offset = c.write(&h, sizeof(h));
   }
@@ -267,16 +267,16 @@ void serialize(Target& t, T& value, mode const m = mode::NONE) {
     }
   }
 
-  if ((m & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
+  if constexpr ((Mode & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
     auto const csum = c.checksum(integrity_offset);
     c.write(integrity_offset, csum);
   }
 }
 
-template <typename T>
-byte_buf serialize(T& el, mode const m = mode::NONE) {
+template <typename T, mode const Mode = mode::NONE>
+byte_buf serialize(T& el) {
   auto b = buf{};
-  serialize(b, el, m);
+  serialize<buf, T, Mode>(b, el);
   return std::move(b.buf_);
 }
 
@@ -340,20 +340,20 @@ struct deserialization_context {
   uint8_t *from_, *to_;
 };
 
-template <typename T>
-void check(mode const m, uint8_t const* from, uint8_t const* to) {
-  verify(to - from > data_start(m), "invalid range");
+template <typename T, mode const Mode = mode::NONE>
+void check(uint8_t const* from, uint8_t const* to) {
+  verify(to - from > data_start(Mode), "invalid range");
 
-  if ((m & mode::WITH_VERSION) == mode::WITH_VERSION) {
+  if constexpr ((Mode & mode::WITH_VERSION) == mode::WITH_VERSION) {
     verify(*reinterpret_cast<hash_t const*>(from) == type_hash<T>(),
            "invalid version");
   }
 
-  if ((m & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
-    verify(*reinterpret_cast<uint64_t const*>(from + integrity_start(m)) ==
+  if constexpr ((Mode & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
+    verify(*reinterpret_cast<uint64_t const*>(from + integrity_start(Mode)) ==
                crc64(std::string_view{
-                   reinterpret_cast<char const*>(from + data_start(m)),
-                   static_cast<size_t>(to - from - data_start(m))}),
+                   reinterpret_cast<char const*>(from + data_start(Mode)),
+                   static_cast<size_t>(to - from - data_start(Mode))}),
            "invalid checksum");
   }
 }
@@ -426,19 +426,18 @@ void deserialize(deserialization_context const& c, array<T, Size>* el) {
   }
 }
 
-template <typename T>
-T* deserialize(uint8_t* from, uint8_t* to = nullptr,
-               mode const m = mode::NONE) {
-  check<T>(m, from, to);
+template <typename T, mode const Mode = mode::NONE>
+T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
+  check<T, Mode>(from, to);
   deserialization_context c{from, to};
-  auto const el = reinterpret_cast<T*>(from + data_start(m));
+  auto const el = reinterpret_cast<T*>(from + data_start(Mode));
   deserialize(c, el);
   return el;
 }
 
-template <typename T, typename Container>
-T* deserialize(Container& c, mode const m = mode::NONE) {
-  return deserialize<T>(&c[0], &c[0] + c.size(), m);
+template <typename T, typename Container, mode const Mode = mode::NONE>
+T* deserialize(Container& c) {
+  return deserialize<T, Mode>(&c[0], &c[0] + c.size());
 }
 
 // -----------------------------------------------------------------------------
@@ -499,19 +498,18 @@ void unchecked_deserialize(deserialization_context const& c,
   }
 }
 
-template <typename T>
-T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr,
-                         mode const m = mode::NONE) {
-  check<T>(m, from, to);
+template <typename T, mode const Mode = mode::NONE>
+T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr) {
+  check<T, Mode>(from, to);
   deserialization_context c{from, to};
-  auto const el = reinterpret_cast<T*>(from + data_start(m));
+  auto const el = reinterpret_cast<T*>(from + data_start(Mode));
   unchecked_deserialize(c, el);
   return el;
 }
 
-template <typename T, typename Container>
-T* unchecked_deserialize(Container& c, mode const m = mode::NONE) {
-  return unchecked_deserialize<T>(&c[0], &c[0] + c.size(), m);
+template <typename T, typename Container, mode const Mode = mode::NONE>
+T* unchecked_deserialize(Container& c) {
+  return unchecked_deserialize<T, Mode>(&c[0], &c[0] + c.size());
 }
 
 }  // namespace raw
@@ -585,32 +583,30 @@ void deserialize(deserialization_context const& c, array<T, Size>* el) {
   }
 }
 
-template <typename T>
-T* deserialize(uint8_t* from, uint8_t* to = nullptr,
-               mode const m = mode::NONE) {
-  check<T>(m, from, to);
+template <typename T, mode const Mode = mode::NONE>
+T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
+  check<T, Mode>(from, to);
   deserialization_context c{from, to};
-  auto const el = reinterpret_cast<T*>(from + data_start(m));
+  auto const el = reinterpret_cast<T*>(from + data_start(Mode));
   deserialize(c, el);
   return el;
 }
 
-template <typename T, typename Container>
-T* deserialize(Container& c, mode const m = mode::NONE) {
-  return deserialize<T>(&c[0], &c[0] + c.size(), m);
+template <typename T, typename Container, mode const Mode = mode::NONE>
+T* deserialize(Container& c) {
+  return deserialize<T, Mode>(&c[0], &c[0] + c.size());
 }
 
-template <typename T>
-T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr,
-                         mode const m = mode::NONE) {
+template <typename T, mode const Mode = mode::NONE>
+T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr) {
   (void)to;
-  check<T>(m, from, to);
-  return reinterpret_cast<T*>(from + data_start(m));
+  check<T, Mode>(from, to);
+  return reinterpret_cast<T*>(from + data_start(Mode));
 }
 
-template <typename T, typename Container>
-T* unchecked_deserialize(Container& c, mode const m = mode::NONE) {
-  return unchecked_deserialize<T>(&c[0], &c[0] + c.size(), m);
+template <typename T, typename Container, mode const Mode = mode::NONE>
+T* unchecked_deserialize(Container& c) {
+  return unchecked_deserialize<T, Mode>(&c[0], &c[0] + c.size());
 }
 
 }  // namespace offset
