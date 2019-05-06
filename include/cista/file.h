@@ -18,7 +18,7 @@ inline HANDLE open_file(char const* path, char const* mode) {
 
   verify(read || write, "invalid open file mode");
 
-  DWORD access = read ? GENERIC_READ : GENERIC_WRITE;
+  DWORD access = read ? GENERIC_READ : GENERIC_READ | GENERIC_WRITE;
   DWORD create_mode = read ? OPEN_EXISTING : CREATE_ALWAYS;
 
   return CreateFileA(path, access, 0, nullptr, create_mode,
@@ -32,6 +32,7 @@ struct file {
 
   ~file() {
     if (f_ != nullptr) {
+      FlushFileBuffers(f_);
       CloseHandle(f_);
     }
   }

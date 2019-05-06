@@ -84,6 +84,10 @@ inline std::set<node const*> bfs(node const* entry) {
 }
 
 TEST_CASE("graph raw serialize file") {
+  constexpr auto const FILENAME = "raw_graph.bin";
+
+  std::remove(FILENAME);
+
   {
     graph g;
 
@@ -102,13 +106,13 @@ TEST_CASE("graph raw serialize file") {
     n2->add_edge(e2);
     n3->add_edge(e3);
 
-    cista::sfile f{"test.bin", "w+"};
+    cista::sfile f{FILENAME, "w+"};
     cista::serialize(f, g);
 
     CHECK(f.checksum() == 4640996773785452645);
   }  // EOL graph
 
-  auto b = cista::file("test.bin", "r").content();
+  auto b = cista::file(FILENAME, "r").content();
   CHECK(0x406821FA09374065 == cista::crc64(b));
 
   auto const g = data::deserialize<graph>(b);
