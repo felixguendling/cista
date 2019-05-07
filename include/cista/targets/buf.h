@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "cista/chunk.h"
-#include "cista/crc64.h"
+#include "cista/hash.h"
 #include "cista/offset_t.h"
 #include "cista/serialized_size.h"
 #include "cista/verify.h"
@@ -20,7 +20,7 @@ struct buf {
   uint8_t* base() { return &buf_[0]; }
 
   uint64_t checksum(offset_t const start = 0) const {
-    return crc64(std::string_view{
+    return hash(std::string_view{
         reinterpret_cast<char const*>(&buf_[static_cast<size_t>(start)]),
         buf_.size() - static_cast<size_t>(start)});
   }

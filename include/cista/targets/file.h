@@ -4,8 +4,8 @@
 #include <memory>
 
 #include "cista/chunk.h"
-#include "cista/crc64.h"
 #include "cista/file.h"
+#include "cista/hash.h"
 #include "cista/offset_t.h"
 #include "cista/serialized_size.h"
 #include "cista/verify.h"
@@ -35,7 +35,7 @@ struct sfile {
   uint64_t checksum(offset_t const start = 0) const {
     constexpr auto const block_size = 512 * 1024;  // 512kB
     SetFilePointer(f_, 0, 0, FILE_BEGIN);
-    auto c = uint64_t{0ULL};
+    auto c = BASE_HASH;
     char buf[block_size];
     chunk(block_size, size_ - static_cast<size_t>(start),
           [&](auto const from, auto const size) {
@@ -43,7 +43,7 @@ struct sfile {
             overlapped.Offset = static_cast<DWORD>(from);
             overlapped.OffsetHigh = from >> 32u;
             ReadFile(f_, buf, static_cast<DWORD>(size), nullptr, &overlapped);
-            c = crc64(std::string_view{buf, size}, c);
+            c = hash(std::string_view{buf, size}, c);
           });
     return c;
   }
@@ -112,23 +112,23 @@ struct sfile {
     f_ = nullptr;
   }
 
-  size_t size() {
-    auto err = std::fseek(f_, 0, SEEK_END);
-    verify(!err, "fseek to SEEK_END error");
+  size_t size() const {
+    verify(!std::fseek(f_, 0, SEEK_END), "fseek to SEEK_END error");
     auto size = std::ftell(f_);
     std::rewind(f_);
     return static_cast<size_t>(size);
   }
 
   uint64_t checksum(offset_t const start = 0) const {
-    constexpr auto const block_size = 512 * 1024;  // 512kB
+    verify(size_ >= static_cast<size_t>(start), "invalid checksum offset");
+    constexpr auto const block_size = static_cast<size_t>(512 * 1024);  // 512kB
     std::fseek(f_, static_cast<long>(start), SEEK_SET);
-    auto c = uint64_t{0ULL};
+    auto c = BASE_HASH;
     char buf[block_size];
     chunk(block_size, size_ - static_cast<size_t>(start),
-          [&](auto const, auto const size) {
-            verify(std::fread(buf, 1, size, f_) == size, "invalid read");
-            c = crc64(std::string_view{buf, size}, c);
+          [&](auto const, auto const s) {
+            verify(std::fread(buf, 1, s, f_) == s, "invalid read");
+            c = hash(std::string_view{buf, s}, c);
           });
     return c;
   }

@@ -20,13 +20,12 @@ static struct s2 {
 
 TEST_CASE("hash int struct != int") {
   int b;
-  CHECK(cista::type_hash(hash_test::a, cista::hash()) !=
-        cista::type_hash(b, cista::hash()));
+  CHECK(cista::type_hash(hash_test::a) != cista::type_hash(b));
 }
 
 TEST_CASE("hash test struct field order") {
-  CHECK(cista::type_hash(hash_test::a, cista::hash()) !=
-        cista::type_hash(hash_test::b, cista::hash()));
+  CHECK(cista::type_hash(hash_test::a) !=
+        cista::type_hash(hash_test::b));
   CHECK(3410441071354815250ULL == cista::type_hash(hash_test::a));
   CHECK(3410439971843187039ULL == cista::type_hash(hash_test::b));
 }

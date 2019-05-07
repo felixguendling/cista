@@ -6,6 +6,7 @@
 
 #include "cista/containers.h"
 #include "cista/decay.h"
+#include "cista/hash.h"
 #include "cista/offset_t.h"
 #include "cista/reflection/for_each_field.h"
 #include "cista/serialized_size.h"
@@ -248,7 +249,7 @@ void serialize(Target& t, T& value) {
 
   auto integrity_offset = offset_t{0};
   if constexpr ((Mode & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
-    auto const h = uint64_t{};
+    auto const h = hash_t{};
     integrity_offset = c.write(&h, sizeof(h));
   }
 
@@ -268,7 +269,8 @@ void serialize(Target& t, T& value) {
   }
 
   if constexpr ((Mode & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
-    auto const csum = c.checksum(integrity_offset);
+    auto const csum =
+        c.checksum(integrity_offset + static_cast<offset_t>(sizeof(hash_t)));
     c.write(integrity_offset, csum);
   }
 }
@@ -351,7 +353,7 @@ void check(uint8_t const* from, uint8_t const* to) {
 
   if constexpr ((Mode & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
     verify(*reinterpret_cast<uint64_t const*>(from + integrity_start(Mode)) ==
-               crc64(std::string_view{
+               hash(std::string_view{
                    reinterpret_cast<char const*>(from + data_start(Mode)),
                    static_cast<size_t>(to - from - data_start(Mode))}),
            "invalid checksum");

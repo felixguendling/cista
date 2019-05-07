@@ -84,6 +84,7 @@ inline std::set<node const*> bfs(node const* entry) {
 }
 
 TEST_CASE("graph raw serialize file") {
+  constexpr auto const FILE_CHECKSUM = 914462787224036784ULL;
   constexpr auto const FILENAME = "raw_graph.bin";
 
   std::remove(FILENAME);
@@ -92,7 +93,6 @@ TEST_CASE("graph raw serialize file") {
     graph g;
 
     CHECK(8294030070925330150ULL == cista::type_hash(g));
-    cista::type_hash(g, cista::hash());
 
     auto const n1 = g.make_node(data::string{"NODE A"});
     auto const n2 = g.make_node(data::string{"NODE B"});
@@ -109,11 +109,11 @@ TEST_CASE("graph raw serialize file") {
     cista::sfile f{FILENAME, "w+"};
     cista::serialize(f, g);
 
-    CHECK(f.checksum() == 4640996773785452645);
+    CHECK(f.checksum() == FILE_CHECKSUM);
   }  // EOL graph
 
   auto b = cista::file(FILENAME, "r").content();
-  CHECK(0x406821FA09374065 == cista::crc64(b));
+  CHECK(cista::hash(b) == FILE_CHECKSUM);
 
   auto const g = data::deserialize<graph>(b);
   auto const visited = bfs(g->nodes_[0].get());
@@ -124,7 +124,7 @@ TEST_CASE("graph raw serialize file") {
 }
 
 TEST_CASE("graph raw serialize buf") {
-  constexpr auto const EXPECTED_BUF_CHECKSUM = 6935791021898481953;
+  constexpr auto const EXPECTED_BUF_CHECKSUM = 2984678943337296086ULL;
   constexpr auto const MODE =
       cista::mode::WITH_INTEGRITY | cista::mode::WITH_VERSION;
 
@@ -152,7 +152,7 @@ TEST_CASE("graph raw serialize buf") {
     buf = std::move(b.buf_);
   }  // EOL graph
 
-  CHECK(cista::crc64(buf) == EXPECTED_BUF_CHECKSUM);
+  CHECK(cista::hash(buf) == EXPECTED_BUF_CHECKSUM);
 
   auto const g = data::deserialize<graph, cista::byte_buf, MODE>(buf);
   auto const visited = bfs(g->nodes_[0].get());

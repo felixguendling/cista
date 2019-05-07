@@ -85,7 +85,7 @@ inline std::set<node const*> bfs(node const* entry) {
 
 TEST_CASE("graph offset serialize file") {
   constexpr auto const FILENAME = "offset_graph.bin";
-  constexpr auto const EXPECTED_BUF_CHECKSUM = 3447315727130902250ULL;
+  constexpr auto const EXPECTED_BUF_CHECKSUM = 15515468028119767496ULL;
 
   std::remove(FILENAME);
 
@@ -93,7 +93,6 @@ TEST_CASE("graph offset serialize file") {
     graph g;
 
     CHECK(10571624168012102829ULL == cista::type_hash(g));
-    cista::type_hash(g, cista::hash());
 
     auto const n1 = g.make_node(data::string{"NODE A"});
     auto const n2 = g.make_node(data::string{"NODE B"});
@@ -119,7 +118,7 @@ TEST_CASE("graph offset serialize file") {
   }
 
   auto b = cista::file(FILENAME, "r").content();
-  CHECK(cista::crc64(b) == EXPECTED_BUF_CHECKSUM);
+  CHECK(cista::hash(b) == EXPECTED_BUF_CHECKSUM);
 
   auto const g = data::deserialize<graph>(b);
   auto const visited = bfs(g->nodes_[0].get());
@@ -130,7 +129,7 @@ TEST_CASE("graph offset serialize file") {
 }
 
 TEST_CASE("graph offset serialize buf") {
-  constexpr auto const EXPECTED_BUF_CHECKSUM = 4816058666750034966ULL;
+  constexpr auto const EXPECTED_BUF_CHECKSUM = 18376476996644476577ULL;
   constexpr auto const MODE =
       cista::mode::WITH_INTEGRITY | cista::mode::WITH_VERSION;
 
@@ -158,7 +157,7 @@ TEST_CASE("graph offset serialize buf") {
     buf = std::move(b.buf_);
   }  // EOL graphx
 
-  CHECK(cista::crc64(buf) == EXPECTED_BUF_CHECKSUM);
+  CHECK(cista::hash(buf) == EXPECTED_BUF_CHECKSUM);
 
   auto const g = data::deserialize<graph, cista::byte_buf, MODE>(buf);
   auto const visited = bfs(g->nodes_[0].get());
