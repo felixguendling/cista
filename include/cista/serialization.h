@@ -238,7 +238,7 @@ constexpr offset_t data_start(mode const m) {
   return start;
 }
 
-template <typename Target, typename T, mode const Mode = mode::NONE>
+template <mode const Mode = mode::NONE, typename Target, typename T>
 void serialize(Target& t, T& value) {
   serialization_context<Target> c{t};
 
@@ -275,10 +275,10 @@ void serialize(Target& t, T& value) {
   }
 }
 
-template <typename T, mode const Mode = mode::NONE>
+template <mode const Mode = mode::NONE, typename T>
 byte_buf serialize(T& el) {
   auto b = buf{};
-  serialize<buf, T, Mode>(b, el);
+  serialize<Mode>(b, el);
   return std::move(b.buf_);
 }
 
@@ -437,7 +437,7 @@ T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
   return el;
 }
 
-template <typename T, typename Container, mode const Mode = mode::NONE>
+template <typename T, mode const Mode = mode::NONE, typename Container>
 T* deserialize(Container& c) {
   return deserialize<T, Mode>(&c[0], &c[0] + c.size());
 }
@@ -509,7 +509,7 @@ T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr) {
   return el;
 }
 
-template <typename T, typename Container, mode const Mode = mode::NONE>
+template <typename T, mode const Mode = mode::NONE, typename Container>
 T* unchecked_deserialize(Container& c) {
   return unchecked_deserialize<T, Mode>(&c[0], &c[0] + c.size());
 }
@@ -594,7 +594,7 @@ T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
   return el;
 }
 
-template <typename T, typename Container, mode const Mode = mode::NONE>
+template <typename T, mode const Mode = mode::NONE, typename Container>
 T* deserialize(Container& c) {
   return deserialize<T, Mode>(&c[0], &c[0] + c.size());
 }
@@ -606,7 +606,7 @@ T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr) {
   return reinterpret_cast<T*>(from + data_start(Mode));
 }
 
-template <typename T, typename Container, mode const Mode = mode::NONE>
+template <mode const Mode = mode::NONE, typename T, typename Container>
 T* unchecked_deserialize(Container& c) {
   return unchecked_deserialize<T, Mode>(&c[0], &c[0] + c.size());
 }

@@ -145,7 +145,7 @@ TEST_CASE("graph raw serialize buf") {
     n3->add_edge(e3);
 
     cista::buf b;
-    cista::serialize<cista::buf, decltype(g), MODE>(b, g);
+    cista::serialize<MODE>(b, g);
 
     CHECK(b.checksum() == EXPECTED_BUF_CHECKSUM);
 
@@ -154,7 +154,7 @@ TEST_CASE("graph raw serialize buf") {
 
   CHECK(cista::hash(buf) == EXPECTED_BUF_CHECKSUM);
 
-  auto const g = data::deserialize<graph, cista::byte_buf, MODE>(buf);
+  auto const g = data::deserialize<graph, MODE>(buf);
   auto const visited = bfs(g->nodes_[0].get());
   unsigned i = 0;
   CHECK((*std::next(begin(visited), i++))->name_ == data::string{"NODE A"});

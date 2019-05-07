@@ -113,16 +113,16 @@ struct sfile {
   }
 
   size_t size() const {
-    verify(!std::fseek(f_, 0, SEEK_END), "fseek to SEEK_END error");
+    verify(!std::fseek(f_, 0, SEEK_END), "fseek error");
     auto size = std::ftell(f_);
     std::rewind(f_);
     return static_cast<size_t>(size);
   }
 
   uint64_t checksum(offset_t const start = 0) const {
-    verify(size_ >= static_cast<size_t>(start), "invalid checksum offset");
     constexpr auto const block_size = static_cast<size_t>(512 * 1024);  // 512kB
-    std::fseek(f_, static_cast<long>(start), SEEK_SET);
+    verify(size_ >= static_cast<size_t>(start), "invalid checksum offset");
+    verify(!std::fseek(f_, static_cast<long>(start), SEEK_SET), "fseek error");
     auto c = BASE_HASH;
     char buf[block_size];
     chunk(block_size, size_ - static_cast<size_t>(start),
