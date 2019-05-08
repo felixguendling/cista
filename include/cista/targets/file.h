@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cinttypes>
+#include <memory>
+
 #include "cista/buffer.h"
 #include "cista/chunk.h"
 #include "cista/hash.h"
