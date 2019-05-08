@@ -1,25 +1,36 @@
 #pragma once
 
-#include <cstdio>
-#include <memory>
-
+#include "cista/buffer.h"
 #include "cista/chunk.h"
-#include "cista/file.h"
 #include "cista/hash.h"
 #include "cista/offset_t.h"
 #include "cista/serialized_size.h"
+#include "cista/targets/file.h"
 #include "cista/verify.h"
 
 namespace cista {
 
 #ifdef _MSC_VER
-struct sfile {
-  sfile(char const* path, char const* mode)
+inline HANDLE open_file(char const* path, char const* mode) {
+  bool read = std::strcmp(mode, "r") == 0;
+  bool write = std::strcmp(mode, "w+") == 0;
+
+  verify(read || write, "open file mode not supported");
+
+  DWORD access = read ? GENERIC_READ : GENERIC_READ | GENERIC_WRITE;
+  DWORD create_mode = read ? OPEN_EXISTING : CREATE_ALWAYS;
+
+  return CreateFileA(path, access, 0, nullptr, create_mode,
+                     FILE_ATTRIBUTE_NORMAL, nullptr);
+}
+
+struct file {
+  file(char const* path, char const* mode)
       : f_(open_file(path, mode)), size_{size()} {
     verify(f_ != INVALID_HANDLE_VALUE, "unable to open file");
   }
 
-  ~sfile() {
+  ~file() {
     if (f_ != nullptr) {
       FlushFileBuffers(f_);
       CloseHandle(f_);
@@ -30,6 +41,23 @@ struct sfile {
     LARGE_INTEGER filesize;
     GetFileSizeEx(f_, &filesize);
     return filesize.QuadPart;
+  }
+
+  buffer content() {
+    constexpr auto block_size = 8192u;
+    size_t const file_size = size();
+
+    auto b = buffer(file_size);
+
+    chunk(block_size, size(), [&](size_t const from, unsigned block_size) {
+      OVERLAPPED overlapped = {0};
+      overlapped.Offset = static_cast<DWORD>(from);
+      overlapped.OffsetHigh = from >> 32u;
+      ReadFile(f_, b.data() + from, static_cast<DWORD>(block_size), nullptr,
+               &overlapped);
+    });
+
+    return b;
   }
 
   uint64_t checksum(offset_t const start = 0) const {
@@ -95,28 +123,56 @@ struct sfile {
   size_t size_{0U};
 };
 #else
-inline FILE* s_open_file(char const* path, char const* mode) {
-  return std::fopen(path, mode);
-}
 
-struct sfile {
-  sfile(char const* path, char const* mode)
-      : f_{s_open_file(path, mode)}, size_{size()} {
+#include <cstdio>
+
+#include <sys/stat.h>
+
+struct file {
+  file(char const* path, char const* mode)
+      : f_{std::fopen(path, mode)}, size_{size()} {
     verify(f_ != nullptr, "unable to open file");
   }
 
-  ~sfile() {
+  ~file() {
     if (f_ != nullptr) {
       std::fclose(f_);
     }
     f_ = nullptr;
   }
 
+  file(file const&) = delete;
+  file& operator=(file const&) = delete;
+
+  file(file&& o) : f_{o.f_}, size_{o.size_} {
+    o.f_ = nullptr;
+    o.size_ = 0U;
+  }
+
+  file& operator=(file&& o) {
+    f_ = o.f_;
+    size_ = o.size_;
+    o.f_ = nullptr;
+    o.size_ = 0U;
+    return *this;
+  }
+
+  int fd() const {
+    auto const fd = fileno(f_);
+    verify(fd != -1, "invalid fd");
+    return fd;
+  }
+
   size_t size() const {
-    verify(!std::fseek(f_, 0, SEEK_END), "fseek error");
-    auto size = std::ftell(f_);
-    std::rewind(f_);
-    return static_cast<size_t>(size);
+    struct stat s;
+    verify(fstat(fd(), &s) != -1, "fstat error");
+    return static_cast<size_t>(s.st_size);
+  }
+
+  buffer content() {
+    auto b = buffer(size());
+    verify(std::fread(b.data(), 1, b.size(), f_) == b.size(), "read error");
+    return b;
   }
 
   uint64_t checksum(offset_t const start = 0) const {
@@ -135,10 +191,10 @@ struct sfile {
 
   template <typename T>
   void write(std::size_t const pos, T const& val) {
-    std::fseek(f_, static_cast<long>(pos), SEEK_SET);
-    auto const w = std::fwrite(reinterpret_cast<unsigned char const*>(&val), 1,
-                               serialized_size<T>(), f_);
-    verify(w == serialized_size<T>(), "write error");
+    verify(!std::fseek(f_, static_cast<long>(pos), SEEK_SET), "seek error");
+    verify(std::fwrite(reinterpret_cast<unsigned char const*>(&val), 1,
+                       serialized_size<T>(), f_) == serialized_size<T>(),
+           "write error");
   }
 
   offset_t write(void const* ptr, std::size_t const size,
@@ -151,12 +207,12 @@ struct sfile {
           std::align(alignment, size, unaligned_ptr, space);
       curr_offset = aligned_ptr ? reinterpret_cast<std::uintptr_t>(aligned_ptr)
                                 : curr_offset;
-      std::fseek(f_, static_cast<long>(curr_offset), SEEK_SET);
+      verify(!std::fseek(f_, static_cast<long>(curr_offset), SEEK_SET),
+             "seek error");
     } else {
-      std::fseek(f_, 0, SEEK_END);
+      verify(!std::fseek(f_, 0, SEEK_END), "seek error");
     }
-    auto const w = std::fwrite(ptr, 1, size, f_);
-    verify(w == size, "write error");
+    verify(std::fwrite(ptr, 1, size, f_) == size, "write error");
     size_ = curr_offset + size;
     return static_cast<offset_t>(curr_offset);
   }

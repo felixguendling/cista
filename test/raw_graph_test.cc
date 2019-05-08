@@ -106,7 +106,7 @@ TEST_CASE("graph raw serialize file") {
     n2->add_edge(e2);
     n3->add_edge(e3);
 
-    cista::sfile f{FILENAME, "w+"};
+    cista::file f{FILENAME, "w+"};
     cista::serialize(f, g);
 
     CHECK(f.checksum() == FILE_CHECKSUM);
