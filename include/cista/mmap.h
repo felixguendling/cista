@@ -64,7 +64,10 @@ struct mmap {
 
   void sync() {
     if (addr_ != nullptr) {
+#ifdef _MSC_VER
+#else
       verify(::msync(addr_, size_, MS_SYNC) == 0, "sync error");
+#endif
     }
   }
 
