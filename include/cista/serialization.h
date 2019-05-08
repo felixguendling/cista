@@ -1,17 +1,23 @@
 #pragma once
 
-#include <iostream>
 #include <limits>
 #include <map>
 #include <vector>
 
 #include "cista/containers.h"
 #include "cista/decay.h"
+#include "cista/hash.h"
 #include "cista/offset_t.h"
 #include "cista/reflection/for_each_field.h"
 #include "cista/serialized_size.h"
 #include "cista/targets/buf.h"
 #include "cista/targets/file.h"
+#include "cista/type_hash/type_hash.h"
+#include "cista/verify.h"
+
+#ifndef cista_member_offset
+#define cista_member_offset(s, m) (static_cast<cista::offset_t>(offsetof(s, m)))
+#endif
 
 namespace cista {
 
@@ -29,14 +35,17 @@ template <typename Target>
 struct serialization_context {
   explicit serialization_context(Target& t) : t_{t} {}
 
-  offset_t write(void const* ptr, offset_t const size, offset_t alignment = 0) {
+  offset_t write(void const* ptr, std::size_t const size,
+                 std::size_t const alignment = 0) {
     return t_.write(ptr, size, alignment);
   }
 
   template <typename T>
   void write(offset_t const pos, T const& val) {
-    t_.write(pos, val);
+    t_.write(static_cast<std::size_t>(pos), val);
   }
+
+  uint64_t checksum(offset_t const from) const { return t_.checksum(from); }
 
   std::map<void*, offset_t> offsets_;
   std::vector<pending_offset> pending_;
@@ -90,13 +99,15 @@ void serialize(Ctx& c, raw::vector<T> const* origin, offset_t const pos) {
                          ? NULLPTR_OFFSET
                          : c.write(origin->el_, size, std::alignment_of_v<T>);
 
-  c.write(pos + offsetof(raw::vector<T>, el_), start);
-  c.write(pos + offsetof(raw::vector<T>, allocated_size_), origin->used_size_);
-  c.write(pos + offsetof(raw::vector<T>, self_allocated_), false);
+  c.write(pos + cista_member_offset(raw::vector<T>, el_), start);
+  c.write(pos + cista_member_offset(raw::vector<T>, allocated_size_),
+          origin->used_size_);
+  c.write(pos + cista_member_offset(raw::vector<T>, self_allocated_), false);
 
   if (origin->el_ != nullptr) {
     auto i = 0u;
-    for (auto it = start; it != start + size; it += serialized_size<T>()) {
+    for (auto it = start; it != start + static_cast<offset_t>(size);
+         it += serialized_size<T>()) {
       serialize(c, origin->el_ + i++, it);
     }
   }
@@ -109,17 +120,18 @@ void serialize(Ctx& c, offset::vector<T> const* origin, offset_t const pos) {
                                             : c.write(origin->el_.get(), size,
                                                       std::alignment_of_v<T>);
 
-  c.write(pos + offsetof(offset::vector<T>, el_),
+  c.write(pos + cista_member_offset(offset::vector<T>, el_),
           start == NULLPTR_OFFSET
               ? start
-              : start - offsetof(offset::vector<T>, el_) - pos);
-  c.write(pos + offsetof(offset::vector<T>, allocated_size_),
+              : start - cista_member_offset(offset::vector<T>, el_) - pos);
+  c.write(pos + cista_member_offset(offset::vector<T>, allocated_size_),
           origin->used_size_);
-  c.write(pos + offsetof(offset::vector<T>, self_allocated_), false);
+  c.write(pos + cista_member_offset(offset::vector<T>, self_allocated_), false);
 
   if (origin->el_ != nullptr) {
     auto i = 0u;
-    for (auto it = start; it != start + size; it += serialized_size<T>()) {
+    for (auto it = start; it != start + static_cast<offset_t>(size);
+         it += serialized_size<T>()) {
       serialize(c, (origin->el_ + i++).get(), it);
     }
   }
@@ -134,8 +146,8 @@ void serialize(Ctx& c, raw::string const* origin, offset_t const pos) {
   auto const start = (origin->h_.ptr_ == nullptr)
                          ? NULLPTR_OFFSET
                          : c.write(origin->data(), origin->size());
-  c.write(pos + offsetof(raw::string, h_.ptr_), start);
-  c.write(pos + offsetof(raw::string, h_.self_allocated_), false);
+  c.write(pos + cista_member_offset(raw::string, h_.ptr_), start);
+  c.write(pos + cista_member_offset(raw::string, h_.self_allocated_), false);
 }
 
 template <typename Ctx>
@@ -147,11 +159,11 @@ void serialize(Ctx& c, offset::string const* origin, offset_t const pos) {
   auto const start = (origin->h_.ptr_ == nullptr)
                          ? NULLPTR_OFFSET
                          : c.write(origin->data(), origin->size());
-  c.write(pos + offsetof(offset::string, h_.ptr_),
+  c.write(pos + cista_member_offset(offset::string, h_.ptr_),
           start == NULLPTR_OFFSET
               ? start
-              : start - offsetof(offset::string, h_.ptr_) - pos);
-  c.write(pos + offsetof(offset::string, h_.self_allocated_), false);
+              : start - cista_member_offset(offset::string, h_.ptr_) - pos);
+  c.write(pos + cista_member_offset(offset::string, h_.self_allocated_), false);
 }
 
 template <typename Ctx, typename T>
@@ -161,8 +173,9 @@ void serialize(Ctx& c, raw::unique_ptr<T> const* origin, offset_t const pos) {
           ? NULLPTR_OFFSET
           : c.write(origin->el_, serialized_size<T>(), std::alignment_of_v<T>);
 
-  c.write(pos + offsetof(raw::unique_ptr<T>, el_), start);
-  c.write(pos + offsetof(raw::unique_ptr<T>, self_allocated_), false);
+  c.write(pos + cista_member_offset(raw::unique_ptr<T>, el_), start);
+  c.write(pos + cista_member_offset(raw::unique_ptr<T>, self_allocated_),
+          false);
 
   if (origin->el_ != nullptr) {
     c.offsets_[origin->el_] = start;
@@ -178,11 +191,12 @@ void serialize(Ctx& c, offset::unique_ptr<T> const* origin,
           ? NULLPTR_OFFSET
           : c.write(origin->el_, serialized_size<T>(), std::alignment_of_v<T>);
 
-  c.write(pos + offsetof(offset::unique_ptr<T>, el_),
+  c.write(pos + cista_member_offset(offset::unique_ptr<T>, el_),
           start == NULLPTR_OFFSET
               ? start
-              : start - offsetof(offset::unique_ptr<T>, el_) - pos);
-  c.write(pos + offsetof(offset::unique_ptr<T>, self_allocated_), false);
+              : start - cista_member_offset(offset::unique_ptr<T>, el_) - pos);
+  c.write(pos + cista_member_offset(offset::unique_ptr<T>, self_allocated_),
+          false);
 
   if (origin->el_ != nullptr) {
     c.offsets_[const_cast<T*>(origin->el_.get())] = start;
@@ -192,16 +206,52 @@ void serialize(Ctx& c, offset::unique_ptr<T> const* origin,
 
 template <typename Ctx, typename T, size_t Size>
 void serialize(Ctx& c, array<T, Size> const* origin, offset_t const pos) {
-  auto const size = serialized_size<T>() * origin->size();
+  auto const size =
+      static_cast<offset_t>(serialized_size<T>() * origin->size());
   auto i = 0u;
   for (auto it = pos; it != pos + size; it += serialized_size<T>()) {
     serialize(c, origin->el_ + i++, it);
   }
 }
 
-template <typename Target, typename T>
+enum class mode { NONE = 0, WITH_VERSION = 1 << 1, WITH_INTEGRITY = 1 << 2 };
+constexpr mode operator|(mode const& a, mode const& b) {
+  return mode{static_cast<std::underlying_type_t<mode>>(a) |
+              static_cast<std::underlying_type_t<mode>>(b)};
+}
+constexpr mode operator&(mode const& a, mode const& b) {
+  return mode{static_cast<std::underlying_type_t<mode>>(a) &
+              static_cast<std::underlying_type_t<mode>>(b)};
+}
+constexpr offset_t integrity_start(mode const m) {
+  offset_t start = 0;
+  if ((m & mode::WITH_VERSION) == mode::WITH_VERSION) {
+    start += sizeof(uint64_t);
+  }
+  return start;
+}
+constexpr offset_t data_start(mode const m) {
+  auto start = integrity_start(m);
+  if ((m & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
+    start += sizeof(uint64_t);
+  }
+  return start;
+}
+
+template <mode const Mode = mode::NONE, typename Target, typename T>
 void serialize(Target& t, T& value) {
   serialization_context<Target> c{t};
+
+  if constexpr ((Mode & mode::WITH_VERSION) == mode::WITH_VERSION) {
+    auto const h = type_hash(value);
+    c.write(&h, sizeof(h));
+  }
+
+  auto integrity_offset = offset_t{0};
+  if constexpr ((Mode & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
+    auto const h = hash_t{};
+    integrity_offset = c.write(&h, sizeof(h));
+  }
 
   serialize(c, &value,
             c.write(&value, serialized_size<T>(),
@@ -213,16 +263,22 @@ void serialize(Target& t, T& value) {
                           ? it->second
                           : it->second - p.pos_);
     } else {
-      std::cout << "warning: dangling pointer " << p.origin_ptr_
-                << " serialized at offset " << p.pos_ << "\n";
+      printf("warning: dangling pointer %p serialized at offset %" PRId64 "\n",
+             p.origin_ptr_, p.pos_);
     }
+  }
+
+  if constexpr ((Mode & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
+    auto const csum =
+        c.checksum(integrity_offset + static_cast<offset_t>(sizeof(hash_t)));
+    c.write(integrity_offset, csum);
   }
 }
 
-template <typename T>
+template <mode const Mode = mode::NONE, typename T>
 byte_buf serialize(T& el) {
   auto b = buf{};
-  serialize(b, el);
+  serialize<Mode>(b, el);
   return std::move(b.buf_);
 }
 
@@ -285,6 +341,24 @@ struct deserialization_context {
 
   uint8_t *from_, *to_;
 };
+
+template <typename T, mode const Mode = mode::NONE>
+void check(uint8_t const* from, uint8_t const* to) {
+  verify(to - from > data_start(Mode), "invalid range");
+
+  if constexpr ((Mode & mode::WITH_VERSION) == mode::WITH_VERSION) {
+    verify(*reinterpret_cast<hash_t const*>(from) == type_hash<T>(),
+           "invalid version");
+  }
+
+  if constexpr ((Mode & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
+    verify(*reinterpret_cast<uint64_t const*>(from + integrity_start(Mode)) ==
+               hash(std::string_view{
+                   reinterpret_cast<char const*>(from + data_start(Mode)),
+                   static_cast<size_t>(to - from - data_start(Mode))}),
+           "invalid checksum");
+  }
+}
 
 namespace raw {
 
@@ -354,17 +428,18 @@ void deserialize(deserialization_context const& c, array<T, Size>* el) {
   }
 }
 
-template <typename T>
+template <typename T, mode const Mode = mode::NONE>
 T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
+  check<T, Mode>(from, to);
   deserialization_context c{from, to};
-  auto const el = reinterpret_cast<T*>(from);
+  auto const el = reinterpret_cast<T*>(from + data_start(Mode));
   deserialize(c, el);
   return el;
 }
 
-template <typename T, typename Container>
+template <typename T, mode const Mode = mode::NONE, typename Container>
 T* deserialize(Container& c) {
-  return deserialize<T>(&c[0], &c[0] + c.size());
+  return deserialize<T, Mode>(&c[0], &c[0] + c.size());
 }
 
 // -----------------------------------------------------------------------------
@@ -425,17 +500,18 @@ void unchecked_deserialize(deserialization_context const& c,
   }
 }
 
-template <typename T>
+template <typename T, mode const Mode = mode::NONE>
 T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr) {
+  check<T, Mode>(from, to);
   deserialization_context c{from, to};
-  auto const el = reinterpret_cast<T*>(from);
+  auto const el = reinterpret_cast<T*>(from + data_start(Mode));
   unchecked_deserialize(c, el);
   return el;
 }
 
-template <typename T, typename Container>
+template <typename T, mode const Mode = mode::NONE, typename Container>
 T* unchecked_deserialize(Container& c) {
-  return unchecked_deserialize<T>(&c[0], &c[0] + c.size());
+  return unchecked_deserialize<T, Mode>(&c[0], &c[0] + c.size());
 }
 
 }  // namespace raw
@@ -509,29 +585,33 @@ void deserialize(deserialization_context const& c, array<T, Size>* el) {
   }
 }
 
-template <typename T>
+template <typename T, mode const Mode = mode::NONE>
 T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
+  check<T, Mode>(from, to);
   deserialization_context c{from, to};
-  auto const el = reinterpret_cast<T*>(from);
+  auto const el = reinterpret_cast<T*>(from + data_start(Mode));
   deserialize(c, el);
   return el;
 }
 
-template <typename T, typename Container>
+template <typename T, mode const Mode = mode::NONE, typename Container>
 T* deserialize(Container& c) {
-  return deserialize<T>(&c[0], &c[0] + c.size());
+  return deserialize<T, Mode>(&c[0], &c[0] + c.size());
 }
 
-template <typename T>
+template <typename T, mode const Mode = mode::NONE>
 T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr) {
-  return reinterpret_cast<T*>(from);
+  (void)to;
+  check<T, Mode>(from, to);
+  return reinterpret_cast<T*>(from + data_start(Mode));
 }
 
-template <typename T, typename Container>
+template <mode const Mode = mode::NONE, typename T, typename Container>
 T* unchecked_deserialize(Container& c) {
-  return unchecked_deserialize<T>(&c[0], &c[0] + c.size());
+  return unchecked_deserialize<T, Mode>(&c[0], &c[0] + c.size());
 }
 
 }  // namespace offset
-
 }  // namespace cista
+
+#undef cista_member_offset

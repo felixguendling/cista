@@ -3,13 +3,34 @@ cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  set(cista-compile-flags
+     -Wno-global-constructors
+     -Wno-exit-time-destructors
+     -fno-strict-aliasing
+     -Weverything
+     -Wno-c++98-compat
+     -Wno-c++98-compat-pedantic
+     -Wno-newline-eof
+     -Wno-missing-prototypes
+     -Wno-padded
+     -Wno-double-promotion
+     -Wno-undef
+     -Wno-undefined-reinterpret-cast
+     -Wno-float-conversion
+     -Wno-return-std-move-in-c++11
+     -Wno-gnu-zero-variadic-macro-arguments
+     -Wno-unknown-pragmas
+     -Werror
+  )
+endif()
+
 option(CISTA_COVERAGE "generate coverage report" OFF)
 
 add_library(cista INTERFACE)
 target_include_directories(cista INTERFACE include)
 
 add_subdirectory(tools/doctest EXCLUDE_FROM_ALL)
-add_subdirectory(tools/sha1sum EXCLUDE_FROM_ALL)
 
 file(GLOB_RECURSE cista-include-files include/*.h*)
 
@@ -18,7 +39,6 @@ add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/cista.h
   COMMAND uniter
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/file.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/serialization.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/reflection/comparable.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/reflection/printable.h
@@ -28,8 +48,9 @@ add_custom_command(
 
 file(GLOB_RECURSE cista-test-files test/*.cc)
 add_executable(cista-test EXCLUDE_FROM_ALL ${cista-test-files} ${CMAKE_CURRENT_BINARY_DIR}/cista.h)
-target_link_libraries(cista-test doctest sha1sum)
+target_link_libraries(cista-test doctest)
 target_include_directories(cista-test PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_compile_options(cista-test PRIVATE ${cista-compile-flags})
 if(CISTA_COVERAGE)
   target_compile_options(cista-test PRIVATE -fprofile-arcs -ftest-coverage)
   set_target_properties(cista-test PROPERTIES LINK_FLAGS --coverage)

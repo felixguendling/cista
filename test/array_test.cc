@@ -3,8 +3,9 @@
 #include "cista.h"
 
 namespace data = cista::offset;
+using namespace cista;
 
-unsigned ctor{0}, cpy_ctor{0}, mov_ctor{0}, cpy_assign{0}, mov_assign{0},
+static unsigned ctor{0}, cpy_ctor{0}, mov_ctor{0}, cpy_assign{0}, mov_assign{0},
     dtor{0};
 
 void reset() {

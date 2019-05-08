@@ -3,15 +3,12 @@
 
 #include "doctest.h"
 
-#include "sha1sum.h"
-
 #include "cista.h"
 
-using namespace cista;
+namespace data = cista::raw;
 
-namespace data = raw;
+namespace graphns::raw {
 
-namespace {
 struct node;
 
 using node_id_t = uint32_t;
@@ -53,6 +50,15 @@ struct graph {
   node_id_t fill_{0};
 };
 
+}  // namespace graphns::raw
+
+using namespace graphns::raw;
+
+namespace cista {
+template <>
+struct use_standard_hash<graphns::raw::node> : public std::true_type {};
+}  // namespace cista
+
 inline std::set<node const*> bfs(node const* entry) {
   std::queue<node const*> q;
   std::set<node const*> visited;
@@ -77,11 +83,16 @@ inline std::set<node const*> bfs(node const* entry) {
   return visited;
 }
 
-}  // namespace
-
 TEST_CASE("graph raw serialize file") {
+  constexpr auto const FILE_CHECKSUM = 914462787224036784ULL;
+  constexpr auto const FILENAME = "raw_graph.bin";
+
+  std::remove(FILENAME);
+
   {
     graph g;
+
+    CHECK(8294030070925330150ULL == cista::type_hash(g));
 
     auto const n1 = g.make_node(data::string{"NODE A"});
     auto const n2 = g.make_node(data::string{"NODE B"});
@@ -95,13 +106,14 @@ TEST_CASE("graph raw serialize file") {
     n2->add_edge(e2);
     n3->add_edge(e3);
 
-    cista::sfile f{"test.bin", "wb"};
+    cista::sfile f{FILENAME, "w+"};
     cista::serialize(f, g);
+
+    CHECK(f.checksum() == FILE_CHECKSUM);
   }  // EOL graph
 
-  auto b = cista::file("test.bin", "r").content();
-  CHECK("6eda6fb0f6d7b81c2c0ce0996e35cb4af608a64e" ==
-        sha1sum::from_buf(std::vector<unsigned char>(b.begin(), b.end())));
+  auto b = cista::file(FILENAME, "r").content();
+  CHECK(cista::hash(b) == FILE_CHECKSUM);
 
   auto const g = data::deserialize<graph>(b);
   auto const visited = bfs(g->nodes_[0].get());
@@ -112,6 +124,10 @@ TEST_CASE("graph raw serialize file") {
 }
 
 TEST_CASE("graph raw serialize buf") {
+  constexpr auto const EXPECTED_BUF_CHECKSUM = 2984678943337296086ULL;
+  constexpr auto const MODE =
+      cista::mode::WITH_INTEGRITY | cista::mode::WITH_VERSION;
+
   cista::byte_buf buf;
   {
     graph g;
@@ -128,12 +144,17 @@ TEST_CASE("graph raw serialize buf") {
     n2->add_edge(e2);
     n3->add_edge(e3);
 
-    buf = cista::serialize(g);
+    cista::buf b;
+    cista::serialize<MODE>(b, g);
+
+    CHECK(b.checksum() == EXPECTED_BUF_CHECKSUM);
+
+    buf = std::move(b.buf_);
   }  // EOL graph
 
-  CHECK("6eda6fb0f6d7b81c2c0ce0996e35cb4af608a64e" == sha1sum::from_buf(buf));
+  CHECK(cista::hash(buf) == EXPECTED_BUF_CHECKSUM);
 
-  auto const g = data::deserialize<graph>(buf);
+  auto const g = data::deserialize<graph, MODE>(buf);
   auto const visited = bfs(g->nodes_[0].get());
   unsigned i = 0;
   CHECK((*std::next(begin(visited), i++))->name_ == data::string{"NODE A"});
