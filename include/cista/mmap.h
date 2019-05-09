@@ -67,7 +67,7 @@ struct mmap {
     if (addr_ != nullptr) {
 #ifdef _MSC_VER
 #else
-      verify(::msync(addr_, size_, MS_SYNC) == 0, "sync error");
+      verify(msync(addr_, size_, MS_SYNC) == 0, "sync error");
 #endif
     }
   }
@@ -103,9 +103,17 @@ struct mmap {
 private:
   void unmap() {
 #ifdef _MSC_VER
+    UnmapViewOfFile(m_addr);
+    if (!) {
+      throw std::system_error{last_error(), std::system_category(),
+                              "UnmapViewOfFile failed"};
+    }
+
+    verify(CloseHandle(file_mapping_), "unmap: close handle error");
+    file_mapping_ = nullptr;
 #else
     if (addr_ != nullptr) {
-      ::munmap(addr_, size_);
+      munmap(addr_, size_);
       addr_ = nullptr;
     }
 #endif
@@ -113,10 +121,25 @@ private:
 
   void* map() {
 #ifdef _MSC_VER
+    static_assert(sizeof(size_t) == 8U);
+    auto const size_low = static_cast<DWORD>(size_);
+    auto const size_high = static_cast<DWORD>(size_ >> 32);
+    const auto fm = CreateFileMapping(
+        f_.f_, 0, prot_ == protection::READ ? PAGE_READONLY : PAGE_READWRITE,
+        size_high, size_low, 0);
+    verify(fm != INVALID_HANDLE_VALUE, "file mapping error");
+    file_mapping_ = fm;
+
+    auto const addr = MapViewOfFile(
+        f_.f_, prot_ == protection::READ ? FILE_MAP_READ : FILE_MAP_WRITE,
+        OFFSET, OFFSET, size_);
+    verify(addr != nullptr, "map error");
+
+    return addr;
 #else
-    auto const addr = ::mmap(nullptr, size_,
-                             prot_ == protection::READ ? PROT_READ : PROT_WRITE,
-                             MAP_SHARED, f_.fd(), OFFSET);
+    auto const addr =
+        mmap(nullptr, size_, prot_ == protection::READ ? PROT_READ : PROT_WRITE,
+             MAP_SHARED, f_.fd(), OFFSET);
     verify(addr != nullptr, "map error");
     return addr;
 #endif
@@ -124,11 +147,16 @@ private:
 
   void resize_file() {
 #ifdef _MSC_VER
-    verify(::_chsize_s(f_.fd(), static_cast<int64_t>(size_)) != 0,
-           "resize error");
+    LARGE_INTEGER Size = {0};
+    if (GetFileSizeEx(f_.f_, &Size)) {
+      LARGE_INTEGER Distance = {0};
+      Distance.QuadPart = size_ - Size.QuadPart;
+      verify(SetFilePointerEx(f_.f_, Distance, nullptr, FILE_END),
+             "resize error");
+      verify(SetEndOfFile(f_.f_), "resize set eof error");
+    }
 #else
-    verify(::ftruncate(f_.fd(), static_cast<off_t>(size_)) == 0,
-           "resize error");
+    verify(ftruncate(f_.fd(), static_cast<off_t>(size_)) == 0, "resize error");
 #endif
   }
 
@@ -144,6 +172,9 @@ private:
   size_t size_;
   size_t used_size_;
   void* addr_;
+#ifdef _MSC_VER
+  HANDLE file_mapping_;
+#endif
 };
 
 }  // namespace cista

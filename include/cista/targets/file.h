@@ -40,6 +40,22 @@ struct file {
     }
   }
 
+  file(file const&) = delete;
+  file& operator=(file const&) = delete;
+
+  file(file&& o) : f_{o.f_}, size_{o.size_} {
+    o.f_ = nullptr;
+    o.size_ = 0U;
+  }
+
+  file& operator=(file&& o) {
+    f_ = o.f_;
+    size_ = o.size_;
+    o.f_ = nullptr;
+    o.size_ = 0U;
+    return *this;
+  }
+
   size_t size() {
     LARGE_INTEGER filesize;
     GetFileSizeEx(f_, &filesize);
