@@ -36,8 +36,8 @@ struct mmap {
     if (addr_ != nullptr) {
       sync();
       size_ = used_size_;
-      resize_file();
       unmap();
+      resize_file();
     }
   }
 
@@ -66,8 +66,10 @@ struct mmap {
   void sync() {
     if (addr_ != nullptr) {
 #ifdef _MSC_VER
+      verify(::FlushViewOfFile(addr_, size_) != 0, "flush error");
+      verify(::FlushFileBuffers(f_.f_) != 0, "flush error");
 #else
-      verify(msync(addr_, size_, MS_SYNC) == 0, "sync error");
+      verify(::msync(addr_, size_, MS_SYNC) == 0, "sync error");
 #endif
     }
   }
@@ -103,17 +105,16 @@ struct mmap {
 private:
   void unmap() {
 #ifdef _MSC_VER
-    UnmapViewOfFile(m_addr);
-    if (!) {
-      throw std::system_error{last_error(), std::system_category(),
-                              "UnmapViewOfFile failed"};
-    }
+    if (addr_ != nullptr) {
+      verify(::UnmapViewOfFile(addr_), "unmap error");
+      addr_ = nullptr;
 
-    verify(CloseHandle(file_mapping_), "unmap: close handle error");
-    file_mapping_ = nullptr;
+      verify(::CloseHandle(file_mapping_), "close file mapping error");
+      file_mapping_ = nullptr;
+    }
 #else
     if (addr_ != nullptr) {
-      munmap(addr_, size_);
+      ::munmap(addr_, size_);
       addr_ = nullptr;
     }
 #endif
@@ -124,22 +125,22 @@ private:
     static_assert(sizeof(size_t) == 8U);
     auto const size_low = static_cast<DWORD>(size_);
     auto const size_high = static_cast<DWORD>(size_ >> 32);
-    const auto fm = CreateFileMapping(
+    const auto fm = ::CreateFileMapping(
         f_.f_, 0, prot_ == protection::READ ? PAGE_READONLY : PAGE_READWRITE,
         size_high, size_low, 0);
     verify(fm != INVALID_HANDLE_VALUE, "file mapping error");
     file_mapping_ = fm;
 
-    auto const addr = MapViewOfFile(
-        f_.f_, prot_ == protection::READ ? FILE_MAP_READ : FILE_MAP_WRITE,
-        OFFSET, OFFSET, size_);
+    auto const addr = ::MapViewOfFile(
+        fm, prot_ == protection::READ ? FILE_MAP_READ : FILE_MAP_WRITE, OFFSET,
+        OFFSET, size_);
     verify(addr != nullptr, "map error");
 
     return addr;
 #else
-    auto const addr =
-        mmap(nullptr, size_, prot_ == protection::READ ? PROT_READ : PROT_WRITE,
-             MAP_SHARED, f_.fd(), OFFSET);
+    auto const addr = ::mmap(nullptr, size_,
+                             prot_ == protection::READ ? PROT_READ : PROT_WRITE,
+                             MAP_SHARED, f_.fd(), OFFSET);
     verify(addr != nullptr, "map error");
     return addr;
 #endif
@@ -148,15 +149,15 @@ private:
   void resize_file() {
 #ifdef _MSC_VER
     LARGE_INTEGER Size = {0};
-    if (GetFileSizeEx(f_.f_, &Size)) {
+    if (::GetFileSizeEx(f_.f_, &Size)) {
       LARGE_INTEGER Distance = {0};
       Distance.QuadPart = size_ - Size.QuadPart;
-      verify(SetFilePointerEx(f_.f_, Distance, nullptr, FILE_END),
+      verify(::SetFilePointerEx(f_.f_, Distance, nullptr, FILE_END),
              "resize error");
-      verify(SetEndOfFile(f_.f_), "resize set eof error");
+      verify(::SetEndOfFile(f_.f_), "resize set eof error");
     }
 #else
-    verify(ftruncate(f_.fd(), static_cast<off_t>(size_)) == 0, "resize error");
+    verify::ftruncate(f_.fd(), static_cast<off_t>(size_)) == 0, "resize error");
 #endif
   }
 
