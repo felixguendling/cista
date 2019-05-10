@@ -26,7 +26,7 @@ namespace cista {
 // -----------------------------------------------------------------------------
 enum class pointer_type { ABSOLUTE_PTR, RELATIVE_PTR };
 struct pending_offset {
-  void* origin_ptr_;
+  void const* origin_ptr_;
   offset_t pos_;
   pointer_type type_;
 };
@@ -47,7 +47,7 @@ struct serialization_context {
 
   uint64_t checksum(offset_t const from) const { return t_.checksum(from); }
 
-  std::map<void*, offset_t> offsets_;
+  std::map<void const*, offset_t> offsets_;
   std::vector<pending_offset> pending_;
   Target& t_;
 };
@@ -83,12 +83,12 @@ template <typename Ctx, typename T>
 void serialize(Ctx& c, offset_ptr<T> const* origin, offset_t const pos) {
   if (*origin == nullptr) {
     return;
-  } else if (auto const it = c.offsets_.find(const_cast<T*>(origin->get()));
+  } else if (auto const it = c.offsets_.find(origin->get());
              it != end(c.offsets_)) {
     c.write(pos, it->second - pos);
   } else {
-    c.pending_.emplace_back(pending_offset{const_cast<T*>(origin->get()), pos,
-                                           pointer_type::RELATIVE_PTR});
+    c.pending_.emplace_back(
+        pending_offset{origin->get(), pos, pointer_type::RELATIVE_PTR});
   }
 }
 
