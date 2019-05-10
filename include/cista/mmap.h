@@ -157,7 +157,8 @@ private:
       verify(::SetEndOfFile(f_.f_), "resize set eof error");
     }
 #else
-    verify::ftruncate(f_.fd(), static_cast<off_t>(size_)) == 0, "resize error");
+    verify(::ftruncate(f_.fd(), static_cast<off_t>(size_)) == 0,
+           "resize error");
 #endif
   }
 
