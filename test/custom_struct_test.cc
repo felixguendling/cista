@@ -18,7 +18,8 @@ struct serialize_me {
 template <typename Ctx>
 void serialize(Ctx&, serialize_me const*, offset_t const) {}
 
-void unchecked_deserialize(deserialization_context const&, serialize_me*) {}
+template <typename Ctx>
+void unchecked_deserialize(Ctx const&, serialize_me*) {}
 
 TEST_CASE("custom struct test") {
   byte_buf buf;

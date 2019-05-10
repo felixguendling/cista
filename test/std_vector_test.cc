@@ -27,9 +27,8 @@ inline void serialize(Ctx& c, std::vector<T> const* origin,
   }
 }
 
-template <typename T>
-inline void unchecked_deserialize(cista::deserialization_context const& c,
-                                  std::vector<T>* el) {
+template <typename Ctx, typename T>
+inline void unchecked_deserialize(Ctx const& c, std::vector<T>* el) {
   auto const size = *reinterpret_cast<uint64_t*>(el);
   auto const data = reinterpret_cast<T*>(
       c.from_ + *reinterpret_cast<cista::offset_t*>(
