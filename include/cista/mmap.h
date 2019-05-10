@@ -149,13 +149,13 @@ private:
   void resize_file() {
 #ifdef _MSC_VER
     LARGE_INTEGER Size = {0};
-    if (::GetFileSizeEx(f_.f_, &Size)) {
-      LARGE_INTEGER Distance = {0};
-      Distance.QuadPart = size_ - Size.QuadPart;
-      verify(::SetFilePointerEx(f_.f_, Distance, nullptr, FILE_END),
-             "resize error");
-      verify(::SetEndOfFile(f_.f_), "resize set eof error");
-    }
+    verify(::GetFileSizeEx(f_.f_, &Size), "resize: get file size error");
+
+    LARGE_INTEGER Distance = {0};
+    Distance.QuadPart = size_ - Size.QuadPart;
+    verify(::SetFilePointerEx(f_.f_, Distance, nullptr, FILE_END),
+           "resize error");
+    verify(::SetEndOfFile(f_.f_), "resize set eof error");
 #else
     verify(::ftruncate(f_.fd(), static_cast<off_t>(size_)) == 0,
            "resize error");
