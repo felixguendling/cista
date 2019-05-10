@@ -9,6 +9,8 @@
 #include <string>
 #include <type_traits>
 
+#include "cista/next_power_of_2.h"
+
 namespace cista {
 
 template <typename T, typename Ptr = T*, typename TemplateSizeType = uint32_t>
@@ -17,20 +19,6 @@ struct basic_vector {
   using value_type = T;
   using iterator = T*;
   using const_iterator = T const*;
-
-  static inline TemplateSizeType next_power_of_two(TemplateSizeType n) {
-    n--;
-    n |= n >> 1u;
-    n |= n >> 2u;
-    n |= n >> 4u;
-    n |= n >> 8u;
-    n |= n >> 16u;
-    if constexpr (sizeof(TemplateSizeType) > 32) {
-      n |= n >> 32u;
-    }
-    n++;
-    return n;
-  }
 
   basic_vector() = default;
 

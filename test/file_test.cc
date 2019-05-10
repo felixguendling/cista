@@ -19,7 +19,7 @@ TEST_CASE("file") {
   } t1;
 
   {
-    sfile f{"test.bin", "w+"};
+    file f{"test.bin", "w+"};
     auto start = f.write(&t, sizeof(t), std::alignment_of_v<test>);
     for_each_field(t, [start, i = 11, &t, &f](auto&& m) mutable {
       f.write(

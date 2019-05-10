@@ -15,7 +15,11 @@ namespace cista {
 constexpr auto const MAX_ALIGN = 16;
 using byte_buf = std::vector<uint8_t>;
 
+template <typename Buf = byte_buf>
 struct buf {
+  buf() { static_assert(std::is_default_constructible_v<Buf>, "default ctor"); }
+  explicit buf(Buf&& buf) : buf_{std::forward<Buf>(buf)} {}
+
   uint8_t* addr(offset_t const offset) { return (&buf_[0]) + offset; }
   uint8_t* base() { return &buf_[0]; }
 
@@ -62,7 +66,7 @@ struct buf {
     return start;
   }
 
-  byte_buf buf_;
+  Buf buf_;
   offset_t curr_offset_{0};
   FILE* f_;
 };

@@ -149,7 +149,7 @@ Currently, `vector`, `string`, and `unique_ptr` do not provide exactly the same 
 The following methods can be used to serialize either to a `std::vector<uint8_t>` (default) or to an arbitrary serialization target.
 
   - **`std::vector<uint8_t> cista::serialize<T>(T const&)`** serializes an object of type `T`and returns a buffer containing the serialized object.
-  - **`void cista::serialize<Target, T>(Target&, T const&)`** serializes an object of type `T` to the specified target. Targets are either `cista::buf` or `cista::sfile`. Custom target sturcts should provide `write` functions as described [here](#serialization).
+  - **`void cista::serialize<Target, T>(Target&, T const&)`** serializes an object of type `T` to the specified target. Targets are either `cista::buf` or `cista::file`. Custom target sturcts should provide `write` functions as described [here](#serialization).
 
 #### Deserialization
 
@@ -241,11 +241,11 @@ struct graph {
   n2->add_edge(e2);
   n3->add_edge(e3);
 
-  cista::sfile f{"test.bin", "wb"};
+  cista::file f{"test.bin", "wb"};
   cista::serialize(f, g);
 }  // EOL graph
 
-auto b = cista::file("test.bin", "r").content();
+auto b = cista::file("test.bin", open_mode::READ).content();
 auto const g = data::deserialize<graph>(b);
 
 use(g);
