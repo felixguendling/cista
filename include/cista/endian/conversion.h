@@ -29,24 +29,21 @@ constexpr T endian_swap(T t) {
     union {
       T t;
       uint16_t i;
-    } u;
-    u.t = t;
+    } u{t};
     u.i = CISTA_BYTESWAP_16(u.i);
     return u.t;
   } else if constexpr (sizeof(T) == 4U) {
     union {
       T t;
       uint32_t i;
-    } u;
-    u.t = t;
+    } u{t};
     u.i = CISTA_BYTESWAP_32(u.i);
     return u.t;
   } else if constexpr (sizeof(T) == 8U) {
     union {
       T t;
       uint64_t i;
-    } u;
-    u.t = t;
+    } u{t};
     u.i = CISTA_BYTESWAP_64(u.i);
     return u.t;
   }
