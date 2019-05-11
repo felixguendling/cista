@@ -81,7 +81,7 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
           pending_offset{*origin, pos, pointer_type::ABSOLUTE_PTR});
     }
   } else if constexpr (std::is_integral_v<Type>) {
-    c.write(pos, convert_endian<c.MODE>(*origin));
+    c.write(pos, convert_endian<Ctx::MODE>(*origin));
   }
 }
 
@@ -382,7 +382,7 @@ template <typename Ctx, typename T>
 void deserialize(Ctx const& c, T* el) {
   using written_type_t = decay_t<T>;
   if constexpr (std::is_pointer_v<written_type_t>) {
-    *el = c.deserialize<written_type_t>(*el);
+    *el = c.template deserialize<written_type_t>(*el);
     c.check(*el, sizeof(*std::declval<written_type_t>()));
   } else if constexpr (std::is_scalar_v<written_type_t>) {
     c.check(el, sizeof(T));
@@ -394,7 +394,7 @@ void deserialize(Ctx const& c, T* el) {
 template <typename Ctx, typename T>
 void deserialize(Ctx const& c, vector<T>* el) {
   c.check(el, sizeof(vector<T>));
-  el->el_ = c.deserialize<T*>(el->el_);
+  el->el_ = c.template deserialize<T*>(el->el_);
   c.check(el->el_, checked_multiplication(
                        static_cast<size_t>(el->allocated_size_), sizeof(T)));
   c.check(el->allocated_size_ == el->used_size_, "vector size mismatch");
@@ -408,7 +408,7 @@ template <typename Ctx>
 inline void deserialize(Ctx const& c, string* el) {
   c.check(el, sizeof(string));
   if (!el->is_short()) {
-    el->h_.ptr_ = c.deserialize<char*>(el->h_.ptr_);
+    el->h_.ptr_ = c.template deserialize<char*>(el->h_.ptr_);
     c.check(el->h_.ptr_, el->h_.size_);
     c.check(!el->h_.self_allocated_, "string self-allocated");
   }
@@ -417,7 +417,7 @@ inline void deserialize(Ctx const& c, string* el) {
 template <typename Ctx, typename T>
 void deserialize(Ctx const& c, unique_ptr<T>* el) {
   c.check(el, sizeof(unique_ptr<T>));
-  el->el_ = c.deserialize<T*>(el->el_);
+  el->el_ = c.template deserialize<T*>(el->el_);
   c.check(el->el_, sizeof(T));
   c.check(!el->self_allocated_, "unique_ptr self-allocated");
   deserialize(c, el->el_);
@@ -466,10 +466,10 @@ template <typename Ctx, typename T>
 void unchecked_deserialize(Ctx const& c, T* el) {
   using written_type_t = decay_t<T>;
   if constexpr (std::is_pointer_v<written_type_t>) {
-    *el = c.deserialize<written_type_t>(*el);
+    *el = c.template deserialize<written_type_t>(*el);
   } else if constexpr (std::is_scalar_v<written_type_t>) {
     if constexpr (std::is_integral_v<written_type_t>) {
-      *el = convert_endian<c.MODE>(*el);
+      *el = convert_endian<Ctx::MODE>(*el);
     }
   } else {
     for_each_ptr_field(*el, [&](auto& f) { unchecked_deserialize(c, f); });
@@ -478,7 +478,7 @@ void unchecked_deserialize(Ctx const& c, T* el) {
 
 template <typename Ctx, typename T>
 void unchecked_deserialize(Ctx const& c, vector<T>* el) {
-  el->el_ = c.deserialize<T*>(el->el_);
+  el->el_ = c.template deserialize<T*>(el->el_);
   for (auto& m : *el) {
     unchecked_deserialize(c, &m);
   }
@@ -487,13 +487,13 @@ void unchecked_deserialize(Ctx const& c, vector<T>* el) {
 template <typename Ctx>
 inline void unchecked_deserialize(Ctx const& c, string* el) {
   if (!el->is_short()) {
-    el->h_.ptr_ = c.deserialize<char*>(el->h_.ptr_);
+    el->h_.ptr_ = c.template deserialize<char*>(el->h_.ptr_);
   }
 }
 
 template <typename Ctx, typename T>
 void unchecked_deserialize(Ctx const& c, unique_ptr<T>* el) {
-  el->el_ = c.deserialize<T*>(el->el_);
+  el->el_ = c.template deserialize<T*>(el->el_);
   unchecked_deserialize(c, el->el_);
 }
 
@@ -543,7 +543,7 @@ void deserialize(Ctx const& c, T* el) {
   if constexpr (std::is_scalar_v<written_type_t>) {
     c.check(el, sizeof(T));
     if constexpr (std::is_integral_v<written_type_t>) {
-      *el = convert_endian<c.MODE>(*el);
+      *el = convert_endian<Ctx::MODE>(*el);
     }
   } else {
     for_each_ptr_field(*el, [&](auto& f) { deserialize(c, f); });

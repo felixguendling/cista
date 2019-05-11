@@ -9,17 +9,20 @@
 #if defined(_MSC_VER)
 #define CISTA_BYTESWAP_16 _byteswap_ushort
 #define CISTA_BYTESWAP_32 _byteswap_ulong
-#define CISTA_BYTESWAP6_4 _byteswap_uint64
+#define CISTA_BYTESWAP_64 _byteswap_uint64
 #else
 #define CISTA_BYTESWAP_16 __builtin_bswap16
 #define CISTA_BYTESWAP_32 __builtin_bswap32
-#define CISTA_BYTESWAP6_4 __builtin_bswap64
+#define CISTA_BYTESWAP_64 __builtin_bswap64
 #endif
 
 namespace cista {
 
 template <typename T>
 constexpr T endian_swap(T t) {
+  static_assert(std::is_integral_v<T> && (sizeof(T) == 1U || sizeof(T) == 2U ||
+                                          sizeof(T) == 4U || sizeof(T) == 8U));
+
   if constexpr (sizeof(T) == 1U) {
     return t;
   } else if constexpr (sizeof(T) == 2U) {
@@ -44,10 +47,8 @@ constexpr T endian_swap(T t) {
       uint64_t i;
     } u;
     u.t = t;
-    u.i = CISTA_BYTESWAP6_4(u.i);
+    u.i = CISTA_BYTESWAP_64(u.i);
     return u.t;
-  } else {
-    static_assert(false, "byte swap not implemented");
   }
 }
 
