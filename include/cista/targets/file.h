@@ -67,13 +67,13 @@ struct file {
     return *this;
   }
 
-  size_t size() {
+  size_t size() const {
     LARGE_INTEGER filesize;
     GetFileSizeEx(f_, &filesize);
     return filesize.QuadPart;
   }
 
-  buffer content() {
+  buffer content() const {
     constexpr auto block_size = 8192u;
     size_t const file_size = size();
 
@@ -92,14 +92,13 @@ struct file {
 
   uint64_t checksum(offset_t const start = 0) const {
     constexpr auto const block_size = 512 * 1024;  // 512kB
-    SetFilePointer(f_, 0, 0, FILE_BEGIN);
     auto c = BASE_HASH;
     char buf[block_size];
     chunk(block_size, size_ - static_cast<size_t>(start),
           [&](auto const from, auto const size) {
             OVERLAPPED overlapped = {0};
-            overlapped.Offset = static_cast<DWORD>(from);
-            overlapped.OffsetHigh = from >> 32u;
+            overlapped.Offset = static_cast<DWORD>(start + from);
+            overlapped.OffsetHigh = static_cast<DWORD>((start + from) >> 32U);
             ReadFile(f_, buf, static_cast<DWORD>(size), nullptr, &overlapped);
             c = hash(std::string_view{buf, size}, c);
           });
@@ -110,7 +109,7 @@ struct file {
   void write(std::size_t const pos, T const& val) {
     OVERLAPPED overlapped = {0};
     overlapped.Offset = static_cast<DWORD>(pos);
-    overlapped.OffsetHigh = pos >> 32u;
+    overlapped.OffsetHigh = static_cast<DWORD>(pos >> 32U);
     WriteFile(f_, &val, sizeof(T), nullptr, &overlapped);
   }
 
@@ -126,27 +125,17 @@ struct file {
                                 : curr_offset;
     }
 
-    unsigned char const buf[16] = {0};
-    auto const num_padding_bytes = static_cast<DWORD>(curr_offset - size_);
-    OVERLAPPED overlapped = {0};
-    overlapped.Offset = static_cast<uint32_t>(size_);
-    overlapped.OffsetHigh = static_cast<uint32_t>(size_ >> 32u);
-    WriteFile(f_, buf, num_padding_bytes, nullptr, &overlapped);
-    size_ = curr_offset;
-
     constexpr auto block_size = 8192u;
     chunk(block_size, size, [&](size_t const from, unsigned block_size) {
+      auto const pos = curr_offset + from;
       OVERLAPPED overlapped = {0};
-      overlapped.Offset = 0xFFFFFFFF;
-      overlapped.OffsetHigh = 0xFFFFFFFF;
+      overlapped.Offset = static_cast<DWORD>(pos);
+      overlapped.OffsetHigh = static_cast<DWORD>(pos >> 32U);
       WriteFile(f_, reinterpret_cast<unsigned char const*>(ptr) + from,
                 block_size, nullptr, &overlapped);
     });
-
-    auto const offset = size_;
-    size_ += size;
-
-    return offset;
+    size_ = curr_offset + size;
+    return curr_offset;
   }
 
   HANDLE f_;

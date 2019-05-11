@@ -95,9 +95,9 @@ struct mmap {
   }
 
   inline uint8_t* begin() { return data(); }
-  inline uint8_t* end() { return data() + size_; }
+  inline uint8_t* end() { return data() + used_size_; }
   inline uint8_t const* begin() const { return data(); }
-  inline uint8_t const* end() const { return data() + size_; }
+  inline uint8_t const* end() const { return data() + used_size_; }
 
   unsigned char& operator[](size_t i) { return *(data() + i); }
   unsigned char const& operator[](size_t i) const { return *(data() + i); }

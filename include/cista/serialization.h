@@ -370,7 +370,7 @@ template <typename Ctx, typename T>
 void deserialize(Ctx const&, vector<T>*);
 
 template <typename Ctx>
-inline void deserialize(Ctx const&, string*);
+void deserialize(Ctx const&, string*);
 
 template <typename Ctx, typename T>
 void deserialize(Ctx const&, unique_ptr<T>*);
@@ -405,7 +405,7 @@ void deserialize(Ctx const& c, vector<T>* el) {
 }
 
 template <typename Ctx>
-inline void deserialize(Ctx const& c, string* el) {
+void deserialize(Ctx const& c, string* el) {
   c.check(el, sizeof(string));
   if (!el->is_short()) {
     el->h_.ptr_ = c.template deserialize<char*>(el->h_.ptr_);
@@ -454,7 +454,7 @@ template <typename Ctx, typename T>
 void unchecked_deserialize(Ctx const&, vector<T>*);
 
 template <typename Ctx>
-inline void unchecked_deserialize(Ctx const&, string*);
+void unchecked_deserialize(Ctx const&, string*);
 
 template <typename Ctx, typename T>
 void unchecked_deserialize(Ctx const&, unique_ptr<T>*);
@@ -485,7 +485,7 @@ void unchecked_deserialize(Ctx const& c, vector<T>* el) {
 }
 
 template <typename Ctx>
-inline void unchecked_deserialize(Ctx const& c, string* el) {
+void unchecked_deserialize(Ctx const& c, string* el) {
   if (!el->is_short()) {
     el->h_.ptr_ = c.template deserialize<char*>(el->h_.ptr_);
   }
@@ -570,7 +570,7 @@ void deserialize(Ctx const& c, vector<T>* el) {
 }
 
 template <typename Ctx>
-inline void deserialize(Ctx const& c, string* el) {
+void deserialize(Ctx const& c, string* el) {
   c.check(el, sizeof(string));
   if (!el->is_short()) {
     c.check(el->h_.ptr_.get(), el->h_.size_);
