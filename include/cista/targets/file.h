@@ -109,7 +109,7 @@ struct file {
   void write(std::size_t const pos, T const& val) {
     OVERLAPPED overlapped = {0};
     overlapped.Offset = static_cast<DWORD>(pos);
-    overlapped.OffsetHigh = static_cast<DWORD>(pos >> 32U);
+    overlapped.OffsetHigh = pos >> 32u;
     WriteFile(f_, &val, sizeof(T), nullptr, &overlapped);
   }
 
@@ -125,17 +125,27 @@ struct file {
                                 : curr_offset;
     }
 
+    unsigned char const buf[16] = {0};
+    auto const num_padding_bytes = static_cast<DWORD>(curr_offset - size_);
+    OVERLAPPED overlapped = {0};
+    overlapped.Offset = static_cast<uint32_t>(size_);
+    overlapped.OffsetHigh = static_cast<uint32_t>(size_ >> 32u);
+    WriteFile(f_, buf, num_padding_bytes, nullptr, &overlapped);
+    size_ = curr_offset;
+
     constexpr auto block_size = 8192u;
     chunk(block_size, size, [&](size_t const from, unsigned block_size) {
-      auto const pos = curr_offset + from;
       OVERLAPPED overlapped = {0};
-      overlapped.Offset = static_cast<DWORD>(pos);
-      overlapped.OffsetHigh = static_cast<DWORD>(pos >> 32U);
+      overlapped.Offset = 0xFFFFFFFF;
+      overlapped.OffsetHigh = 0xFFFFFFFF;
       WriteFile(f_, reinterpret_cast<unsigned char const*>(ptr) + from,
                 block_size, nullptr, &overlapped);
     });
-    size_ = curr_offset + size;
-    return curr_offset;
+
+    auto const offset = size_;
+    size_ += size;
+
+    return offset;
   }
 
   HANDLE f_;
