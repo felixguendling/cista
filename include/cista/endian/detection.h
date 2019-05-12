@@ -6,9 +6,17 @@
 
 #if !defined(CISTA_BIG_ENDIAN) && !defined(CISTA_LITTLE_ENDIAN)
 
-#if defined(__GNUC__)
+#if defined(__APPLE__)
+#include <machine/endian.h>
+#elif defined(__GNUC__)
 #include <endian.h>
 #elif defined(_MSC_VER)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <windows.h>
 #endif
 
