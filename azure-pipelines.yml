@@ -6,6 +6,6 @@ jobs:
       - script: |
           mkdir build
           cd build
-          cmake -DCMAKE_BUILD_TYPE=Release ..
-          cmake --build cista-test .
+          cmake -DCMAKE_BUILD_TYPE=Release -GNinja ..
+          ninja cista-test
           cista-test
