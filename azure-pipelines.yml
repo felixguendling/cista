@@ -28,7 +28,7 @@ jobs:
   - script: |
       mkdir build
       cd build
-      cmake -DCMAKE_BUILD_TYPE=${{ BUILD_TYPE }} ..
+      cmake -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) ..
     displayName: 'CMake'
   - script: |
       make cista-test
