@@ -24,7 +24,7 @@ jobs:
     CXX: /opt/clang-8/bin/clang++
     CXXFLAGS: -std=c++17 -stdlib=libc++ -D_LIBCPP_VERSION=1
   steps:
-  - script:
+  - script: |
       curl -Ls http://releases.llvm.org/8.0.0/clang%2bllvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz -o clang.tar.xz
       tar -xf clang.tar.xz -C /opt/clang-8
   - script: |
