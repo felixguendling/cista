@@ -134,15 +134,18 @@ struct file {
 
     unsigned char const buf[16] = {0};
     auto const num_padding_bytes = static_cast<DWORD>(curr_offset - size_);
-    OVERLAPPED overlapped = {0};
-    overlapped.Offset = static_cast<uint32_t>(size_);
-    overlapped.OffsetHigh = static_cast<uint32_t>(size_ >> 32u);
-    DWORD bytes_written = {0};
-    verify(WriteFile(f_, buf, num_padding_bytes, &bytes_written, &overlapped),
-           "write padding error");
-    verify(bytes_written == num_padding_bytes,
-           "write padding error bytes written");
-    size_ = curr_offset;
+    if (num_padding_bytes != 0U) {
+      verify(num_padding_bytes < 16, "invalid padding size");
+      OVERLAPPED overlapped = {0};
+      overlapped.Offset = static_cast<uint32_t>(size_);
+      overlapped.OffsetHigh = static_cast<uint32_t>(size_ >> 32u);
+      DWORD bytes_written = {0};
+      verify(WriteFile(f_, buf, num_padding_bytes, &bytes_written, &overlapped),
+             "write padding error");
+      verify(bytes_written == num_padding_bytes,
+             "write padding error bytes written");
+      size_ = curr_offset;
+    }
 
     constexpr auto block_size = 8192u;
     chunk(block_size, size, [&](size_t const from, unsigned block_size) {
