@@ -125,8 +125,7 @@ TEST_CASE("graph raw serialize file") {
 
 TEST_CASE("graph raw serialize buf") {
   constexpr auto const EXPECTED_BUF_CHECKSUM = 2984678943337296086ULL;
-  constexpr auto const MODE =
-      cista::mode::WITH_INTEGRITY | cista::mode::WITH_VERSION;
+  constexpr auto const MODE = cista::mode::WITH_INTEGRITY;
 
   cista::byte_buf buf;
   {
