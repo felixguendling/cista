@@ -1,5 +1,11 @@
 jobs:
   - job: msvc
+    strategy:
+      matrix:
+        REL:
+          BUILD_TYPE: Release
+        DBG:
+          BUILD_TYPE: Debug
     pool:
       vmImage: windows-2019
     variables:
@@ -13,7 +19,7 @@ jobs:
       displayName: 'Build Solution'
       inputs:
         solution: build/cista.sln
-        msbuildArguments: '/m /p:Configuration=Release'
+        msbuildArguments: '/m /p:Configuration=$(BUILD_TYPE)'
     - script: cista-test
       displayName: 'Run Tests'
-      workingDirectory: build\Release
+      workingDirectory: build\$(BUILD_TYPE)
