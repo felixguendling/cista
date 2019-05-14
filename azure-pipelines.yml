@@ -1,5 +1,3 @@
-# File: azure-pipelines.yml
-
 jobs:
 - template: azure-win-build.yml
   parameters:
@@ -11,4 +9,4 @@ jobs:
   parameters:
     name: VS2017
     vmImage: vs2017-win2016
-    cmakeArgs: '-G "Visual Studio 15 2017" -A x64'
+    cmakeArgs: '-G "Visual Studio 15 2017" -A x64 ..'
