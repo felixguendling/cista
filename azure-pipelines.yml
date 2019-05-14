@@ -23,6 +23,7 @@ jobs:
   variables:
     CXX: /opt/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/clang++
     CXXFLAGS: -std=c++17 -stdlib=libc++ -D_LIBCPP_VERSION=1
+    LD_LIBRARY_PATH: /opt/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04/lib
   steps:
   - script: |
       sudo mkdir /opt/clang-8
