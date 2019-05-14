@@ -21,5 +21,11 @@ jobs:
         solution: build/cista.sln
         msbuildArguments: '/m /p:Configuration=$(BUILD_TYPE)'
     - script: cista-test
-      displayName: 'Run Tests'
+      displayName: 'Run Tests 1'
+      workingDirectory: build\$(BUILD_TYPE)
+    - script: cista-test
+      displayName: 'Run Tests 2'
+      workingDirectory: build\$(BUILD_TYPE)
+    - script: cista-test
+      displayName: 'Run Tests 3'
       workingDirectory: build\$(BUILD_TYPE)
