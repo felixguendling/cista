@@ -6,7 +6,9 @@
 
 #include "cista/containers.h"
 #include "cista/decay.h"
+#include "cista/endian/conversion.h"
 #include "cista/hash.h"
+#include "cista/mode.h"
 #include "cista/offset_t.h"
 #include "cista/reflection/for_each_field.h"
 #include "cista/serialized_size.h"
@@ -31,8 +33,10 @@ struct pending_offset {
   pointer_type type_;
 };
 
-template <typename Target>
+template <typename Target, mode Mode>
 struct serialization_context {
+  static constexpr auto const MODE = Mode;
+
   explicit serialization_context(Target& t) : t_{t} {}
 
   offset_t write(void const* ptr, std::size_t const size,
@@ -62,8 +66,8 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
                   "Please implement custom serializer.");
     for_each_ptr_field(*origin, [&](auto& member) {
       auto const member_offset =
-          static_cast<offset_t>(reinterpret_cast<char const*>(member) -
-                                reinterpret_cast<char const*>(origin));
+          static_cast<offset_t>(reinterpret_cast<intptr_t>(member) -
+                                reinterpret_cast<intptr_t>(origin));
       serialize(c, member, pos + member_offset);
     });
   } else if constexpr (std::is_pointer_v<Type>) {
@@ -76,6 +80,8 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
       c.pending_.emplace_back(
           pending_offset{*origin, pos, pointer_type::ABSOLUTE_PTR});
     }
+  } else if constexpr (std::is_integral_v<Type>) {
+    c.write(pos, convert_endian<Ctx::MODE>(*origin));
   }
 }
 
@@ -199,7 +205,7 @@ void serialize(Ctx& c, offset::unique_ptr<T> const* origin,
           false);
 
   if (origin->el_ != nullptr) {
-    c.offsets_[const_cast<T*>(origin->el_.get())] = start;
+    c.offsets_[origin->el_.get()] = start;
     serialize(c, origin->el_.get(), start);
   }
 }
@@ -214,15 +220,6 @@ void serialize(Ctx& c, array<T, Size> const* origin, offset_t const pos) {
   }
 }
 
-enum class mode { NONE = 0, WITH_VERSION = 1 << 1, WITH_INTEGRITY = 1 << 2 };
-constexpr mode operator|(mode const& a, mode const& b) {
-  return mode{static_cast<std::underlying_type_t<mode>>(a) |
-              static_cast<std::underlying_type_t<mode>>(b)};
-}
-constexpr mode operator&(mode const& a, mode const& b) {
-  return mode{static_cast<std::underlying_type_t<mode>>(a) &
-              static_cast<std::underlying_type_t<mode>>(b)};
-}
 constexpr offset_t integrity_start(mode const m) {
   offset_t start = 0;
   if ((m & mode::WITH_VERSION) == mode::WITH_VERSION) {
@@ -230,6 +227,7 @@ constexpr offset_t integrity_start(mode const m) {
   }
   return start;
 }
+
 constexpr offset_t data_start(mode const m) {
   auto start = integrity_start(m);
   if ((m & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
@@ -240,7 +238,7 @@ constexpr offset_t data_start(mode const m) {
 
 template <mode const Mode = mode::NONE, typename Target, typename T>
 void serialize(Target& t, T& value) {
-  serialization_context<Target> c{t};
+  serialization_context<Target, Mode> c{t};
 
   if constexpr ((Mode & mode::WITH_VERSION) == mode::WITH_VERSION) {
     auto const h = type_hash(value);
@@ -314,7 +312,10 @@ Arg checked_multiplication(Arg a1, Args... aN) {
   return a1;
 }
 
+template <mode Mode>
 struct deserialization_context {
+  static constexpr auto const MODE = Mode;
+
   deserialization_context(uint8_t* from, uint8_t* to) : from_{from}, to_{to} {}
 
   template <typename T, typename Ptr>
@@ -362,25 +363,26 @@ void check(uint8_t const* from, uint8_t const* to) {
 
 namespace raw {
 
-template <typename T>
-void deserialize(deserialization_context const&, T*);
+template <typename Ctx, typename T>
+void deserialize(Ctx const&, T*);
 
-template <typename T>
-void deserialize(deserialization_context const&, vector<T>*);
+template <typename Ctx, typename T>
+void deserialize(Ctx const&, vector<T>*);
 
-inline void deserialize(deserialization_context const&, string*);
+template <typename Ctx>
+void deserialize(Ctx const&, string*);
 
-template <typename T>
-void deserialize(deserialization_context const&, unique_ptr<T>*);
+template <typename Ctx, typename T>
+void deserialize(Ctx const&, unique_ptr<T>*);
 
-template <typename T, size_t Size>
-void deserialize(deserialization_context const&, array<T, Size>*);
+template <typename Ctx, typename T, size_t Size>
+void deserialize(Ctx const&, array<T, Size>*);
 
-template <typename T>
-void deserialize(deserialization_context const& c, T* el) {
+template <typename Ctx, typename T>
+void deserialize(Ctx const& c, T* el) {
   using written_type_t = decay_t<T>;
   if constexpr (std::is_pointer_v<written_type_t>) {
-    *el = c.deserialize<written_type_t>(*el);
+    *el = c.template deserialize<written_type_t>(*el);
     c.check(*el, sizeof(*std::declval<written_type_t>()));
   } else if constexpr (std::is_scalar_v<written_type_t>) {
     c.check(el, sizeof(T));
@@ -389,10 +391,10 @@ void deserialize(deserialization_context const& c, T* el) {
   }
 }
 
-template <typename T>
-void deserialize(deserialization_context const& c, vector<T>* el) {
+template <typename Ctx, typename T>
+void deserialize(Ctx const& c, vector<T>* el) {
   c.check(el, sizeof(vector<T>));
-  el->el_ = c.deserialize<T*>(el->el_);
+  el->el_ = c.template deserialize<T*>(el->el_);
   c.check(el->el_, checked_multiplication(
                        static_cast<size_t>(el->allocated_size_), sizeof(T)));
   c.check(el->allocated_size_ == el->used_size_, "vector size mismatch");
@@ -402,26 +404,27 @@ void deserialize(deserialization_context const& c, vector<T>* el) {
   }
 }
 
-inline void deserialize(deserialization_context const& c, string* el) {
+template <typename Ctx>
+void deserialize(Ctx const& c, string* el) {
   c.check(el, sizeof(string));
   if (!el->is_short()) {
-    el->h_.ptr_ = c.deserialize<char*>(el->h_.ptr_);
+    el->h_.ptr_ = c.template deserialize<char*>(el->h_.ptr_);
     c.check(el->h_.ptr_, el->h_.size_);
     c.check(!el->h_.self_allocated_, "string self-allocated");
   }
 }
 
-template <typename T>
-void deserialize(deserialization_context const& c, unique_ptr<T>* el) {
+template <typename Ctx, typename T>
+void deserialize(Ctx const& c, unique_ptr<T>* el) {
   c.check(el, sizeof(unique_ptr<T>));
-  el->el_ = c.deserialize<T*>(el->el_);
+  el->el_ = c.template deserialize<T*>(el->el_);
   c.check(el->el_, sizeof(T));
   c.check(!el->self_allocated_, "unique_ptr self-allocated");
   deserialize(c, el->el_);
 }
 
-template <typename T, size_t Size>
-void deserialize(deserialization_context const& c, array<T, Size>* el) {
+template <typename Ctx, typename T, size_t Size>
+void deserialize(Ctx const& c, array<T, Size>* el) {
   c.check(el, sizeof(array<T, Size>));
   for (auto& m : *el) {
     deserialize(c, &m);
@@ -431,7 +434,7 @@ void deserialize(deserialization_context const& c, array<T, Size>* el) {
 template <typename T, mode const Mode = mode::NONE>
 T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
   check<T, Mode>(from, to);
-  deserialization_context c{from, to};
+  deserialization_context<Mode> c{from, to};
   auto const el = reinterpret_cast<T*>(from + data_start(Mode));
   deserialize(c, el);
   return el;
@@ -444,57 +447,58 @@ T* deserialize(Container& c) {
 
 // -----------------------------------------------------------------------------
 
-template <typename T>
-void unchecked_deserialize(deserialization_context const&, T*);
+template <typename Ctx, typename T>
+void unchecked_deserialize(Ctx const&, T*);
 
-template <typename T>
-void unchecked_deserialize(deserialization_context const&, vector<T>*);
+template <typename Ctx, typename T>
+void unchecked_deserialize(Ctx const&, vector<T>*);
 
-inline void unchecked_deserialize(deserialization_context const&, string*);
+template <typename Ctx>
+void unchecked_deserialize(Ctx const&, string*);
 
-template <typename T>
-void unchecked_deserialize(deserialization_context const&, unique_ptr<T>*);
+template <typename Ctx, typename T>
+void unchecked_deserialize(Ctx const&, unique_ptr<T>*);
 
-template <typename T, size_t Size>
-void unchecked_deserialize(deserialization_context const&, array<T, Size>*);
+template <typename Ctx, typename T, size_t Size>
+void unchecked_deserialize(Ctx const&, array<T, Size>*);
 
-template <typename T>
-void unchecked_deserialize(deserialization_context const& c, T* el) {
+template <typename Ctx, typename T>
+void unchecked_deserialize(Ctx const& c, T* el) {
   using written_type_t = decay_t<T>;
   if constexpr (std::is_pointer_v<written_type_t>) {
-    *el = c.deserialize<written_type_t>(*el);
+    *el = c.template deserialize<written_type_t>(*el);
   } else if constexpr (std::is_scalar_v<written_type_t>) {
-    // Do nothing.
+    if constexpr (std::is_integral_v<written_type_t>) {
+      *el = convert_endian<Ctx::MODE>(*el);
+    }
   } else {
     for_each_ptr_field(*el, [&](auto& f) { unchecked_deserialize(c, f); });
   }
 }
 
-template <typename T>
-void unchecked_deserialize(deserialization_context const& c, vector<T>* el) {
-  el->el_ = c.deserialize<T*>(el->el_);
+template <typename Ctx, typename T>
+void unchecked_deserialize(Ctx const& c, vector<T>* el) {
+  el->el_ = c.template deserialize<T*>(el->el_);
   for (auto& m : *el) {
     unchecked_deserialize(c, &m);
   }
 }
 
-inline void unchecked_deserialize(deserialization_context const& c,
-                                  string* el) {
+template <typename Ctx>
+void unchecked_deserialize(Ctx const& c, string* el) {
   if (!el->is_short()) {
-    el->h_.ptr_ = c.deserialize<char*>(el->h_.ptr_);
+    el->h_.ptr_ = c.template deserialize<char*>(el->h_.ptr_);
   }
 }
 
-template <typename T>
-void unchecked_deserialize(deserialization_context const& c,
-                           unique_ptr<T>* el) {
-  el->el_ = c.deserialize<T*>(el->el_);
+template <typename Ctx, typename T>
+void unchecked_deserialize(Ctx const& c, unique_ptr<T>* el) {
+  el->el_ = c.template deserialize<T*>(el->el_);
   unchecked_deserialize(c, el->el_);
 }
 
-template <typename T, size_t Size>
-void unchecked_deserialize(deserialization_context const& c,
-                           array<T, Size>* el) {
+template <typename Ctx, typename T, size_t Size>
+void unchecked_deserialize(Ctx const& c, array<T, Size>* el) {
   for (auto& m : *el) {
     unchecked_deserialize(c, &m);
   }
@@ -503,7 +507,7 @@ void unchecked_deserialize(deserialization_context const& c,
 template <typename T, mode const Mode = mode::NONE>
 T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr) {
   check<T, Mode>(from, to);
-  deserialization_context c{from, to};
+  deserialization_context<Mode> c{from, to};
   auto const el = reinterpret_cast<T*>(from + data_start(Mode));
   unchecked_deserialize(c, el);
   return el;
@@ -518,38 +522,42 @@ T* unchecked_deserialize(Container& c) {
 
 namespace offset {
 
-template <typename T>
-void deserialize(deserialization_context const&, offset_ptr<T>*);
+template <typename Ctx, typename T>
+void deserialize(Ctx const&, offset_ptr<T>*);
 
-template <typename T>
-void deserialize(deserialization_context const&, vector<T>*);
+template <typename Ctx, typename T>
+void deserialize(Ctx const&, vector<T>*);
 
-void deserialize(deserialization_context const&, string*);
+template <typename Ctx>
+void deserialize(Ctx const&, string*);
 
-template <typename T>
-void deserialize(deserialization_context const&, unique_ptr<T>*);
+template <typename Ctx, typename T>
+void deserialize(Ctx const&, unique_ptr<T>*);
 
-template <typename T, size_t Size>
-void deserialize(deserialization_context const&, array<T, Size>*);
+template <typename Ctx, typename T, size_t Size>
+void deserialize(Ctx const&, array<T, Size>*);
 
-template <typename T>
-void deserialize(deserialization_context const& c, T* el) {
+template <typename Ctx, typename T>
+void deserialize(Ctx const& c, T* el) {
   using written_type_t = decay_t<T>;
   if constexpr (std::is_scalar_v<written_type_t>) {
     c.check(el, sizeof(T));
+    if constexpr (std::is_integral_v<written_type_t>) {
+      *el = convert_endian<Ctx::MODE>(*el);
+    }
   } else {
     for_each_ptr_field(*el, [&](auto& f) { deserialize(c, f); });
   }
 }
 
-template <typename T>
-void deserialize(deserialization_context const& c, offset_ptr<T>* el) {
+template <typename Ctx, typename T>
+void deserialize(Ctx const& c, offset_ptr<T>* el) {
   using written_type_t = decay_t<T>;
   c.check(el->get(), sizeof(std::declval<written_type_t>()));
 }
 
-template <typename T>
-void deserialize(deserialization_context const& c, vector<T>* el) {
+template <typename Ctx, typename T>
+void deserialize(Ctx const& c, vector<T>* el) {
   c.check(el, sizeof(vector<T>));
   c.check(el->el_.get(),
           checked_multiplication(static_cast<size_t>(el->allocated_size_),
@@ -561,7 +569,8 @@ void deserialize(deserialization_context const& c, vector<T>* el) {
   }
 }
 
-inline void deserialize(deserialization_context const& c, string* el) {
+template <typename Ctx>
+void deserialize(Ctx const& c, string* el) {
   c.check(el, sizeof(string));
   if (!el->is_short()) {
     c.check(el->h_.ptr_.get(), el->h_.size_);
@@ -569,16 +578,16 @@ inline void deserialize(deserialization_context const& c, string* el) {
   }
 }
 
-template <typename T>
-void deserialize(deserialization_context const& c, unique_ptr<T>* el) {
+template <typename Ctx, typename T>
+void deserialize(Ctx const& c, unique_ptr<T>* el) {
   c.check(el, sizeof(unique_ptr<T>));
   c.check(el->el_.get(), sizeof(T));
   c.check(!el->self_allocated_, "unique_ptr self-allocated");
   deserialize(c, el->el_.get());
 }
 
-template <typename T, size_t Size>
-void deserialize(deserialization_context const& c, array<T, Size>* el) {
+template <typename Ctx, typename T, size_t Size>
+void deserialize(Ctx const& c, array<T, Size>* el) {
   c.check(el, sizeof(array<T, Size>));
   for (auto& m : *el) {
     deserialize(c, &m);
@@ -588,7 +597,7 @@ void deserialize(deserialization_context const& c, array<T, Size>* el) {
 template <typename T, mode const Mode = mode::NONE>
 T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
   check<T, Mode>(from, to);
-  deserialization_context c{from, to};
+  deserialization_context<Mode> c{from, to};
   auto const el = reinterpret_cast<T*>(from + data_start(Mode));
   deserialize(c, el);
   return el;

@@ -21,4 +21,9 @@ build_script:
   - ninja cista-test
 test_script:
   - cista-test
+  - cista-test
+  - cista-test
+  - cista-test
+  - cista-test
+  - cista-test
 deploy: off
