@@ -10,6 +10,9 @@
     <a href="https://ci.appveyor.com/project/felixguendling/cista/branch/master">
         <img src="https://ci.appveyor.com/api/projects/status/cwcwp808uhaa5d3w/branch/master?svg=true">
     </a>
+    <a href="https://dev.azure.com/felixguendling0388/cista/_build/latest?definitionId=1&branchName=master" >
+        <img src="https://dev.azure.com/felixguendling0388/cista/_apis/build/status/felixguendling.cista?branchName=master">
+    </a>
     <a href="https://coveralls.io/github/felixguendling/cista?branch=master">
         <img src="https://coveralls.io/repos/github/felixguendling/cista/badge.svg?branch=master">
     </a>
