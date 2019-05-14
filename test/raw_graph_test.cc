@@ -84,15 +84,15 @@ inline std::set<node const*> bfs(node const* entry) {
 }
 
 TEST_CASE("graph raw serialize file") {
-  constexpr auto const FILE_CHECKSUM = 914462787224036784ULL;
+  constexpr auto const FILE_CHECKSUM = 2984678943337296086ULL;
   constexpr auto const FILENAME = "raw_graph.bin";
+  constexpr auto const MODE =
+      cista::mode::WITH_INTEGRITY | cista::mode::WITH_VERSION;
 
   std::remove(FILENAME);
 
   {
     graph g;
-
-    CHECK(8294030070925330150ULL == cista::type_hash(g));
 
     auto const n1 = g.make_node(data::string{"NODE A"});
     auto const n2 = g.make_node(data::string{"NODE B"});
@@ -107,7 +107,7 @@ TEST_CASE("graph raw serialize file") {
     n3->add_edge(e3);
 
     cista::file f{FILENAME, "w+"};
-    cista::serialize(f, g);
+    cista::serialize<MODE>(f, g);
 
     CHECK(f.checksum() == FILE_CHECKSUM);
   }  // EOL graph
@@ -115,7 +115,7 @@ TEST_CASE("graph raw serialize file") {
   auto b = cista::file(FILENAME, "r").content();
   CHECK(cista::hash(b) == FILE_CHECKSUM);
 
-  auto const g = data::deserialize<graph>(b);
+  auto const g = data::deserialize<graph, MODE>(b);
   auto const visited = bfs(g->nodes_[0].get());
   unsigned i = 0;
   CHECK((*std::next(begin(visited), i++))->name_ == data::string{"NODE A"});

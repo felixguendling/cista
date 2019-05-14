@@ -66,8 +66,8 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
                   "Please implement custom serializer.");
     for_each_ptr_field(*origin, [&](auto& member) {
       auto const member_offset =
-          static_cast<offset_t>(reinterpret_cast<char const*>(member) -
-                                reinterpret_cast<char const*>(origin));
+          static_cast<offset_t>(reinterpret_cast<intptr_t>(member) -
+                                reinterpret_cast<intptr_t>(origin));
       serialize(c, member, pos + member_offset);
     });
   } else if constexpr (std::is_pointer_v<Type>) {
@@ -205,7 +205,7 @@ void serialize(Ctx& c, offset::unique_ptr<T> const* origin,
           false);
 
   if (origin->el_ != nullptr) {
-    c.offsets_[const_cast<T*>(origin->el_.get())] = start;
+    c.offsets_[origin->el_.get()] = start;
     serialize(c, origin->el_.get(), start);
   }
 }

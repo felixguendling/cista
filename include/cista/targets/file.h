@@ -46,7 +46,6 @@ struct file {
 
   ~file() {
     if (f_ != nullptr) {
-      FlushFileBuffers(f_);
       CloseHandle(f_);
     }
   }
@@ -69,7 +68,7 @@ struct file {
 
   size_t size() const {
     LARGE_INTEGER filesize;
-    GetFileSizeEx(f_, &filesize);
+    verify(GetFileSizeEx(f_, &filesize), "file size error");
     return filesize.QuadPart;
   }
 
@@ -82,7 +81,7 @@ struct file {
     chunk(block_size, size(), [&](size_t const from, unsigned block_size) {
       OVERLAPPED overlapped = {0};
       overlapped.Offset = static_cast<DWORD>(from);
-      overlapped.OffsetHigh = from >> 32u;
+      overlapped.OffsetHigh = static_cast<DWORD>(from >> 32u);
       ReadFile(f_, b.data() + from, static_cast<DWORD>(block_size), nullptr,
                &overlapped);
     });
@@ -99,7 +98,11 @@ struct file {
             OVERLAPPED overlapped = {0};
             overlapped.Offset = static_cast<DWORD>(start + from);
             overlapped.OffsetHigh = static_cast<DWORD>((start + from) >> 32U);
-            ReadFile(f_, buf, static_cast<DWORD>(size), nullptr, &overlapped);
+            DWORD bytes_read = {0};
+            verify(ReadFile(f_, buf, static_cast<DWORD>(size), &bytes_read,
+                            &overlapped),
+                   "checksum read error");
+            verify(bytes_read == size, "checksum read error bytes read");
             c = hash(std::string_view{buf, size}, c);
           });
     return c;
@@ -110,7 +113,11 @@ struct file {
     OVERLAPPED overlapped = {0};
     overlapped.Offset = static_cast<DWORD>(pos);
     overlapped.OffsetHigh = pos >> 32u;
-    WriteFile(f_, &val, sizeof(T), nullptr, &overlapped);
+    DWORD bytes_written = {0};
+    verify(WriteFile(f_, &val, sizeof(T), &bytes_written, &overlapped),
+           "write(pos, val) write error");
+    verify(bytes_written == sizeof(T),
+           "write(pos, val) write error bytes written");
   }
 
   offset_t write(void const* ptr, std::size_t const size,
@@ -127,19 +134,29 @@ struct file {
 
     unsigned char const buf[16] = {0};
     auto const num_padding_bytes = static_cast<DWORD>(curr_offset - size_);
-    OVERLAPPED overlapped = {0};
-    overlapped.Offset = static_cast<uint32_t>(size_);
-    overlapped.OffsetHigh = static_cast<uint32_t>(size_ >> 32u);
-    WriteFile(f_, buf, num_padding_bytes, nullptr, &overlapped);
-    size_ = curr_offset;
+    if (num_padding_bytes != 0U) {
+      verify(num_padding_bytes < 16, "invalid padding size");
+      OVERLAPPED overlapped = {0};
+      overlapped.Offset = static_cast<uint32_t>(size_);
+      overlapped.OffsetHigh = static_cast<uint32_t>(size_ >> 32u);
+      DWORD bytes_written = {0};
+      verify(WriteFile(f_, buf, num_padding_bytes, &bytes_written, &overlapped),
+             "write padding error");
+      verify(bytes_written == num_padding_bytes,
+             "write padding error bytes written");
+      size_ = curr_offset;
+    }
 
     constexpr auto block_size = 8192u;
     chunk(block_size, size, [&](size_t const from, unsigned block_size) {
       OVERLAPPED overlapped = {0};
       overlapped.Offset = 0xFFFFFFFF;
       overlapped.OffsetHigh = 0xFFFFFFFF;
-      WriteFile(f_, reinterpret_cast<unsigned char const*>(ptr) + from,
-                block_size, nullptr, &overlapped);
+      DWORD bytes_written = {0};
+      verify(WriteFile(f_, reinterpret_cast<unsigned char const*>(ptr) + from,
+                       block_size, &bytes_written, &overlapped),
+             "write error");
+      verify(bytes_written == block_size, "write error bytes written");
     });
 
     auto const offset = size_;
