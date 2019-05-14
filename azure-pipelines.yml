@@ -20,12 +20,16 @@ jobs:
       inputs:
         solution: build/cista.sln
         msbuildArguments: '/m /p:Configuration=$(BUILD_TYPE)'
-    - script: cista-test
+    - script: |
+        echo "RUN 1"
+        cista-test
+        echo "RUN 2"
+        cista-test
+        echo "RUN 3"
+        cista-test
+        echo "RUN 4"
+        cista-test
+        echo "RUN 5"
+        cista-test
       displayName: 'Run Tests 1'
-      workingDirectory: build\$(BUILD_TYPE)
-    - script: cista-test
-      displayName: 'Run Tests 2'
-      workingDirectory: build\$(BUILD_TYPE)
-    - script: cista-test
-      displayName: 'Run Tests 3'
       workingDirectory: build\$(BUILD_TYPE)

@@ -85,8 +85,9 @@ inline std::set<node const*> bfs(node const* entry) {
 
 TEST_CASE("graph offset serialize file") {
   constexpr auto const FILENAME = "offset_graph.bin";
-  constexpr auto const EXPECTED_BUF_CHECKSUM = 10235660601222901724ULL;
-  constexpr auto const MODE = cista::mode::WITH_INTEGRITY;
+  constexpr auto const EXPECTED_BUF_CHECKSUM = 18376476996644476577ULL;
+  constexpr auto const MODE =
+      cista::mode::WITH_INTEGRITY | cista::mode::WITH_VERSION;
 
   std::remove(FILENAME);
 
