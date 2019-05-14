@@ -205,7 +205,7 @@ void serialize(Ctx& c, offset::unique_ptr<T> const* origin,
           false);
 
   if (origin->el_ != nullptr) {
-    c.offsets_[const_cast<T*>(origin->el_.get())] = start;
+    c.offsets_[origin->el_.get()] = start;
     serialize(c, origin->el_.get(), start);
   }
 }
