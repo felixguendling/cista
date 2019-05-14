@@ -193,7 +193,7 @@ TEST_CASE("graph offset serialize mmap file") {
     n3->add_edge(e3);
 
     cista::buf<cista::mmap> mmap{cista::mmap{FILENAME}};
-    mmap.buf_.reserve(128);
+    mmap.buf_.reserve(512);
     cista::serialize<MODE>(mmap, g);
     CHECK(mmap.checksum() == EXPECTED_BUF_CHECKSUM);
   }  // EOL graph
