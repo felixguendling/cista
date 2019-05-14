@@ -25,7 +25,9 @@ jobs:
     CXXFLAGS: -std=c++17 -stdlib=libc++ -D_LIBCPP_VERSION=1
   steps:
   - script: |
+      sudo mkdir /opt/clang-8
       sudo curl -Ls http://releases.llvm.org/8.0.0/clang%2bllvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz -o clang.tar.xz
+      sudo ls -la /opt/clang-8
       sudo tar -xf clang.tar.xz -C /opt/clang-8
   - script: |
       mkdir build
