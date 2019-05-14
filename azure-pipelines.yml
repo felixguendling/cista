@@ -1,7 +1,3 @@
-variables:
-  buildPlatform: 'x64'
-  buildConfiguration: 'Debug|Release'
-
 jobs:
   - job: msvc
     pool:
@@ -10,6 +6,6 @@ jobs:
       - script: |
           mkdir build
           cd build
-          cmake -DCMAKE_BUILD_TYPE=$(buildConfiguration) ..
+          cmake -DCMAKE_BUILD_TYPE=Release ..
           cmake --build cista-test .
           cista-test
