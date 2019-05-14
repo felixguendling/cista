@@ -22,7 +22,7 @@ jobs:
       inputs:
         solution: build/cista.sln
         msbuildArguments: '/m /p:Configuration=$(BUILD_TYPE)'
-    - script: |
+    - powershell: |
         echo "RUN 1"
         cista-test
         echo "RUN 2"
@@ -33,5 +33,6 @@ jobs:
         cista-test
         echo "RUN 5"
         cista-test
-      displayName: 'Run Tests 1'
+      displayName: 'Run Tests'
+      errorActionPreference: continue
       workingDirectory: build\$(BUILD_TYPE)
