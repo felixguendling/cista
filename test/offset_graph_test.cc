@@ -178,8 +178,6 @@ TEST_CASE("graph offset serialize mmap file") {
   {
     graph g;
 
-    CHECK(10571624168012102829ULL == cista::type_hash(g));
-
     auto const n1 = g.make_node(data::string{"NODE A"});
     auto const n2 = g.make_node(data::string{"NODE B"});
     auto const n3 = g.make_node(data::string{"NODE C"});
@@ -218,8 +216,6 @@ TEST_CASE("graph offset serialize endian test") {
 
   {
     graph g;
-
-    CHECK(10571624168012102829ULL == cista::type_hash(g));
 
     auto const n1 = g.make_node(data::string{"NODE A"});
     auto const n2 = g.make_node(data::string{"NODE B"});
