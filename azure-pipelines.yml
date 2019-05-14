@@ -10,3 +10,31 @@ jobs:
     name: VS2017
     vmImage: vs2017-win2016
     cmakeArgs: '-G "Visual Studio 15 2017" -A x64 ..'
+
+- job: linux
+  strategy:
+    matrix:
+      REL:
+        BUILD_TYPE: Release
+      DBG:
+        BUILD_TYPE: Debug
+  pool:
+    vmImage: ubuntu-16.04
+  variables:
+    CXXFLAGS: -std=c++17 -stdlib=libc++
+    CXX: clang++
+    CC: clang
+  steps:
+  - script: |
+      mkdir build
+      cd build
+      cmake -DCMAKE_BUILD_TYPE=${{ BUILD_TYPE }} ..
+    displayName: 'CMake'
+  - script: |
+      make cista-test
+    workingDirectory: build
+    displayName: 'Build'
+  - script: |
+      ./cista-test
+    workingDirectory: build
+    displayName: 'Run Tests'
