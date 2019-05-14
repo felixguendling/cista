@@ -1,0 +1,15 @@
+variables:
+  buildPlatform: 'x64'
+  buildConfiguration: 'Debug|Release'
+
+jobs:
+  - job: msvc
+    pool:
+      vmImage: 'windows-latest'
+    steps:
+      - script: |
+          mkdir build
+          cd build
+          cmake -DCMAKE_BUILD_TYPE=$(buildConfiguration) ..
+          cmake --build cista-test .
+          cista-test
