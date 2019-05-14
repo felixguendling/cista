@@ -86,7 +86,6 @@ inline std::set<node const*> bfs(node const* entry) {
 TEST_CASE("graph offset serialize file") {
   constexpr auto const FILENAME = "offset_graph.bin";
   constexpr auto const EXPECTED_BUF_CHECKSUM = 10235660601222901724ULL;
-  constexpr auto const MODE = cista::mode::WITH_INTEGRITY;
 
   std::remove(FILENAME);
 
@@ -108,7 +107,7 @@ TEST_CASE("graph offset serialize file") {
     n3->add_edge(e3);
 
     cista::file f{FILENAME, "w+"};
-    cista::serialize<MODE>(f, g);
+    cista::serialize(f, g);
 
     CHECK(f.checksum() == EXPECTED_BUF_CHECKSUM);
   }  // EOL graph
@@ -121,7 +120,7 @@ TEST_CASE("graph offset serialize file") {
   auto b = cista::file(FILENAME, "r").content();
   CHECK(cista::hash(b) == EXPECTED_BUF_CHECKSUM);
 
-  auto const g = data::deserialize<graph, MODE>(b);
+  auto const g = data::deserialize<graph>(b);
   auto const visited = bfs(g->nodes_[0].get());
   unsigned i = 0;
   CHECK((*std::next(begin(visited), i++))->name_ == data::string{"NODE A"});
