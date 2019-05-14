@@ -85,14 +85,12 @@ inline std::set<node const*> bfs(node const* entry) {
 
 TEST_CASE("graph offset serialize file") {
   constexpr auto const FILENAME = "offset_graph.bin";
-  constexpr auto const EXPECTED_BUF_CHECKSUM = 10235660601222901724ULL;
+  constexpr auto const EXPECTED_BUF_CHECKSUM = 15515468028119767496ULL;
 
   std::remove(FILENAME);
 
   {
     graph g;
-
-    CHECK(10571624168012102829ULL == cista::type_hash(g));
 
     auto const n1 = g.make_node(data::string{"NODE A"});
     auto const n2 = g.make_node(data::string{"NODE B"});
