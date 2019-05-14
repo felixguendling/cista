@@ -3,9 +3,12 @@ jobs:
     pool:
       vmImage: 'windows-latest'
     steps:
+      - script: choco install ninja
+        displayName: Install Ninja
       - script: |
           mkdir build
           cd build
           cmake -DCMAKE_BUILD_TYPE=Release -GNinja ..
           ninja cista-test
           cista-test
+        displayName: Build and Run Tests
