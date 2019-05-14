@@ -6,6 +6,8 @@ jobs:
           BUILD_TYPE: Release
         DBG:
           BUILD_TYPE: Debug
+        RELDBG:
+          BUILD_TYPE: RelWithDebInfo
     pool:
       vmImage: windows-2019
     variables:
