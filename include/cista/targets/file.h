@@ -152,6 +152,7 @@ struct file {
       OVERLAPPED overlapped = {0};
       overlapped.Offset = 0xFFFFFFFF;
       overlapped.OffsetHigh = 0xFFFFFFFF;
+      DWORD bytes_written = {0};
       verify(WriteFile(f_, reinterpret_cast<unsigned char const*>(ptr) + from,
                        block_size, &bytes_written, &overlapped),
              "write error");
