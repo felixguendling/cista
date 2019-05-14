@@ -24,15 +24,15 @@ jobs:
         msbuildArguments: '/m /p:Configuration=$(BUILD_TYPE)'
     - powershell: |
         echo "RUN 1"
-        cista-test
+        .\cista-test
         echo "RUN 2"
-        cista-test
+        .\cista-test
         echo "RUN 3"
-        cista-test
+        .\cista-test
         echo "RUN 4"
-        cista-test
+        .\cista-test
         echo "RUN 5"
-        cista-test
+        .\cista-test
       displayName: 'Run Tests'
       errorActionPreference: continue
       workingDirectory: build\$(BUILD_TYPE)
