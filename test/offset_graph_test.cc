@@ -85,7 +85,7 @@ inline std::set<node const*> bfs(node const* entry) {
 
 TEST_CASE("graph offset serialize file") {
   constexpr auto const FILENAME = "offset_graph.bin";
-  constexpr auto const EXPECTED_BUF_CHECKSUM = 18376476996644476577ULL;
+  constexpr auto const EXPECTED_BUF_CHECKSUM = 10235660601222901724ULL;
   constexpr auto const MODE = cista::mode::WITH_INTEGRITY;
 
   std::remove(FILENAME);
@@ -130,7 +130,7 @@ TEST_CASE("graph offset serialize file") {
 }
 
 TEST_CASE("graph offset serialize buf") {
-  constexpr auto const EXPECTED_BUF_CHECKSUM = 18376476996644476577ULL;
+  constexpr auto const EXPECTED_BUF_CHECKSUM = 10235660601222901724ULL;
   constexpr auto const MODE = cista::mode::WITH_INTEGRITY;
 
   cista::byte_buf buf;
@@ -168,7 +168,7 @@ TEST_CASE("graph offset serialize buf") {
 }
 
 TEST_CASE("graph offset serialize mmap file") {
-  constexpr auto const EXPECTED_BUF_CHECKSUM = 18376476996644476577ULL;
+  constexpr auto const EXPECTED_BUF_CHECKSUM = 10235660601222901724ULL;
   constexpr auto const FILENAME = "offset_graph_mmap.bin";
   constexpr auto const MODE = cista::mode::WITH_INTEGRITY;
 
@@ -207,7 +207,7 @@ TEST_CASE("graph offset serialize mmap file") {
 }
 
 TEST_CASE("graph offset serialize endian test") {
-  constexpr auto const EXPECTED_BUF_CHECKSUM = 803058922408992174ULL;
+  constexpr auto const EXPECTED_BUF_CHECKSUM = 2466338159217144219ULL;
   constexpr auto const FILENAME = "offset_graph_big_endian.bin";
   constexpr auto const MODE =
       cista::mode::WITH_INTEGRITY | cista::mode::SERIALIZE_BIG_ENDIAN;
