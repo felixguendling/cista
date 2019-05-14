@@ -1,15 +1,15 @@
 jobs:
-- template: azure-win-build.yml
-  parameters:
-    name: VS2019
-    vmImage: windows-2019
-    cmakeArgs: '-G "Visual Studio 16 2019" -A x64 ..'
+#- template: azure-win-build.yml
+#  parameters:
+#    name: VS2019
+#    vmImage: windows-2019
+#    cmakeArgs: '-G "Visual Studio 16 2019" -A x64 ..'
 
-- template: azure-win-build.yml
-  parameters:
-    name: VS2017
-    vmImage: vs2017-win2016
-    cmakeArgs: '-G "Visual Studio 15 2017" -A x64 ..'
+#- template: azure-win-build.yml
+#  parameters:
+#    name: VS2017
+#    vmImage: vs2017-win2016
+#    cmakeArgs: '-G "Visual Studio 15 2017" -A x64 ..'
 
 - job: linux
   strategy:
@@ -21,8 +21,12 @@ jobs:
   pool:
     vmImage: ubuntu-16.04
   variables:
-    CXXFLAGS: -std=c++17
+    CXX: /opt/clang-8/bin/clang++
+    CXXFLAGS: -std=c++17 -stdlib=libc++ -D_LIBCPP_VERSION=1
   steps:
+  - script:
+      curl -Ls http://releases.llvm.org/8.0.0/clang%2bllvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz -o clang.tar.xz
+      tar -xf clang.tar.xz -C /opt/clang-8
   - script: |
       mkdir build
       cd build
