@@ -331,7 +331,8 @@ struct deserialization_context {
     }
 
     auto const pos = reinterpret_cast<intptr_t>(el);
-    verify(size < std::numeric_limits<intptr_t>::max(), "size out of bounds");
+    verify(size < static_cast<size_t>(std::numeric_limits<intptr_t>::max()),
+           "size out of bounds");
     verify(pos >= from_, "underflow");
     verify(checked_addition(pos, static_cast<intptr_t>(size)) <= to_,
            "overflow");
