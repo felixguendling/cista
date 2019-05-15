@@ -16,7 +16,7 @@ jobs:
     matrix:
       REL:
         BUILD_TYPE: Release
-        CXXFLAGS: '-std=c++17 -stdlib=libc++ -march=native'
+        CXXFLAGS: '-std=c++17 -stdlib=libc++ -D_LIBCPP_VERSION=1 -march=native'
       DBG:
         BUILD_TYPE: Debug
         CXXFLAGS: '-std=c++17 -stdlib=libc++ -D_LIBCPP_VERSION=1 -fno-omit-frame-pointer -fsanitize=address'
