@@ -287,10 +287,7 @@ template <typename Arg, typename... Args>
 Arg checked_addition(Arg a1, Args... aN) {
   using Type = decay_t<Arg>;
   auto add_if_ok = [&](auto x) {
-    if (a1 >
-        (std::is_pointer_v<Type> ? reinterpret_cast<Type>(0xffffffffffffffff)
-                                 : std::numeric_limits<Type>::max()) -
-            x) {
+    if (a1 > std::numeric_limits<Type>::max() - x) {
       throw std::overflow_error("addition overflow");
     }
     a1 = a1 + x;
@@ -316,7 +313,9 @@ template <mode Mode>
 struct deserialization_context {
   static constexpr auto const MODE = Mode;
 
-  deserialization_context(uint8_t* from, uint8_t* to) : from_{from}, to_{to} {}
+  deserialization_context(uint8_t* from, uint8_t* to)
+      : from_{reinterpret_cast<intptr_t>(from)},
+        to_{reinterpret_cast<intptr_t>(to)} {}
 
   template <typename T, typename Ptr>
   T deserialize(Ptr* ptr) const {
@@ -327,11 +326,16 @@ struct deserialization_context {
 
   template <typename T>
   void check(T* el, size_t size) const {
-    auto const* pos = reinterpret_cast<uint8_t const*>(el);
-    if (to_ != nullptr && pos != nullptr &&
-        (pos < from_ || checked_addition(pos, size) > to_)) {
-      throw std::runtime_error("pointer out of bounds");
+    if (el == nullptr || to_ == 0U) {
+      return;
     }
+
+    auto const pos = reinterpret_cast<intptr_t>(el);
+    verify(size < static_cast<size_t>(std::numeric_limits<intptr_t>::max()),
+           "size out of bounds");
+    verify(pos >= from_, "underflow");
+    verify(checked_addition(pos, static_cast<intptr_t>(size)) <= to_,
+           "overflow");
   }
 
   void check(bool condition, char const* msg) const {
@@ -340,7 +344,7 @@ struct deserialization_context {
     }
   }
 
-  uint8_t *from_, *to_;
+  intptr_t from_, to_;
 };
 
 template <typename T, mode const Mode = mode::NONE>
