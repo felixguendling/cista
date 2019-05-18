@@ -43,6 +43,7 @@
 #define DOCTEST_LIBRARY_INCLUDED
 
 #include <iostream>
+#undef _LIBCPP_VERSION
 
 // =================================================================================================
 // == VERSION ======================================================================================
@@ -396,18 +397,18 @@ extern "C" __declspec(dllimport) void __stdcall DebugBreak();
 // Forward declaring 'X' in namespace std is not permitted by the C++ Standard.
 DOCTEST_MSVC_SUPPRESS_WARNING_WITH_PUSH(4643)
 
-DOCTEST_STD_NAMESPACE_BEGIN
-typedef decltype(nullptr) nullptr_t;
-template <class charT>
-struct char_traits;
-template <>
-struct char_traits<char>;
-template <class charT, class traits>
-class basic_ostream;
-typedef basic_ostream<char, char_traits<char>> ostream;
-template <class... Types>
-class tuple;
-DOCTEST_STD_NAMESPACE_END
+// DOCTEST_STD_NAMESPACE_BEGIN
+// typedef decltype(nullptr) nullptr_t;
+// template <class charT>
+// struct char_traits;
+// template <>
+// struct char_traits<char>;
+// template <class charT, class traits>
+// class basic_ostream;
+// typedef basic_ostream<char, char_traits<char>> ostream;
+// template <class... Types>
+// class tuple;
+// DOCTEST_STD_NAMESPACE_END
 
 DOCTEST_MSVC_SUPPRESS_WARNING_POP
 
