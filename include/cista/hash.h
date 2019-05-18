@@ -10,11 +10,11 @@ namespace cista {
 
 using hash_t = std::uint64_t;
 
-constexpr auto const BASE_HASH = 14695981039346656037ull;
+constexpr auto const BASE_HASH = 14695981039346656037ULL;
 
 template <typename T>
 constexpr hash_t hash_combine(hash_t const h, T const val) {
-  constexpr hash_t prime = 1099511628211ull;
+  constexpr hash_t prime = 1099511628211ULL;
   return (h ^ static_cast<hash_t>(val)) * prime;
 }
 
