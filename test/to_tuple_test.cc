@@ -1,3 +1,5 @@
+#include <string>
+
 #include "doctest.h"
 
 #ifdef SINGLE_HEADER
