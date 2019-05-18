@@ -109,6 +109,9 @@ struct basic_string {
     s_.is_short_ = (len <= 15);
     if (s_.is_short_) {
       std::memcpy(s_.s_, str, len);
+      for (auto i = len; i < 15; ++i) {
+        s_.s_[i] = '\0';
+      }
     } else {
       h_.ptr_ = static_cast<char*>(std::malloc(len));
       if (h_.ptr_ == nullptr) {
