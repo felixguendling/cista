@@ -82,9 +82,9 @@ jobs:
   - script: |
       sudo apt update
       sudo apt install -y --no-install-recommends \
-        qemu-user-static
-        binfmt-support
-        debootstrap
+        qemu-user-static \
+        binfmt-support \
+        debootstrap \
         g++-powerpc-linux-gnu
   - script: |
       sudo debootstrap --foreign --no-check-gpg --arch=powerpc xenial $(ROOT_DIR) http://ports.ubuntu.com/
