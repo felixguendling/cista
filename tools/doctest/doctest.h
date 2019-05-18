@@ -384,6 +384,7 @@ extern "C" __declspec(dllimport) void __stdcall DebugBreak();
 #endif // clang
 
 #ifdef _LIBCPP_VERSION
+#include <__config>
 #define DOCTEST_STD_NAMESPACE_BEGIN _LIBCPP_BEGIN_NAMESPACE_STD
 #define DOCTEST_STD_NAMESPACE_END _LIBCPP_END_NAMESPACE_STD
 #else // _LIBCPP_VERSION
