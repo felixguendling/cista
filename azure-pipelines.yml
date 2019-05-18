@@ -70,3 +70,37 @@ jobs:
   - script: ./cista-test
     workingDirectory: build
     displayName: 'Run Tests'
+
+- job: POWERPC
+  pool:
+    vmImage: ubuntu-16.04
+  variables:
+    CXX: /usr/bin/powerpc-linux-gnu-g++-7
+    CXXFLAGS: -std=c++17
+    ROOT_DIR: /ppc-root
+  steps:
+  - script: |
+      sudo apt update
+      sudo apt install -y --no-install-recommends \
+        qemu-user-static
+        binfmt-support
+        debootstrap
+        g++-powerpc-linux-gnu
+  - script: |
+      sudo debootstrap --foreign --no-check-gpg --arch=powerpc xenial $(ROOT_DIR) http://ports.ubuntu.com/
+      sudo mount -t proc /proc $(ROOT_DIR)/proc
+      sudo chroot $(ROOT_DIR) /debootstrap/debootstrap --second-stage
+    displayName: 'Setup PPC Chroot'
+  - script: |
+      mkdir build
+      cd build
+      cmake -DCMAKE_BUILD_TYPE=Release ..
+    displayName: 'CMake'
+  - script: make cista-test
+    workingDirectory: build
+    displayName: 'Build'
+  - script: cp cista-test $(ROOT_DIR)/cista-test
+    workingDirectory: build
+    displayName: 'Copy Binary to Chroot'
+  - script: sudo chroot $(ROOT_DIR) /cista-test
+    displayName: 'Run Tests'
