@@ -89,6 +89,7 @@ jobs:
   - script: |
       sudo debootstrap --foreign --no-check-gpg --arch=powerpc xenial $(ROOT_DIR) http://ports.ubuntu.com/
       sudo mount -t proc /proc $(ROOT_DIR)/proc
+      sudo cp /usr/bin/qemu-ppc-static $(ROOT_DIR)/usr/bin/
       sudo chroot $(ROOT_DIR) /debootstrap/debootstrap --second-stage
     displayName: 'Setup PPC Chroot'
   - script: |
