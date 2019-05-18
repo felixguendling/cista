@@ -1,6 +1,11 @@
 #include "doctest.h"
 
+#ifdef SINGLE_HEADER
 #include "cista.h"
+#else
+#include "cista/decay.h"
+#include "cista/reflection/for_each_field.h"
+#endif
 
 using cista::decay_t;
 

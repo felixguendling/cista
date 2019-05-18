@@ -1,6 +1,10 @@
 #include "doctest.h"
 
+#ifdef SINGLE_HEADER
 #include "cista.h"
+#else
+#include "cista/reflection/for_each_field.h"
+#endif
 
 struct single_member_struct {
   int i_{7};

@@ -2,6 +2,10 @@
 
 #include <ostream>
 
+#ifndef CISTA_PRINTABLE_NO_VEC
+#include <vector>
+#endif
+
 #include "cista/reflection/for_each_field.h"
 
 #ifndef CISTA_PRINTABLE_NO_VEC

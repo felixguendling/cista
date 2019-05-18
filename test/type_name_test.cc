@@ -1,6 +1,10 @@
 #include "doctest.h"
 
+#ifdef SINGLE_HEADER
 #include "cista.h"
+#else
+#include "cista/type_hash/type_name.h"
+#endif
 
 #ifdef _MSC_VER
 TEST_CASE("canonicalize type name test") {

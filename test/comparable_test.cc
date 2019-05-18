@@ -1,6 +1,10 @@
 #include "doctest.h"
 
+#ifdef SINGLE_HEADER
 #include "cista.h"
+#else
+#include "cista/reflection/comparable.h"
+#endif
 
 struct a {
   CISTA_COMPARABLE()

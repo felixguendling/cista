@@ -8,6 +8,7 @@
 #include "cista/hash.h"
 #include "cista/offset_t.h"
 #include "cista/serialized_size.h"
+#include "cista/type_hash/type_name.h"
 #include "cista/verify.h"
 
 namespace cista {

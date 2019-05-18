@@ -2,7 +2,11 @@
 
 #include "doctest.h"
 
+#ifdef SINGLE_HEADER
 #include "cista.h"
+#else
+#include "cista/reflection/printable.h"
+#endif
 
 struct a {
   CISTA_PRINTABLE(a)

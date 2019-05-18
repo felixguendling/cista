@@ -3,7 +3,11 @@
 
 #include "doctest.h"
 
+#ifdef SINGLE_HEADER
 #include "cista.h"
+#else
+#include "cista/serialization.h"
+#endif
 
 namespace data = cista::raw;
 

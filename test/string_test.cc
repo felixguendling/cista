@@ -1,8 +1,12 @@
 #include <iostream>
 
-#include "cista.h"
-
 #include "doctest.h"
+
+#ifdef SINGLE_HEADER
+#include "cista.h"
+#else
+#include "cista/containers.h"
+#endif
 
 using cista::raw::string;
 

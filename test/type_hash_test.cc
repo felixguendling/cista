@@ -1,6 +1,10 @@
 #include "doctest.h"
 
+#ifdef SINGLE_HEADER
 #include "cista.h"
+#else
+#include "cista/type_hash/type_hash.h"
+#endif
 
 namespace hash_test {
 static struct s1 {
@@ -24,8 +28,7 @@ TEST_CASE("hash int struct != int") {
 }
 
 TEST_CASE("hash test struct field order") {
-  CHECK(cista::type_hash(hash_test::a) !=
-        cista::type_hash(hash_test::b));
+  CHECK(cista::type_hash(hash_test::a) != cista::type_hash(hash_test::b));
   CHECK(3410441071354815250ULL == cista::type_hash(hash_test::a));
   CHECK(3410439971843187039ULL == cista::type_hash(hash_test::b));
 }
