@@ -18,7 +18,7 @@ constexpr hash_t hash_combine(hash_t const h, T const val) {
   return (h ^ static_cast<hash_t>(val)) * prime;
 }
 
-constexpr hash_t hash(std::string_view s, hash_t h = BASE_HASH) {
+inline hash_t hash(std::string_view s, hash_t h = BASE_HASH) {
   auto const ptr = reinterpret_cast<uint8_t const*>(s.data());
   for (auto i = size_t{0ULL}; i < s.size(); ++i) {
     h = hash_combine(h, ptr[i]);
