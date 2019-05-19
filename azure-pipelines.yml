@@ -75,8 +75,6 @@ jobs:
   pool:
     vmImage: ubuntu-16.04
   variables:
-    CXX: /usr/bin/powerpc-linux-gnu-g++-7
-    CXXFLAGS: -std=c++17
     ROOT_DIR: /ppc-root
   steps:
   - script: |
@@ -88,7 +86,7 @@ jobs:
         g++-powerpc-linux-gnu
   - script: |
       docker run -u root -v "$PWD:/repo" "felixguendling/cross-build-cpp" \
-        bash -c "cmake -DCMAKE_CXX_COMPILER=/usr/bin/powerpc-linux-gnu-g++-7 /repo && make cista-test && cp cista-test /repo"
+        bash -c "cmake -DCMAKE_CXX_FLAGS=-std=c++17 -DCMAKE_CXX_COMPILER=/usr/bin/powerpc-linux-gnu-g++-7 -DCMAKE_C_COMPILER=/usr/bin/powerpc-linux-gnu-gcc-7 /repo && make cista-test && cp cista-test /repo"
     displayName: 'Build'
   - script: |
       sudo debootstrap --foreign --no-check-gpg --arch=powerpc xenial $(ROOT_DIR) http://ports.ubuntu.com/
