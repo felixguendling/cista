@@ -82,8 +82,7 @@ jobs:
       sudo apt install -y --no-install-recommends \
         qemu-user-static \
         binfmt-support \
-        debootstrap \
-        g++-powerpc-linux-gnu
+        debootstrap
   - script: |
       docker run \
         -u root \
@@ -92,7 +91,7 @@ jobs:
         -e "CC=/usr/bin/powerpc-linux-gnu-gcc-7" \
         -e "CXXFLAGS=-std=c++17" \
         "felixguendling/cross-build-cpp" \
-        bash -c "cmake /repo && make cista-test && cp cista-test /repo"
+        bash -c "cmake -DCMAKE_AR=/usr/bin/powerpc-linux-gnu-ar -DCMAKE_LINKER=/usr/bin/powerpc-linux-gnu-ld /repo && make cista-test && cp cista-test /repo"
     displayName: 'Build'
   - script: |
       sudo debootstrap --foreign --no-check-gpg --arch=powerpc xenial $(ROOT_DIR) http://ports.ubuntu.com/
