@@ -89,7 +89,6 @@ jobs:
   - script: |
       docker run -u root -v "$PWD:/repo" "felixguendling/cross-build-cpp" \
         bash -c "cmake -DCMAKE_CXX_COMPILER=/usr/bin/powerpc-linux-gnu-g++-7 /repo && make cista-test && cp cista-test /repo"
-    workingDirectory: build
     displayName: 'Build'
   - script: |
       sudo debootstrap --foreign --no-check-gpg --arch=powerpc xenial $(ROOT_DIR) http://ports.ubuntu.com/
