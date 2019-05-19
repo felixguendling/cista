@@ -100,6 +100,6 @@ jobs:
       sudo chroot $(ROOT_DIR) /debootstrap/debootstrap --second-stage
     displayName: 'Setup PowerPC Chroot'
   - script: |
-      cp cista-test $(ROOT_DIR)
+      sudo cp cista-test $(ROOT_DIR)
       sudo chroot $(ROOT_DIR) /cista-test
     displayName: 'Run Tests'
