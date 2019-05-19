@@ -85,8 +85,14 @@ jobs:
         debootstrap \
         g++-powerpc-linux-gnu
   - script: |
-      docker run -u root -v "$PWD:/repo" "felixguendling/cross-build-cpp" \
-        bash -c "cmake -DCMAKE_CXX_FLAGS=-std=c++17 -DCMAKE_CXX_COMPILER=/usr/bin/powerpc-linux-gnu-g++-7 -DCMAKE_C_COMPILER=/usr/bin/powerpc-linux-gnu-gcc-7 /repo && make cista-test && cp cista-test /repo"
+      docker run \
+        -u root \
+        -v "$PWD:/repo" \
+        -e "CXX=/usr/bin/powerpc-linux-gnu-g++-7" \
+        -e "CC=/usr/bin/powerpc-linux-gnu-gcc-7" \
+        -e "CXXFLAGS=-std=c++17" \
+        "felixguendling/cross-build-cpp" \
+        bash -c "cmake /repo && make cista-test && cp cista-test /repo"
     displayName: 'Build'
   - script: |
       sudo debootstrap --foreign --no-check-gpg --arch=powerpc xenial $(ROOT_DIR) http://ports.ubuntu.com/
