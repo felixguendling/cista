@@ -1,6 +1,10 @@
 #include "doctest.h"
 
+#ifdef SINGLE_HEADER
 #include "cista.h"
+#else
+#include "cista/serialization.h"
+#endif
 
 TEST_CASE("struct serialization") {
   struct serialize_me {

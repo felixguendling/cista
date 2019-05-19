@@ -72,15 +72,15 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
     });
   } else if constexpr (std::is_pointer_v<Type>) {
     if (*origin == nullptr) {
-      c.write(pos, NULLPTR_OFFSET);
+      c.write(pos, convert_endian<Ctx::MODE>(NULLPTR_OFFSET));
     } else if (auto const it = c.offsets_.find(*origin);
                it != end(c.offsets_)) {
-      c.write(pos, it->second);
+      c.write(pos, convert_endian<Ctx::MODE>(it->second));
     } else {
       c.pending_.emplace_back(
           pending_offset{*origin, pos, pointer_type::ABSOLUTE_PTR});
     }
-  } else if constexpr (std::is_integral_v<Type>) {
+  } else if constexpr (std::numeric_limits<Type>::is_integer) {
     c.write(pos, convert_endian<Ctx::MODE>(*origin));
   }
 }
@@ -91,7 +91,7 @@ void serialize(Ctx& c, offset_ptr<T> const* origin, offset_t const pos) {
     return;
   } else if (auto const it = c.offsets_.find(origin->get());
              it != end(c.offsets_)) {
-    c.write(pos, it->second - pos);
+    c.write(pos, convert_endian<Ctx::MODE>(it->second - pos));
   } else {
     c.pending_.emplace_back(
         pending_offset{origin->get(), pos, pointer_type::RELATIVE_PTR});
@@ -105,9 +105,12 @@ void serialize(Ctx& c, raw::vector<T> const* origin, offset_t const pos) {
                          ? NULLPTR_OFFSET
                          : c.write(origin->el_, size, std::alignment_of_v<T>);
 
-  c.write(pos + cista_member_offset(raw::vector<T>, el_), start);
+  c.write(pos + cista_member_offset(raw::vector<T>, el_),
+          convert_endian<Ctx::MODE>(start));
   c.write(pos + cista_member_offset(raw::vector<T>, allocated_size_),
-          origin->used_size_);
+          convert_endian<Ctx::MODE>(origin->used_size_));
+  c.write(pos + cista_member_offset(raw::vector<T>, used_size_),
+          convert_endian<Ctx::MODE>(origin->used_size_));
   c.write(pos + cista_member_offset(raw::vector<T>, self_allocated_), false);
 
   if (origin->el_ != nullptr) {
@@ -127,11 +130,14 @@ void serialize(Ctx& c, offset::vector<T> const* origin, offset_t const pos) {
                                                       std::alignment_of_v<T>);
 
   c.write(pos + cista_member_offset(offset::vector<T>, el_),
-          start == NULLPTR_OFFSET
-              ? start
-              : start - cista_member_offset(offset::vector<T>, el_) - pos);
+          convert_endian<Ctx::MODE>(
+              start == NULLPTR_OFFSET
+                  ? start
+                  : start - cista_member_offset(offset::vector<T>, el_) - pos));
   c.write(pos + cista_member_offset(offset::vector<T>, allocated_size_),
-          origin->used_size_);
+          convert_endian<Ctx::MODE>(origin->used_size_));
+  c.write(pos + cista_member_offset(offset::vector<T>, used_size_),
+          convert_endian<Ctx::MODE>(origin->used_size_));
   c.write(pos + cista_member_offset(offset::vector<T>, self_allocated_), false);
 
   if (origin->el_ != nullptr) {
@@ -152,7 +158,10 @@ void serialize(Ctx& c, raw::string const* origin, offset_t const pos) {
   auto const start = (origin->h_.ptr_ == nullptr)
                          ? NULLPTR_OFFSET
                          : c.write(origin->data(), origin->size());
-  c.write(pos + cista_member_offset(raw::string, h_.ptr_), start);
+  c.write(pos + cista_member_offset(raw::string, h_.ptr_),
+          convert_endian<Ctx::MODE>(start));
+  c.write(pos + cista_member_offset(raw::string, h_.size_),
+          convert_endian<Ctx::MODE>(origin->h_.size_));
   c.write(pos + cista_member_offset(raw::string, h_.self_allocated_), false);
 }
 
@@ -165,10 +174,14 @@ void serialize(Ctx& c, offset::string const* origin, offset_t const pos) {
   auto const start = (origin->h_.ptr_ == nullptr)
                          ? NULLPTR_OFFSET
                          : c.write(origin->data(), origin->size());
-  c.write(pos + cista_member_offset(offset::string, h_.ptr_),
+  c.write(
+      pos + cista_member_offset(offset::string, h_.ptr_),
+      convert_endian<Ctx::MODE>(
           start == NULLPTR_OFFSET
               ? start
-              : start - cista_member_offset(offset::string, h_.ptr_) - pos);
+              : start - cista_member_offset(offset::string, h_.ptr_) - pos));
+  c.write(pos + cista_member_offset(offset::string, h_.size_),
+          convert_endian<Ctx::MODE>(origin->h_.size_));
   c.write(pos + cista_member_offset(offset::string, h_.self_allocated_), false);
 }
 
@@ -179,7 +192,8 @@ void serialize(Ctx& c, raw::unique_ptr<T> const* origin, offset_t const pos) {
           ? NULLPTR_OFFSET
           : c.write(origin->el_, serialized_size<T>(), std::alignment_of_v<T>);
 
-  c.write(pos + cista_member_offset(raw::unique_ptr<T>, el_), start);
+  c.write(pos + cista_member_offset(raw::unique_ptr<T>, el_),
+          convert_endian<Ctx::MODE>(start));
   c.write(pos + cista_member_offset(raw::unique_ptr<T>, self_allocated_),
           false);
 
@@ -197,10 +211,12 @@ void serialize(Ctx& c, offset::unique_ptr<T> const* origin,
           ? NULLPTR_OFFSET
           : c.write(origin->el_, serialized_size<T>(), std::alignment_of_v<T>);
 
-  c.write(pos + cista_member_offset(offset::unique_ptr<T>, el_),
+  c.write(
+      pos + cista_member_offset(offset::unique_ptr<T>, el_),
+      convert_endian<Ctx::MODE>(
           start == NULLPTR_OFFSET
               ? start
-              : start - cista_member_offset(offset::unique_ptr<T>, el_) - pos);
+              : start - cista_member_offset(offset::unique_ptr<T>, el_) - pos));
   c.write(pos + cista_member_offset(offset::unique_ptr<T>, self_allocated_),
           false);
 
@@ -241,7 +257,7 @@ void serialize(Target& t, T& value) {
   serialization_context<Target, Mode> c{t};
 
   if constexpr ((Mode & mode::WITH_VERSION) == mode::WITH_VERSION) {
-    auto const h = type_hash(value);
+    auto const h = convert_endian<Mode>(type_hash(value));
     c.write(&h, sizeof(h));
   }
 
@@ -257,11 +273,11 @@ void serialize(Target& t, T& value) {
 
   for (auto& p : c.pending_) {
     if (auto const it = c.offsets_.find(p.origin_ptr_); it != end(c.offsets_)) {
-      c.write(p.pos_, (p.type_ == pointer_type::ABSOLUTE_PTR)
-                          ? it->second
-                          : it->second - p.pos_);
+      c.write(p.pos_, convert_endian<Mode>(p.type_ == pointer_type::ABSOLUTE_PTR
+                                               ? it->second
+                                               : it->second - p.pos_));
     } else {
-      printf("warning: dangling pointer %p serialized at offset %" PRId64 "\n",
+      printf("warning: dangling pointer %p serialized at offset %" PRI_O "\n",
              p.origin_ptr_, p.pos_);
     }
   }
@@ -269,7 +285,7 @@ void serialize(Target& t, T& value) {
   if constexpr ((Mode & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
     auto const csum =
         c.checksum(integrity_offset + static_cast<offset_t>(sizeof(hash_t)));
-    c.write(integrity_offset, csum);
+    c.write(integrity_offset, convert_endian<Mode>(csum));
   }
 }
 
@@ -352,12 +368,14 @@ void check(uint8_t const* from, uint8_t const* to) {
   verify(to - from > data_start(Mode), "invalid range");
 
   if constexpr ((Mode & mode::WITH_VERSION) == mode::WITH_VERSION) {
-    verify(*reinterpret_cast<hash_t const*>(from) == type_hash<T>(),
+    verify(convert_endian<Mode>(*reinterpret_cast<hash_t const*>(from)) ==
+               type_hash<T>(),
            "invalid version");
   }
 
   if constexpr ((Mode & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
-    verify(*reinterpret_cast<uint64_t const*>(from + integrity_start(Mode)) ==
+    verify(convert_endian<Mode>(*reinterpret_cast<uint64_t const*>(
+               from + integrity_start(Mode))) ==
                hash(std::string_view{
                    reinterpret_cast<char const*>(from + data_start(Mode)),
                    static_cast<size_t>(to - from - data_start(Mode))}),
@@ -386,10 +404,14 @@ template <typename Ctx, typename T>
 void deserialize(Ctx const& c, T* el) {
   using written_type_t = decay_t<T>;
   if constexpr (std::is_pointer_v<written_type_t>) {
-    *el = c.template deserialize<written_type_t>(*el);
+    *el =
+        c.template deserialize<written_type_t>(convert_endian<Ctx::MODE>(*el));
     c.check(*el, sizeof(*std::declval<written_type_t>()));
   } else if constexpr (std::is_scalar_v<written_type_t>) {
     c.check(el, sizeof(T));
+    if (std::numeric_limits<written_type_t>::is_integer) {
+      *el = convert_endian<Ctx::MODE>(*el);
+    }
   } else {
     for_each_ptr_field(*el, [&](auto& f) { deserialize(c, f); });
   }
@@ -398,7 +420,9 @@ void deserialize(Ctx const& c, T* el) {
 template <typename Ctx, typename T>
 void deserialize(Ctx const& c, vector<T>* el) {
   c.check(el, sizeof(vector<T>));
-  el->el_ = c.template deserialize<T*>(el->el_);
+  el->el_ = c.template deserialize<T*>(convert_endian<Ctx::MODE>(el->el_));
+  el->allocated_size_ = convert_endian<Ctx::MODE>(el->allocated_size_);
+  el->used_size_ = convert_endian<Ctx::MODE>(el->used_size_);
   c.check(el->el_, checked_multiplication(
                        static_cast<size_t>(el->allocated_size_), sizeof(T)));
   c.check(el->allocated_size_ == el->used_size_, "vector size mismatch");
@@ -412,7 +436,9 @@ template <typename Ctx>
 void deserialize(Ctx const& c, string* el) {
   c.check(el, sizeof(string));
   if (!el->is_short()) {
-    el->h_.ptr_ = c.template deserialize<char*>(el->h_.ptr_);
+    el->h_.ptr_ =
+        c.template deserialize<char*>(convert_endian<Ctx::MODE>(el->h_.ptr_));
+    el->h_.size_ = convert_endian<Ctx::MODE>(el->h_.size_);
     c.check(el->h_.ptr_, el->h_.size_);
     c.check(!el->h_.self_allocated_, "string self-allocated");
   }
@@ -421,7 +447,7 @@ void deserialize(Ctx const& c, string* el) {
 template <typename Ctx, typename T>
 void deserialize(Ctx const& c, unique_ptr<T>* el) {
   c.check(el, sizeof(unique_ptr<T>));
-  el->el_ = c.template deserialize<T*>(el->el_);
+  el->el_ = c.template deserialize<T*>(convert_endian<Ctx::MODE>(el->el_));
   c.check(el->el_, sizeof(T));
   c.check(!el->self_allocated_, "unique_ptr self-allocated");
   deserialize(c, el->el_);
@@ -470,19 +496,22 @@ template <typename Ctx, typename T>
 void unchecked_deserialize(Ctx const& c, T* el) {
   using written_type_t = decay_t<T>;
   if constexpr (std::is_pointer_v<written_type_t>) {
-    *el = c.template deserialize<written_type_t>(*el);
+    *el =
+        c.template deserialize<written_type_t>(convert_endian<Ctx::MODE>(*el));
+  } else if constexpr (std::is_integral_v<written_type_t>) {
+    *el = convert_endian<Ctx::MODE>(*el);
   } else if constexpr (std::is_scalar_v<written_type_t>) {
-    if constexpr (std::is_integral_v<written_type_t>) {
-      *el = convert_endian<Ctx::MODE>(*el);
-    }
+    // skip
   } else {
     for_each_ptr_field(*el, [&](auto& f) { unchecked_deserialize(c, f); });
   }
-}
+}  // namespace raw
 
 template <typename Ctx, typename T>
 void unchecked_deserialize(Ctx const& c, vector<T>* el) {
-  el->el_ = c.template deserialize<T*>(el->el_);
+  el->el_ = c.template deserialize<T*>(convert_endian<Ctx::MODE>(el->el_));
+  el->used_size_ = convert_endian<Ctx::MODE>(el->used_size_);
+  el->allocated_size_ = convert_endian<Ctx::MODE>(el->allocated_size_);
   for (auto& m : *el) {
     unchecked_deserialize(c, &m);
   }
@@ -491,13 +520,15 @@ void unchecked_deserialize(Ctx const& c, vector<T>* el) {
 template <typename Ctx>
 void unchecked_deserialize(Ctx const& c, string* el) {
   if (!el->is_short()) {
-    el->h_.ptr_ = c.template deserialize<char*>(el->h_.ptr_);
+    el->h_.ptr_ =
+        c.template deserialize<char*>(convert_endian<Ctx::MODE>(el->h_.ptr_));
+    el->h_.size_ = convert_endian<Ctx::MODE>(el->h_.size_);
   }
 }
 
 template <typename Ctx, typename T>
 void unchecked_deserialize(Ctx const& c, unique_ptr<T>* el) {
-  el->el_ = c.template deserialize<T*>(el->el_);
+  el->el_ = c.template deserialize<T*>(convert_endian<Ctx::MODE>(el->el_));
   unchecked_deserialize(c, el->el_);
 }
 
@@ -544,7 +575,10 @@ void deserialize(Ctx const&, array<T, Size>*);
 template <typename Ctx, typename T>
 void deserialize(Ctx const& c, T* el) {
   using written_type_t = decay_t<T>;
-  if constexpr (std::is_scalar_v<written_type_t>) {
+  if constexpr (std::is_pointer_v<written_type_t>) {
+    static_assert(!std::is_pointer_v<written_type_t>,
+                  "Use cista::offset::ptr<T> instead.");
+  } else if constexpr (std::is_scalar_v<written_type_t>) {
     c.check(el, sizeof(T));
     if constexpr (std::is_integral_v<written_type_t>) {
       *el = convert_endian<Ctx::MODE>(*el);
@@ -557,12 +591,17 @@ void deserialize(Ctx const& c, T* el) {
 template <typename Ctx, typename T>
 void deserialize(Ctx const& c, offset_ptr<T>* el) {
   using written_type_t = decay_t<T>;
+  c.check(el, sizeof(offset_ptr<T>));
+  el->offset_ = convert_endian<Ctx::MODE>(el->offset_);
   c.check(el->get(), sizeof(std::declval<written_type_t>()));
 }
 
 template <typename Ctx, typename T>
 void deserialize(Ctx const& c, vector<T>* el) {
   c.check(el, sizeof(vector<T>));
+  el->el_.offset_ = convert_endian<Ctx::MODE>(el->el_.offset_);
+  el->allocated_size_ = convert_endian<Ctx::MODE>(el->allocated_size_);
+  el->used_size_ = convert_endian<Ctx::MODE>(el->used_size_);
   c.check(el->el_.get(),
           checked_multiplication(static_cast<size_t>(el->allocated_size_),
                                  sizeof(T)));
@@ -577,6 +616,8 @@ template <typename Ctx>
 void deserialize(Ctx const& c, string* el) {
   c.check(el, sizeof(string));
   if (!el->is_short()) {
+    el->h_.ptr_.offset_ = convert_endian<Ctx::MODE>(el->h_.ptr_.offset_);
+    el->h_.size_ = convert_endian<Ctx::MODE>(el->h_.size_);
     c.check(el->h_.ptr_.get(), el->h_.size_);
     c.check(!el->h_.self_allocated_, "string self-allocated");
   }
@@ -585,6 +626,7 @@ void deserialize(Ctx const& c, string* el) {
 template <typename Ctx, typename T>
 void deserialize(Ctx const& c, unique_ptr<T>* el) {
   c.check(el, sizeof(unique_ptr<T>));
+  el->el_.offset_ = convert_endian<Ctx::MODE>(el->el_.offset_);
   c.check(el->el_.get(), sizeof(T));
   c.check(!el->self_allocated_, "unique_ptr self-allocated");
   deserialize(c, el->el_.get());
@@ -619,7 +661,7 @@ T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr) {
   return reinterpret_cast<T*>(from + data_start(Mode));
 }
 
-template <mode const Mode = mode::NONE, typename T, typename Container>
+template <typename T, mode const Mode = mode::NONE, typename Container>
 T* unchecked_deserialize(Container& c) {
   return unchecked_deserialize<T, Mode>(&c[0], &c[0] + c.size());
 }

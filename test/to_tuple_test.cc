@@ -1,6 +1,12 @@
+#include <string>
+
 #include "doctest.h"
 
+#ifdef SINGLE_HEADER
 #include "cista.h"
+#else
+#include "cista/reflection/to_tuple.h"
+#endif
 
 struct a {
   int i_ = 1;

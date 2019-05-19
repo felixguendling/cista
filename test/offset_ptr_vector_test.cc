@@ -1,19 +1,23 @@
 #include "doctest.h"
 
+#ifdef SINGLE_HEADER
 #include "cista.h"
+#else
+#include "cista/serialization.h"
+#endif
 
 namespace data = cista::offset;
 
 TEST_CASE("offset vector serialize") {
   cista::byte_buf buf;
   {
-    data::vector<int> vec;
+    data::vector<int32_t> vec;
     vec.push_back(1);
     vec.push_back(2);
     vec.push_back(3);
     vec.push_back(4);
 
-    int j = 1;
+    int32_t j = 1;
     for (auto const i : vec) {
       CHECK(i == j++);
     }
@@ -21,8 +25,8 @@ TEST_CASE("offset vector serialize") {
     buf = serialize(vec);
   }
 
-  auto const vec = reinterpret_cast<data::vector<int>*>(&buf[0]);
-  int j = 1;
+  auto const vec = data::deserialize<data::vector<int32_t>>(buf);
+  int32_t j = 1;
   for (auto const i : *vec) {
     CHECK(i == j++);
   }
@@ -37,7 +41,7 @@ TEST_CASE("offset string serialize") {
     buf = serialize(str);
   }
 
-  auto const str = reinterpret_cast<data::string*>(&buf[0]);
+  auto const str = data::deserialize<data::string>(buf);
   CHECK(*str == s);
 }
 
@@ -48,7 +52,7 @@ TEST_CASE("offset unique_ptr serialize") {
     buf = serialize(ptr);
   }
 
-  auto const ptr = reinterpret_cast<data::unique_ptr<int>*>(&buf[0]);
+  auto const ptr = data::deserialize<data::unique_ptr<int>>(buf);
   CHECK(**ptr == 33);
 }
 
@@ -65,10 +69,10 @@ TEST_CASE("offset_ptr serialize") {
     buf = cista::serialize(obj);
   }  // EOL obj
 
-  auto const serialized = reinterpret_cast<serialize_me*>(&buf[0]);
-  CHECK(serialized->raw_.get() == serialized->i_.get());
-  CHECK(*serialized->raw_ == 77);
-  CHECK(*serialized->i_.get() == 77);
+  auto const deserialized = data::deserialize<serialize_me>(buf);
+  CHECK(deserialized->raw_.get() == deserialized->i_.get());
+  CHECK(*deserialized->raw_ == 77);
+  CHECK(*deserialized->i_.get() == 77);
 }
 
 TEST_CASE("offset_ptr serialize pending") {
@@ -85,7 +89,7 @@ TEST_CASE("offset_ptr serialize pending") {
     buf = cista::serialize(obj);
   }  // EOL obj
 
-  auto const serialized = reinterpret_cast<serialize_me*>(&buf[0]);
+  auto const serialized = data::deserialize<serialize_me>(buf);
   CHECK(serialized->raw_.get() == serialized->i_.get());
   CHECK(*serialized->raw_ == 77);
   CHECK(*serialized->i_.get() == 77);

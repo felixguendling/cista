@@ -70,3 +70,36 @@ jobs:
   - script: ./cista-test
     workingDirectory: build
     displayName: 'Run Tests'
+
+- job: POWERPC
+  pool:
+    vmImage: ubuntu-16.04
+  variables:
+    ROOT_DIR: /ppc-root
+  steps:
+  - script: |
+      sudo apt update
+      sudo apt install -y --no-install-recommends \
+        qemu-user-static \
+        binfmt-support \
+        debootstrap
+  - script: |
+      docker run \
+        -u root \
+        -v "$PWD:/repo" \
+        -e "CXX=/usr/bin/powerpc-linux-gnu-g++-7" \
+        -e "CC=/usr/bin/powerpc-linux-gnu-gcc-7" \
+        -e "CXXFLAGS=-std=c++17" \
+        "felixguendling/cross-build-cpp" \
+        bash -c "cmake -DCMAKE_AR=/usr/bin/powerpc-linux-gnu-ar -DCMAKE_LINKER=/usr/bin/powerpc-linux-gnu-ld /repo && make cista-test && cp cista-test /repo"
+    displayName: 'Build'
+  - script: |
+      sudo debootstrap --foreign --no-check-gpg --arch=powerpc xenial $(ROOT_DIR) http://ports.ubuntu.com/
+      sudo mount -t proc /proc $(ROOT_DIR)/proc
+      sudo cp /usr/bin/qemu-ppc-static $(ROOT_DIR)/usr/bin/
+      sudo chroot $(ROOT_DIR) /debootstrap/debootstrap --second-stage
+    displayName: 'Setup PowerPC Chroot'
+  - script: |
+      sudo cp cista-test $(ROOT_DIR)
+      sudo chroot $(ROOT_DIR) /cista-test
+    displayName: 'Run Tests'

@@ -2,7 +2,11 @@
 
 #include <cinttypes>
 
+#ifdef SINGLE_HEADER
 #include "cista.h"
+#else
+#include "cista/serialization.h"
+#endif
 
 using namespace cista;
 using namespace cista::raw;

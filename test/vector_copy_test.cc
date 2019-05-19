@@ -1,6 +1,10 @@
 #include "doctest.h"
 
+#ifdef SINGLE_HEADER
 #include "cista.h"
+#else
+#include "cista/containers.h"
+#endif
 
 TEST_CASE("to_tuple") {
   namespace data = cista::offset;

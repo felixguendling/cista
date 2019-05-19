@@ -3,9 +3,24 @@
 
 #include "doctest.h"
 
+#ifdef SINGLE_HEADER
 #include "cista.h"
+#else
+#include "cista/mmap.h"
+#include "cista/serialization.h"
+#endif
 
 namespace data = cista::offset;
+
+#ifdef CISTA_32BIT
+constexpr auto const CHECKSUM_INTEGRITY_AND_VERSION = 11971492370780101450ULL;
+constexpr auto const CHECKSUM_BIG_ENDIAN = 2015983284030897190ULL;
+#endif
+
+#ifdef CISTA_64BIT
+constexpr auto const CHECKSUM_INTEGRITY_AND_VERSION = 4525306341978948381ULL;
+constexpr auto const CHECKSUM_BIG_ENDIAN = 6403134668733173885ULL;
+#endif
 
 namespace graphns::offset {
 
@@ -85,7 +100,6 @@ inline std::set<node const*> bfs(node const* entry) {
 
 TEST_CASE("graph offset serialize file") {
   constexpr auto const FILENAME = "offset_graph.bin";
-  constexpr auto const EXPECTED_BUF_CHECKSUM = 18376476996644476577ULL;
   constexpr auto const MODE =
       cista::mode::WITH_INTEGRITY | cista::mode::WITH_VERSION;
 
@@ -109,16 +123,16 @@ TEST_CASE("graph offset serialize file") {
     cista::file f{FILENAME, "w+"};
     cista::serialize<MODE>(f, g);
 
-    CHECK(f.checksum() == EXPECTED_BUF_CHECKSUM);
+    CHECK(f.checksum() == CHECKSUM_INTEGRITY_AND_VERSION);
   }  // EOL graph
 
   {
     cista::file f{FILENAME, "r"};
-    CHECK(f.checksum() == EXPECTED_BUF_CHECKSUM);
+    CHECK(f.checksum() == CHECKSUM_INTEGRITY_AND_VERSION);
   }
 
   auto b = cista::file(FILENAME, "r").content();
-  CHECK(cista::hash(b) == EXPECTED_BUF_CHECKSUM);
+  CHECK(cista::hash(b) == CHECKSUM_INTEGRITY_AND_VERSION);
 
   auto const g = data::deserialize<graph, MODE>(b);
   auto const visited = bfs(g->nodes_[0].get());
@@ -129,7 +143,6 @@ TEST_CASE("graph offset serialize file") {
 }
 
 TEST_CASE("graph offset serialize buf") {
-  constexpr auto const EXPECTED_BUF_CHECKSUM = 18376476996644476577ULL;
   constexpr auto const MODE =
       cista::mode::WITH_INTEGRITY | cista::mode::WITH_VERSION;
 
@@ -152,12 +165,13 @@ TEST_CASE("graph offset serialize buf") {
     cista::buf b;
     cista::serialize<MODE>(b, g);
 
-    CHECK(b.checksum() == EXPECTED_BUF_CHECKSUM);
+    // b.print();
+    CHECK(b.checksum() == CHECKSUM_INTEGRITY_AND_VERSION);
 
     buf = std::move(b.buf_);
   }  // EOL graphx
 
-  CHECK(cista::hash(buf) == EXPECTED_BUF_CHECKSUM);
+  CHECK(cista::hash(buf) == CHECKSUM_INTEGRITY_AND_VERSION);
 
   auto const g = data::deserialize<graph, MODE>(buf);
   auto const visited = bfs(g->nodes_[0].get());
@@ -168,7 +182,6 @@ TEST_CASE("graph offset serialize buf") {
 }
 
 TEST_CASE("graph offset serialize mmap file") {
-  constexpr auto const EXPECTED_BUF_CHECKSUM = 18376476996644476577ULL;
   constexpr auto const FILENAME = "offset_graph_mmap.bin";
   constexpr auto const MODE =
       cista::mode::WITH_INTEGRITY | cista::mode::WITH_VERSION;
@@ -193,7 +206,7 @@ TEST_CASE("graph offset serialize mmap file") {
     cista::buf<cista::mmap> mmap{cista::mmap{FILENAME}};
     mmap.buf_.reserve(512);
     cista::serialize<MODE>(mmap, g);
-    CHECK(mmap.checksum() == EXPECTED_BUF_CHECKSUM);
+    CHECK(mmap.checksum() == CHECKSUM_INTEGRITY_AND_VERSION);
   }  // EOL graph
 
   auto b = cista::file(FILENAME, "r").content();
@@ -206,7 +219,6 @@ TEST_CASE("graph offset serialize mmap file") {
 }
 
 TEST_CASE("graph offset serialize endian test") {
-  constexpr auto const EXPECTED_BUF_CHECKSUM = 803058922408992174ULL;
   constexpr auto const FILENAME = "offset_graph_big_endian.bin";
   constexpr auto const MODE = cista::mode::WITH_INTEGRITY |
                               cista::mode::WITH_VERSION |
@@ -232,7 +244,7 @@ TEST_CASE("graph offset serialize endian test") {
     cista::buf<cista::mmap> mmap{cista::mmap{FILENAME}};
     mmap.buf_.reserve(512);
     cista::serialize<MODE>(mmap, g);
-    CHECK(mmap.checksum() == EXPECTED_BUF_CHECKSUM);
+    CHECK(mmap.checksum() == CHECKSUM_BIG_ENDIAN);
   }  // EOL graph
 
   auto b = cista::file(FILENAME, "r").content();

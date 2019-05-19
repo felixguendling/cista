@@ -4,7 +4,11 @@
 #include <string>
 #include <vector>
 
+#ifdef SINGLE_HEADER
 #include "cista.h"
+#else
+#include "cista/reflection/for_each_field.h"
+#endif
 
 struct a {
   static constexpr auto const id = 77;

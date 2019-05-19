@@ -1,12 +1,15 @@
 #include "doctest.h"
 
+#ifdef SINGLE_HEADER
 #include "cista.h"
+#else
+#include "cista/serialization.h"
+#endif
 
 namespace data = cista::raw;
 
 struct v1 {
   data::string s_;
-  int dummy_for_msvc_{0};
 };
 
 struct v2 {
@@ -26,7 +29,6 @@ struct data_v2 {
 
 struct version_detection {
   int version_{0};
-  int dummy_for_msvc_{0};
 };
 
 TEST_CASE("downward compatibility test") {

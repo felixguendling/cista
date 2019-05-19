@@ -2,7 +2,13 @@
 
 #include <vector>
 
+#ifdef SINGLE_HEADER
 #include "cista.h"
+#else
+#include "cista/serialization.h"
+#endif
+
+namespace data = cista::raw;
 
 namespace std {
 
@@ -54,8 +60,6 @@ cista::hash_t type_hash(std::vector<T> const&, cista::hash_t h) {
 }
 
 }  // namespace std
-
-namespace data = cista::raw;
 
 TEST_CASE("vector test") {
   using serialize_me = std::vector<data::vector<std::vector<int64_t>>>;

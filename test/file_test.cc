@@ -1,9 +1,14 @@
 #include <fstream>
 #include <iostream>
 
-#include "cista.h"
-
 #include "doctest.h"
+
+#ifdef SINGLE_HEADER
+#include "cista.h"
+#else
+#include "cista/reflection/for_each_field.h"
+#include "cista/targets/file.h"
+#endif
 
 using namespace cista;
 
