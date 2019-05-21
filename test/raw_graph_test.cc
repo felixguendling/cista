@@ -12,7 +12,7 @@
 namespace data = cista::raw;
 
 #ifdef CISTA_32BIT
-constexpr auto const CHECKSUM_INTEGRITY_AND_VERSION = 9600492011682296244ULL;
+constexpr auto const CHECKSUM_INTEGRITY_AND_VERSION = 2016582844804160889ULL;
 #endif
 
 #ifdef CISTA_64BIT
