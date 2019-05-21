@@ -34,14 +34,14 @@ inline void serialize(Ctx& c, std::vector<T> const* origin,
 }
 
 template <typename Ctx, typename T>
-inline void unchecked_deserialize(Ctx const& c, std::vector<T>* el) {
+inline void deserialize(Ctx const& c, std::vector<T>* el) {
   auto const size = *reinterpret_cast<uint64_t*>(el);
   auto const data = reinterpret_cast<T*>(
       c.from_ + *reinterpret_cast<cista::offset_t*>(
                     reinterpret_cast<uint8_t*>(el) + sizeof(uint64_t)));
 
   for (auto it = data; it != data + size; ++it) {
-    cista::raw::unchecked_deserialize(c, it);
+    cista::deserialize(c, it);
   }
 
   auto& vec = *new (static_cast<void*>(el)) std::vector<T>();
@@ -77,7 +77,7 @@ TEST_CASE("vector test") {
     buf = serialize(obj);
   }  // EOL obj
 
-  auto const& serialized = *data::unchecked_deserialize<serialize_me>(buf);
+  auto const& serialized = *cista::unchecked_deserialize<serialize_me>(buf);
   CHECK(serialized[0][0][0] == 1);
   CHECK(serialized[0][1][0] == 2);
   CHECK(serialized[0][2][0] == 3);

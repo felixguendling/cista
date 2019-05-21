@@ -60,7 +60,7 @@ int main() {
   }  // End of life for the "obj" value
 
   // Deserialize and read.
-  auto deserialized = data::deserialize<my_struct>(buf);
+  auto deserialized = cista::deserialize<my_struct>(buf);
   assert(deserialized->j.d_ == data::string{"test"});
 }
 ```
@@ -249,7 +249,7 @@ struct graph {
 }  // EOL graph
 
 auto b = cista::file("test.bin", open_mode::READ).content();
-auto const g = data::deserialize<graph>(b);
+auto const g = cista::deserialize<graph>(b);
 
 use(g);
 ```

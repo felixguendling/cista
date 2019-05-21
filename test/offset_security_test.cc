@@ -29,7 +29,7 @@ inline void test_sec_value_overflow() {
   CHECK(buf.size() == sizeof(serialize_me));
   buf.resize(buf.size() - 1);
 
-  CHECK_THROWS(data::deserialize<serialize_me>(buf));
+  CHECK_THROWS(cista::deserialize<serialize_me>(buf));
 }
 
 inline void test_sec_string_overflow() {
@@ -54,7 +54,7 @@ inline void test_sec_string_overflow() {
   CHECK(buf.size() == sizeof(serialize_me) + std::strlen(long_str));
   buf.resize(buf.size() - 1);
 
-  CHECK_THROWS(data::deserialize<serialize_me>(buf));
+  CHECK_THROWS(cista::deserialize<serialize_me>(buf));
 }
 
 inline void test_sec_vector_overflow() {
@@ -77,14 +77,14 @@ inline void test_sec_vector_overflow() {
 
   CHECK(buf.size() == sizeof(serialize_me) + sizeof(int));
   buf.resize(buf.size() - 1);
-  CHECK_THROWS(data::deserialize<serialize_me>(buf));
+  CHECK_THROWS(cista::deserialize<serialize_me>(buf));
 
   {
     serialize_me obj{1, {2, 3, data::vector<int>{}}};
     buf = cista::serialize(obj);
   }
   buf.resize(buf.size() - 1);
-  CHECK_THROWS(data::deserialize<serialize_me>(buf));
+  CHECK_THROWS(cista::deserialize<serialize_me>(buf));
 }
 
 inline void test_sec_unique_ptr_overflow_unset() {
@@ -105,7 +105,7 @@ inline void test_sec_unique_ptr_overflow_unset() {
   }
 
   buf.resize(buf.size() - 1);
-  CHECK_THROWS(data::deserialize<serialize_me>(buf));
+  CHECK_THROWS(cista::deserialize<serialize_me>(buf));
 }
 
 inline void test_sec_unique_ptr_overflow_set() {
@@ -128,7 +128,7 @@ inline void test_sec_unique_ptr_overflow_set() {
 
   CHECK(buf.size() == sizeof(serialize_me) + sizeof(int));
   buf.resize(buf.size() - 1);
-  CHECK_THROWS(data::deserialize<serialize_me>(buf));
+  CHECK_THROWS(cista::deserialize<serialize_me>(buf));
 }
 
 inline void test_sec_array_overflow() {
@@ -153,7 +153,7 @@ inline void test_sec_array_overflow() {
 
   CHECK(buf.size() == sizeof(serialize_me));
   buf.resize(buf.size() - 1);
-  CHECK_THROWS(data::deserialize<serialize_me>(buf));
+  CHECK_THROWS(cista::deserialize<serialize_me>(buf));
 }
 }  // namespace
 

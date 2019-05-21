@@ -23,7 +23,7 @@ template <typename Ctx>
 void serialize(Ctx&, serialize_me const*, offset_t const) {}
 
 template <typename Ctx>
-void unchecked_deserialize(Ctx const&, serialize_me*) {}
+void deserialize(Ctx const&, serialize_me*) {}
 
 TEST_CASE("custom struct test") {
   byte_buf buf;

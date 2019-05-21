@@ -106,7 +106,7 @@ TEST_CASE("array serialize test") {
     buf = cista::serialize(obj);
   }  // EOL obj
 
-  auto const deserialize = data::deserialize<serialize_me>(buf);
+  auto const deserialize = cista::deserialize<serialize_me>(buf);
   CHECK(deserialize->j_.d_[0] == 1);
   CHECK(deserialize->j_.d_[1] == 2);
   CHECK(deserialize->j_.d_[2] == 3);
