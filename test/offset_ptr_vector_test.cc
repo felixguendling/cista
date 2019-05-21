@@ -25,7 +25,7 @@ TEST_CASE("offset vector serialize") {
     buf = serialize(vec);
   }
 
-  auto const vec = data::deserialize<data::vector<int32_t>>(buf);
+  auto const vec = cista::deserialize<data::vector<int32_t>>(buf);
   int32_t j = 1;
   for (auto const i : *vec) {
     CHECK(i == j++);
@@ -41,7 +41,7 @@ TEST_CASE("offset string serialize") {
     buf = serialize(str);
   }
 
-  auto const str = data::deserialize<data::string>(buf);
+  auto const str = cista::deserialize<data::string>(buf);
   CHECK(*str == s);
 }
 
@@ -52,7 +52,7 @@ TEST_CASE("offset unique_ptr serialize") {
     buf = serialize(ptr);
   }
 
-  auto const ptr = data::deserialize<data::unique_ptr<int>>(buf);
+  auto const ptr = cista::deserialize<data::unique_ptr<int>>(buf);
   CHECK(**ptr == 33);
 }
 
@@ -69,7 +69,7 @@ TEST_CASE("offset_ptr serialize") {
     buf = cista::serialize(obj);
   }  // EOL obj
 
-  auto const deserialized = data::deserialize<serialize_me>(buf);
+  auto const deserialized = cista::deserialize<serialize_me>(buf);
   CHECK(deserialized->raw_.get() == deserialized->i_.get());
   CHECK(*deserialized->raw_ == 77);
   CHECK(*deserialized->i_.get() == 77);
@@ -89,7 +89,7 @@ TEST_CASE("offset_ptr serialize pending") {
     buf = cista::serialize(obj);
   }  // EOL obj
 
-  auto const serialized = data::deserialize<serialize_me>(buf);
+  auto const serialized = cista::deserialize<serialize_me>(buf);
   CHECK(serialized->raw_.get() == serialized->i_.get());
   CHECK(*serialized->raw_ == 77);
   CHECK(*serialized->i_.get() == 77);

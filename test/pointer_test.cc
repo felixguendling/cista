@@ -21,7 +21,7 @@ TEST_CASE("pointer serialization") {
     buf = cista::serialize(obj);
   }  // EOL obj
 
-  auto const deserialized = data::deserialize<serialize_me>(buf);
+  auto const deserialized = cista::deserialize<serialize_me>(buf);
   CHECK(deserialized->raw_ == deserialized->i_.get());
   CHECK(*deserialized->raw_ == 77);
   CHECK(*deserialized->i_.get() == 77);

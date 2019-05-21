@@ -171,4 +171,10 @@ struct offset_ptr<T, std::enable_if_t<std::is_same_v<void, T>>> {
   offset_t offset_;
 };
 
+template <typename T>
+struct is_offset_ptr : public std::false_type {};
+
+template <typename T>
+struct is_offset_ptr<offset_ptr<T>> : public std::true_type {};
+
 }  // namespace cista
