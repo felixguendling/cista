@@ -20,7 +20,6 @@ namespace cista {
 
 template <typename T>
 constexpr T endian_swap(T t) {
-  static_assert(std::numeric_limits<T>::is_integer || std::is_pointer_v<T>);
   static_assert(sizeof(T) == 1U || sizeof(T) == 2U || sizeof(T) == 4U ||
                 sizeof(T) == 8U);
 

@@ -77,7 +77,8 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
     } else {
       c.pending_.emplace_back(pending_offset{*origin, pos});
     }
-  } else if constexpr (std::numeric_limits<Type>::is_integer) {
+  } else if constexpr (std::numeric_limits<Type>::is_integer ||
+                       std::is_floating_point_v<Type>) {
     c.write(pos, convert_endian<Ctx::MODE>(*origin));
   }
 }
@@ -340,7 +341,8 @@ void deserialize(Ctx const& c, T* el) {
     c.check(*el, sizeof(*std::declval<written_type_t>()));
   } else if constexpr (std::is_scalar_v<written_type_t>) {
     c.check(el, sizeof(T));
-    if (std::numeric_limits<written_type_t>::is_integer) {
+    if (std::numeric_limits<written_type_t>::is_integer ||
+        std::is_floating_point_v<written_type_t>) {
       *el = convert_endian<Ctx::MODE>(*el);
     }
   } else {
