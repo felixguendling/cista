@@ -22,9 +22,8 @@
 #include "cista/targets/file.h"
 #include "cista/verify.h"
 
-namespace cista {
-
 #ifdef _MSC_VER
+namespace cista {
 inline HANDLE open_file(char const* path, char const* mode) {
   bool read = std::strcmp(mode, "r") == 0;
   bool write = std::strcmp(mode, "w+") == 0;
@@ -168,11 +167,14 @@ struct file {
   HANDLE f_;
   size_t size_{0U};
 };
+}  // namespace cista
 #else
 
 #include <cstdio>
 
 #include <sys/stat.h>
+
+namespace cista {
 
 struct file {
   file(char const* path, char const* mode)
@@ -266,6 +268,7 @@ struct file {
   FILE* f_;
   std::size_t size_ = 0u;
 };
-#endif
 
 }  // namespace cista
+
+#endif
