@@ -199,7 +199,7 @@ void serialize(Target& t, T& value) {
   serialization_context<Target, Mode> c{t};
 
   if constexpr ((Mode & mode::WITH_VERSION) == mode::WITH_VERSION) {
-    auto const h = convert_endian<Mode>(type_hash(value));
+    auto const h = convert_endian<Mode>(type_hash<decay_t<T>>());
     c.write(&h, sizeof(h));
   }
 
