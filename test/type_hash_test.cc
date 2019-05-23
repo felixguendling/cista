@@ -27,6 +27,6 @@ TEST_CASE("hash int struct != int") {
 }
 
 TEST_CASE("hash test struct field order") {
-  CHECK(8093271146550891957ULL == cista::type_hash<hash_test::s1>());
-  CHECK(7911287404561953950ULL == cista::type_hash<hash_test::s2>());
+  CHECK(6255727812064617762ULL == cista::type_hash<hash_test::s1>());
+  CHECK(12953799533913957455ULL == cista::type_hash<hash_test::s2>());
 }

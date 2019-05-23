@@ -28,7 +28,7 @@ hash_t type_hash(T const& el, hash_t h) {
                       std::is_standard_layout_v<Type> &&
                       !std::is_polymorphic_v<Type>,
                   "Please implement custom type hash.");
-    h = hash_combine(h, base_type_hash<T>());
+    h = hash_combine(h, hash("struct"));
     for_each_field(el, [&](auto const& member) { h = type_hash(member, h); });
     return h;
   } else if constexpr (std::is_pointer_v<Type>) {
