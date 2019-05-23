@@ -390,7 +390,9 @@ void deserialize(Ctx const& c, basic_unique_ptr<T, Ptr>* el) {
   c.check(el, sizeof(basic_unique_ptr<T, Ptr>));
   c.check(!el->self_allocated_, "unique_ptr self-allocated");
   deserialize(c, &el->el_);
-  deserialize(c, static_cast<T*>(el->el_));
+  if (el->el_ != nullptr) {
+    deserialize(c, static_cast<T*>(el->el_));
+  }
 }
 
 template <typename Ctx, typename T, size_t Size>
