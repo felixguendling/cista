@@ -80,6 +80,9 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
   } else if constexpr (std::numeric_limits<Type>::is_integer ||
                        std::is_floating_point_v<Type>) {
     c.write(pos, convert_endian<Ctx::MODE>(*origin));
+  } else {
+    (void)origin;
+    (void)pos;
   }
 }
 
