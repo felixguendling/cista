@@ -13,9 +13,9 @@
 namespace data = cista::offset;
 
 constexpr auto const CHECKSUM_INTEGRITY_AND_VERSION =
-    sizeof(void*) == 4 ? 11971492370780101450ULL : 4525306341978948381ULL;
+    sizeof(void*) == 4 ? 11971492370780101450ULL : 13657483893810273733ULL;
 constexpr auto const CHECKSUM_BIG_ENDIAN =
-    sizeof(void*) == 4 ? 2015983284030897190ULL : 6403134668733173885ULL;
+    sizeof(void*) == 4 ? 2015983284030897190ULL : 1573942489989014269ULL;
 
 namespace graphns::offset {
 
