@@ -19,12 +19,11 @@ template <typename T>
 struct use_standard_hash : public std::false_type {};
 
 template <typename T>
-hash_t type_hash(T const& el, hash_t h, std::set<hash_t> pred = {}) {
-  if (!pred.insert(base_type_hash<T>()).second) {
+hash_t type_hash(T const& el, hash_t h, std::set<hash_t> pred) {
+  using Type = decay_t<T>;
+  if (!pred.insert(base_type_hash<Type>()).second) {
     return h;
   }
-
-  using Type = decay_t<T>;
   if constexpr (use_standard_hash<Type>()) {
     return hash_combine(h, base_type_hash<T>());
   } else if constexpr (!std::is_scalar_v<Type>) {
@@ -38,7 +37,7 @@ hash_t type_hash(T const& el, hash_t h, std::set<hash_t> pred = {}) {
     return h;
   } else if constexpr (std::is_pointer_v<Type>) {
     return type_hash(typename std::remove_pointer_t<Type>{},
-                     hash_combine(h, hash("pointer")));
+                     hash_combine(h, hash("pointer")), pred);
   } else {
     return hash_combine(h, base_type_hash<T>());
   }
@@ -54,8 +53,7 @@ hash_t type_hash(array<T, Size> const&, hash_t h,
 template <typename T>
 hash_t type_hash(offset::ptr<T> const&, hash_t h,
                  std::set<hash_t> const& pred) {
-  h = hash_combine(h, base_type_hash<offset::ptr<T>>());
-  return type_hash(T{}, h, pred);
+  return type_hash(T{}, hash_combine(h, hash("pointer")), pred);
 }
 
 template <typename T>
@@ -94,7 +92,7 @@ struct use_standard_hash<raw::string> : public std::true_type {};
 
 template <typename T>
 hash_t type_hash() {
-  return type_hash(T{}, base_type_hash<T>());
+  return type_hash(T{}, base_type_hash<T>(), {});
 }
 
 }  // namespace cista
