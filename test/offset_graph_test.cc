@@ -12,15 +12,10 @@
 
 namespace data = cista::offset;
 
-#ifdef CISTA_32BIT
-constexpr auto const CHECKSUM_INTEGRITY_AND_VERSION = 11971492370780101450ULL;
-constexpr auto const CHECKSUM_BIG_ENDIAN = 2015983284030897190ULL;
-#endif
-
-#ifdef CISTA_64BIT
-constexpr auto const CHECKSUM_INTEGRITY_AND_VERSION = 4525306341978948381ULL;
-constexpr auto const CHECKSUM_BIG_ENDIAN = 6403134668733173885ULL;
-#endif
+constexpr auto const CHECKSUM_INTEGRITY_AND_VERSION =
+    sizeof(void*) == 4 ? 11971492370780101450ULL : 4525306341978948381ULL;
+constexpr auto const CHECKSUM_BIG_ENDIAN =
+    sizeof(void*) == 4 ? 2015983284030897190ULL : 6403134668733173885ULL;
 
 namespace graphns::offset {
 

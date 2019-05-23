@@ -11,13 +11,8 @@
 
 namespace data = cista::raw;
 
-#ifdef CISTA_32BIT
-constexpr auto const CHECKSUM_INTEGRITY_AND_VERSION = 2016582844804160889ULL;
-#endif
-
-#ifdef CISTA_64BIT
-constexpr auto const CHECKSUM_INTEGRITY_AND_VERSION = 18233335892656958322ULL;
-#endif
+constexpr auto const CHECKSUM_INTEGRITY_AND_VERSION =
+    sizeof(void*) == 4 ? 2016582844804160889ULL : 18233335892656958322ULL;
 
 namespace graphns::raw {
 
