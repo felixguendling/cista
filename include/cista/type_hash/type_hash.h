@@ -1,7 +1,5 @@
 #pragma once
 
-#include <iostream>
-
 #include "cista/containers.h"
 #include "cista/decay.h"
 #include "cista/hash.h"
