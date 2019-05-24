@@ -20,11 +20,10 @@ struct use_standard_hash : public std::false_type {};
 
 template <typename T>
 hash_t type_hash(T const& el, hash_t h, std::set<hash_t> pred) {
-  if (!pred.insert(base_type_hash<T>()).second) {
+  using Type = decay_t<T>;
+  if (!pred.insert(base_type_hash<Type>()).second) {
     return h;
   }
-
-  using Type = decay_t<T>;
   if constexpr (use_standard_hash<Type>()) {
     return hash_combine(h, base_type_hash<T>());
   } else if constexpr (!std::is_scalar_v<Type>) {
