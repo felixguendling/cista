@@ -12,6 +12,7 @@ namespace cista {
 
 template <typename T>
 hash_t base_type_hash() {
+  std::cout << "HASH: [" << canonical_type_str<decay_t<T>>() << "]\n";
   return hash(canonical_type_str<decay_t<T>>());
 }
 
@@ -88,7 +89,11 @@ struct use_standard_hash<raw::string> : public std::true_type {};
 
 template <typename T>
 hash_t type_hash() {
-  return type_hash(T{}, base_type_hash<T>(), {});
+  std::cout << "\nTYPE HASH BEGIN ---- " << canonical_type_str<T>() << "\n";
+  auto r = type_hash(T{}, base_type_hash<T>(), {});
+  std::cout << "TYPE HASH END   ---- " << canonical_type_str<T>() << " = " << r
+            << "\n\n";
+  return r;
 }
 
 }  // namespace cista
