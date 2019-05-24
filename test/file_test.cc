@@ -35,7 +35,7 @@ TEST_CASE("file") {
     });
 
     start = f.write(&t1, sizeof(t1), std::alignment_of_v<test1>);
-    CHECK(start == 16);
+    CHECK(start == (sizeof(void*) == 4 ? 12 : 16));
   }
 
   int i;
@@ -45,7 +45,9 @@ TEST_CASE("file") {
     CHECK(i == 11 + j);
   }
 
-  f.read(reinterpret_cast<char*>(&i), sizeof(i));
+  if (sizeof(void*) == 8) {
+    f.read(reinterpret_cast<char*>(&i), sizeof(i));
+  }
 
   uint64_t number;
   f.read(reinterpret_cast<char*>(&number), sizeof(number));
