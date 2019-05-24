@@ -13,9 +13,9 @@
 namespace data = cista::offset;
 
 constexpr auto const CHECKSUM_INTEGRITY_AND_VERSION =
-    sizeof(void*) == 4 ? 15581905370632008029ULL : 16823913798430247430ULL;
+    sizeof(void*) == 4 ? 15735356079151355672ULL : 11397525614868929860ULL;
 constexpr auto const CHECKSUM_BIG_ENDIAN =
-    sizeof(void*) == 4 ? 15048834125601963475ULL : 10215857482957302240ULL;
+    sizeof(void*) == 4 ? 12616829230215202856ULL : 3003042448807108994ULL;
 
 namespace graphns::offset {
 
@@ -61,11 +61,6 @@ struct graph {
 };
 
 }  // namespace graphns::offset
-
-namespace cista {
-template <>
-struct use_standard_hash<graphns::offset::node> : public std::true_type {};
-}  // namespace cista
 
 using namespace graphns::offset;
 

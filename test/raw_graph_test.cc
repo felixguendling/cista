@@ -12,7 +12,7 @@
 namespace data = cista::raw;
 
 constexpr auto const CHECKSUM_INTEGRITY_AND_VERSION =
-    sizeof(void*) == 4 ? 7052295325795586842ULL : 15120268695240267085ULL;
+    sizeof(void*) == 4 ? 7052295325795586842ULL : 6039237182945491762ULL;
 
 namespace graphns::raw {
 
@@ -60,11 +60,6 @@ struct graph {
 }  // namespace graphns::raw
 
 using namespace graphns::raw;
-
-namespace cista {
-template <>
-struct use_standard_hash<graphns::raw::node> : public std::true_type {};
-}  // namespace cista
 
 inline std::set<node const*> bfs(node const* entry) {
   std::queue<node const*> q;

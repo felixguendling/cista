@@ -19,7 +19,7 @@ template <typename T>
 struct use_standard_hash : public std::false_type {};
 
 template <typename T>
-hash_t type_hash(T const& el, hash_t h, std::set<hash_t> pred = {}) {
+hash_t type_hash(T const& el, hash_t h, std::set<hash_t> pred) {
   if (!pred.insert(base_type_hash<T>()).second) {
     return h;
   }
@@ -38,52 +38,47 @@ hash_t type_hash(T const& el, hash_t h, std::set<hash_t> pred = {}) {
     return h;
   } else if constexpr (std::is_pointer_v<Type>) {
     return type_hash(typename std::remove_pointer_t<Type>{},
-                     hash_combine(h, hash("pointer")));
+                     hash_combine(h, hash("pointer")), std::move(pred));
   } else {
     return hash_combine(h, base_type_hash<T>());
   }
 }
 
 template <typename T, size_t Size>
-hash_t type_hash(array<T, Size> const&, hash_t h,
-                 std::set<hash_t> const& pred) {
+hash_t type_hash(array<T, Size> const&, hash_t h, std::set<hash_t> pred) {
   h = hash_combine(h, base_type_hash<array<T, Size>>());
-  return type_hash(T{}, h, pred);
+  return type_hash(T{}, h, std::move(pred));
 }
 
 template <typename T>
-hash_t type_hash(offset::ptr<T> const&, hash_t h,
-                 std::set<hash_t> const& pred) {
+hash_t type_hash(offset::ptr<T> const&, hash_t h, std::set<hash_t> pred) {
   h = hash_combine(h, base_type_hash<offset::ptr<T>>());
-  return type_hash(T{}, h, pred);
+  return type_hash(T{}, h, std::move(pred));
 }
 
 template <typename T>
-hash_t type_hash(offset::vector<T> const&, hash_t h,
-                 std::set<hash_t> const& pred) {
+hash_t type_hash(offset::vector<T> const&, hash_t h, std::set<hash_t> pred) {
   h = hash_combine(h, base_type_hash<offset::vector<T>>());
-  return type_hash(T{}, h, pred);
+  return type_hash(T{}, h, std::move(pred));
 }
 
 template <typename T>
 hash_t type_hash(offset::unique_ptr<T> const&, hash_t h,
-                 std::set<hash_t> const& pred) {
+                 std::set<hash_t> pred) {
   h = hash_combine(h, base_type_hash<offset::unique_ptr<T>>());
-  return type_hash(T{}, h, pred);
+  return type_hash(T{}, h, std::move(pred));
 }
 
 template <typename T>
-hash_t type_hash(raw::vector<T> const&, hash_t h,
-                 std::set<hash_t> const& pred) {
+hash_t type_hash(raw::vector<T> const&, hash_t h, std::set<hash_t> pred) {
   h = hash_combine(h, base_type_hash<raw::vector<T>>());
-  return type_hash(T{}, h, pred);
+  return type_hash(T{}, h, std::move(pred));
 }
 
 template <typename T>
-hash_t type_hash(raw::unique_ptr<T> const&, hash_t h,
-                 std::set<hash_t> const& pred) {
+hash_t type_hash(raw::unique_ptr<T> const&, hash_t h, std::set<hash_t> pred) {
   h = hash_combine(h, base_type_hash<raw::unique_ptr<T>>());
-  return type_hash(T{}, h, pred);
+  return type_hash(T{}, h, std::move(pred));
 }
 
 template <>
@@ -94,7 +89,7 @@ struct use_standard_hash<raw::string> : public std::true_type {};
 
 template <typename T>
 hash_t type_hash() {
-  return type_hash(T{}, base_type_hash<T>());
+  return type_hash(T{}, base_type_hash<T>(), {});
 }
 
 }  // namespace cista
