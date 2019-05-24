@@ -23,9 +23,10 @@ TEST_CASE("file") {
     uint64_t number_ = 77;
   } t1;
 
+  auto start = cista::offset_t{};
   {
     file f{"test.bin", "w+"};
-    auto start = f.write(&t, sizeof(t), std::alignment_of_v<test>);
+    start = f.write(&t, sizeof(t), std::alignment_of_v<test>);
     for_each_field(t, [start, i = 11, &t, &f](auto&& m) mutable {
       f.write(
           static_cast<size_t>(start + static_cast<offset_t>(
@@ -35,7 +36,6 @@ TEST_CASE("file") {
     });
 
     start = f.write(&t1, sizeof(t1), std::alignment_of_v<test1>);
-    CHECK(start == 16);
   }
 
   int i;
@@ -45,9 +45,8 @@ TEST_CASE("file") {
     CHECK(i == 11 + j);
   }
 
-  f.read(reinterpret_cast<char*>(&i), sizeof(i));
-
   uint64_t number;
+  f.seekg(start);
   f.read(reinterpret_cast<char*>(&number), sizeof(number));
   CHECK(number == 77);
 }

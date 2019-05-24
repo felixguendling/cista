@@ -27,7 +27,8 @@ inline void canonicalize_type_name(std::string& s) {
   remove_all(s, "{anonymous}::");  // GCC
   remove_all(s, "(anonymous namespace)::");  // Clang
   remove_all(s, "`anonymous-namespace'::");  // MSVC
-  remove_all(s, "struct ");  // MSVC
+  remove_all(s, "struct");  // MSVC "struct my_struct" vs "my_struct"
+  remove_all(s, "const");  // MSVC "char const*"" vs "const char*"
   remove_all(s, " ");  // MSVC
 }
 
