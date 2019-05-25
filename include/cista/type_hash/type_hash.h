@@ -11,7 +11,7 @@
 namespace cista {
 
 template <typename T>
-hash_t base_type_hash() {
+hash_t type2str_hash() {
   return hash(canonical_type_str<decay_t<T>>());
 }
 
@@ -19,76 +19,61 @@ template <typename T>
 struct use_standard_hash : public std::false_type {};
 
 template <typename T>
-hash_t type_hash(T const& el, hash_t h, std::set<hash_t> pred) {
+hash_t type_hash(T const& el, hash_t h, std::set<hash_t>& done) {
   using Type = decay_t<T>;
-  if (!pred.insert(base_type_hash<Type>()).second) {
-    return h;
+
+  auto const base_hash = type2str_hash<Type>();
+  if (!done.insert(base_hash).second) {
+    return hash_combine(h, base_hash);
   }
-  if constexpr (use_standard_hash<Type>()) {
-    return hash_combine(h, base_type_hash<T>());
-  } else if constexpr (!std::is_scalar_v<Type>) {
+
+  if constexpr (is_pointer_v<Type>) {
+    return type_hash(remove_pointer_t<Type>{}, hash_combine(h, hash("pointer")),
+                     done);
+  } else if constexpr (std::is_scalar_v<Type>) {
+    return hash_combine(h, type2str_hash<T>());
+  } else {
     static_assert(std::is_aggregate_v<Type> &&
                       std::is_standard_layout_v<Type> &&
                       !std::is_polymorphic_v<Type>,
                   "Please implement custom type hash.");
     h = hash_combine(h, hash("struct"));
     for_each_field(el,
-                   [&](auto const& member) { h = type_hash(member, h, pred); });
+                   [&](auto const& member) { h = type_hash(member, h, done); });
     return h;
-  } else if constexpr (std::is_pointer_v<Type>) {
-    return type_hash(typename std::remove_pointer_t<Type>{},
-                     hash_combine(h, hash("pointer")), std::move(pred));
-  } else {
-    return hash_combine(h, base_type_hash<T>());
   }
-}
+}  // namespace cista
 
 template <typename T, size_t Size>
-hash_t type_hash(array<T, Size> const&, hash_t h, std::set<hash_t> pred) {
-  h = hash_combine(h, base_type_hash<array<T, Size>>());
-  return type_hash(T{}, h, std::move(pred));
+hash_t type_hash(array<T, Size> const&, hash_t h, std::set<hash_t>& done) {
+  h = hash_combine(h, hash("array"));
+  h = hash_combine(h, Size);
+  return type_hash(T{}, h, done);
 }
 
-template <typename T>
-hash_t type_hash(offset::ptr<T> const&, hash_t h, std::set<hash_t> pred) {
-  h = hash_combine(h, base_type_hash<offset::ptr<T>>());
-  return type_hash(T{}, h, std::move(pred));
+template <typename T, typename Ptr, typename TemplateSizeType>
+hash_t type_hash(basic_vector<T, Ptr, TemplateSizeType> const&, hash_t h,
+                 std::set<hash_t>& done) {
+  h = hash_combine(h, hash("vector"));
+  return type_hash(T{}, h, done);
 }
 
-template <typename T>
-hash_t type_hash(offset::vector<T> const&, hash_t h, std::set<hash_t> pred) {
-  h = hash_combine(h, base_type_hash<offset::vector<T>>());
-  return type_hash(T{}, h, std::move(pred));
+template <typename T, typename Ptr>
+hash_t type_hash(basic_unique_ptr<T, Ptr> const&, hash_t h,
+                 std::set<hash_t>& done) {
+  h = hash_combine(h, hash("unique_ptr"));
+  return type_hash(T{}, h, done);
 }
 
-template <typename T>
-hash_t type_hash(offset::unique_ptr<T> const&, hash_t h,
-                 std::set<hash_t> pred) {
-  h = hash_combine(h, base_type_hash<offset::unique_ptr<T>>());
-  return type_hash(T{}, h, std::move(pred));
+template <typename Ptr>
+hash_t type_hash(basic_string<Ptr> const&, hash_t h, std::set<hash_t>&) {
+  return hash_combine(h, hash("string"));
 }
-
-template <typename T>
-hash_t type_hash(raw::vector<T> const&, hash_t h, std::set<hash_t> pred) {
-  h = hash_combine(h, base_type_hash<raw::vector<T>>());
-  return type_hash(T{}, h, std::move(pred));
-}
-
-template <typename T>
-hash_t type_hash(raw::unique_ptr<T> const&, hash_t h, std::set<hash_t> pred) {
-  h = hash_combine(h, base_type_hash<raw::unique_ptr<T>>());
-  return type_hash(T{}, h, std::move(pred));
-}
-
-template <>
-struct use_standard_hash<offset::string> : public std::true_type {};
-
-template <>
-struct use_standard_hash<raw::string> : public std::true_type {};
 
 template <typename T>
 hash_t type_hash() {
-  return type_hash(T{}, base_type_hash<T>(), {});
+  auto done = std::set<hash_t>{};
+  return type_hash(T{}, type2str_hash<T>(), done);
 }
 
 }  // namespace cista

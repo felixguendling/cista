@@ -171,10 +171,32 @@ struct offset_ptr<T, std::enable_if_t<std::is_same_v<void, T>>> {
   offset_t offset_;
 };
 
-template <typename T>
-struct is_offset_ptr : public std::false_type {};
+template <class T>
+struct is_pointer_helper : std::false_type {};
+
+template <class T>
+struct is_pointer_helper<T*> : std::true_type {};
+
+template <class T>
+struct is_pointer_helper<offset_ptr<T>> : std::true_type {};
+
+template <class T>
+constexpr bool is_pointer_v = is_pointer_helper<std::remove_cv_t<T>>::value;
+
+template <class T>
+struct remove_pointer_helper {
+  typedef T type;
+};
+
+template <class T>
+struct remove_pointer_helper<T*> {
+  typedef T type;
+};
+
+template <class T>
+struct remove_pointer : remove_pointer_helper<std::remove_cv_t<T>> {};
 
 template <typename T>
-struct is_offset_ptr<offset_ptr<T>> : public std::true_type {};
+using remove_pointer_t = typename remove_pointer<T>::type;
 
 }  // namespace cista

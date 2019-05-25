@@ -57,7 +57,16 @@ struct serialization_context {
 template <typename Ctx, typename T>
 void serialize(Ctx& c, T const* origin, offset_t const pos) {
   using Type = decay_t<T>;
-  if constexpr (!std::is_scalar_v<Type>) {
+  if constexpr (is_pointer_v<Type>) {
+    if (*origin == nullptr) {
+      c.write(pos, convert_endian<Ctx::MODE>(NULLPTR_OFFSET));
+    } else if (auto const it = c.offsets_.find(*origin);
+               it != end(c.offsets_)) {
+      c.write(pos, convert_endian<Ctx::MODE>(it->second - pos));
+    } else {
+      c.pending_.emplace_back(pending_offset{*origin, pos});
+    }
+  } else if constexpr (!std::is_scalar_v<Type>) {
     static_assert(std::is_aggregate_v<Type> &&
                       std::is_standard_layout_v<Type> &&
                       !std::is_polymorphic_v<Type>,
@@ -68,33 +77,12 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
                                 reinterpret_cast<intptr_t>(origin));
       serialize(c, member, pos + member_offset);
     });
-  } else if constexpr (std::is_pointer_v<Type> || is_offset_ptr<Type>()) {
-    if (*origin == nullptr) {
-      c.write(pos, convert_endian<Ctx::MODE>(NULLPTR_OFFSET));
-    } else if (auto const it = c.offsets_.find(*origin);
-               it != end(c.offsets_)) {
-      c.write(pos, convert_endian<Ctx::MODE>(it->second - pos));
-    } else {
-      c.pending_.emplace_back(pending_offset{*origin, pos});
-    }
   } else if constexpr (std::numeric_limits<Type>::is_integer ||
                        std::is_floating_point_v<Type>) {
     c.write(pos, convert_endian<Ctx::MODE>(*origin));
   } else {
     (void)origin;
     (void)pos;
-  }
-}
-
-template <typename Ctx, typename T>
-void serialize(Ctx& c, offset_ptr<T> const* origin, offset_t const pos) {
-  if (*origin == nullptr) {
-    return;
-  } else if (auto const it = c.offsets_.find(origin->get());
-             it != end(c.offsets_)) {
-    c.write(pos, convert_endian<Ctx::MODE>(it->second - pos));
-  } else {
-    c.pending_.emplace_back(pending_offset{origin->get(), pos});
   }
 }
 
