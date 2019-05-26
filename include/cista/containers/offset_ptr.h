@@ -194,6 +194,11 @@ struct remove_pointer_helper<T*> {
 };
 
 template <class T>
+struct remove_pointer_helper<offset_ptr<T>> {
+  typedef T type;
+};
+
+template <class T>
 struct remove_pointer : remove_pointer_helper<std::remove_cv_t<T>> {};
 
 template <typename T>
