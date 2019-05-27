@@ -57,7 +57,10 @@ struct serialization_context {
 template <typename Ctx, typename T>
 void serialize(Ctx& c, T const* origin, offset_t const pos) {
   using Type = decay_t<T>;
-  if constexpr (is_pointer_v<Type>) {
+  if constexpr (std::is_union_v<Type>) {
+    static_assert(std::is_standard_layout_v<Type> &&
+                  std::is_trivially_copyable_v<Type>);
+  } else if constexpr (is_pointer_v<Type>) {
     if (*origin == nullptr) {
       c.write(pos, convert_endian<Ctx::MODE>(NULLPTR_OFFSET));
     } else if (auto const it = c.offsets_.find(*origin);
@@ -327,7 +330,10 @@ void check(uint8_t const* from, uint8_t const* to) {
 template <typename Ctx, typename T>
 void deserialize(Ctx const& c, T* el) {
   using written_type_t = decay_t<T>;
-  if constexpr (std::is_pointer_v<written_type_t>) {
+  if constexpr (std::is_union_v<written_type_t>) {
+    static_assert(std::is_standard_layout_v<written_type_t> &&
+                  std::is_trivially_copyable_v<written_type_t>);
+  } else if constexpr (std::is_pointer_v<written_type_t>) {
     c.deserialize(el);
     c.check(*el, sizeof(*std::declval<written_type_t>()));
   } else if constexpr (std::is_scalar_v<written_type_t>) {
