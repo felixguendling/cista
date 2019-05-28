@@ -37,7 +37,9 @@ struct mmap {
       sync();
       size_ = used_size_;
       unmap();
-      resize_file();
+      if (size_ != f_.size()) {
+        resize_file();
+      }
     }
   }
 
