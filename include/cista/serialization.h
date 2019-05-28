@@ -267,9 +267,17 @@ struct deserialization_context {
       : from_{reinterpret_cast<intptr_t>(from)},
         to_{reinterpret_cast<intptr_t>(to)} {}
 
+  template <typename T>
+  void convert_endian(T& el) const {
+    if (endian_conversion_necessary<MODE>()) {
+      el = ::cista::convert_endian<MODE>(el);
+    }
+  }
+
   template <typename Ptr>
   void deserialize(Ptr** ptr) const {
-    auto const offset = reinterpret_cast<offset_t>(convert_endian<MODE>(*ptr));
+    auto const offset =
+        reinterpret_cast<offset_t>(::cista::convert_endian<MODE>(*ptr));
     *ptr =
         offset == NULLPTR_OFFSET
             ? nullptr
@@ -340,7 +348,7 @@ void deserialize(Ctx const& c, T* el) {
     c.check(el, sizeof(T));
     if (std::numeric_limits<written_type_t>::is_integer ||
         std::is_floating_point_v<written_type_t>) {
-      *el = convert_endian<Ctx::MODE>(*el);
+      c.convert_endian(*el);
     }
   } else {
     for_each_ptr_field(*el, [&](auto& f) { deserialize(c, f); });
@@ -351,7 +359,7 @@ template <typename Ctx, typename T>
 void deserialize(Ctx const& c, offset_ptr<T>* el) {
   using written_type_t = decay_t<T>;
   c.check(el, sizeof(offset_ptr<T>));
-  el->offset_ = convert_endian<Ctx::MODE>(el->offset_);
+  c.convert_endian(el->offset_);
   c.check(el->get(), sizeof(std::declval<written_type_t>()));
 }
 
@@ -359,8 +367,8 @@ template <typename Ctx, typename T, typename Ptr, typename TemplateSizeType>
 void deserialize(Ctx const& c, basic_vector<T, Ptr, TemplateSizeType>* el) {
   c.check(el, sizeof(basic_vector<T, Ptr, TemplateSizeType>));
   deserialize(c, &el->el_);
-  el->allocated_size_ = convert_endian<Ctx::MODE>(el->allocated_size_);
-  el->used_size_ = convert_endian<Ctx::MODE>(el->used_size_);
+  c.convert_endian(el->allocated_size_);
+  c.convert_endian(el->used_size_);
   c.check(static_cast<T*>(el->el_),
           checked_multiplication(static_cast<size_t>(el->allocated_size_),
                                  sizeof(T)));
@@ -376,7 +384,7 @@ void deserialize(Ctx const& c, basic_string<Ptr>* el) {
   c.check(el, sizeof(basic_string<Ptr>));
   if (!el->is_short()) {
     deserialize(c, &el->h_.ptr_);
-    el->h_.size_ = convert_endian<Ctx::MODE>(el->h_.size_);
+    c.convert_endian(el->h_.size_);
     c.check(static_cast<char const*>(el->h_.ptr_), el->h_.size_);
     c.check(!el->h_.self_allocated_, "string self-allocated");
   }

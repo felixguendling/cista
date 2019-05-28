@@ -155,11 +155,10 @@ TEST_CASE("graph offset serialize buf") {
     cista::buf b;
     cista::serialize<MODE>(b, g);
 
-    // b.print();
     CHECK(b.checksum() == CHECKSUM_INTEGRITY_AND_VERSION);
 
     buf = std::move(b.buf_);
-  }  // EOL graphx
+  }  // EOL graph
 
   CHECK(cista::hash(buf) == CHECKSUM_INTEGRITY_AND_VERSION);
 
@@ -199,7 +198,11 @@ TEST_CASE("graph offset serialize mmap file") {
     CHECK(mmap.checksum() == CHECKSUM_INTEGRITY_AND_VERSION);
   }  // EOL graph
 
+#if defined(CISTA_LITTLE_ENDIAN)
+  auto b = cista::mmap(FILENAME, cista::mmap::protection::READ);
+#else
   auto b = cista::file(FILENAME, "r").content();
+#endif
   auto const g = cista::deserialize<graph, MODE>(b);
   auto const visited = bfs(g->nodes_[0].get());
   unsigned i = 0;

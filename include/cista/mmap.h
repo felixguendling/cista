@@ -37,7 +37,9 @@ struct mmap {
       sync();
       size_ = used_size_;
       unmap();
-      resize_file();
+      if (size_ != f_.size()) {
+        resize_file();
+      }
     }
   }
 
@@ -64,7 +66,7 @@ struct mmap {
   }
 
   void sync() {
-    if (addr_ != nullptr) {
+    if (prot_ == protection::WRITE && addr_ != nullptr) {
 #ifdef _MSC_VER
       verify(::FlushViewOfFile(addr_, size_) != 0, "flush error");
       verify(::FlushFileBuffers(f_.f_) != 0, "flush error");
@@ -75,6 +77,7 @@ struct mmap {
   }
 
   void resize(size_t const new_size) {
+    verify(prot_ == protection::WRITE, "read-only not resizable");
     if (size_ < new_size) {
       resize_map(next_power_of_two(new_size));
     }
@@ -82,6 +85,7 @@ struct mmap {
   }
 
   void reserve(size_t const new_size) {
+    verify(prot_ == protection::WRITE, "read-only not resizable");
     if (size_ < new_size) {
       resize_map(next_power_of_two(new_size));
     }
@@ -147,6 +151,10 @@ private:
   }
 
   void resize_file() {
+    if (prot_ == protection::READ) {
+      return;
+    }
+
 #ifdef _MSC_VER
     LARGE_INTEGER Size = {0};
     verify(::GetFileSizeEx(f_.f_, &Size), "resize: get file size error");
@@ -163,6 +171,10 @@ private:
   }
 
   void resize_map(size_t const new_size) {
+    if (prot_ == protection::READ) {
+      return;
+    }
+
     unmap();
     size_ = new_size;
     resize_file();
