@@ -20,11 +20,10 @@ hash_t type_hash(T const& el, hash_t h, std::map<hash_t, unsigned>& done) {
   using Type = decay_t<T>;
 
   auto const base_hash = type2str_hash<Type>();
-  if (auto it = done.lower_bound(base_hash);
-      it != end(done) && it->first == base_hash) {
+  auto [it, inserted] =
+      done.try_emplace(base_hash, static_cast<unsigned>(done.size()));
+  if (!inserted) {
     return hash_combine(h, it->second);
-  } else {
-    done.emplace_hint(it, base_hash, done.size());
   }
 
   if constexpr (is_pointer_v<Type>) {
