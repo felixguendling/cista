@@ -39,6 +39,8 @@ struct offset_ptr {
                                        reinterpret_cast<uintptr_t>(this));
   }
 
+  operator bool() const { return offset_ != NULLPTR_OFFSET; }
+
   operator T*() { return get(); }
   operator T const*() const { return get(); }
   T& operator*() { return *get(); }
@@ -139,6 +141,8 @@ struct offset_ptr<T, std::enable_if_t<std::is_same_v<void, T>>> {
                : static_cast<offset_t>(reinterpret_cast<uintptr_t>(p) -
                                        reinterpret_cast<uintptr_t>(this));
   }
+
+  operator bool() const { return offset_ != NULLPTR_OFFSET; }
 
   T const* get() const {
     auto const ptr = offset_ == NULLPTR_OFFSET
