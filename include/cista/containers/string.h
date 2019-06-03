@@ -50,18 +50,7 @@ struct basic_string {
 
   basic_string(basic_string const& s) : basic_string() { copy_from(s); }
 
-  basic_string(basic_string&& s) {
-    if constexpr (std::is_pointer_v<Ptr>) {
-      std::memcpy(this, &s, sizeof(*this));
-      std::memset(&s, 0, sizeof(*this));
-    } else {
-      std::memcpy(this, &s, sizeof(*this));
-      if (!s.is_short()) {
-        h_.ptr_ = s.h_.ptr_;
-        s.h_.ptr_ = nullptr;
-      }
-    }
-  }
+  basic_string(basic_string&& s) { move_from(std::move(s)); }
 
   basic_string& operator=(basic_string const& s) {
     copy_from(s);
@@ -69,10 +58,7 @@ struct basic_string {
   }
 
   basic_string& operator=(basic_string&& s) {
-    std::memcpy(this, &s, sizeof(*this));
-    if constexpr (std::is_pointer_v<Ptr>) {
-      h_.ptr_ = s.h_.ptr_;
-    }
+    move_from(std::move(s));
     return *this;
   }
 
@@ -177,6 +163,18 @@ struct basic_string {
     h_.self_allocated_ = false;
     h_.ptr_ = str;
     h_.size_ = len;
+  }
+
+  void move_from(basic_string&& s) {
+    std::memcpy(this, &s, sizeof(*this));
+    if constexpr (std::is_pointer_v<Ptr>) {
+      std::memset(&s, 0, sizeof(*this));
+    } else {
+      if (!s.is_short()) {
+        h_.ptr_ = s.h_.ptr_;
+        s.h_.ptr_ = nullptr;
+      }
+    }
   }
 
   void copy_from(basic_string const& s) {
