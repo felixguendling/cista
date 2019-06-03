@@ -2,6 +2,7 @@
 
 #include <cinttypes>
 #include <cstring>
+#include <string>
 #include <string_view>
 
 #include "cista/containers/offset_ptr.h"
@@ -27,6 +28,18 @@ struct basic_string {
   }
   ~basic_string() { reset(); }
 
+  basic_string(std::string_view s, owning_t) : basic_string() {
+    set_owning(s, s.length());
+  }
+  basic_string(std::string_view s, non_owning_t) : basic_string() {
+    set_non_owning(s, s.length());
+  }
+  basic_string(std::string const& s, owning_t) : basic_string() {
+    set_owning(s.c_str(), s.length());
+  }
+  basic_string(std::string const& s, non_owning_t) : basic_string() {
+    set_non_owning(s.c_str(), s.length());
+  }
   basic_string(char const* s, owning_t) : basic_string() {
     set_owning(s, mstrlen(s));
   }
@@ -63,6 +76,19 @@ struct basic_string {
     return *this;
   }
 
+  basic_string& operator=(char const* s) {
+    set_non_owning(s, mstrlen(s));
+    return *this;
+  }
+
+  friend bool operator==(basic_string const& a, char const* b) {
+    return a.view() == std::string_view{b};
+  }
+
+  friend bool operator==(basic_string const& a, basic_string const& b) {
+    return a.view() == b.view();
+  }
+
   char* begin() { return data(); }
   char* end() { return data() + size(); }
   char const* begin() const { return data(); }
@@ -95,6 +121,10 @@ struct basic_string {
     h_.ptr_ = nullptr;
   }
 
+  void set_owning(std::string const& s) {
+    set_owning(s.data(), static_cast<msize_t>(s.size()));
+  }
+
   void set_owning(std::string_view s) {
     set_owning(s.data(), static_cast<msize_t>(s.size()));
   }
@@ -121,6 +151,10 @@ struct basic_string {
       h_.self_allocated_ = true;
       std::memcpy(const_cast<char*>(data()), str, len);
     }
+  }
+
+  void set_non_owning(std::string const& v) {
+    set_non_owning(v.data(), static_cast<msize_t>(v.size()));
   }
 
   void set_non_owning(std::string_view v) {
@@ -156,7 +190,8 @@ struct basic_string {
     }
   }
 
-  std::string_view view() const { return std::string_view{data(), size()}; }
+  std::string_view view() const { return {data(), size()}; }
+  std::string str() const { return {data(), size()}; }
 
   char* data() {
     if constexpr (std::is_pointer_v<Ptr>) {
@@ -173,19 +208,6 @@ struct basic_string {
     } else {
       return is_short() ? s_.s_ : h_.ptr_.get();
     }
-  }
-
-  basic_string& operator=(char const* s) {
-    set_non_owning(s, mstrlen(s));
-    return *this;
-  }
-
-  friend bool operator==(basic_string const& a, char const* b) {
-    return a.view() == std::string_view{b};
-  }
-
-  friend bool operator==(basic_string const& a, basic_string const& b) {
-    return a.view() == b.view();
   }
 
   msize_t size() const {
