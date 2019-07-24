@@ -69,7 +69,6 @@ struct buf {
 
   Buf buf_;
   offset_t curr_offset_{0};
-  FILE* f_;
 };
 
 }  // namespace cista
