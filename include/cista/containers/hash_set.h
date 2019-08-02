@@ -1,32 +1,15 @@
 #pragma once
 
 #include <cinttypes>
+#include <cstring>
 #include <functional>
 #include <type_traits>
 
 #include "cista/aligned_alloc.h"
+#include "cista/bit_counting.h"
+#include "cista/endian/conversion.h"
 
 namespace cista {
-
-template <typename T>
-constexpr size_t trailing_zeros(T t) {
-  static_assert(sizeof(T) == 8 || sizeof(T) == 4, "not supported");
-  if constexpr (sizeof(T) == 8) {
-    return static_cast<size_t>(__builtin_ctzll(t));
-  } else if constexpr (sizeof(T) == 4) {
-    return static_cast<size_t>(__builtin_ctz(t));
-  }
-}
-
-template <typename T>
-constexpr size_t leading_zeros(T t) {
-  static_assert(sizeof(T) == 8 || sizeof(T) == 4, "not supported");
-  if constexpr (sizeof(T) == 8) {
-    return static_cast<size_t>(__builtin_clzll(t));
-  } else if constexpr (sizeof(T) == 4) {
-    return static_cast<size_t>(__builtin_clz(t));
-  }
-}
 
 template <typename T, typename Hash, typename Eq>
 struct basic_hash_set {
@@ -66,7 +49,7 @@ struct basic_hash_set {
       return *this;
     }
 
-    size_t operator*() const { return ::cista::trailing_zeros(mask_) >> SHIFT; }
+    size_t operator*() const { return trailing_zeros(); }
 
     explicit operator bool() const { return mask_ != 0U; }
 
@@ -94,16 +77,22 @@ struct basic_hash_set {
     static constexpr auto MSBS = 0x8080808080808080ULL;
     static constexpr auto LSBS = 0x0101010101010101ULL;
     static constexpr auto GAPS = 0x00FEFEFEFEFEFEFEULL;
-    explicit group(ctrl_t const* pos) { std::memcpy(&ctrl_, pos, WIDTH); }
+
+    explicit group(ctrl_t const* pos) {
+      std::memcpy(&ctrl_, pos, WIDTH);
+#if defined(CISTA_BIG_ENDIAN)
+      ctrl_ = endian_swap(ctrl_);
+#endif
+    }
     bit_mask match(h2_t const hash) const {
       auto const x = ctrl_ ^ (LSBS * hash);
       return bit_mask{(x - LSBS) & ~x & MSBS};
     }
     bit_mask match_empty() const {
-      return bit_mask{(ctrl_ & (~ctrl_ << 6)) & MSBS};
+      return bit_mask{(ctrl_ & (~ctrl_ << 6U)) & MSBS};
     }
     bit_mask match_empty_or_deleted() const {
-      return bit_mask{(ctrl_ & (~ctrl_ << 7)) & MSBS};
+      return bit_mask{(ctrl_ & (~ctrl_ << 7U)) & MSBS};
     }
     size_t count_leading_empty_or_deleted() const {
       return (trailing_zeros(((~ctrl_ & (ctrl_ >> 7U)) | GAPS) + 1U) + 7U) >>
@@ -190,20 +179,16 @@ struct basic_hash_set {
     return const_cast<ctrl_t*>(empty_group);
   }
 
-  static inline bool is_empty(ctrl_t const c) { return c == ctrl_t::EMPTY; }
+  static inline bool is_empty(ctrl_t const c) { return c == EMPTY; }
   static inline bool is_full(ctrl_t const c) { return c >= 0; }
-  static inline bool is_deleted(ctrl_t const c) { return c == ctrl_t::DELETED; }
-  static inline bool is_empty_or_deleted(ctrl_t const c) {
-    return c < ctrl_t::END;
-  }
+  static inline bool is_deleted(ctrl_t const c) { return c == DELETED; }
+  static inline bool is_empty_or_deleted(ctrl_t const c) { return c < END; }
 
   static inline size_t normalize_capacity(size_t const n) {
     return n == 0U ? 1 : ~size_t{} >> leading_zeros(n);
   }
 
-  static inline size_t h1(size_t const hash) {
-    return (hash >> 7) ^ 1099511628211;
-  }
+  static inline size_t h1(size_t const hash) { return (hash >> 7) ^ 16777619; }
 
   static inline h2_t h2(size_t const hash) { return hash & 0x7F; }
 
@@ -215,7 +200,7 @@ struct basic_hash_set {
 
   iterator find(T const& key) {
     auto const hash = Hash()(key);
-    for (auto seq = probe_seq{hash, capacity_}; true; seq.next()) {
+    for (auto seq = probe_seq{h1(hash), capacity_}; true; seq.next()) {
       group g{ctrl_ + seq.offset_};
       for (auto const i : g.match(h2(hash))) {
         if (Eq()(key, entries_[seq.offset(i)])) {
@@ -285,7 +270,7 @@ private:
 
     auto const was_never_full =
         empty_before && empty_after &&
-        (empty_after.trailing_zeros() + empty_before.trailing_zeros()) < WIDTH;
+        (empty_after.trailing_zeros() + empty_before.leading_zeros()) < WIDTH;
 
     set_ctrl(index, static_cast<h2_t>(was_never_full ? EMPTY : DELETED));
     growth_left_ += was_never_full;
@@ -302,7 +287,7 @@ private:
       }
     }
 
-    std::free(memory_);
+    std::free(entries_);
     entries_ = nullptr;
     ctrl_ = empty_group();
     size_ = 0U;
@@ -312,7 +297,7 @@ private:
 
   std::pair<size_t, bool> find_or_prepare_insert(T const& entry) {
     auto const hash = Hash()(entry);
-    for (auto seq = probe_seq{hash, capacity_}; true; seq.next()) {
+    for (auto seq = probe_seq{h1(hash), capacity_}; true; seq.next()) {
       group g{ctrl_ + seq.offset_};
       for (auto const i : g.match(h2(hash))) {
         if (Eq()(entry, entries_[seq.offset(i)])) {
@@ -327,7 +312,7 @@ private:
   }
 
   find_info find_first_non_full(size_t const hash) const {
-    for (auto seq = probe_seq{hash, capacity_}; true; seq.next()) {
+    for (auto seq = probe_seq{h1(hash), capacity_}; true; seq.next()) {
       if (auto const mask = group{ctrl_ + seq.offset_}.match_empty_or_deleted();
           mask) {
         return {seq.offset(*mask), seq.index_};
@@ -342,7 +327,7 @@ private:
       target = find_first_non_full(hash);
     }
     ++size_;
-    growth_left_ -= is_empty(ctrl_[target.offset_]);
+    growth_left_ -= (is_empty(ctrl_[target.offset_]) ? 1 : 0);
     set_ctrl(target.offset_, h2(hash));
     return target.offset_;
   }
@@ -376,9 +361,8 @@ private:
   void initialize_entries() {
     auto const size =
         capacity_ * sizeof(T) + (capacity_ + 1 + WIDTH) * sizeof(ctrl_t);
-    auto const mem = CISTA_ALIGNED_ALLOC(sizeof(T), size);
-    entries_ = reinterpret_cast<T*>(mem);
-    ctrl_ = reinterpret_cast<ctrl_t*>(static_cast<uint8_t*>(mem) +
+    entries_ = reinterpret_cast<T*>(CISTA_ALIGNED_ALLOC(sizeof(T), size));
+    ctrl_ = reinterpret_cast<ctrl_t*>(reinterpret_cast<uint8_t*>(entries_) +
                                       capacity_ * sizeof(T));
     reset_ctrl();
     reset_growth_left();
@@ -412,9 +396,8 @@ private:
     return {ctrl_ + i, entries_ + i};
   }
 
-  void* memory_{nullptr};
-  ctrl_t* ctrl_{empty_group()};
   T* entries_{nullptr};
+  ctrl_t* ctrl_{empty_group()};
   size_t size_{0U}, capacity_{0U}, growth_left_{0U};
 };
 

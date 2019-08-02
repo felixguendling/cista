@@ -1,5 +1,15 @@
 #include <memory>
 
+namespace cista {
+
+template <typename T>
+T to_next_multiple(T const n, T const multiple) {
+  auto const r = n % multiple;
+  return r == 0 ? n : n + multiple - r;
+}
+
+}  // namespace cista
+
 #if defined(_MSC_VER)
 #define CISTA_ALIGNED_ALLOC(alignment, size) \
   (_aligned_malloc((size), (alignment)))
@@ -9,5 +19,5 @@
 #else
 #include <memory>
 #define CISTA_ALIGNED_ALLOC(alignment, size) \
-  (std::aligned_alloc((alignment), (size)))
+  (std::aligned_alloc((alignment), to_next_multiple((size), (alignment))))
 #endif

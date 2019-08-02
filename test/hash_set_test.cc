@@ -7,13 +7,15 @@
 #endif
 
 TEST_CASE("hash_set test") {
+  auto const max = 10000;
   cista::hash_set<int> uut;
-  for (auto i = 0; i < 1000; ++i) {
+  for (auto i = 0; i < max; ++i) {
     auto const res = uut.emplace(i);
     CHECK(res.second);
     CHECK(*res.first == i);
+    CHECK(uut.find(i) != uut.end());
   }
-  for (auto i = 0; i < 1000; ++i) {
+  for (auto i = 0; i < max; ++i) {
     auto const res = uut.emplace(i);
     CHECK(!res.second);
     CHECK(*res.first == i);
