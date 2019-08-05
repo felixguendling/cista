@@ -11,10 +11,11 @@
 
 namespace cista {
 
-template <typename T, typename Hash, typename Eq>
+template <typename T, typename GetKey, typename Hash, typename Eq>
 struct basic_hash_set {
   static constexpr auto const WIDTH = 8U;
 
+  using key_t = decltype(std::declval<GetKey>().operator()(std::declval<T>()));
   using group_t = uint64_t;
   using h2_t = uint8_t;
 
@@ -196,14 +197,19 @@ struct basic_hash_set {
     return (capacity == 7) ? 6 : capacity - (capacity / 8);
   }
 
+  template <typename EntryType>
+  auto key_of(EntryType&& entry) {
+    return GetKey()(entry);
+  }
+
   ~basic_hash_set() { destroy_entries(); }
 
-  iterator find(T const& key) {
+  iterator find(key_t const& key) {
     auto const hash = Hash()(key);
     for (auto seq = probe_seq{h1(hash), capacity_}; true; seq.next()) {
       group g{ctrl_ + seq.offset_};
       for (auto const i : g.match(h2(hash))) {
-        if (Eq()(key, entries_[seq.offset(i)])) {
+        if (Eq()(key, key_of(entries_[seq.offset(i)]))) {
           return iterator_at(seq.offset(i));
         }
       }
@@ -215,16 +221,15 @@ struct basic_hash_set {
 
   template <typename... Args>
   std::pair<iterator, bool> emplace(Args&&... args) {
-    auto key = T{std::forward<Args>(args)...};
-    auto res = find_or_prepare_insert(key);
+    auto entry = T{std::forward<Args>(args)...};
+    auto res = find_or_prepare_insert(key_of(entry));
     if (res.second) {
-      new (entries_ + res.first) T{std::move(key)};
+      new (entries_ + res.first) T{std::move(entry)};
     }
     return {iterator_at(res.first), res.second};
   }
 
-  template <class K = T>
-  size_t erase(T const& key) {
+  size_t erase(key_t const& key) {
     auto it = find(key);
     if (it == end()) {
       return 0;
@@ -258,6 +263,22 @@ struct basic_hash_set {
   size_t size() const { return size_; }
   size_t capacity() const { return capacity_; }
   size_t max_size() const { return std::numeric_limits<size_t>::max(); }
+
+  static char const* ctrl_to_str(ctrl_t const c) {
+    switch (c) {
+      case EMPTY: return "EMPTY";
+      case DELETED: return "DELETED";
+      case END: return "END";
+    }
+    return "FULL";
+  }
+
+  void print_status() {
+    for (auto i = size_t{0U}; i != capacity_; ++i) {
+      printf("%zu  -  %s: %d\n", i, ctrl_to_str(ctrl_[i]),
+             is_full(ctrl_[i]) ? entries_[i] : -1);
+    }
+  }
 
 private:
   void erase_meta_only(const_iterator it) {
@@ -295,12 +316,13 @@ private:
     growth_left_ = 0U;
   }
 
-  std::pair<size_t, bool> find_or_prepare_insert(T const& entry) {
-    auto const hash = Hash()(entry);
+  template <typename K>
+  std::pair<size_t, bool> find_or_prepare_insert(K&& key) {
+    auto const hash = Hash()(key);
     for (auto seq = probe_seq{h1(hash), capacity_}; true; seq.next()) {
       group g{ctrl_ + seq.offset_};
       for (auto const i : g.match(h2(hash))) {
-        if (Eq()(entry, entries_[seq.offset(i)])) {
+        if (Eq()(key, key_of(entries_[seq.offset(i)]))) {
           return {seq.offset(i), false};
         }
       }
@@ -378,7 +400,7 @@ private:
 
     for (auto i = size_t{0U}; i != old_capacity; ++i) {
       if (is_full(old_ctrl[i])) {
-        auto const hash = Hash()(old_entries[i]);
+        auto const hash = Hash()(key_of(old_entries[i]));
         auto const target = find_first_non_full(hash);
         auto const new_index = target.offset_;
         set_ctrl(new_index, h2(hash));
@@ -401,8 +423,15 @@ private:
   size_t size_{0U}, capacity_{0U}, growth_left_{0U};
 };
 
+struct identity {
+  template <typename T>
+  auto operator()(T&& t) {
+    return std::forward<T>(t);
+  }
+};
+
 template <typename T, typename Hash = std::hash<T>,
           typename Eq = std::equal_to<T>>
-using hash_set = basic_hash_set<T, Hash, Eq>;
+using hash_set = basic_hash_set<T, identity, Hash, Eq>;
 
 }  // namespace cista
