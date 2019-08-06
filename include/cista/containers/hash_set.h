@@ -308,7 +308,7 @@ private:
       }
     }
 
-    std::free(entries_);
+    CISTA_ALIGNED_FREE(entries_);
     entries_ = nullptr;
     ctrl_ = empty_group();
     size_ = 0U;
@@ -409,7 +409,7 @@ private:
     }
 
     if (old_capacity != 0U) {
-      std::free(old_entries);
+      CISTA_ALIGNED_FREE(old_entries);
     }
   }
 
