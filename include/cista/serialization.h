@@ -162,8 +162,10 @@ void serialize(Ctx& c, basic_unique_ptr<T, Ptr> const* origin,
   }
 }
 
-template <typename Ctx, typename T, typename Hash, typename Eq>
-void serialize(Ctx& c, cista::raw::hash_set<T, Hash, Eq> const* origin,
+template <typename Ctx, typename T, template <typename> typename Ptr,
+          typename GetKey, typename Hash, typename Eq>
+void serialize(Ctx& c,
+               hash_storage<T, Ptr, uint32_t, GetKey, Hash, Eq> const* origin,
                offset_t const pos) {
   using Type = cista::raw::hash_set<T, Hash, Eq>;
 
@@ -449,8 +451,10 @@ void deserialize(Ctx const& c, basic_unique_ptr<T, Ptr>* el) {
   }
 }
 
-template <typename Ctx, typename T, typename Hash, typename Eq>
-void deserialize(Ctx const& c, cista::raw::hash_set<T, Hash, Eq>* el) {
+template <typename Ctx, typename T, template <typename> typename Ptr,
+          typename GetKey, typename Hash, typename Eq>
+void deserialize(Ctx const& c,
+                 hash_storage<T, Ptr, uint32_t, GetKey, Hash, Eq>* el) {
   using Type = cista::raw::hash_set<T, Hash, Eq>;
   c.check(el, sizeof(Type));
   deserialize(c, &el->entries_);
