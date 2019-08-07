@@ -162,6 +162,55 @@ void serialize(Ctx& c, basic_unique_ptr<T, Ptr> const* origin,
   }
 }
 
+template <typename Ctx, typename T, typename Hash, typename Eq>
+void serialize(Ctx& c, cista::raw::hash_set<T, Hash, Eq> const* origin,
+               offset_t const pos) {
+  using Type = cista::raw::hash_set<T, Hash, Eq>;
+
+  auto const start = origin->entries_ == nullptr
+                         ? NULLPTR_OFFSET
+                         : c.write(origin->entries_,
+                                   origin->capacity_ * serialized_size<T>() +
+                                       (origin->capacity_ + 1 + Type::WIDTH) *
+                                           sizeof(Type::ctrl_t),
+                                   std::alignment_of_v<T>);
+  auto const ctrl_start =
+      start == NULLPTR_OFFSET
+          ? NULLPTR_OFFSET
+          : start + origin->capacity_ * serialized_size<T>();
+
+  c.write(pos + cista_member_offset(Type, entries_),
+          convert_endian<Ctx::MODE>(
+              start == NULLPTR_OFFSET
+                  ? start
+                  : start - cista_member_offset(Type, entries_) - pos));
+  c.write(pos + cista_member_offset(Type, ctrl_),
+          convert_endian<Ctx::MODE>(
+              ctrl_start == NULLPTR_OFFSET
+                  ? ctrl_start
+                  : ctrl_start - cista_member_offset(Type, ctrl_) - pos));
+
+  c.write(pos + cista_member_offset(Type, self_allocated_), false);
+
+  c.write(pos + cista_member_offset(Type, size_),
+          convert_endian<Ctx::MODE>(origin->size_));
+  c.write(pos + cista_member_offset(Type, capacity_),
+          convert_endian<Ctx::MODE>(origin->capacity_));
+  c.write(pos + cista_member_offset(Type, growth_left_),
+          convert_endian<Ctx::MODE>(origin->growth_left_));
+
+  if (origin->entries_ != nullptr) {
+    auto i = 0u;
+    for (auto it = start;
+         it != start + static_cast<offset_t>(origin->capacity_) * sizeof(T);
+         it += serialized_size<T>(), ++i) {
+      if (Type::is_full(origin->ctrl_[i])) {
+        serialize(c, origin->entries_ + i, it);
+      }
+    }
+  }
+}
+
 template <typename Ctx, typename T, size_t Size>
 void serialize(Ctx& c, array<T, Size> const* origin, offset_t const pos) {
   auto const size =
@@ -397,6 +446,27 @@ void deserialize(Ctx const& c, basic_unique_ptr<T, Ptr>* el) {
   deserialize(c, &el->el_);
   if (el->el_ != nullptr) {
     deserialize(c, static_cast<T*>(el->el_));
+  }
+}
+
+template <typename Ctx, typename T, typename Hash, typename Eq>
+void deserialize(Ctx const& c, cista::raw::hash_set<T, Hash, Eq>* el) {
+  using Type = cista::raw::hash_set<T, Hash, Eq>;
+  c.check(el, sizeof(Type));
+  deserialize(c, &el->entries_);
+  deserialize(c, &el->ctrl_);
+  c.convert_endian(el->size_);
+  c.convert_endian(el->capacity_);
+  c.convert_endian(el->growth_left_);
+  c.check(el->entries_,
+          checked_addition(checked_multiplication(
+                               static_cast<size_t>(el->capacity_), sizeof(T)),
+                           checked_multiplication(
+                               checked_addition(el->capacity_, 1U, Type::WIDTH),
+                               sizeof(Type::ctrl_t))));
+  c.check(!el->self_allocated_, "hash set self-allocated");
+  for (auto& m : *el) {
+    deserialize(c, &m);
   }
 }
 
