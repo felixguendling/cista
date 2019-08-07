@@ -23,6 +23,8 @@ T to_next_multiple(T const n, T const multiple) {
 #else
 #include <memory>
 #define CISTA_ALIGNED_ALLOC(alignment, size) \
-  (std::aligned_alloc((alignment), to_next_multiple((size), (alignment))))
+  (std::aligned_alloc(                       \
+      (alignment),                           \
+      cista::to_next_multiple((size), cista::next_power_of_two((alignment)))))
 #define CISTA_ALIGNED_FREE(ptr) std::free((ptr))
 #endif
