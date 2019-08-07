@@ -174,12 +174,13 @@ void serialize(Ctx& c,
                          : c.write(origin->entries_,
                                    origin->capacity_ * serialized_size<T>() +
                                        (origin->capacity_ + 1 + Type::WIDTH) *
-                                           sizeof(Type::ctrl_t),
+                                           sizeof(typename Type::ctrl_t),
                                    std::alignment_of_v<T>);
   auto const ctrl_start =
       start == NULLPTR_OFFSET
           ? NULLPTR_OFFSET
-          : start + origin->capacity_ * serialized_size<T>();
+          : start +
+                static_cast<offset_t>(origin->capacity_ * serialized_size<T>());
 
   c.write(pos + cista_member_offset(Type, entries_),
           convert_endian<Ctx::MODE>(
@@ -204,7 +205,8 @@ void serialize(Ctx& c,
   if (origin->entries_ != nullptr) {
     auto i = 0u;
     for (auto it = start;
-         it != start + static_cast<offset_t>(origin->capacity_) * sizeof(T);
+         it != start + static_cast<offset_t>(origin->capacity_ *
+                                             serialized_size<T>());
          it += serialized_size<T>(), ++i) {
       if (Type::is_full(origin->ctrl_[i])) {
         serialize(c, origin->entries_ + i, it);
@@ -467,7 +469,7 @@ void deserialize(Ctx const& c,
                                static_cast<size_t>(el->capacity_), sizeof(T)),
                            checked_multiplication(
                                checked_addition(el->capacity_, 1U, Type::WIDTH),
-                               sizeof(Type::ctrl_t))));
+                               sizeof(typename Type::ctrl_t))));
   c.check(!el->self_allocated_, "hash set self-allocated");
   for (auto& m : *el) {
     deserialize(c, &m);
