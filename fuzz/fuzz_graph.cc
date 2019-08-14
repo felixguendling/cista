@@ -91,7 +91,9 @@ void test(uint8_t const* data, size_t size) {
     auto const mutable_data = const_cast<uint8_t*>(data);
     auto const g = cista::deserialize<graphns::offset::graph, cista::mode::DEEP_CHECK>(
         mutable_data, mutable_data + size);
-    (g->nodes_[0] == nullptr) ? 0U : bfs(g->nodes_[0].get()).size();
+    if (!g->nodes_.empty() && g->nodes_[0].get() != nullptr) {
+      bfs(g->nodes_[0].get()).size();
+    }
   } catch (std::exception const&) {
   }
 }
