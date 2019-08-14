@@ -535,26 +535,16 @@ void recurse(Ctx&, basic_unique_ptr<T, Ptr>* el, Fn&& fn) {
   }
 }
 
-<<<<<<< HEAD
 // --- HASH_STORAGE<T> ---
 template <typename Ctx, typename T, template <typename> typename Ptr,
           typename GetKey, typename Hash, typename Eq>
 void convert_endian_and_ptr(
     Ctx const& c, hash_storage<T, Ptr, uint32_t, GetKey, Hash, Eq>* el) {
-=======
-template <typename Ctx, typename T, template <typename> typename Ptr,
-          typename GetKey, typename Hash, typename Eq>
-void deserialize(Ctx const& c,
-                 hash_storage<T, Ptr, uint32_t, GetKey, Hash, Eq>* el) {
-  using Type = cista::raw::hash_set<T, Hash, Eq>;
-  c.check(el, sizeof(Type));
->>>>>>> master
   deserialize(c, &el->entries_);
   deserialize(c, &el->ctrl_);
   c.convert_endian(el->size_);
   c.convert_endian(el->capacity_);
   c.convert_endian(el->growth_left_);
-<<<<<<< HEAD
 }
 
 template <typename Ctx, typename T, template <typename> typename Ptr,
@@ -587,23 +577,6 @@ template <typename Ctx, typename T, template <typename> typename Ptr,
           typename GetKey, typename Hash, typename Eq, typename Fn>
 void recurse(Ctx&, hash_storage<T, Ptr, uint32_t, GetKey, Hash, Eq>* el,
              Fn&& fn) {
-=======
-  c.check(el->entries_,
-          checked_addition(checked_multiplication(
-                               static_cast<size_t>(el->capacity_), sizeof(T)),
-                           checked_multiplication(
-                               checked_addition(el->capacity_, 1U, Type::WIDTH),
-                               sizeof(typename Type::ctrl_t))));
-  c.check(!el->self_allocated_, "hash set self-allocated");
-  for (auto& m : *el) {
-    deserialize(c, &m);
-  }
-}
-
-template <typename Ctx, typename T, size_t Size>
-void deserialize(Ctx const& c, array<T, Size>* el) {
-  c.check(el, sizeof(array<T, Size>));
->>>>>>> master
   for (auto& m : *el) {
     fn(&m);
   }
