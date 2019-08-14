@@ -1,4 +1,4 @@
-//  ~/Programs/clang+llvm-8.0.0-x86_64-apple-darwin/bin/clang++ -O0 -g -Iinclude -std=c++17 -stdlib=libc++ -fsanitize=address,fuzzer fuzz/fuzz_graph.cc && ./a.ou
+// $CXX -O0 -g -Iinclude -std=c++17 -stdlib=libc++ -fsanitize=address,undefined,fuzzer -o fuzz_graph fuzz/fuzz_graph.cc && ./fuzz_graph
 
 #include <queue>
 #include <set>
