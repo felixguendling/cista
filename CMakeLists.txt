@@ -108,3 +108,6 @@ add_custom_target(cista-coverage
   lcov -r cov.info "*v1*" -o cov.info
 )
 add_dependencies(cista-coverage cista-test)
+
+add_executable(cista-fuzz_graph EXCLUDE_FROM_ALL fuzz/fuzz_graph.cc)
+target_link_libraries(cista-fuzz_graph cista)

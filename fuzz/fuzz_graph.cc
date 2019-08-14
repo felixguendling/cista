@@ -9,11 +9,6 @@
 
 namespace data = cista::offset;
 
-constexpr auto const CHECKSUM_INTEGRITY_AND_VERSION =
-    sizeof(void*) == 4 ? 1677829801727797916ULL : 6773875736123884735ULL;
-constexpr auto const CHECKSUM_BIG_ENDIAN =
-    sizeof(void*) == 4 ? 13420010985482148984ULL : 15391991077970203927ULL;
-
 namespace graphns::offset {
 
 struct node;
@@ -69,7 +64,6 @@ inline std::set<node const*> bfs(node const* entry) {
   std::queue<node const*> q;
   std::set<node const*> visited;
 
-  // printf("emplacing %p\n", entry);
   q.emplace(entry);
 
   while (!q.empty()) {
@@ -82,12 +76,8 @@ inline std::set<node const*> bfs(node const* entry) {
 
     visited.emplace(next);
 
-    // printf("edges of %p (next->edges_.el_=%p):\n", next,
-    //        next->edges_.el_.get());
     for (auto const& e : next->edges_) {
-      // printf("  edge: %p\n", e.get());
       if (e != nullptr && e->to_ != nullptr) {
-        // printf("  emplacing %p\n", static_cast<node const*>(e->to_));
         q.emplace(e->to_);
       }
     }
@@ -99,16 +89,9 @@ inline std::set<node const*> bfs(node const* entry) {
 void test(uint8_t const* data, size_t size) {
   try {
     auto const mutable_data = const_cast<uint8_t*>(data);
-    // printf("range: %p - %p\n", data, data + size);
     auto const g = cista::deserialize<graphns::offset::graph, cista::mode::DEEP_CHECK>(
         mutable_data, mutable_data + size);
-    if (g->nodes_.size() >= 2U) {
-      printf("graph with %u nodes\n", g->nodes_.size());
-      auto const bfs_nodes = bfs(g->nodes_[0].get()).size();
-      if (bfs_nodes >= 2) {
-        printf("bfs nodes = %zu\n", bfs_nodes);
-      }
-    }
+    bfs(g->nodes_[0].get()).size();
   } catch (std::exception const&) {
   }
 }
