@@ -52,7 +52,7 @@ jobs:
     workingDirectory: build
     displayName: 'Run Tests'
     condition: not(eq('${{ variables.FUZZ }}', 'True'))
-  - script: ./cista-fuzz_graph
+  - script: ./cista-fuzz_graph -max_total_time=60
     workingDirectory: build
     displayName: 'Run Fuzzing'
     condition: eq('${{ variables.FUZZ }}', 'True')
