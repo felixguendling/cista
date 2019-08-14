@@ -43,19 +43,19 @@ jobs:
   - script: make cista-test
     workingDirectory: build
     displayName: 'Build'
-    condition: not(eq('${{ variables.FUZZ }}', 'True'))
+    condition: not(eq('${{ FUZZ }}', 'True'))
   - script: make cista-fuzz_graph
     workingDirectory: build
     displayName: 'Build'
-    condition: eq('${{ variables.FUZZ }}', 'True')
+    condition: eq('${{ FUZZ }}', 'True')
   - script: ./cista-test
     workingDirectory: build
     displayName: 'Run Tests'
-    condition: not(eq('${{ variables.FUZZ }}', 'True'))
+    condition: not(eq('${{ FUZZ }}', 'True'))
   - script: ./cista-fuzz_graph -max_total_time=60
     workingDirectory: build
     displayName: 'Run Fuzzing'
-    condition: eq('${{ variables.FUZZ }}', 'True')
+    condition: eq('${{ FUZZ }}', 'True')
 
 - job: LINUX_GCC
   strategy:
