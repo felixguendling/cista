@@ -12,6 +12,8 @@ jobs:
    cmakeArgs: '-G "Visual Studio 15 2017" -A x64 ..'
 
 - job: LINUX_CLANG
+  variables:
+    ASAN_SYMBOLIZER_PATH: /opt/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/llvm-symbolizer
   strategy:
     matrix:
       REL:
