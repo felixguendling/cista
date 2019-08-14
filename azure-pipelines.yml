@@ -17,9 +17,15 @@ jobs:
       REL:
         BUILD_TYPE: Release
         CXXFLAGS: '-std=c++17 -stdlib=libc++ -D_LIBCPP_VERSION=1 -march=native'
+        FUZZ: False
       DBG:
         BUILD_TYPE: Debug
         CXXFLAGS: '-std=c++17 -stdlib=libc++ -D_LIBCPP_VERSION=1 -fno-omit-frame-pointer -fsanitize=address'
+        FUZZ: False
+      FUZZ:
+        BUIDL_TYPE: Debug
+        CXXFLAGS: '-std=c++17 -stdlib=libc++ -D_LIBCPP_VERSION=1 -fno-omit-frame-pointer -fsanitize=address,undefined,fuzzer'
+        FUZZ: True
   pool:
     vmImage: ubuntu-16.04
   variables:
@@ -37,9 +43,19 @@ jobs:
   - script: make cista-test
     workingDirectory: build
     displayName: 'Build'
+    condition: not(variables['FUZZ'])
+  - script: make cista-fuzz_graph
+    workingDirectory: build
+    displayName: 'Build'
+    condition: variables['FUZZ']
   - script: ./cista-test
     workingDirectory: build
     displayName: 'Run Tests'
+    condition: not(variables['FUZZ'])
+  - script: ./cista-fuzz_graph
+    workingDirectory: build
+    displayName: 'Run Fuzzing'
+    condition: variables['FUZZ']
 
 - job: LINUX_GCC
   strategy:
