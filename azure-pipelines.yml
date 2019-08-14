@@ -12,8 +12,6 @@ jobs:
    cmakeArgs: '-G "Visual Studio 15 2017" -A x64 ..'
 
 - job: LINUX_CLANG
-  variables:
-    ASAN_SYMBOLIZER_PATH: /opt/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/llvm-symbolizer
   strategy:
     matrix:
       REL:
@@ -33,6 +31,7 @@ jobs:
   variables:
     CXX: /opt/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/clang++
     LD_LIBRARY_PATH: /opt/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04/lib
+    ASAN_SYMBOLIZER_PATH: /opt/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/llvm-symbolizer
   steps:
   - script: |
       sudo curl -Ls http://releases.llvm.org/8.0.0/clang%2bllvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz -o clang.tar.xz
