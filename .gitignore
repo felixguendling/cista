@@ -4,3 +4,4 @@
 /out
 /.vs
 /CMakeSettings.json
+*.bin

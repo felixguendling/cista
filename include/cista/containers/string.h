@@ -75,6 +75,10 @@ struct basic_string {
     return a.view() == b.view();
   }
 
+  friend bool operator!=(basic_string const& a, basic_string const& b) {
+    return !(a == b);
+  }
+
   char* begin() { return data(); }
   char* end() { return data() + size(); }
   char const* begin() const { return data(); }
@@ -190,6 +194,10 @@ struct basic_string {
 
   std::string_view view() const { return {data(), size()}; }
   std::string str() const { return {data(), size()}; }
+
+  char& operator[](size_t i) { return data()[i]; }
+  char const& operator[](size_t i) const { return data()[i]; }
+
 
   char* data() {
     if constexpr (std::is_pointer_v<Ptr>) {
