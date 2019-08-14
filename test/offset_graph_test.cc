@@ -213,9 +213,9 @@ TEST_CASE("graph offset serialize mmap file") {
 
 TEST_CASE("graph offset serialize endian test") {
   constexpr auto const FILENAME = "offset_graph_big_endian.bin";
-  constexpr auto const MODE = cista::mode::WITH_INTEGRITY |
-                              cista::mode::WITH_VERSION |
-                              cista::mode::SERIALIZE_BIG_ENDIAN;
+  constexpr auto const MODE =
+      cista::mode::WITH_INTEGRITY | cista::mode::WITH_VERSION |
+      cista::mode::SERIALIZE_BIG_ENDIAN | cista::mode::DEEP_CHECK;
 
   std::remove(FILENAME);
 

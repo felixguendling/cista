@@ -2,6 +2,8 @@
 
 #include <limits>
 #include <map>
+#include <numeric>
+#include <set>
 #include <vector>
 
 #include "cista/containers.h"
@@ -328,7 +330,7 @@ struct deserialization_context {
   }
 
   template <typename Ptr>
-  void deserialize(Ptr** ptr) const {
+  void deserialize_ptr(Ptr** ptr) const {
     auto const offset =
         reinterpret_cast<offset_t>(::cista::convert_endian<MODE>(*ptr));
     *ptr =
@@ -338,7 +340,7 @@ struct deserialization_context {
   }
 
   template <typename T>
-  void check(T* el, size_t size) const {
+  void check_overflow(T* el, size_t const size = sizeof(decay_t<T>)) const {
     if constexpr ((MODE & mode::UNCHECKED) == mode::UNCHECKED) {
       return;
     }
@@ -355,7 +357,7 @@ struct deserialization_context {
            "overflow");
   }
 
-  void check(bool condition, char const* msg) const {
+  void require(bool condition, char const* msg) const {
     if constexpr ((MODE & mode::UNCHECKED) == mode::UNCHECKED) {
       return;
     }
@@ -366,6 +368,20 @@ struct deserialization_context {
   }
 
   intptr_t from_, to_;
+};
+
+template <mode Mode>
+struct deep_check_context : public deserialization_context<Mode> {
+  using parent = deserialization_context<Mode>;
+
+  using parent::parent;
+
+  template <typename T>
+  bool add_checked(T const* v) const {
+    return checked_.emplace(type_hash<T>(), static_cast<void const*>(v)).second;
+  }
+
+  std::set<std::pair<hash_t, void const*>> mutable checked_;
 };
 
 template <typename T, mode const Mode = mode::NONE>
@@ -388,108 +404,205 @@ void check(uint8_t const* from, uint8_t const* to) {
   }
 }
 
+// --- GENERIC ---
 template <typename Ctx, typename T>
-void deserialize(Ctx const& c, T* el) {
-  using written_type_t = decay_t<T>;
-  if constexpr (std::is_union_v<written_type_t>) {
-    static_assert(std::is_standard_layout_v<written_type_t> &&
-                  std::is_trivially_copyable_v<written_type_t>);
-  } else if constexpr (std::is_pointer_v<written_type_t>) {
-    c.deserialize(el);
-    c.check(*el, sizeof(*std::declval<written_type_t>()));
-  } else if constexpr (std::is_scalar_v<written_type_t>) {
-    c.check(el, sizeof(T));
-    if (std::numeric_limits<written_type_t>::is_integer ||
-        std::is_floating_point_v<written_type_t>) {
-      c.convert_endian(*el);
-    }
-  } else {
-    for_each_ptr_field(*el, [&](auto& f) { deserialize(c, f); });
+void convert_endian_and_ptr(Ctx const& c, T* el) {
+  using Type = decay_t<T>;
+  if constexpr (std::is_pointer_v<Type>) {
+    c.deserialize_ptr(el);
+    c.check_overflow(*el);
+  } else if constexpr (std::numeric_limits<Type>::is_integer ||
+                       std::is_floating_point_v<Type>) {
+    c.convert_endian(*el);
   }
 }
 
 template <typename Ctx, typename T>
-void deserialize(Ctx const& c, offset_ptr<T>* el) {
-  using written_type_t = decay_t<T>;
-  c.check(el, sizeof(offset_ptr<T>));
-  c.convert_endian(el->offset_);
-  c.check(el->get(), sizeof(std::declval<written_type_t>()));
+void check_state(Ctx const& c, T* el) {
+  using Type = decay_t<T>;
+  if constexpr (std::is_pointer_v<Type>) {
+    c.check_overflow(*el);
+  }
 }
 
+template <typename Ctx, typename T, typename Fn>
+void recurse(Ctx& c, T* el, Fn&& fn) {
+  using Type = decay_t<T>;
+  if constexpr (std::is_aggregate_v<Type> && !std::is_union_v<Type>) {
+    for_each_ptr_field(*el, [&](auto& f) { fn(f); });
+  } else if constexpr ((Ctx::MODE & mode::_PHASE_II) == mode::_PHASE_II &&
+                       std::is_pointer_v<Type>) {
+    if (*el != nullptr && c.add_checked(el)) {
+      fn(*el);
+    }
+  }
+}
+
+template <typename Ctx, typename T>
+void deserialize(Ctx const& c, T* el) {
+  c.check_overflow(el);
+  if constexpr ((Ctx::MODE & mode::_PHASE_II) == mode::NONE) {
+    convert_endian_and_ptr(c, el);
+  }
+  check_state(c, el);
+  recurse(c, el, [&](auto* entry) { deserialize(c, entry); });
+}
+
+// --- OFFSET_PTR<T> ---
+template <typename Ctx, typename T>
+void convert_endian_and_ptr(Ctx const& c, offset_ptr<T>* el) {
+  c.convert_endian(el->offset_);
+}
+
+template <typename Ctx, typename T>
+void check_state(Ctx const& c, offset_ptr<T>* el) {
+  c.check_overflow(el->get());
+}
+
+template <typename Ctx, typename T, typename Fn>
+void recurse(Ctx& c, offset_ptr<T>* el, Fn&& fn) {
+  if constexpr ((Ctx::MODE & mode::_PHASE_II) == mode::_PHASE_II) {
+    if (*el != nullptr && c.add_checked(el)) {
+      fn(static_cast<T*>(*el));
+    }
+  }
+}
+
+// --- VECTOR<T> ---
 template <typename Ctx, typename T, typename Ptr, typename TemplateSizeType>
-void deserialize(Ctx const& c, basic_vector<T, Ptr, TemplateSizeType>* el) {
-  c.check(el, sizeof(basic_vector<T, Ptr, TemplateSizeType>));
+void convert_endian_and_ptr(Ctx const& c,
+                            basic_vector<T, Ptr, TemplateSizeType>* el) {
   deserialize(c, &el->el_);
   c.convert_endian(el->allocated_size_);
   c.convert_endian(el->used_size_);
-  c.check(static_cast<T*>(el->el_),
-          checked_multiplication(static_cast<size_t>(el->allocated_size_),
-                                 sizeof(T)));
-  c.check(el->allocated_size_ == el->used_size_, "vector size mismatch");
-  c.check(!el->self_allocated_, "vector self-allocated");
+}
+
+template <typename Ctx, typename T, typename Ptr, typename TemplateSizeType>
+void check_state(Ctx const& c, basic_vector<T, Ptr, TemplateSizeType>* el) {
+  c.check_overflow(static_cast<T*>(el->el_),
+                   checked_multiplication(
+                       static_cast<size_t>(el->allocated_size_), sizeof(T)));
+  c.require(el->allocated_size_ == el->used_size_, "vec size mismatch");
+  c.require(!el->self_allocated_, "vec self-allocated");
+  c.require((el->size() == 0) == (el->el_ == nullptr), "vec size=0 <=> ptr=0");
+}
+
+template <typename Ctx, typename T, typename Ptr, typename TemplateSizeType,
+          typename Fn>
+void recurse(Ctx&, basic_vector<T, Ptr, TemplateSizeType>* el, Fn&& fn) {
   for (auto& m : *el) {
-    deserialize(c, &m);
+    fn(&m);
+  }
+}
+
+// --- STRING ---
+template <typename Ctx, typename Ptr>
+void convert_endian_and_ptr(Ctx const& c, basic_string<Ptr>* el) {
+  if (!el->is_short()) {
+    deserialize(c, &el->h_.ptr_);
+    c.convert_endian(el->h_.size_);
   }
 }
 
 template <typename Ctx, typename Ptr>
-void deserialize(Ctx const& c, basic_string<Ptr>* el) {
-  c.check(el, sizeof(basic_string<Ptr>));
+void check_state(Ctx const& c, basic_string<Ptr>* el) {
   if (!el->is_short()) {
-    deserialize(c, &el->h_.ptr_);
-    c.convert_endian(el->h_.size_);
-    c.check(static_cast<char const*>(el->h_.ptr_), el->h_.size_);
-    c.check(!el->h_.self_allocated_, "string self-allocated");
+    c.check_overflow(static_cast<char const*>(el->h_.ptr_), el->h_.size_);
+    c.require(!el->h_.self_allocated_, "string self-allocated");
+    c.require((el->h_.size_ == 0) == (el->h_.ptr_ == nullptr),
+              "str size=0 <=> ptr=0");
   }
+}
+
+template <typename Ctx, typename Ptr, typename Fn>
+void recurse(Ctx&, basic_string<Ptr>*, Fn&&) {}
+
+// --- UNIQUE_PTR<T> ---
+template <typename Ctx, typename T, typename Ptr>
+void convert_endian_and_ptr(Ctx const& c, basic_unique_ptr<T, Ptr>* el) {
+  deserialize(c, &el->el_);
 }
 
 template <typename Ctx, typename T, typename Ptr>
-void deserialize(Ctx const& c, basic_unique_ptr<T, Ptr>* el) {
-  c.check(el, sizeof(basic_unique_ptr<T, Ptr>));
-  c.check(!el->self_allocated_, "unique_ptr self-allocated");
-  deserialize(c, &el->el_);
+void check_state(Ctx const& c, basic_unique_ptr<T, Ptr>* el) {
+  c.require(!el->self_allocated_, "unique_ptr self-allocated");
+}
+
+template <typename Ctx, typename T, typename Ptr, typename Fn>
+void recurse(Ctx&, basic_unique_ptr<T, Ptr>* el, Fn&& fn) {
   if (el->el_ != nullptr) {
-    deserialize(c, static_cast<T*>(el->el_));
+    fn(static_cast<T*>(el->el_));
   }
 }
 
+// --- HASH_STORAGE<T> ---
 template <typename Ctx, typename T, template <typename> typename Ptr,
           typename GetKey, typename Hash, typename Eq>
-void deserialize(Ctx const& c,
-                 hash_storage<T, Ptr, uint32_t, GetKey, Hash, Eq>* el) {
-  using Type = cista::raw::hash_set<T, Hash, Eq>;
-  c.check(el, sizeof(Type));
+void convert_endian_and_ptr(
+    Ctx const& c, hash_storage<T, Ptr, uint32_t, GetKey, Hash, Eq>* el) {
   deserialize(c, &el->entries_);
   deserialize(c, &el->ctrl_);
   c.convert_endian(el->size_);
   c.convert_endian(el->capacity_);
   c.convert_endian(el->growth_left_);
-  c.check(el->entries_,
-          checked_addition(checked_multiplication(
-                               static_cast<size_t>(el->capacity_), sizeof(T)),
-                           checked_multiplication(
-                               checked_addition(el->capacity_, 1U, Type::WIDTH),
-                               sizeof(typename Type::ctrl_t))));
-  c.check(!el->self_allocated_, "hash set self-allocated");
+}
+
+template <typename Ctx, typename T, template <typename> typename Ptr,
+          typename GetKey, typename Hash, typename Eq>
+void check_state(Ctx const& c,
+                 hash_storage<T, Ptr, uint32_t, GetKey, Hash, Eq>* el) {
+  using Type = decay_t<remove_pointer_t<decltype(el)>>;
+  c.check_overflow(
+      el->entries_,
+      checked_addition(
+          checked_multiplication(static_cast<size_t>(el->capacity_), sizeof(T)),
+          checked_multiplication(
+              checked_addition(el->capacity_, 1U, Type::WIDTH),
+              sizeof(typename Type::ctrl_t))));
+  c.require(el->entries_ == nullptr ||
+                reinterpret_cast<uint8_t const*>(el->ctrl_) ==
+                    reinterpret_cast<uint8_t const*>(el->entries_) +
+                        checked_multiplication(
+                            static_cast<size_t>(el->capacity_), sizeof(T)),
+            "hash storage: entries!=null -> ctrl = entries+capacity");
+  c.require(std::accumulate(el->ctrl_, el->ctrl_ + el->capacity_, size_t{0U},
+                            [](size_t const acc, typename Type::ctrl_t ctrl) {
+                              return Type::is_full(ctrl) ? acc + 1 : acc;
+                            }) == el->capacity_ - el->growth_left_,
+            "hash storage: growth left = capacity - number of full elements");
+  c.require(!el->self_allocated_, "hash set self-allocated");
+}
+
+template <typename Ctx, typename T, template <typename> typename Ptr,
+          typename GetKey, typename Hash, typename Eq, typename Fn>
+void recurse(Ctx&, hash_storage<T, Ptr, uint32_t, GetKey, Hash, Eq>* el,
+             Fn&& fn) {
   for (auto& m : *el) {
-    deserialize(c, &m);
+    fn(&m);
   }
 }
 
-template <typename Ctx, typename T, size_t Size>
-void deserialize(Ctx const& c, array<T, Size>* el) {
-  c.check(el, sizeof(array<T, Size>));
+// --- ARRAY<T> ---
+template <typename Ctx, typename T, size_t Size, typename Fn>
+void recurse(Ctx&, array<T, Size>* el, Fn&& fn) {
   for (auto& m : *el) {
-    deserialize(c, &m);
+    fn(&m);
   }
 }
 
 template <typename T, mode const Mode = mode::NONE>
 T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
   check<T, Mode>(from, to);
-  deserialization_context<Mode> c{from, to};
   auto const el = reinterpret_cast<T*>(from + data_start(Mode));
+
+  deserialization_context<Mode> c{from, to};
   deserialize(c, el);
+
+  if constexpr ((Mode & mode::DEEP_CHECK) == mode::DEEP_CHECK) {
+    deep_check_context<Mode | mode::_PHASE_II> c1{from, to};
+    deserialize(c1, el);
+  }
+
   return el;
 }
 
