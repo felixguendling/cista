@@ -114,3 +114,8 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   target_link_libraries(cista-fuzz_graph cista -fsanitize=address,undefined,fuzzer)
   target_compile_options(cista-fuzz_graph PRIVATE -g -O0 -fsanitize=address,undefined,fuzzer)
 endif()
+
+add_executable(cista-fuzz_graph-read EXCLUDE_FROM_ALL fuzz/fuzz_graph.cc)
+target_link_libraries(cista-fuzz_graph-read cista -fsanitize=address,undefined,fuzzer)
+target_compile_options(cista-fuzz_graph-read PRIVATE -g -O0 -fsanitize=address,undefined,fuzzer)
+target_compile_definitions(cista-fuzz_graph-read PRIVATE READ_CRASH_FILE)

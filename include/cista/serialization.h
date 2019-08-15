@@ -496,9 +496,9 @@ void check_state(Ctx const& c, basic_vector<T, Ptr, TemplateSizeType>* el) {
   c.check_ptr(el->el_,
               checked_multiplication(static_cast<size_t>(el->allocated_size_),
                                      sizeof(T)));
+  c.check_bool(el->self_allocated_);
+  c.require(!el->self_allocated_, "vec self-allocated");
   c.require(el->allocated_size_ == el->used_size_, "vec size mismatch");
-  c.require(*reinterpret_cast<uint8_t const*>(&el->self_allocated_) == 0U,
-            "vec self-allocated");
   c.require((el->size() == 0) == (el->el_ == nullptr), "vec size=0 <=> ptr=0");
 }
 
@@ -513,7 +513,7 @@ void recurse(Ctx&, basic_vector<T, Ptr, TemplateSizeType>* el, Fn&& fn) {
 // --- STRING ---
 template <typename Ctx, typename Ptr>
 void convert_endian_and_ptr(Ctx const& c, basic_string<Ptr>* el) {
-  if (*reinterpret_cast<uint8_t const*>(&el->s_.is_short_) != 0U) {
+  if (*reinterpret_cast<uint8_t const*>(&el->s_.is_short_) == 0U) {
     deserialize(c, &el->h_.ptr_);
     c.convert_endian(el->h_.size_);
   }
@@ -524,8 +524,8 @@ void check_state(Ctx const& c, basic_string<Ptr>* el) {
   c.check_bool(el->s_.is_short_);
   if (!el->is_short()) {
     c.check_ptr(el->h_.ptr_, el->h_.size_);
-    c.require(*reinterpret_cast<uint8_t const*>(&el->h_.self_allocated_) == 0U,
-              "string self-allocated");
+    c.check_bool(el->h_.self_allocated_);
+    c.require(!el->h_.self_allocated_, "string self-allocated");
     c.require((el->h_.size_ == 0) == (el->h_.ptr_ == nullptr),
               "str size=0 <=> ptr=0");
   }
@@ -542,8 +542,8 @@ void convert_endian_and_ptr(Ctx const& c, basic_unique_ptr<T, Ptr>* el) {
 
 template <typename Ctx, typename T, typename Ptr>
 void check_state(Ctx const& c, basic_unique_ptr<T, Ptr>* el) {
-  c.require(*reinterpret_cast<uint8_t const*>(&el->self_allocated_) == 0U,
-            "unique_ptr self-allocated");
+  c.check_bool(el->self_allocated_);
+  c.require(!el->self_allocated_, "unique_ptr self-allocated");
 }
 
 template <typename Ctx, typename T, typename Ptr, typename Fn>
@@ -588,8 +588,8 @@ void check_state(Ctx const& c,
                               return Type::is_full(ctrl) ? acc + 1 : acc;
                             }) == el->capacity_ - el->growth_left_,
             "hash storage: growth left = capacity - number of full elements");
-  c.require(*reinterpret_cast<uint8_t const*>(&el->self_allocated_) == 0U,
-            "hash storage: self-allocated");
+  c.check_bool(el->self_allocated_);
+  c.require(!el->self_allocated_, "hash storage: self-allocated");
 }
 
 template <typename Ctx, typename T, template <typename> typename Ptr,
