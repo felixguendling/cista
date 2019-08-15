@@ -340,7 +340,14 @@ struct deserialization_context {
   }
 
   template <typename T>
-  void check_overflow(T* el, size_t const size = sizeof(decay_t<T>)) const {
+  void check_ptr(offset_ptr<T> const& el,
+                 size_t const size = sizeof(decay_t<T>)) const {
+    checked_addition(el.offset_, reinterpret_cast<intptr_t>(&el));
+    check_ptr(el.get(), size);
+  }
+
+  template <typename T>
+  void check_ptr(T* el, size_t const size = sizeof(decay_t<T>)) const {
     if constexpr ((MODE & mode::UNCHECKED) == mode::UNCHECKED) {
       return;
     }
@@ -350,11 +357,19 @@ struct deserialization_context {
     }
 
     auto const pos = reinterpret_cast<intptr_t>(el);
+    verify((pos & static_cast<intptr_t>(std::alignment_of<decay_t<T>>() - 1)) ==
+               0U,
+           "ptr alignment");
     verify(size < static_cast<size_t>(std::numeric_limits<intptr_t>::max()),
            "size out of bounds");
     verify(pos >= from_, "underflow");
     verify(checked_addition(pos, static_cast<intptr_t>(size)) <= to_,
            "overflow");
+  }
+
+  static void check_bool(bool const& b) {
+    auto const val = *reinterpret_cast<uint8_t const*>(&b);
+    verify(val <= 1U, "valid bool");
   }
 
   void require(bool condition, char const* msg) const {
@@ -410,7 +425,6 @@ void convert_endian_and_ptr(Ctx const& c, T* el) {
   using Type = decay_t<T>;
   if constexpr (std::is_pointer_v<Type>) {
     c.deserialize_ptr(el);
-    c.check_overflow(*el);
   } else if constexpr (std::numeric_limits<Type>::is_integer ||
                        std::is_floating_point_v<Type>) {
     c.convert_endian(*el);
@@ -421,7 +435,7 @@ template <typename Ctx, typename T>
 void check_state(Ctx const& c, T* el) {
   using Type = decay_t<T>;
   if constexpr (std::is_pointer_v<Type>) {
-    c.check_overflow(*el);
+    c.check_ptr(*el);
   }
 }
 
@@ -440,7 +454,7 @@ void recurse(Ctx& c, T* el, Fn&& fn) {
 
 template <typename Ctx, typename T>
 void deserialize(Ctx const& c, T* el) {
-  c.check_overflow(el);
+  c.check_ptr(el);
   if constexpr ((Ctx::MODE & mode::_PHASE_II) == mode::NONE) {
     convert_endian_and_ptr(c, el);
   }
@@ -456,7 +470,7 @@ void convert_endian_and_ptr(Ctx const& c, offset_ptr<T>* el) {
 
 template <typename Ctx, typename T>
 void check_state(Ctx const& c, offset_ptr<T>* el) {
-  c.check_overflow(el->get());
+  c.check_ptr(*el);
 }
 
 template <typename Ctx, typename T, typename Fn>
@@ -479,11 +493,12 @@ void convert_endian_and_ptr(Ctx const& c,
 
 template <typename Ctx, typename T, typename Ptr, typename TemplateSizeType>
 void check_state(Ctx const& c, basic_vector<T, Ptr, TemplateSizeType>* el) {
-  c.check_overflow(static_cast<T*>(el->el_),
-                   checked_multiplication(
-                       static_cast<size_t>(el->allocated_size_), sizeof(T)));
+  c.check_ptr(el->el_,
+              checked_multiplication(static_cast<size_t>(el->allocated_size_),
+                                     sizeof(T)));
   c.require(el->allocated_size_ == el->used_size_, "vec size mismatch");
-  c.require(!el->self_allocated_, "vec self-allocated");
+  c.require(*reinterpret_cast<uint8_t const*>(&el->self_allocated_) == 0U,
+            "vec self-allocated");
   c.require((el->size() == 0) == (el->el_ == nullptr), "vec size=0 <=> ptr=0");
 }
 
@@ -498,7 +513,7 @@ void recurse(Ctx&, basic_vector<T, Ptr, TemplateSizeType>* el, Fn&& fn) {
 // --- STRING ---
 template <typename Ctx, typename Ptr>
 void convert_endian_and_ptr(Ctx const& c, basic_string<Ptr>* el) {
-  if (!el->is_short()) {
+  if (*reinterpret_cast<uint8_t const*>(&el->s_.is_short_) != 0U) {
     deserialize(c, &el->h_.ptr_);
     c.convert_endian(el->h_.size_);
   }
@@ -506,9 +521,11 @@ void convert_endian_and_ptr(Ctx const& c, basic_string<Ptr>* el) {
 
 template <typename Ctx, typename Ptr>
 void check_state(Ctx const& c, basic_string<Ptr>* el) {
+  c.check_bool(el->s_.is_short_);
   if (!el->is_short()) {
-    c.check_overflow(static_cast<char const*>(el->h_.ptr_), el->h_.size_);
-    c.require(!el->h_.self_allocated_, "string self-allocated");
+    c.check_ptr(el->h_.ptr_, el->h_.size_);
+    c.require(*reinterpret_cast<uint8_t const*>(&el->h_.self_allocated_) == 0U,
+              "string self-allocated");
     c.require((el->h_.size_ == 0) == (el->h_.ptr_ == nullptr),
               "str size=0 <=> ptr=0");
   }
@@ -525,7 +542,8 @@ void convert_endian_and_ptr(Ctx const& c, basic_unique_ptr<T, Ptr>* el) {
 
 template <typename Ctx, typename T, typename Ptr>
 void check_state(Ctx const& c, basic_unique_ptr<T, Ptr>* el) {
-  c.require(!el->self_allocated_, "unique_ptr self-allocated");
+  c.require(*reinterpret_cast<uint8_t const*>(&el->self_allocated_) == 0U,
+            "unique_ptr self-allocated");
 }
 
 template <typename Ctx, typename T, typename Ptr, typename Fn>
@@ -552,7 +570,7 @@ template <typename Ctx, typename T, template <typename> typename Ptr,
 void check_state(Ctx const& c,
                  hash_storage<T, Ptr, uint32_t, GetKey, Hash, Eq>* el) {
   using Type = decay_t<remove_pointer_t<decltype(el)>>;
-  c.check_overflow(
+  c.check_ptr(
       el->entries_,
       checked_addition(
           checked_multiplication(static_cast<size_t>(el->capacity_), sizeof(T)),
@@ -570,7 +588,8 @@ void check_state(Ctx const& c,
                               return Type::is_full(ctrl) ? acc + 1 : acc;
                             }) == el->capacity_ - el->growth_left_,
             "hash storage: growth left = capacity - number of full elements");
-  c.require(!el->self_allocated_, "hash set self-allocated");
+  c.require(*reinterpret_cast<uint8_t const*>(&el->self_allocated_) == 0U,
+            "hash storage: self-allocated");
 }
 
 template <typename Ctx, typename T, template <typename> typename Ptr,
