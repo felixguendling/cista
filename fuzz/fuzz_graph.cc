@@ -1,5 +1,3 @@
-// $CXX -O0 -g -Iinclude -std=c++17 -stdlib=libc++ -fsanitize=address,undefined,fuzzer -o fuzz_graph fuzz/fuzz_graph.cc && ./fuzz_graph
-
 #include <queue>
 #include <set>
 
@@ -84,9 +82,6 @@ inline std::set<node const*> bfs(node const* entry) {
   }
 
   return visited;
-}
-
-void write_file(char const* path) {
 }
 
 void test(uint8_t const* data, size_t size) {
