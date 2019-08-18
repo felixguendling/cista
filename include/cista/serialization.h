@@ -165,10 +165,11 @@ void serialize(Ctx& c, basic_unique_ptr<T, Ptr> const* origin,
 }
 
 template <typename Ctx, typename T, template <typename> typename Ptr,
-          typename GetKey, typename Hash, typename Eq>
-void serialize(Ctx& c,
-               hash_storage<T, Ptr, uint32_t, GetKey, Hash, Eq> const* origin,
-               offset_t const pos) {
+          typename GetKey, typename GetValue, typename Hash, typename Eq>
+void serialize(
+    Ctx& c,
+    hash_storage<T, Ptr, uint32_t, GetKey, GetValue, Hash, Eq> const* origin,
+    offset_t const pos) {
   using Type = cista::raw::hash_set<T, Hash, Eq>;
 
   auto const start = origin->entries_ == nullptr
@@ -555,9 +556,10 @@ void recurse(Ctx&, basic_unique_ptr<T, Ptr>* el, Fn&& fn) {
 
 // --- HASH_STORAGE<T> ---
 template <typename Ctx, typename T, template <typename> typename Ptr,
-          typename GetKey, typename Hash, typename Eq>
+          typename GetKey, typename GetValue, typename Hash, typename Eq>
 void convert_endian_and_ptr(
-    Ctx const& c, hash_storage<T, Ptr, uint32_t, GetKey, Hash, Eq>* el) {
+    Ctx const& c,
+    hash_storage<T, Ptr, uint32_t, GetKey, GetValue, Hash, Eq>* el) {
   deserialize(c, &el->entries_);
   deserialize(c, &el->ctrl_);
   c.convert_endian(el->size_);
@@ -566,9 +568,10 @@ void convert_endian_and_ptr(
 }
 
 template <typename Ctx, typename T, template <typename> typename Ptr,
-          typename GetKey, typename Hash, typename Eq>
-void check_state(Ctx const& c,
-                 hash_storage<T, Ptr, uint32_t, GetKey, Hash, Eq>* el) {
+          typename GetKey, typename GetValue, typename Hash, typename Eq>
+void check_state(
+    Ctx const& c,
+    hash_storage<T, Ptr, uint32_t, GetKey, GetValue, Hash, Eq>* el) {
   using Type = decay_t<remove_pointer_t<decltype(el)>>;
   c.check_ptr(
       el->entries_,
@@ -593,8 +596,10 @@ void check_state(Ctx const& c,
 }
 
 template <typename Ctx, typename T, template <typename> typename Ptr,
-          typename GetKey, typename Hash, typename Eq, typename Fn>
-void recurse(Ctx&, hash_storage<T, Ptr, uint32_t, GetKey, Hash, Eq>* el,
+          typename GetKey, typename GetValue, typename Hash, typename Eq,
+          typename Fn>
+void recurse(Ctx&,
+             hash_storage<T, Ptr, uint32_t, GetKey, GetValue, Hash, Eq>* el,
              Fn&& fn) {
   for (auto& m : *el) {
     fn(&m);

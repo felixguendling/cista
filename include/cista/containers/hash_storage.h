@@ -3,10 +3,12 @@
 #include <cinttypes>
 #include <cstring>
 #include <functional>
+#include <iterator>
 #include <type_traits>
 
 #include "cista/aligned_alloc.h"
 #include "cista/bit_counting.h"
+#include "cista/decay.h"
 #include "cista/endian/conversion.h"
 #include "cista/offset_t.h"
 
@@ -29,12 +31,17 @@ namespace cista {
 //   - overloads (conveniance as well to reduce copying) in the interface
 //   - allocator support
 template <typename T, template <typename> typename Ptr,
-          typename TemplateSizeType, typename GetKey, typename Hash,
-          typename Eq>
+          typename TemplateSizeType, typename GetKey, typename GetValue,
+          typename Hash, typename Eq>
 struct hash_storage {
   static constexpr auto const WIDTH = 8U;
 
-  using key_t = decltype(std::declval<GetKey>().operator()(std::declval<T>()));
+  using entry_t = T;
+  using difference_type = ptrdiff_t;
+  using key_t =
+      decay_t<decltype(std::declval<GetKey>().operator()(std::declval<T>()))>;
+  using mapped_type =
+      decay_t<decltype(std::declval<GetValue>().operator()(std::declval<T>()))>;
   using group_t = uint64_t;
   using h2_t = uint8_t;
 
@@ -122,12 +129,16 @@ struct hash_storage {
   };
 
   struct iterator {
-    friend struct hash_storage;
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = hash_storage::entry_t;
+    using reference = hash_storage::entry_t&;
+    using pointer = hash_storage::entry_t*;
+    using difference_type = ptrdiff_t;
 
     iterator() = default;
 
-    T& operator*() const { return *entry_; }
-    T* operator->() const { return &operator*(); }
+    reference operator*() const { return *entry_; }
+    pointer operator->() const { return &operator*(); }
     iterator& operator++() {
       ++ctrl_;
       ++entry_;
@@ -147,7 +158,6 @@ struct hash_storage {
       return !(a == b);
     }
 
-  private:
     iterator(ctrl_t* ctrl) : ctrl_(ctrl) {}
     iterator(ctrl_t* ctrl, T* entry) : ctrl_(ctrl), entry_(entry) {}
 
@@ -164,13 +174,17 @@ struct hash_storage {
   };
 
   struct const_iterator {
-    friend struct hash_storage;
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = hash_storage::entry_t;
+    using reference = hash_storage::entry_t const&;
+    using pointer = hash_storage::entry_t const*;
+    using difference_type = ptrdiff_t;
 
     const_iterator() = default;
     const_iterator(iterator i) : inner_(std::move(i)) {}
 
-    T& operator*() const { return *inner_; }
-    T* operator->() const { return inner_.operator->(); }
+    reference operator*() const { return *inner_; }
+    pointer operator->() const { return inner_.operator->(); }
 
     const_iterator& operator++() {
       ++inner_;
@@ -185,7 +199,6 @@ struct hash_storage {
       return !(a == b);
     }
 
-  private:
     const_iterator(ctrl_t const* ctrl, T const* entry)
         : inner_(const_cast<ctrl_t*>(ctrl), const_cast<T*>(entry)) {}
 
@@ -216,19 +229,21 @@ struct hash_storage {
     return (capacity == 7) ? 6 : capacity - (capacity / 8);
   }
 
-  template <typename EntryType>
-  auto key_of(EntryType&& entry) {
-    return GetKey()(entry);
-  }
+  ~hash_storage() { clear(); }
 
-  ~hash_storage() { destroy_entries(); }
+  void set_empty_key(key_t const&) {}
+  void set_deleted_key(key_t const&) {}
+
+  mapped_type& operator[](key_t const& key) {
+    return GetValue()(*emplace(T{key, mapped_type{}}).first);
+  }
 
   iterator find(key_t const& key) {
     auto const hash = Hash()(key);
     for (auto seq = probe_seq{h1(hash), capacity_}; true; seq.next()) {
       group g{ctrl_ + seq.offset_};
       for (auto const i : g.match(h2(hash))) {
-        if (Eq()(key, key_of(entries_[seq.offset(i)]))) {
+        if (Eq()(key, GetKey()(entries_[seq.offset(i)]))) {
           return iterator_at(seq.offset(i));
         }
       }
@@ -238,10 +253,16 @@ struct hash_storage {
     }
   }
 
+  const_iterator find(key_t const& key) const {
+    return const_cast<hash_storage*>(this)->find(key);
+  }
+
+  std::pair<iterator, bool> insert(T const& entry) { return emplace(entry); }
+
   template <typename... Args>
   std::pair<iterator, bool> emplace(Args&&... args) {
     auto entry = T{std::forward<Args>(args)...};
-    auto res = find_or_prepare_insert(key_of(entry));
+    auto res = find_or_prepare_insert(GetKey()(entry));
     if (res.second) {
       new (entries_ + res.first) T{std::move(entry)};
     }
@@ -297,7 +318,7 @@ struct hash_storage {
     growth_left_ += was_never_full;
   }
 
-  void destroy_entries() {
+  void clear() {
     if (capacity_ == 0U) {
       return;
     }
@@ -324,7 +345,7 @@ struct hash_storage {
     for (auto seq = probe_seq{h1(hash), capacity_}; true; seq.next()) {
       group g{ctrl_ + seq.offset_};
       for (auto const i : g.match(h2(hash))) {
-        if (Eq()(key, key_of(entries_[seq.offset(i)]))) {
+        if (Eq()(key, GetKey()(entries_[seq.offset(i)]))) {
           return {seq.offset(i), false};
         }
       }
@@ -403,7 +424,7 @@ struct hash_storage {
 
     for (auto i = size_t{0U}; i != old_capacity; ++i) {
       if (is_full(old_ctrl[i])) {
-        auto const hash = Hash()(key_of(old_entries[i]));
+        auto const hash = Hash()(GetKey()(old_entries[i]));
         auto const target = find_first_non_full(hash);
         auto const new_index = target.offset_;
         set_ctrl(new_index, h2(hash));
