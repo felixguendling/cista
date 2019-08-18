@@ -1,13 +1,10 @@
 #include <queue>
 #include <set>
 
-#include "cista/mmap.h"
 #include "cista/serialization.h"
 #include "cista/targets/file.h"
 
 namespace data = cista::offset;
-
-namespace graphns::offset {
 
 struct node;
 
@@ -50,10 +47,6 @@ struct graph {
   node_id_t fill_{0};
 };
 
-}  // namespace graphns::offset
-
-using namespace graphns::offset;
-
 inline std::set<node const*> bfs(node const* entry) {
   if (entry == nullptr) {
     return {};
@@ -87,7 +80,7 @@ inline std::set<node const*> bfs(node const* entry) {
 void test(uint8_t const* data, size_t size) {
   try {
     auto const mutable_data = const_cast<uint8_t*>(data);
-    auto const g = cista::deserialize<graphns::offset::graph, cista::mode::DEEP_CHECK>(
+    auto const g = cista::deserialize<graph, cista::mode::DEEP_CHECK>(
         mutable_data, mutable_data + size);
     if (!g->nodes_.empty() && g->nodes_[0].get() != nullptr) {
       bfs(g->nodes_[0].get()).size();
