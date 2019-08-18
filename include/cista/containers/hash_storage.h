@@ -229,6 +229,63 @@ struct hash_storage {
     return (capacity == 7) ? 6 : capacity - (capacity / 8);
   }
 
+  hash_storage() = default;
+
+  hash_storage(hash_storage&& other)
+      : entries_{other.entries_},
+        ctrl_{other.ctrl_},
+        size_{other.size_},
+        capacity_{other.capacity_},
+        growth_left_{other.growth_left_},
+        self_allocated_{other.self_allocated_} {
+    other.entries_ = nullptr;
+    other.ctrl_ = empty_group();
+    other.size_ = 0U;
+    other.capacity_ = 0U;
+    other.growth_left_ = 0U;
+    other.self_allocated_ = false;
+  }
+
+  hash_storage(hash_storage const& other) {
+    resize(other.size());
+    for (const auto& v : other) {
+      auto const hash = Hash()(GetKey()(v));
+      auto target = find_first_non_full(hash);
+      set_ctrl(target.offset, H2(hash));
+      emplace_at(target.offset, v);
+    }
+    size_ = other.size();
+    growth_left_ -= other.size();
+  }
+
+  hash_storage& operator=(hash_storage&& other) {
+    entries_ = other.entries_;
+    ctrl_ = other.ctrl_;
+    size_ = other.size_;
+    capacity_ = other.capacity_;
+    growth_left_ = other.growth_left_;
+    self_allocated_ = other.self_allocated_;
+    other.entries_ = nullptr;
+    other.ctrl_ = empty_group();
+    other.size_ = 0U;
+    other.capacity_ = 0U;
+    other.growth_left_ = 0U;
+    other.self_allocated_ = false;
+  }
+
+  hash_storage& operator=(hash_storage const& other) {
+    resize(other.size());
+    for (const auto& v : other) {
+      auto const hash = Hash()(GetKey()(v));
+      auto target = find_first_non_full(hash);
+      set_ctrl(target.offset, H2(hash));
+      emplace_at(target.offset, v);
+    }
+    size_ = other.size();
+    growth_left_ -= other.size();
+    return *this;
+  }
+
   ~hash_storage() { clear(); }
 
   void set_empty_key(key_t const&) {}
