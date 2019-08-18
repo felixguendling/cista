@@ -56,7 +56,7 @@ jobs:
   - script: |
       mkdir -p corpus
       ./cista-fuzz_graph-main write corpus/starter.bin
-      ./cista-fuzz_graph -max_total_time=120 corpus/starter.bin
+      ./cista-fuzz_graph -max_total_time=120 corpus
     workingDirectory: build
     displayName: 'Run Fuzzing'
     condition: eq(variables['FUZZ'], 'True')
