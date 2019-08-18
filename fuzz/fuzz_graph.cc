@@ -77,18 +77,6 @@ inline std::set<node const*> bfs(node const* entry) {
   return visited;
 }
 
-void test(uint8_t const* data, size_t size) {
-  try {
-    auto const mutable_data = const_cast<uint8_t*>(data);
-    auto const g = cista::deserialize<graph, cista::mode::DEEP_CHECK>(
-        mutable_data, mutable_data + size);
-    if (!g->nodes_.empty() && g->nodes_[0].get() != nullptr) {
-      bfs(g->nodes_[0].get()).size();
-    }
-  } catch (std::exception const&) {
-  }
-}
-
 #if defined(GENERATE_SEED)
 int main(int argc, char** argv) {
   if (argc != 2) {
@@ -115,7 +103,15 @@ int main(int argc, char** argv) {
 }
 #else
 extern "C" int LLVMFuzzerTestOneInput(uint8_t* data, size_t size) {
-  test(data, size);
+  try {
+    auto const mutable_data = const_cast<uint8_t*>(data);
+    auto const g = cista::deserialize<graph, cista::mode::DEEP_CHECK>(
+        mutable_data, mutable_data + size);
+    if (!g->nodes_.empty() && g->nodes_[0].get() != nullptr) {
+      bfs(g->nodes_[0].get()).size();
+    }
+  } catch (std::exception const&) {
+  }
   return 0;
 }
 #endif
