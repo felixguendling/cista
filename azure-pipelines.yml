@@ -55,7 +55,7 @@ jobs:
     condition: not(eq(variables['FUZZ'], 'True'))
   - script: |
       mkdir -p corpus
-      ./cista-fuzz_graph-main write corpus/starter.bin
+      ./cista-fuzz_graph-seed corpus/starter.bin
       ./cista-fuzz_graph -max_total_time=120 corpus
     workingDirectory: build
     displayName: 'Run Fuzzing'
