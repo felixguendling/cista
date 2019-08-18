@@ -86,6 +86,25 @@ inline std::set<node const*> bfs(node const* entry) {
   return visited;
 }
 
+void write_file(char const* path) {
+  graph g;
+
+  auto const n1 = g.make_node(data::string{"NODE A"});
+  auto const n2 = g.make_node(data::string{"NODE B"});
+  auto const n3 = g.make_node(data::string{"NODE C"});
+
+  auto const e1 = g.make_edge(n1->id(), n2->id());
+  auto const e2 = g.make_edge(n2->id(), n3->id());
+  auto const e3 = g.make_edge(n3->id(), n1->id());
+
+  n1->add_edge(e1);
+  n2->add_edge(e2);
+  n3->add_edge(e3);
+
+  cista::file f{path, "w+"};
+  cista::serialize(f, g);
+}
+
 void test(uint8_t const* data, size_t size) {
   try {
     auto const mutable_data = const_cast<uint8_t*>(data);
@@ -100,13 +119,19 @@ void test(uint8_t const* data, size_t size) {
 
 #if defined(READ_CRASH_FILE)
 int main(int argc, char** argv) {
-  if (argc != 2) {
-    printf("usage: %s [crash file]\n", argv[0]);
+  if (argc != 3) {
+    printf("usage: %s [write|read] [crash file]\n", argv[0]);
     return 0;
   }
 
-  auto const buf = cista::file{argv[1], "r"}.content();
+  if (std::string_view{argv[1]} == "write") {
+    write_file(argv[2]);
+  } else if (std::string_view{argv[1]} == "read") {
+  auto const buf = cista::file{argv[2], "r"}.content();
   test(&buf[0], buf.size());
+  } else {
+    printf("unknown mode \"%s\"\n", argv[1]);
+  }
 }
 #else
 extern "C" int LLVMFuzzerTestOneInput(uint8_t* data, size_t size) {

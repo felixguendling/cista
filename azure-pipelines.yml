@@ -45,7 +45,7 @@ jobs:
     workingDirectory: build
     displayName: 'Build'
     condition: not(eq(variables['FUZZ'], 'True'))
-  - script: make cista-fuzz_graph
+  - script: make cista-fuzz_graph cista-fuzz_graph-main
     workingDirectory: build
     displayName: 'Build'
     condition: eq(variables['FUZZ'], 'True')
@@ -53,7 +53,10 @@ jobs:
     workingDirectory: build
     displayName: 'Run Tests'
     condition: not(eq(variables['FUZZ'], 'True'))
-  - script: ./cista-fuzz_graph -max_total_time=60
+  - script: |
+      mkdir -p corpus
+      ./cista-fuzz_graph-main write corpus/starter.bin
+      ./cista-fuzz_graph -max_total_time=120 corpus/starter.bin
     workingDirectory: build
     displayName: 'Run Fuzzing'
     condition: eq(variables['FUZZ'], 'True')
