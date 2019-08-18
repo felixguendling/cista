@@ -116,5 +116,5 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   
   add_executable(cista-fuzz_graph-seed EXCLUDE_FROM_ALL fuzz/fuzz_graph.cc)
   target_link_libraries(cista-fuzz_graph-seed cista)
-  target_compile_definitions(cista-fuzz_graph-seed PRIVATE READ_CRASH_FILE)
+  target_compile_definitions(cista-fuzz_graph-seed PRIVATE GENERATE_SEED)
 endif()

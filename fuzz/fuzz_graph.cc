@@ -101,7 +101,7 @@ void test(uint8_t const* data, size_t size) {
   }
 }
 
-#if defined(READ_CRASH_FILE)
+#if defined(GENERATE_SEED)
 int main(int argc, char** argv) {
   if (argc != 2) {
     printf("usage: %s [seed file]\n", argv[0]);
