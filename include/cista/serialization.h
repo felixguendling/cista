@@ -17,6 +17,7 @@
 #include "cista/targets/buf.h"
 #include "cista/targets/file.h"
 #include "cista/type_hash/type_hash.h"
+#include "cista/unused_param.h"
 #include "cista/verify.h"
 
 #ifndef cista_member_offset
@@ -429,6 +430,9 @@ void convert_endian_and_ptr(Ctx const& c, T* el) {
   } else if constexpr (std::numeric_limits<Type>::is_integer ||
                        std::is_floating_point_v<Type>) {
     c.convert_endian(*el);
+  } else {
+    CISTA_UNUSED_PARAM(c)
+    CISTA_UNUSED_PARAM(el)
   }
 }
 
@@ -437,6 +441,9 @@ void check_state(Ctx const& c, T* el) {
   using Type = decay_t<T>;
   if constexpr (std::is_pointer_v<Type>) {
     c.check_ptr(*el);
+  } else {
+    CISTA_UNUSED_PARAM(c)
+    CISTA_UNUSED_PARAM(el)
   }
 }
 
@@ -450,6 +457,10 @@ void recurse(Ctx& c, T* el, Fn&& fn) {
     if (*el != nullptr && c.add_checked(el)) {
       fn(*el);
     }
+  } else {
+    CISTA_UNUSED_PARAM(c)
+    CISTA_UNUSED_PARAM(el)
+    CISTA_UNUSED_PARAM(fn)
   }
 }
 
