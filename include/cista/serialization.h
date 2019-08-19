@@ -598,12 +598,18 @@ void check_state(
                             static_cast<size_t>(el->capacity_), sizeof(T)),
             "hash storage: entries!=null -> ctrl = entries+capacity");
   c.require(
-      el->entries_ == nullptr ||
-          std::accumulate(el->ctrl_, el->ctrl_ + el->capacity_, size_t{0U},
-                          [](size_t const acc, typename Type::ctrl_t ctrl) {
-                            return Type::is_full(ctrl) ? acc + 1 : acc;
-                          }) == el->capacity_ - el->growth_left_,
-      "hash storage: growth left = capacity - number of full elements");
+      (el->entries_ == nullptr) == (el->capacity_ == 0U && el->size_ == 0U),
+      "hash storage: entries=null <=> size=capacity=0");
+  if (el->entries_ != nullptr) {
+    auto const full_ctrl =
+        std::accumulate(el->ctrl_, el->ctrl_ + el->capacity_, size_t{0U},
+                        [](size_t const acc, typename Type::ctrl_t ctrl) {
+                          return Type::is_full(ctrl) ? acc + 1 : acc;
+                        });
+    c.require(el->capacity_ - el->growth_left_ == full_ctrl,
+              "hash storage: growth left");
+    c.require(el->size_ == full_ctrl, "hash storage: size");
+  }
   c.check_bool(el->self_allocated_);
   c.require(!el->self_allocated_, "hash storage: self-allocated");
 }
