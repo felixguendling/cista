@@ -110,11 +110,32 @@ add_custom_target(cista-coverage
 add_dependencies(cista-coverage cista-test)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  add_executable(cista-fuzz_graph EXCLUDE_FROM_ALL fuzz/fuzz_graph.cc)
-  target_link_libraries(cista-fuzz_graph cista -fsanitize=address,undefined,fuzzer)
-  target_compile_options(cista-fuzz_graph PRIVATE -g -O0 -fsanitize=address,fuzzer)
-  
-  add_executable(cista-fuzz_graph-seed EXCLUDE_FROM_ALL fuzz/fuzz_graph.cc)
-  target_link_libraries(cista-fuzz_graph-seed cista)
-  target_compile_definitions(cista-fuzz_graph-seed PRIVATE GENERATE_SEED)
+  set(cista-fuzz-targets "")
+  file(GLOB_RECURSE fuzz-files fuzz/*.cc)
+  foreach(fuzz-file ${fuzz-files})
+    get_filename_component(test-name ${fuzz-file} NAME_WE)
+
+    add_executable(cista-fuzz-${test-name} EXCLUDE_FROM_ALL ${fuzz-file})
+    target_link_libraries(cista-fuzz-${test-name} cista -fsanitize=address,undefined,fuzzer)
+    target_compile_options(cista-fuzz-${test-name} PRIVATE -g -O0 -fsanitize=address,fuzzer)
+    
+    add_executable(cista-fuzz-${test-name}-seed EXCLUDE_FROM_ALL ${fuzz-file})
+    target_link_libraries(cista-fuzz-${test-name}-seed cista)
+    target_compile_definitions(cista-fuzz-${test-name}-seed PRIVATE GENERATE_SEED)
+
+    add_custom_target(cista-fuzz-${test-name}-run
+      DEPENDS
+        cista-fuzz-${test-name}
+        cista-fuzz-${test-name}-seed
+      COMMAND
+        mkdir -p fuzz-${test-name}-corpus &&
+        ./cista-fuzz-${test-name}-seed ./fuzz-${test-name}-corpus/seed.bin &&
+        ./cista-fuzz-${test-name} ./fuzz-${test-name}-corpus -max_total_time=120
+    )
+
+    list(APPEND cista-fuzz-targets cista-fuzz-${test-name}-run)
+  endforeach()
+
+  add_custom_target(cista-fuzz)
+  add_dependencies(cista-fuzz ${cista-fuzz-targets})
 endif()

@@ -45,7 +45,7 @@ jobs:
     workingDirectory: build
     displayName: 'Build'
     condition: not(eq(variables['FUZZ'], 'True'))
-  - script: make cista-fuzz_graph cista-fuzz_graph-main
+  - script: make cista-fuzz_graph cista-fuzz_graph-seed
     workingDirectory: build
     displayName: 'Build'
     condition: eq(variables['FUZZ'], 'True')

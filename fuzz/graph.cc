@@ -4,7 +4,7 @@
 #include "cista/serialization.h"
 #include "cista/targets/file.h"
 
-namespace data = cista::offset;
+namespace data = cista::raw;
 
 struct node;
 
@@ -102,11 +102,10 @@ int main(int argc, char** argv) {
   cista::serialize(f, g);
 }
 #else
-extern "C" int LLVMFuzzerTestOneInput(uint8_t* data, size_t size) {
+extern "C" int LLVMFuzzerTestOneInput(uint8_t const* data, size_t size) {
   try {
-    auto const mutable_data = const_cast<uint8_t*>(data);
-    auto const g = cista::deserialize<graph, cista::mode::DEEP_CHECK>(
-        mutable_data, mutable_data + size);
+    cista::buffer b{reinterpret_cast<char const*>(data), size};
+    auto const g = cista::deserialize<graph, cista::mode::DEEP_CHECK>(b);
     if (!g->nodes_.empty() && g->nodes_[0].get() != nullptr) {
       bfs(g->nodes_[0].get()).size();
     }
