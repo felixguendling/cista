@@ -619,7 +619,9 @@ void check_state(
   c.require(std::all_of(el->ctrl_, el->ctrl_ + el->capacity_ + 1U + Type::WIDTH,
                         [](typename Type::ctrl_t const ctrl) {
                           return Type::is_empty(ctrl) ||
-                                 Type::is_deleted(ctrl) || Type::is_full(ctrl);
+                                 Type::is_deleted(ctrl) ||
+                                 Type::is_full(ctrl) ||
+                                 ctrl == Type::ctrl_t::END;
                         }),
             "hash storage: ctrl bytes must be empty or deleted or full");
   c.require(el->capacity_ - el->growth_left_ == full_ctrl,
