@@ -601,6 +601,7 @@ void check_state(
       (el->entries_ == nullptr) == (el->capacity_ == 0U && el->size_ == 0U),
       "hash storage: entries=null <=> size=capacity=0");
   if (el->entries_ == nullptr) {
+    el->ctrl_ = Type::empty_group();
     return;
   }
 
@@ -615,6 +616,12 @@ void check_state(
                       [](size_t const acc, typename Type::ctrl_t ctrl) {
                         return Type::is_full(ctrl) ? acc + 1 : acc;
                       });
+  c.require(std::all_of(el->ctrl_, el->ctrl_ + el->capacity_ + 1U + Type::WIDTH,
+                        [](typename Type::ctrl_t const ctrl) {
+                          return Type::is_empty(ctrl) ||
+                                 Type::is_deleted(ctrl) || Type::is_full(ctrl);
+                        }),
+            "hash storage: ctrl bytes must be empty or deleted or full");
   c.require(el->capacity_ - el->growth_left_ == full_ctrl,
             "hash storage: growth left");
   c.require(el->size_ == full_ctrl, "hash storage: size");
