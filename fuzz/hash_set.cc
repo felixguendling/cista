@@ -44,8 +44,8 @@ int main(int argc, char** argv) {
   auto const make_e1 = []() {
     data::vector<data::string> e1;
     e1.emplace_back(data::string{"short", data::string::owning_t{}});
-    e1.emplace_back(
-        data::string{"long long long long long long long", data::string::owning_t{}});
+    e1.emplace_back(data::string{"long long long long long long long",
+                                 data::string::owning_t{}});
     return e1;
   };
 
@@ -75,6 +75,7 @@ int main(int argc, char** argv) {
   cista::serialize(f, s);
 }
 #else
+static bool __attribute__((used)) found;
 extern "C" int LLVMFuzzerTestOneInput(uint8_t const* data, size_t size) {
   try {
     cista::buffer b{reinterpret_cast<char const*>(data), size};
@@ -86,7 +87,7 @@ extern "C" int LLVMFuzzerTestOneInput(uint8_t const* data, size_t size) {
                 return el == "The quick brown fox jumps over the lazy dog";
               });
           it != end(el)) {
-        printf("found!\n");
+        found = true;
       }
     }
   } catch (std::exception const&) {
