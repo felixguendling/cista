@@ -45,21 +45,14 @@ jobs:
     workingDirectory: build
     displayName: 'Build'
     condition: not(eq(variables['FUZZ'], 'True'))
-  - script: make cista-fuzz_graph cista-fuzz_graph-seed
+  - script: make cista-fuzz
     workingDirectory: build
-    displayName: 'Build'
+    displayName: 'Build & Execute Fuzzing'
     condition: eq(variables['FUZZ'], 'True')
   - script: ./cista-test
     workingDirectory: build
     displayName: 'Run Tests'
     condition: not(eq(variables['FUZZ'], 'True'))
-  - script: |
-      mkdir -p corpus
-      ./cista-fuzz_graph-seed corpus/starter.bin
-      ./cista-fuzz_graph -max_total_time=120 corpus
-    workingDirectory: build
-    displayName: 'Run Fuzzing'
-    condition: eq(variables['FUZZ'], 'True')
 
 - job: LINUX_GCC
   strategy:
