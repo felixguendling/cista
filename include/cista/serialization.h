@@ -600,18 +600,24 @@ void check_state(
   c.require(
       (el->entries_ == nullptr) == (el->capacity_ == 0U && el->size_ == 0U),
       "hash storage: entries=null <=> size=capacity=0");
-  if (el->entries_ != nullptr) {
-    auto const full_ctrl =
-        std::accumulate(el->ctrl_, el->ctrl_ + el->capacity_, size_t{0U},
-                        [](size_t const acc, typename Type::ctrl_t ctrl) {
-                          return Type::is_full(ctrl) ? acc + 1 : acc;
-                        });
-    c.require(el->capacity_ - el->growth_left_ == full_ctrl,
-              "hash storage: growth left");
-    c.require(el->size_ == full_ctrl, "hash storage: size");
+  if (el->entries_ == nullptr) {
+    return;
   }
+
   c.check_bool(el->self_allocated_);
   c.require(!el->self_allocated_, "hash storage: self-allocated");
+
+  c.require(el->ctrl_[el->capacity_] == Type::END,
+            "hash storage: end ctrl byte");
+
+  auto const full_ctrl =
+      std::accumulate(el->ctrl_, el->ctrl_ + el->capacity_, size_t{0U},
+                      [](size_t const acc, typename Type::ctrl_t ctrl) {
+                        return Type::is_full(ctrl) ? acc + 1 : acc;
+                      });
+  c.require(el->capacity_ - el->growth_left_ == full_ctrl,
+            "hash storage: growth left");
+  c.require(el->size_ == full_ctrl, "hash storage: size");
 }
 
 template <typename Ctx, typename T, template <typename> typename Ptr,
