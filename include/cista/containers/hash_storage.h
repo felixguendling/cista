@@ -443,10 +443,7 @@ struct hash_storage {
   void rehash_and_grow_if_necessary() {
     if (capacity_ == 0) {
       resize(1);
-    } /* else if (size() <= CapacityToGrowth(capacity()) / 2) {
-      drop_deletes_without_resize();
-    } */
-    else {
+    } else {
       resize(capacity_ * 2 + 1);
     }
   }
