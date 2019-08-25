@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <type_traits>
 
+#include "cista/decay.h"
 #include "cista/is_iterable.h"
 #include "cista/reflection/to_tuple.h"
 
@@ -42,18 +43,23 @@ constexpr bool is_eq_comparable_v = detail::is_eq_comparable<T>::value;
 template <typename T>
 struct equal_to {
   constexpr bool operator()(T const& a, T const& b) const {
-    if constexpr (is_eq_comparable_v<T>) {
-      return a == b;
-    } else if constexpr (to_tuple_works_v<T>) {
-      return tuple_equal(
-          [](auto&& x, auto&& y) { return equal_to<decltype(x)>{}(x, y); },
-          to_tuple(a), to_tuple(b));
-    } else if constexpr (is_iterable_v<T>) {
+    using Type = decay_t<T>;
+    if constexpr (is_iterable_v<Type>) {
       using std::begin;
       using std::end;
       return std::equal(
           begin(a), end(a), begin(b), end(b),
           [](auto&& x, auto&& y) { return equal_to<decltype(x)>{}(x, y); });
+    } else if constexpr (is_eq_comparable_v<Type>) {
+      return a == b;
+    } else if constexpr (to_tuple_works_v<Type>) {
+      return tuple_equal(
+          [](auto&& x, auto&& y) { return equal_to<decltype(x)>{}(x, y); },
+          to_tuple(a), to_tuple(b));
+    } else {
+      static_assert(is_iterable_v<Type> || is_eq_comparable_v<Type> ||
+                        to_tuple_works_v<Type>,
+                    "Implement custom equality");
     }
   }
 };
