@@ -2,6 +2,7 @@
 
 #include <cinttypes>
 #include <cstring>
+#include <ostream>
 #include <string>
 #include <string_view>
 
@@ -208,6 +209,10 @@ struct basic_string {
 
   char& operator[](size_t i) { return data()[i]; }
   char const& operator[](size_t i) const { return data()[i]; }
+
+  friend std::ostream& operator<<(std::ostream& out, basic_string const& s) {
+    return out << s.view();
+  }
 
   char* data() {
     if constexpr (std::is_pointer_v<Ptr>) {

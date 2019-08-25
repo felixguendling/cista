@@ -10,29 +10,63 @@
 #include "cista/serialization.h"
 #endif
 
-TEST_CASE("hash_set test") {
+TEST_CASE("hash_set test delete even") {
   auto const max = 250;
   cista::raw::hash_set<int> uut;
-  for (auto i = 0; i < max; ++i) {
-    auto const res = uut.emplace(i);
-    CHECK(res.second);
-    CHECK(*res.first == i);
-    CHECK(uut.find(i) != uut.end());
-  }
-  for (auto i = 0; i < max; ++i) {
-    auto const res = uut.emplace(i);
-    CHECK(!res.second);
-    CHECK(*res.first == i);
-    if (i % 2 == 0) {
-      uut.erase(i);
+  for (auto j = 0; j < 10; ++j) {
+    printf("run %u\n", j);
+    for (auto i = 0; i < max; ++i) {
+      auto const res = uut.emplace(i);
+      CHECK(res.second);
+      CHECK(*res.first == i);
+      CHECK(uut.find(i) != uut.end());
     }
+    CHECK(uut.size() == max);
+    for (auto i = 0; i < max; ++i) {
+      auto const res = uut.emplace(i);
+      CHECK(!res.second);
+      CHECK(*res.first == i);
+      if (i % 2 == 0) {
+        uut.erase(i);
+      }
+    }
+    CHECK(uut.size() == max / 2);
+    for (auto it = begin(uut); it != end(uut); ++it) {
+      CHECK(*it % 2 != 0);
+      CHECK(*uut.find(*it) == *it);
+      uut.erase(it);
+    }
+    CHECK(uut.empty());
   }
-  for (auto it = begin(uut); it != end(uut); ++it) {
-    CHECK(*it % 2 != 0);
-    CHECK(*uut.find(*it) == *it);
-    uut.erase(it);
+}
+
+TEST_CASE("hash_set test delete half") {
+  auto const max = 250;
+  cista::raw::hash_set<int> uut;
+  for (auto j = 0; j < 10; ++j) {
+    for (auto i = 0; i < max; ++i) {
+      auto const res = uut.emplace(i);
+      CHECK(res.second);
+      CHECK(*res.first == i);
+      CHECK(uut.find(i) != uut.end());
+    }
+    CHECK(uut.size() == max);
+    for (auto i = 0; i < max; ++i) {
+      auto const res = uut.emplace(i);
+      CHECK(!res.second);
+      CHECK(*res.first == i);
+      if (i >= max / 2) {
+        uut.erase(i);
+      }
+    }
+    CHECK(uut.size() == max / 2);
+    for (auto it = begin(uut); it != end(uut); ++it) {
+      CHECK(*it < max / 2);
+      CHECK(*uut.find(*it) == *it);
+      uut.erase(it);
+    }
+    CHECK(uut.empty());
   }
-  CHECK(uut.empty());
 }
 
 TEST_CASE("hash_map test") {
@@ -61,6 +95,15 @@ TEST_CASE("hash_map test") {
     uut.erase(it);
   }
   CHECK(uut.empty());
+}
+
+TEST_CASE("iterate empty hash_set test") {
+  using namespace cista::raw;
+  hash_set<vector<string>> v;
+  for (auto& e : v) {
+    (void)e;
+    CHECK(false);
+  }
 }
 
 TEST_CASE("serialize hash_set test") {
