@@ -19,7 +19,6 @@ struct key {
 
 TEST_CASE("automatic hash validation") {
   key k{3U, data::string{"1234"}};
-  std::cout << k.i_ << " " << k.s_ << "\n";
   CHECK(cista::hashing<key>{}(k) ==
         cista::hash("1234", cista::hash_combine(cista::BASE_HASH, 3U)));
 }

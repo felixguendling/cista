@@ -14,7 +14,6 @@ TEST_CASE("hash_set test delete even") {
   auto const max = 250;
   cista::raw::hash_set<int> uut;
   for (auto j = 0; j < 10; ++j) {
-    printf("run %u\n", j);
     for (auto i = 0; i < max; ++i) {
       auto const res = uut.emplace(i);
       CHECK(res.second);

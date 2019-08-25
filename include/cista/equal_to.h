@@ -44,9 +44,7 @@ struct equal_to {
   constexpr bool operator()(T const& a, T const& b) const {
     if constexpr (is_eq_comparable_v<T>) {
       return a == b;
-    } else if constexpr (std::is_aggregate_v<T> &&
-                         std::is_standard_layout_v<T> &&
-                         !std::is_polymorphic_v<T>) {
+    } else if constexpr (to_tuple_works_v<T>) {
       return tuple_equal(
           [](auto&& x, auto&& y) { return equal_to<decltype(x)>{}(x, y); },
           to_tuple(a), to_tuple(b));
