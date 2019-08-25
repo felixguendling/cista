@@ -3,7 +3,7 @@
 #ifdef SINGLE_HEADER
 #include "cista.h"
 #else
-#include "cista/containers.h"
+#include "cista/containers/unique_ptr.h"
 #include "cista/type_hash/type_hash.h"
 #endif
 

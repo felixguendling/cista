@@ -5,7 +5,7 @@
 #include <string>
 #include <string_view>
 
-#include "cista/containers/offset_ptr.h"
+#include "cista/containers/ptr.h"
 
 namespace cista {
 
@@ -28,17 +28,24 @@ struct basic_string {
   }
   ~basic_string() { reset(); }
 
+  basic_string(std::string_view s) {
+    set_non_owning(s.data(), static_cast<msize_t>(s.length()));
+  }
+  basic_string(std::string const& s) {
+    set_non_owning(s.c_str(), static_cast<msize_t>(s.length()));
+  }
+
   basic_string(std::string_view s, owning_t) : basic_string() {
-    set_owning(s, s.length());
+    set_owning(s, static_cast<msize_t>(s.length()));
   }
   basic_string(std::string_view s, non_owning_t) : basic_string() {
-    set_non_owning(s, s.length());
+    set_non_owning(s, static_cast<msize_t>(s.length()));
   }
   basic_string(std::string const& s, owning_t) : basic_string() {
-    set_owning(s.c_str(), s.length());
+    set_owning(s.c_str(), static_cast<msize_t>(s.length()));
   }
   basic_string(std::string const& s, non_owning_t) : basic_string() {
-    set_non_owning(s.c_str(), s.length());
+    set_non_owning(s.c_str(), static_cast<msize_t>(s.length()));
   }
   basic_string(char const* s, owning_t) : basic_string() {
     set_owning(s, mstrlen(s));
@@ -192,12 +199,15 @@ struct basic_string {
     }
   }
 
+  inline bool empty() const { return size() == 0U; }
+
   std::string_view view() const { return {data(), size()}; }
   std::string str() const { return {data(), size()}; }
 
+  operator std::string_view() { return view(); }
+
   char& operator[](size_t i) { return data()[i]; }
   char const& operator[](size_t i) const { return data()[i]; }
-
 
   char* data() {
     if constexpr (std::is_pointer_v<Ptr>) {
@@ -248,5 +258,13 @@ struct basic_string {
     stack s_;
   };
 };
+
+namespace raw {
+using string = basic_string<ptr<char const>>;
+}  // namespace raw
+
+namespace offset {
+using string = basic_string<ptr<char const>>;
+}  // namespace offset
 
 }  // namespace cista

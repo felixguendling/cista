@@ -4,26 +4,38 @@
 #include <utility>
 
 #include "cista/containers/hash_storage.h"
+#include "cista/containers/ptr.h"
+#include "cista/equal_to.h"
+#include "cista/hashing.h"
 
 namespace cista {
 
 struct get_first {
   template <typename T>
-  auto&& operator()(T&& t) {
+  decltype(auto) operator()(T&& t) {
     return t.first;
   }
 };
 
 struct get_second {
   template <typename T>
-  auto&& operator()(T&& t) {
+  decltype(auto) operator()(T&& t) {
     return t.second;
   }
 };
 
-template <typename Key, typename Value, template <typename> typename Ptr,
-          typename Hash = std::hash<Key>, typename Eq = std::equal_to<Key>>
-using basic_hash_map = hash_storage<std::pair<Key, Value>, Ptr, uint32_t,
-                                    get_first, get_second, Hash, Eq>;
+namespace raw {
+template <typename Key, typename Value, typename Hash = hashing<Key>,
+          typename Eq = equal_to<Key>>
+using hash_map = hash_storage<std::pair<Key, Value>, ptr, uint32_t, get_first,
+                              get_second, Hash, Eq>;
+}  // namespace raw
+
+namespace offset {
+template <typename Key, typename Value, typename Hash = hashing<Key>,
+          typename Eq = equal_to<Key>>
+using hash_map = hash_storage<std::pair<Key, Value>, ptr, uint32_t, get_first,
+                              get_second, Hash, Eq>;
+}  // namespace offset
 
 }  // namespace cista

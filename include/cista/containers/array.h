@@ -57,4 +57,12 @@ struct array {
   T el_[Size];
 };
 
+namespace raw {
+using cista::array;
+}  // namespace raw
+
+namespace offset {
+using cista::array;
+}  // namespace offset
+
 }  // namespace cista

@@ -4,7 +4,8 @@
 #ifdef SINGLE_HEADER
 #include "cista.h"
 #else
-#include "cista/containers.h"
+#include "cista/containers/hash_map.h"
+#include "cista/containers/hash_set.h"
 #include "cista/hash.h"
 #include "cista/serialization.h"
 #endif

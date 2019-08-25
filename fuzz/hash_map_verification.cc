@@ -2,7 +2,7 @@
 #include <cstring>
 #include <unordered_map>
 
-#include "cista/containers.h"
+#include "cista/containers/hash_map.h"
 
 #if defined(GENERATE_SEED)
 int main() {}
