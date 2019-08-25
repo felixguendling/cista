@@ -96,5 +96,5 @@ jobs:
         -e "CXXFLAGS=-std=c++17 -static" \
         --rm \
         felixguendling/cross-build-cpp \
-        bash -c "cmake -GNinja -DCMAKE_AR=/usr/bin/powerpc-linux-gnu-ar -DCMAKE_LINKER=/usr/bin/powerpc-linux-gnu-ld /repo && ninja cista-test && /usr/bin/qemu-ppc-static cista-test"
+        bash -c "cmake -GNinja -DCMAKE_TOOLCHAIN_FILE=/toolchain-ppc.cmake /repo && ninja cista-test && /usr/bin/qemu-ppc-static cista-test"
     displayName: 'Build & Run Tests'
