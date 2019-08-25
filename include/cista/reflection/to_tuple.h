@@ -7,6 +7,11 @@
 namespace cista {
 
 template <typename T>
+constexpr auto to_tuple_works_v =
+    std::is_aggregate_v<T>&& std::is_standard_layout_v<T> &&
+    !std::is_polymorphic_v<T>;
+
+template <typename T>
 inline auto to_tuple(T& t) {
   constexpr auto const a = arity<T>();
   if constexpr (a == 0) {

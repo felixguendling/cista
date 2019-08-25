@@ -32,10 +32,7 @@ hash_t type_hash(T const& el, hash_t h, std::map<hash_t, unsigned>& done) {
   } else if constexpr (std::is_scalar_v<Type>) {
     return hash_combine(h, type2str_hash<T>());
   } else {
-    static_assert(std::is_aggregate_v<Type> &&
-                      std::is_standard_layout_v<Type> &&
-                      !std::is_polymorphic_v<Type>,
-                  "Please implement custom type hash.");
+    static_assert(to_tuple_works_v<Type>, "Please implement custom type hash.");
     h = hash_combine(h, hash("struct"));
     for_each_field(el,
                    [&](auto const& member) { h = type_hash(member, h, done); });

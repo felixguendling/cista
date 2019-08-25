@@ -73,10 +73,7 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
       c.pending_.emplace_back(pending_offset{*origin, pos});
     }
   } else if constexpr (!std::is_scalar_v<Type>) {
-    static_assert(std::is_aggregate_v<Type> &&
-                      std::is_standard_layout_v<Type> &&
-                      !std::is_polymorphic_v<Type>,
-                  "Please implement custom serializer.");
+    static_assert(to_tuple_works_v<Type>, "Please implement custom serializer");
     for_each_ptr_field(*origin, [&](auto& member) {
       auto const member_offset =
           static_cast<offset_t>(reinterpret_cast<intptr_t>(member) -
