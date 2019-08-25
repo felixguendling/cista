@@ -4,6 +4,7 @@
 #include <cstring>
 #include <functional>
 #include <iterator>
+#include <stdexcept>
 #include <type_traits>
 
 #include "cista/aligned_alloc.h"
@@ -295,6 +296,18 @@ struct hash_storage {
     return GetValue()(*emplace(T{key, mapped_type{}}).first);
   }
 
+  mapped_type& at(key_t const& key) {
+    if (auto it = find(key); it != end()) {
+      return *it;
+    } else {
+      throw std::out_of_range{"hash_storage::at() key not found"};
+    }
+  }
+
+  mapped_type const& at(key_t const& key) const {
+    return const_cast<hash_storage*>(this)->at(key);
+  }
+
   iterator find(key_t const& key) {
     auto const hash = Hash()(key);
     for (auto seq = probe_seq{h1(hash), capacity_}; true; seq.next()) {
@@ -353,6 +366,13 @@ struct hash_storage {
   const_iterator end() const { return const_cast<hash_storage*>(this)->end(); }
   const_iterator cbegin() const { return begin(); }
   const_iterator cend() const { return end(); }
+
+  friend iterator begin(hash_storage& h) { return h.begin(); }
+  friend const_iterator begin(hash_storage const& h) { return h.begin(); }
+  friend const_iterator cbegin(hash_storage const& h) { return h.begin(); }
+  friend iterator end(hash_storage& h) { return h.end(); }
+  friend const_iterator end(hash_storage const& h) { return h.end(); }
+  friend const_iterator cend(hash_storage const& h) { return h.begin(); }
 
   bool empty() const { return size() == 0U; }
   size_t size() const { return size_; }

@@ -2,7 +2,7 @@
 
 #include <cinttypes>
 
-#include "cista/containers/offset_ptr.h"
+#include "cista/containers/ptr.h"
 
 namespace cista {
 
@@ -51,5 +51,29 @@ struct basic_unique_ptr {
   uint16_t __fill_1__{0};
   uint32_t __fill_2__{0};
 };
+
+namespace raw {
+
+template <typename T>
+using unique_ptr = basic_unique_ptr<T, ptr<T>>;
+
+template <typename T, typename... Args>
+unique_ptr<T> make_unique(Args&&... args) {
+  return unique_ptr<T>{new T{std::forward<Args>(args)...}, true};
+}
+
+}  // namespace raw
+
+namespace offset {
+
+template <typename T>
+using unique_ptr = basic_unique_ptr<T, ptr<T>>;
+
+template <typename T, typename... Args>
+unique_ptr<T> make_unique(Args&&... args) {
+  return unique_ptr<T>{new T{std::forward<Args>(args)...}, true};
+}
+
+}  // namespace offset
 
 }  // namespace cista

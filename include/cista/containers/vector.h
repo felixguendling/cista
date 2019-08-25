@@ -5,10 +5,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <algorithm>
-#include <ostream>
-#include <string>
 #include <type_traits>
 
+#include "cista/containers/ptr.h"
 #include "cista/next_power_of_2.h"
 
 namespace cista {
@@ -113,6 +112,18 @@ struct basic_vector {
   inline T const& operator[](size_t index) const { return el_[index]; }
   inline T& operator[](size_t index) { return el_[index]; }
 
+  inline T& at(size_t index) {
+    if (index >= used_size_) {
+      throw std::out_of_range{"vector::at(): invalid index"};
+    } else {
+      return (*this)[index];
+    }
+  }
+
+  inline T const& at(size_t index) const {
+    return const_cast<basic_vector*>(this)->at(index);
+  }
+
   T const& back() const { return el_[used_size_ - 1]; }
   T& back() { return el_[used_size_ - 1]; }
 
@@ -122,16 +133,11 @@ struct basic_vector {
   inline TemplateSizeType size() const { return used_size_; }
   inline bool empty() const { return size() == 0; }
 
-  basic_vector& operator=(std::string const& str) {
-    *this = basic_vector(str.c_str());
-    return *this;
-  }
-
   template <typename It>
   void set(It begin_it, It end_it) {
     auto range_size = std::distance(begin_it, end_it);
     assert(range_size <= std::numeric_limits<TemplateSizeType>::max() &&
-           "size tpye overflow");
+           "size type overflow");
     reserve(static_cast<TemplateSizeType>(range_size));
 
     auto copy_source = begin_it;
@@ -225,10 +231,6 @@ struct basic_vector {
 
   bool contains(T const* el) const { return el >= begin() && el < end(); }
 
-  std::string to_string() const { return std::string(el_); }
-
-  explicit operator std::string() const { return to_string(); }
-
   Ptr el_{nullptr};
   TemplateSizeType used_size_{0};
   TemplateSizeType allocated_size_{0};
@@ -269,5 +271,15 @@ inline bool operator>=(basic_vector<T, Ptr, TemplateSizeType> const& a,
                        basic_vector<T, Ptr, TemplateSizeType> const& b) {
   return !(a < b);
 }
+
+namespace raw {
+template <typename T>
+using vector = basic_vector<T, ptr<T>>;
+}  // namespace raw
+
+namespace offset {
+template <typename T>
+using vector = basic_vector<T, ptr<T>>;
+}  // namespace offset
 
 }  // namespace cista

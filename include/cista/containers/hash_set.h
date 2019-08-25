@@ -3,6 +3,9 @@
 #include <functional>
 
 #include "cista/containers/hash_storage.h"
+#include "cista/containers/ptr.h"
+#include "cista/equal_to.h"
+#include "cista/hashing.h"
 
 namespace cista {
 
@@ -13,9 +16,14 @@ struct identity {
   }
 };
 
-template <typename T, template <typename> typename Ptr,
-          typename Hash = std::hash<T>, typename Eq = std::equal_to<T>>
-using basic_hash_set =
-    hash_storage<T, Ptr, uint32_t, identity, identity, Hash, Eq>;
+namespace raw {
+template <typename T, typename Hash = hashing<T>, typename Eq = equal_to<T>>
+using hash_set = hash_storage<T, ptr, uint32_t, identity, identity, Hash, Eq>;
+}  // namespace raw
+
+namespace offset {
+template <typename T, typename Hash = hashing<T>, typename Eq = equal_to<T>>
+using hash_set = hash_storage<T, ptr, uint32_t, identity, identity, Hash, Eq>;
+}  // namespace offset
 
 }  // namespace cista

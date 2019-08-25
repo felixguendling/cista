@@ -5,7 +5,7 @@
 #ifdef SINGLE_HEADER
 #include "cista.h"
 #else
-#include "cista/containers.h"
+#include "cista/containers/string.h"
 #endif
 
 using cista::raw::string;

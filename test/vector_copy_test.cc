@@ -3,7 +3,7 @@
 #ifdef SINGLE_HEADER
 #include "cista.h"
 #else
-#include "cista/containers.h"
+#include "cista/containers/vector.h"
 #endif
 
 TEST_CASE("to_tuple") {

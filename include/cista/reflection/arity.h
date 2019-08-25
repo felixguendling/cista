@@ -27,10 +27,10 @@ template <typename Aggregate, typename IndexSequence = std::index_sequence<>,
           typename = void>
 struct arity_impl : IndexSequence {};
 
-#pragma warning(disable : 4068)
+#ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
-#pragma warning(default : 4068)
+#endif
 
 template <typename Aggregate, std::size_t... Indices>
 struct arity_impl<Aggregate, std::index_sequence<Indices...>,
@@ -40,9 +40,9 @@ struct arity_impl<Aggregate, std::index_sequence<Indices...>,
     : arity_impl<Aggregate,
                  std::index_sequence<Indices..., sizeof...(Indices)>> {};
 
-#pragma warning(disable : 4068)
+#ifdef __GNUC__
 #pragma GCC diagnostic pop
-#pragma warning(default : 4068)
+#endif
 
 }  // namespace detail
 
