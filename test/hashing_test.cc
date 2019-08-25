@@ -20,7 +20,8 @@ struct key {
 TEST_CASE("automatic hashing and equality check") {
   data::hash_map<key, int> m;
   for (auto i = 0U; i < 100; ++i) {
-    m.emplace(key{i, std::to_string(i)}, i + 1);
+    m.emplace(key{i, data::string{std::to_string(i), data::string::owning}},
+              i + 1);
   }
   CHECK(m.size() == 100);
   for (auto const& [k, v] : m) {
