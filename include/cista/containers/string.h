@@ -52,6 +52,10 @@ struct generic_string {
     return a.view() == std::string_view{b};
   }
 
+  friend bool operator==(char const* a, generic_string const& b) {
+    return b.view() == std::string_view{a};
+  }
+
   friend bool operator==(generic_string const& a, generic_string const& b) {
     return a.view() == b.view();
   }
@@ -247,6 +251,8 @@ struct basic_string : public generic_string<Ptr> {
   basic_string& operator=(char const* s) { base::set_owning(s); }
   basic_string& operator=(std::string const& s) { base::set_owning(s); }
   basic_string& operator=(std::string_view s) { base::set_owning(s); }
+
+  operator std::string() const { return {base::data(), base::size()}; }
 };
 
 template <typename Ptr>

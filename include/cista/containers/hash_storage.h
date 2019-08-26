@@ -256,8 +256,8 @@ struct hash_storage {
     for (const auto& v : other) {
       auto const hash = Hash()(GetKey()(v));
       auto target = find_first_non_full(hash);
-      set_ctrl(target.offset, H2(hash));
-      emplace_at(target.offset, v);
+      set_ctrl(target.offset_, h2(hash));
+      new (entries_ + target.offset_) T{v};
     }
     size_ = other.size();
     growth_left_ -= other.size();
@@ -284,7 +284,7 @@ struct hash_storage {
       auto const hash = Hash()(GetKey()(v));
       auto target = find_first_non_full(hash);
       set_ctrl(target.offset, H2(hash));
-      emplace_at(target.offset, v);
+      new (entries_ + target.offset_) T{v};
     }
     size_ = other.size();
     growth_left_ -= other.size();
@@ -297,12 +297,16 @@ struct hash_storage {
   void set_deleted_key(key_t const&) {}
 
   mapped_type& operator[](key_t const& key) {
-    return GetValue()(*emplace(T{key, mapped_type{}}).first);
+    auto const res = find_or_prepare_insert(key);
+    if (res.second) {
+      new (entries_ + res.first) T{key, mapped_type{}};
+    }
+    return GetValue{}(entries_[res.first]);
   }
 
   mapped_type& at(key_t const& key) {
     if (auto it = find(key); it != end()) {
-      return *it;
+      return GetValue{}(*it);
     } else {
       throw std::out_of_range{"hash_storage::at() key not found"};
     }

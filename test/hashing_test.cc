@@ -68,14 +68,20 @@ TEST_CASE("automatic hashing and equality check") {
                          {1, std::to_string(1)}},
        2}};
 
-  for (auto i = 0; i < 100; ++i) {
+  for (auto i = 0; i <= 100; ++i) {
     m.emplace(data::vector<key>{{i, std::to_string(i)},
                                 {i + 1, std::to_string(i + 1)},
                                 {i + 2, std::to_string(i + 2)}},
               i + 3);
   }
 
-  CHECK(m.size() == 102);
+  CHECK(m.size() == 103);
+  CHECK(m[{{100, std::to_string(100)},
+           {101, std::to_string(101)},
+           {102, std::to_string(102)}}] == 103);
+  CHECK(m.at({{100, std::to_string(100)},
+              {101, std::to_string(101)},
+              {102, std::to_string(102)}}) == 103);
   for (auto const& [k, v] : m) {
     CHECK(k.size() == 3U);
     CHECK(k.at(0).i_ == k.at(0).i_);

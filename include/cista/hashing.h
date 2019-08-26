@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <type_traits>
+#include <tuple>
 
 #include "cista/containers/offset_ptr.h"
 #include "cista/containers/unique_ptr.h"
@@ -65,5 +66,30 @@ struct hashing {
     }
   }
 };  // namespace cista
+
+template <typename T1, typename T2>
+struct hashing<std::pair<T1, T2>> {
+  constexpr hash_t operator()(std::pair<T1, T2> const& el,
+                              hash_t const seed = BASE_HASH) {
+    std::size_t h = seed;
+    h = hashing<T1>{}(el.first, h);
+    h = hashing<T2>{}(el.second, h);
+    return h;
+  }
+};
+
+template <typename... Args>
+struct hashing<std::tuple<Args...>> {
+  constexpr hash_t operator()(std::tuple<Args...> const& el,
+                              hash_t const seed = BASE_HASH) {
+    std::size_t h = seed;
+    std::apply(
+        [&h](auto&&... args) {
+          ((h = hashing<decltype(args)>{}(args, h)), ...);
+        },
+        el);
+    return h;
+  }
+};
 
 }  // namespace cista
