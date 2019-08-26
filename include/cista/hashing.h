@@ -25,7 +25,8 @@ template <typename T, typename = void>
 struct has_std_hash : std::false_type {};
 
 template <typename T>
-struct has_std_hash<T, std::void_t<decltype(std::declval<std::hash<T>>()())>>
+struct has_std_hash<
+    T, std::void_t<decltype(std::declval<std::hash<T>>()(std::declval<T>()))>>
     : std::true_type {};
 
 }  // namespace detail
@@ -42,6 +43,8 @@ struct hashing {
     using Type = decay_t<T>;
     if constexpr (has_hash_v<Type>) {
       return el.hash();
+    } else if constexpr (std::is_scalar_v<Type>) {
+      return hash_combine(seed, el);
     } else if constexpr (has_std_hash_v<Type>) {
       return std::hash<Type>()(el);
     } else if constexpr (is_iterable_v<Type>) {
@@ -50,24 +53,17 @@ struct hashing {
         h = hashing<decltype(v)>()(v, h);
       }
       return h;
-    } else if constexpr (is_pointer_v<Type>) {
-      return el == nullptr ? hash_combine(seed, el)
-                           : hashing<decltype(*el)>(seed, *el);
-    } else if constexpr (std::is_aggregate_v<Type> &&
-                         std::is_standard_layout_v<Type> &&
-                         !std::is_polymorphic_v<Type>) {
+    } else if constexpr (to_tuple_works_v<Type>) {
       auto h = seed;
       for_each_field(el, [&h](auto&& f) { h = hashing<decltype(f)>{}(f, h); });
       return h;
-    } else if constexpr (std::is_scalar_v<Type>) {
-      return hash_combine(seed, el);
     } else {
-      static_assert(has_hash_v<Type> || has_std_hash_v<Type> ||
-                        is_iterable_v<Type> || is_pointer_v<Type> ||
-                        to_tuple_works_v<Type> || std::is_scalar_v<Type>,
+      static_assert(has_hash_v<Type> || std::is_scalar_v<Type> ||
+                        has_std_hash_v<Type> || is_iterable_v<Type> ||
+                        to_tuple_works_v<Type>,
                     "Implement hash");
     }
   }
-};
+};  // namespace cista
 
 }  // namespace cista

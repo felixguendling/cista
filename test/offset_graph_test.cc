@@ -42,7 +42,7 @@ struct graph {
   node* make_node(data::string name) {
     return nodes_
         .emplace_back(data::make_unique<node>(
-            node{next_node_id_++, 0, data::vector<data::ptr<edge>>{0u},
+            node{next_node_id_++, 0, data::vector<data::ptr<edge>>(0u),
                  std::move(name)}))
         .get();
   }

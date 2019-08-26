@@ -20,15 +20,8 @@ struct basic_vector {
   using const_iterator = T const*;
 
   basic_vector() = default;
-
   explicit basic_vector(TemplateSizeType size) { resize(size); }
-
-  explicit basic_vector(const char* str) {
-    auto length = static_cast<size_type>(std::strlen(str) + 1);
-    reserve(length);
-    std::memcpy(el_, str, length);
-    used_size_ = length;
-  }
+  basic_vector(std::initializer_list<T> init) { set(init.begin(), init.end()); }
 
   template <typename It>
   basic_vector(It begin_it, It end_it) {

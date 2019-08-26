@@ -232,6 +232,10 @@ struct hash_storage {
 
   hash_storage() = default;
 
+  hash_storage(std::initializer_list<T> init) {
+    insert(init.begin(), init.end());
+  }
+
   hash_storage(hash_storage&& other)
       : entries_{other.entries_},
         ctrl_{other.ctrl_},
@@ -325,6 +329,13 @@ struct hash_storage {
 
   const_iterator find(key_t const& key) const {
     return const_cast<hash_storage*>(this)->find(key);
+  }
+
+  template <class InputIt>
+  void insert(InputIt first, InputIt last) {
+    for (; first != last; ++first) {
+      emplace(*first);
+    }
   }
 
   std::pair<iterator, bool> insert(T const& entry) { return emplace(entry); }

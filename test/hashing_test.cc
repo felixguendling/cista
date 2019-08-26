@@ -9,31 +9,73 @@
 #include "cista/containers/hash_map.h"
 #include "cista/containers/string.h"
 #include "cista/containers/vector.h"
+#include "cista/reflection/printable.h"
 #endif
 
 namespace data = cista::raw;
 
-struct key {
+struct hash_override {
+  CISTA_PRINTABLE(hash_override)
+  cista::hash_t hash() const { return i_; }
   unsigned i_;
+};
+
+struct std_hash_key {
+  CISTA_PRINTABLE(std_hash_key)
+  explicit std_hash_key(unsigned i) : i_{i} {}
+  unsigned i_;
+};
+
+struct key {
+  CISTA_PRINTABLE(key)
+  int i_;
   data::string s_;
 };
+
+namespace std {
+template <>
+class hash<std_hash_key> {
+public:
+  size_t operator()(std_hash_key const& s) const { return s.i_; }
+};
+}  // namespace std
+
+TEST_CASE("std::hash override") {
+  auto k = std_hash_key{4};
+  CHECK(cista::hashing<std_hash_key>{}(k) == 4);
+}
+
+TEST_CASE("hash() override") {
+  hash_override k{7};
+  CHECK(cista::hashing<hash_override>{}(k) == 7);
+}
 
 TEST_CASE("automatic hash validation") {
   key k{3U, data::string{"1234"}};
   CHECK(cista::hashing<key>{}(k) ==
-        cista::hash("1234", cista::hash_combine(cista::BASE_HASH, 3U)));
+        cista::hash(data::string{"1234"},
+                    cista::hash_combine(cista::BASE_HASH, 3U)));
 }
 
 TEST_CASE("automatic hashing and equality check") {
-  data::hash_map<data::vector<key>, int> m;
-  for (auto i = 0U; i < 100; ++i) {
-    auto v = data::vector<key>{};
-    v.emplace_back(key{i, std::to_string(i)});
-    v.emplace_back(key{i + 1, std::to_string(i + 1)});
-    v.emplace_back(key{i + 2, std::to_string(i + 2)});
-    m.emplace(v, i + 3);
+  data::hash_map<data::vector<key>, int> m{
+      {data::vector<key>{{-2, std::to_string(-2)},
+                         {-1, std::to_string(-1)},
+                         {0, std::to_string(0)}},
+       1},
+      {data::vector<key>{{-1, std::to_string(-1)},
+                         {0, std::to_string(0)},
+                         {1, std::to_string(1)}},
+       2}};
+
+  for (auto i = 0; i < 100; ++i) {
+    m.emplace(data::vector<key>{{i, std::to_string(i)},
+                                {i + 1, std::to_string(i + 1)},
+                                {i + 2, std::to_string(i + 2)}},
+              i + 3);
   }
-  CHECK(m.size() == 100);
+
+  CHECK(m.size() == 102);
   for (auto const& [k, v] : m) {
     CHECK(k.size() == 3U);
     CHECK(k.at(0).i_ == k.at(0).i_);
