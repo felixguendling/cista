@@ -135,26 +135,25 @@ TEST_CASE("serialize hash_set test") {
 
   auto const make_e1 = []() {
     vector<string> e1;
-    e1.emplace_back(string{"short", string::owning_t{}});
-    e1.emplace_back(
-        string{"long long long long long long long", string::owning_t{}});
+    e1.emplace_back("short");
+    e1.emplace_back("long long long long long long long");
     return e1;
   };
 
   auto const make_e2 = []() {
     vector<string> e2;
-    e2.emplace_back(string{"hello", string::owning_t{}});
-    e2.emplace_back(string{"world", string::owning_t{}});
-    e2.emplace_back(string{"yeah!", string::owning_t{}});
+    e2.emplace_back("hello");
+    e2.emplace_back("world");
+    e2.emplace_back("yeah!");
     return e2;
   };
 
   auto const make_e3 = []() {
     vector<string> e3;
-    e3.emplace_back(string{"This", string::non_owning_t{}});
-    e3.emplace_back(string{"is", string::non_owning_t{}});
-    e3.emplace_back(string{"Sparta", string::non_owning_t{}});
-    e3.emplace_back(string{"!!!", string::non_owning_t{}});
+    e3.emplace_back("This");
+    e3.emplace_back("is");
+    e3.emplace_back("Sparta");
+    e3.emplace_back("!!!");
     return e3;
   };
 

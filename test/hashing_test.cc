@@ -28,12 +28,9 @@ TEST_CASE("automatic hashing and equality check") {
   data::hash_map<data::vector<key>, int> m;
   for (auto i = 0U; i < 100; ++i) {
     auto v = data::vector<key>{};
-    v.emplace_back(
-        key{i, data::string{std::to_string(i), data::string::owning}});
-    v.emplace_back(
-        key{i + 1, data::string{std::to_string(i + 1), data::string::owning}});
-    v.emplace_back(
-        key{i + 2, data::string{std::to_string(i + 2), data::string::owning}});
+    v.emplace_back(key{i, std::to_string(i)});
+    v.emplace_back(key{i + 1, std::to_string(i + 1)});
+    v.emplace_back(key{i + 2, std::to_string(i + 2)});
     m.emplace(v, i + 3);
   }
   CHECK(m.size() == 100);

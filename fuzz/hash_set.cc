@@ -43,26 +43,26 @@ int main(int argc, char** argv) {
 
   auto const make_e1 = []() {
     data::vector<data::string> e1;
-    e1.emplace_back(data::string{"short", data::string::owning_t{}});
-    e1.emplace_back(data::string{"long long long long long long long",
-                                 data::string::owning_t{}});
+    e1.emplace_back("short");
+    e1.emplace_back("long long long long long long long",
+                    data::string::owning_t{});
     return e1;
   };
 
   auto const make_e2 = []() {
     data::vector<data::string> e2;
-    e2.emplace_back(data::string{"hello", data::string::owning_t{}});
-    e2.emplace_back(data::string{"world", data::string::owning_t{}});
-    e2.emplace_back(data::string{"yeah!", data::string::owning_t{}});
+    e2.emplace_back("hello");
+    e2.emplace_back("world");
+    e2.emplace_back("yeah!");
     return e2;
   };
 
   auto const make_e3 = []() {
     data::vector<data::string> e3;
-    e3.emplace_back(data::string{"This", data::string::non_owning_t{}});
-    e3.emplace_back(data::string{"is", data::string::non_owning_t{}});
-    e3.emplace_back(data::string{"Sparta", data::string::non_owning_t{}});
-    e3.emplace_back(data::string{"!!!", data::string::non_owning_t{}});
+    e3.emplace_back("This");
+    e3.emplace_back("is");
+    e3.emplace_back("Sparta");
+    e3.emplace_back("!!!");
     return e3;
   };
 

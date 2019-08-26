@@ -63,7 +63,19 @@ hash_t type_hash(basic_unique_ptr<T, Ptr> const&, hash_t h,
 }
 
 template <typename Ptr>
+hash_t type_hash(generic_string<Ptr> const&, hash_t h,
+                 std::map<hash_t, unsigned>&) {
+  return hash_combine(h, hash("string"));
+}
+
+template <typename Ptr>
 hash_t type_hash(basic_string<Ptr> const&, hash_t h,
+                 std::map<hash_t, unsigned>&) {
+  return hash_combine(h, hash("string"));
+}
+
+template <typename Ptr>
+hash_t type_hash(basic_string_view<Ptr> const&, hash_t h,
                  std::map<hash_t, unsigned>&) {
   return hash_combine(h, hash("string"));
 }

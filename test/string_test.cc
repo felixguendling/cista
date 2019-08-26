@@ -76,13 +76,3 @@ TEST_CASE("string copy assign and copy construct") {
   CHECK(s0 == s2);
   CHECK(s2.view() == LONG_STR);
 }
-
-TEST_CASE("string resize and assign with range based") {
-  string s;
-  s.resize(20);
-
-  for (auto& c : s) {
-    c = 'A';
-  }
-  CHECK(s == "AAAAAAAAAAAAAAAAAAAA");
-}
