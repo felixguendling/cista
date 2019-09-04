@@ -1,3 +1,5 @@
+#pragma once
+
 #include <memory>
 
 #include "cista/next_power_of_2.h"

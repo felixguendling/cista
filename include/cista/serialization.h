@@ -700,7 +700,9 @@ T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
 
 template <typename T, mode const Mode = mode::NONE, typename Container>
 T* deserialize(Container& c) {
-  return deserialize<T, Mode>(&c[0], &c[0] + c.size());
+  static_assert(sizeof(c[0]) == 1U, "byte container");
+  return deserialize<T, Mode>(reinterpret_cast<uint8_t*>(&c[0]),
+                              reinterpret_cast<uint8_t*>(&c[0] + c.size()));
 }
 
 template <typename T, mode const Mode = mode::NONE>
