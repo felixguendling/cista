@@ -109,30 +109,6 @@ TEST_CASE("serialize hash_set test") {
   using namespace cista;
   using namespace cista::raw;
 
-  struct hash {
-    size_t operator()(vector<string> const& v) {
-      auto hash = cista::BASE_HASH;
-      for (auto const& s : v) {
-        hash = cista::hash(s, hash);
-      }
-      return hash;
-    }
-  };
-
-  struct eq {
-    bool operator()(vector<string> const& a, vector<string> const& b) {
-      if (a.size() != b.size()) {
-        return false;
-      }
-      for (auto ia = a.begin(), ib = b.begin(); ia != a.end(); ++ia, ++ib) {
-        if (*ia != *ib) {
-          return false;
-        }
-      }
-      return true;
-    }
-  };
-
   auto const make_e1 = []() {
     vector<string> e1;
     e1.emplace_back("short");
@@ -157,7 +133,7 @@ TEST_CASE("serialize hash_set test") {
     return e3;
   };
 
-  using serialize_me_t = hash_set<vector<string>, hash, eq>;
+  using serialize_me_t = hash_set<vector<string>>;
 
   byte_buf buf;
 
@@ -180,4 +156,66 @@ TEST_CASE("serialize hash_set test") {
   CHECK(*deserialized->find(make_e1()) == make_e1());
   CHECK(*deserialized->find(make_e2()) == make_e2());
   CHECK(*deserialized->find(make_e3()) == make_e3());
+}
+
+TEST_CASE("string view get") {
+  using namespace cista::raw;
+
+  hash_map<std::string, int> s;
+
+  s[{"0"}] = 0;  // Calls std::string constructor with key_t const& overload
+  s[string{"1"}] = 1;  // cista::string to std::string_view to std::string
+  s["2"] = 2;  // Calls std::string constructor on insertion
+
+  // operator[]
+  CHECK(s[{"0"}] == 0);
+  CHECK(s[string{"0"}] == 0);
+  CHECK(s["0"] == 0);
+
+  CHECK(s[{"1"}] == 1);
+  CHECK(s[string{"1"}] == 1);
+  CHECK(s["1"] == 1);
+
+  CHECK(s[{"2"}] == 2);
+  CHECK(s[string{"2"}] == 2);
+  CHECK(s["2"] == 2);
+
+  // .at()
+  CHECK(s.at({"0"}) == 0);
+  CHECK(s.at(string{"0"}) == 0);
+  CHECK(s.at("0") == 0);
+
+  CHECK(s.at({"1"}) == 1);
+  CHECK(s.at(string{"1"}) == 1);
+  CHECK(s.at("1") == 1);
+
+  CHECK(s.at({"2"}) == 2);
+  CHECK(s.at(string{"2"}) == 2);
+  CHECK(s.at("2") == 2);
+
+  // .find()
+  CHECK(s.find({"0"})->second == 0);
+  CHECK(s.find(string{"0"})->second == 0);
+  CHECK(s.find("0")->second == 0);
+
+  CHECK(s.find({"1"})->second == 1);
+  CHECK(s.find(string{"1"})->second == 1);
+  CHECK(s.find("1")->second == 1);
+
+  CHECK(s.find({"2"})->second == 2);
+  CHECK(s.find(string{"2"})->second == 2);
+  CHECK(s.find("2")->second == 2);
+
+  // .erase()
+  CHECK(s.erase({"0"}) == 1);
+  CHECK(s.erase(string{"0"}) == 0);
+  CHECK(s.erase("0") == 0);
+
+  CHECK(s.erase({"1"}) == 1);
+  CHECK(s.erase(string{"1"}) == 0);
+  CHECK(s.erase("1") == 0);
+
+  CHECK(s.erase({"2"}) == 1);
+  CHECK(s.erase(string{"2"}) == 0);
+  CHECK(s.erase("2") == 0);
 }

@@ -46,6 +46,15 @@ struct hash_storage {
   using group_t = uint64_t;
   using h2_t = uint8_t;
 
+  template <typename Key>
+  size_t compute_hash(Key const& k) {
+    if constexpr (std::is_same_v<decay_t<Key>, key_t>) {
+      return Hash{}(k);
+    } else {
+      return Hash::template create<Key>()(k);
+    }
+  }
+
   enum ctrl_t : int8_t {
     EMPTY = -128,  // 10000000
     DELETED = -2,  // 11111110
@@ -254,7 +263,7 @@ struct hash_storage {
   hash_storage(hash_storage const& other) {
     resize(other.size());
     for (const auto& v : other) {
-      auto const hash = Hash()(GetKey()(v));
+      auto const hash = compute_hash(GetKey()(v));
       auto target = find_first_non_full(hash);
       set_ctrl(target.offset_, h2(hash));
       new (entries_ + target.offset_) T{v};
@@ -276,12 +285,13 @@ struct hash_storage {
     other.capacity_ = 0U;
     other.growth_left_ = 0U;
     other.self_allocated_ = false;
+    return *this;
   }
 
   hash_storage& operator=(hash_storage const& other) {
     resize(other.size());
     for (const auto& v : other) {
-      auto const hash = Hash()(GetKey()(v));
+      auto const hash = compute_hash(GetKey()(v));
       auto target = find_first_non_full(hash);
       set_ctrl(target.offset, H2(hash));
       new (entries_ + target.offset_) T{v};
@@ -296,7 +306,9 @@ struct hash_storage {
   void set_empty_key(key_t const&) {}
   void set_deleted_key(key_t const&) {}
 
-  mapped_type& operator[](key_t const& key) {
+  // --- operator[]
+  template <typename Key>
+  mapped_type& bracket_operator_impl(Key&& key) {
     auto const res = find_or_prepare_insert(key);
     if (res.second) {
       new (entries_ + res.first) T{key, mapped_type{}};
@@ -304,7 +316,18 @@ struct hash_storage {
     return GetValue{}(entries_[res.first]);
   }
 
-  mapped_type& at(key_t const& key) {
+  template <typename Key>
+  mapped_type& operator[](Key&& key) {
+    return bracket_operator_impl(std::forward<Key>(key));
+  }
+
+  mapped_type& operator[](key_t const& key) {
+    return bracket_operator_impl(key);
+  }
+
+  // --- at()
+  template <typename Key>
+  mapped_type& at_impl(Key&& key) {
     if (auto it = find(key); it != end()) {
       return GetValue{}(*it);
     } else {
@@ -312,16 +335,30 @@ struct hash_storage {
     }
   }
 
+  mapped_type& at(key_t const& key) { return at_impl(key); }
+
   mapped_type const& at(key_t const& key) const {
     return const_cast<hash_storage*>(this)->at(key);
   }
 
-  iterator find(key_t const& key) {
-    auto const hash = Hash()(key);
+  template <typename Key>
+  mapped_type& at(Key&& key) {
+    return at_impl(std::forward<Key>(key));
+  }
+
+  template <typename Key>
+  mapped_type const& at(key_t const& key) const {
+    return const_cast<hash_storage*>(this)->at(key);
+  }
+
+  // --- find()
+  template <typename Key>
+  iterator find_impl(Key&& key) {
+    auto const hash = compute_hash(key);
     for (auto seq = probe_seq{h1(hash), capacity_}; true; seq.next()) {
       group g{ctrl_ + seq.offset_};
       for (auto const i : g.match(h2(hash))) {
-        if (Eq()(key, GetKey()(entries_[seq.offset(i)]))) {
+        if (Eq{}(GetKey()(entries_[seq.offset(i)]), key)) {
           return iterator_at(seq.offset(i));
         }
       }
@@ -331,15 +368,49 @@ struct hash_storage {
     }
   }
 
-  const_iterator find(key_t const& key) const {
-    return const_cast<hash_storage*>(this)->find(key);
+  template <typename Key>
+  const_iterator find(Key&& key) const {
+    return const_cast<hash_storage*>(this)->find_impl(std::forward<Key>(key));
   }
+
+  template <typename Key>
+  iterator find(Key&& key) {
+    return find_impl(std::forward<Key>(key));
+  }
+
+  const_iterator find(key_t const& key) const {
+    return const_cast<hash_storage*>(this)->find_impl(key);
+  }
+  iterator find(key_t const& key) { return find_impl(key); }
 
   template <class InputIt>
   void insert(InputIt first, InputIt last) {
     for (; first != last; ++first) {
       emplace(*first);
     }
+  }
+
+  // --- erase()
+  template <typename Key>
+  size_t erase_impl(Key&& key) {
+    auto it = find(std::forward<Key>(key));
+    if (it == end()) {
+      return 0;
+    }
+    erase(it);
+    return 1;
+  }
+
+  size_t erase(key_t const& k) { return erase_impl(k); }
+
+  template <typename Key>
+  size_t erase(Key&& key) {
+    return erase_impl(std::forward<Key>(key));
+  }
+
+  void erase(iterator const it) {
+    it.entry_->~T();
+    erase_meta_only(it);
   }
 
   std::pair<iterator, bool> insert(T const& entry) { return emplace(entry); }
@@ -352,20 +423,6 @@ struct hash_storage {
       new (entries_ + res.first) T{std::move(entry)};
     }
     return {iterator_at(res.first), res.second};
-  }
-
-  size_t erase(key_t const& key) {
-    auto it = find(key);
-    if (it == end()) {
-      return 0;
-    }
-    erase(it);
-    return 1;
-  }
-
-  void erase(iterator const it) {
-    it.entry_->~T();
-    erase_meta_only(it);
   }
 
   iterator begin() {
@@ -431,13 +488,13 @@ struct hash_storage {
     growth_left_ = 0U;
   }
 
-  template <typename K>
-  std::pair<size_t, bool> find_or_prepare_insert(K&& key) {
-    auto const hash = Hash()(key);
+  template <typename Key>
+  std::pair<size_t, bool> find_or_prepare_insert(Key&& key) {
+    auto const hash = compute_hash(key);
     for (auto seq = probe_seq{h1(hash), capacity_}; true; seq.next()) {
       group g{ctrl_ + seq.offset_};
       for (auto const i : g.match(h2(hash))) {
-        if (Eq()(key, GetKey()(entries_[seq.offset(i)]))) {
+        if (Eq{}(GetKey()(entries_[seq.offset(i)]), key)) {
           return {seq.offset(i), false};
         }
       }
@@ -513,7 +570,7 @@ struct hash_storage {
 
     for (auto i = size_t{0U}; i != old_capacity; ++i) {
       if (is_full(old_ctrl[i])) {
-        auto const hash = Hash()(GetKey()(old_entries[i]));
+        auto const hash = compute_hash(GetKey()(old_entries[i]));
         auto const target = find_first_non_full(hash);
         auto const new_index = target.offset_;
         set_ctrl(new_index, h2(hash));
