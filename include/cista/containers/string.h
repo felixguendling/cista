@@ -30,16 +30,16 @@ struct generic_string {
   ~generic_string() { reset(); }
 
   generic_string(std::string_view s, owning_t) : generic_string() {
-    set_owning(s, static_cast<msize_t>(s.length()));
+    set_owning(s);
   }
   generic_string(std::string_view s, non_owning_t) : generic_string() {
-    set_non_owning(s, static_cast<msize_t>(s.length()));
+    set_non_owning(s);
   }
   generic_string(std::string const& s, owning_t) : generic_string() {
-    set_owning(s.c_str(), static_cast<msize_t>(s.length()));
+    set_owning(s);
   }
   generic_string(std::string const& s, non_owning_t) : generic_string() {
-    set_non_owning(s.c_str(), static_cast<msize_t>(s.length()));
+    set_non_owning(s);
   }
   generic_string(char const* s, owning_t) : generic_string() {
     set_owning(s, mstrlen(s));
