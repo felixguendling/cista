@@ -9,25 +9,21 @@
 #include "cista/containers/hash_map.h"
 #include "cista/containers/string.h"
 #include "cista/containers/vector.h"
-#include "cista/reflection/printable.h"
 #endif
 
 namespace data = cista::raw;
 
 struct hash_override {
-  CISTA_PRINTABLE(hash_override)
   cista::hash_t hash() const { return i_; }
   unsigned i_;
 };
 
 struct std_hash_key {
-  CISTA_PRINTABLE(std_hash_key)
   explicit std_hash_key(unsigned i) : i_{i} {}
   unsigned i_;
 };
 
 struct key {
-  CISTA_PRINTABLE(key)
   int i_;
   data::string s_;
 };
