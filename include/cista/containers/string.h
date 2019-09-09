@@ -240,7 +240,7 @@ struct basic_string : public generic_string<Ptr> {
     return *this;
   }
   basic_string& operator=(basic_string&& o) {
-    base::move_from(o);
+    base::move_from(std::move(o));
     return *this;
   }
 
