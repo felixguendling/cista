@@ -48,20 +48,36 @@ struct generic_string {
     set_non_owning(s);
   }
 
-  friend bool operator==(generic_string const& a, char const* b) {
-    return a.view() == std::string_view{b};
-  }
+  bool operator==(generic_string const& o) const { return view() == o.view(); }
+  bool operator!=(generic_string const& o) const { return view() != o.view(); }
+  bool operator==(char const* o) const { return view() == std::string_view{o}; }
+  bool operator!=(char const* o) const { return view() != std::string_view{o}; }
+  bool operator<(generic_string const& o) const { return view() < o.view(); }
+  bool operator>(generic_string const& o) const { return view() > o.view(); }
+  bool operator<(char const* o) const { return view() < std::string_view{o}; }
+  bool operator>(char const* o) const { return view() > std::string_view{o}; }
+  bool operator<=(generic_string const& o) const { return view() <= o.view(); }
+  bool operator>=(generic_string const& o) const { return view() >= o.view(); }
+  bool operator<=(char const* o) const { return view() <= std::string_view{o}; }
+  bool operator>=(char const* o) const { return view() >= std::string_view{o}; }
 
-  friend bool operator==(char const* a, generic_string const& b) {
-    return b.view() == std::string_view{a};
+  bool operator<(std::string const& o) const {
+    return view() < std::string_view{o};
   }
-
-  friend bool operator==(generic_string const& a, generic_string const& b) {
-    return a.view() == b.view();
+  bool operator>(std::string const& o) const {
+    return view() > std::string_view{o};
   }
-
-  friend bool operator!=(generic_string const& a, generic_string const& b) {
-    return !(a == b);
+  bool operator<=(std::string const& o) const {
+    return view() <= std::string_view{o};
+  }
+  bool operator>=(std::string const& o) const {
+    return view() >= std::string_view{o};
+  }
+  bool operator==(std::string const& o) const {
+    return view() == std::string_view{o};
+  }
+  bool operator!=(std::string const& o) const {
+    return view() != std::string_view{o};
   }
 
   char* begin() { return data(); }
@@ -164,7 +180,7 @@ struct generic_string {
   std::string_view view() const { return {data(), size()}; }
   std::string str() const { return {data(), size()}; }
 
-  operator std::string_view() { return view(); }
+  operator std::string_view() const { return view(); }
 
   char& operator[](size_t i) { return data()[i]; }
   char const& operator[](size_t i) const { return data()[i]; }
@@ -228,6 +244,38 @@ struct basic_string : public generic_string<Ptr> {
   using base = generic_string<Ptr>;
 
   using base::base;
+  using base::operator==;
+  using base::operator!=;
+  using base::operator<;
+  using base::operator>;
+  using base::operator<=;
+  using base::operator>=;
+  using base::operator std::string_view;
+
+  friend bool operator==(std::string const& a, basic_string const& b) {
+    return std::string_view{a} == b.view();
+  }
+  friend bool operator!=(std::string const& a, basic_string const& b) {
+    return std::string_view{a} != b.view();
+  }
+  friend bool operator<(std::string const& a, basic_string const& b) {
+    return std::string_view{a} < b.view();
+  }
+  friend bool operator>(std::string const& a, basic_string const& b) {
+    return std::string_view{a} > b.view();
+  }
+  friend bool operator<=(std::string const& a, basic_string const& b) {
+    return std::string_view{a} <= b.view();
+  }
+  friend bool operator>=(std::string const& a, basic_string const& b) {
+    return std::string_view{a} >= b.view();
+  }
+
+  explicit operator std::string() const { return {base::data(), base::size()}; }
+
+  basic_string(std::string_view s) : base{s, base::owning} {}
+  basic_string(std::string const& s) : base{s, base::owning} {}
+  basic_string(char const* s) : base{s, base::owning} {}
 
   basic_string(basic_string const& o) : base{} {
     base::set_owning(o.data(), o.size());
@@ -244,15 +292,18 @@ struct basic_string : public generic_string<Ptr> {
     return *this;
   }
 
-  basic_string(std::string_view s) : base{s, base::owning} {}
-  basic_string(std::string const& s) : base{s, base::owning} {}
-  basic_string(char const* s) : base{s, base::owning} {}
-
-  basic_string& operator=(char const* s) { base::set_owning(s); }
-  basic_string& operator=(std::string const& s) { base::set_owning(s); }
-  basic_string& operator=(std::string_view s) { base::set_owning(s); }
-
-  operator std::string() const { return {base::data(), base::size()}; }
+  basic_string& operator=(char const* s) {
+    base::set_owning(s);
+    return *this;
+  }
+  basic_string& operator=(std::string const& s) {
+    base::set_owning(s);
+    return *this;
+  }
+  basic_string& operator=(std::string_view s) {
+    base::set_owning(s);
+    return *this;
+  }
 };
 
 template <typename Ptr>
@@ -260,6 +311,27 @@ struct basic_string_view : public generic_string<Ptr> {
   using base = generic_string<Ptr>;
 
   using base::base;
+  using base::operator==;
+  using base::operator!=;
+  using base::operator<;
+  using base::operator>;
+  using base::operator<=;
+  using base::operator>=;
+  using base::operator std::string_view;
+
+  template <typename T>
+  friend bool operator==(T const& a, basic_string_view const& b) {
+    return b == a;
+  }
+
+  template <typename T>
+  friend bool operator!=(T const& a, basic_string_view const& b) {
+    return b != a;
+  }
+
+  basic_string_view(std::string_view s) : base{s, base::owning} {}
+  basic_string_view(std::string const& s) : base{s, base::owning} {}
+  basic_string_view(char const* s) : base{s, base::owning} {}
 
   basic_string_view(basic_string_view const& o) : base{} {
     base::set_non_owning(o.data(), o.size());
@@ -276,16 +348,34 @@ struct basic_string_view : public generic_string<Ptr> {
     return *this;
   }
 
-  basic_string_view(std::string_view s) : base{s, base::owning} {}
-  basic_string_view(std::string const& s) : base{s, base::owning} {}
-  basic_string_view(char const* s) : base{s, base::owning} {}
-
-  basic_string_view& operator=(char const* s) { base::set_non_owning(s); }
-  basic_string_view& operator=(std::string_view s) { base::set_non_owning(s); }
+  basic_string_view& operator=(char const* s) {
+    base::set_non_owning(s);
+    return *this;
+  }
+  basic_string_view& operator=(std::string_view s) {
+    base::set_non_owning(s);
+    return *this;
+  }
   basic_string_view& operator=(std::string const& s) {
     base::set_non_owning(s);
+    return *this;
   }
 };
+
+template <typename Ptr>
+struct is_string_helper : std::false_type {};
+
+template <typename Ptr>
+struct is_string_helper<generic_string<Ptr>> : std::true_type {};
+
+template <typename Ptr>
+struct is_string_helper<basic_string<Ptr>> : std::true_type {};
+
+template <typename Ptr>
+struct is_string_helper<basic_string_view<Ptr>> : std::true_type {};
+
+template <class T>
+constexpr bool is_string_v = is_string_helper<std::remove_cv_t<T>>::value;
 
 namespace raw {
 using string = basic_string<ptr<char const>>;
