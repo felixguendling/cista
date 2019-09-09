@@ -1,10 +1,14 @@
 #pragma once
 
+#include <cstdint>
 #include <functional>
-#include <type_traits>
+#include <string>
+#include <string_view>
 #include <tuple>
+#include <type_traits>
 
 #include "cista/containers/offset_ptr.h"
+#include "cista/containers/string.h"
 #include "cista/containers/unique_ptr.h"
 #include "cista/decay.h"
 #include "cista/hash.h"
@@ -38,22 +42,73 @@ constexpr bool has_hash_v = detail::has_hash<T>::value;
 template <typename T>
 constexpr bool has_std_hash_v = detail::has_std_hash<T>::value;
 
+template <typename A, typename B>
+struct is_hash_equivalent_helper : std::false_type {};
+
+template <typename A, typename B>
+constexpr bool is_hash_equivalent_v =
+    is_hash_equivalent_helper<std::remove_cv_t<A>, std::remove_cv_t<B>>::value;
+
+template <typename T, typename = void>
+struct is_char_array_helper : std::false_type {};
+
+template <std::size_t N>
+struct is_char_array_helper<char const[N]> : std::true_type {};
+
+template <std::size_t N>
+struct is_char_array_helper<char[N]> : std::true_type {};
+
+template <typename T>
+constexpr bool is_char_array_v = is_char_array_helper<T>::value;
+
+template <typename T>
+constexpr bool is_string_like_v =
+    is_string_v<std::remove_cv_t<T>> || is_char_array_v<T> ||
+    std::is_same_v<T, char const*> ||
+    std::is_same_v<std::remove_cv_t<T>, std::string> ||
+    std::is_same_v<std::remove_cv_t<T>, std::string_view>;
+
+template <typename A, typename B>
+constexpr bool is_ptr_same = std::is_pointer_v<A>&& std::is_pointer_v<B>&&
+    std::is_same_v<std::remove_cv_t<std::remove_pointer_t<A>>,
+                   std::remove_cv_t<std::remove_pointer_t<B>>>;
+
 template <typename T>
 struct hashing {
+  template <typename A, typename B>
+  static constexpr bool is_hash_equivalent() {
+    using DecayA = decay_t<A>;
+    using DecayB = decay_t<B>;
+    return is_hash_equivalent_v<DecayA, DecayB> ||
+           std::is_same_v<DecayA, DecayB> ||
+           (is_string_like_v<DecayA> && is_string_like_v<DecayB>) ||
+           std::is_convertible_v<A, B> || is_ptr_same<DecayA, DecayB>;
+  }
+
+  template <typename T1>
+  static constexpr hashing<T1> create() {
+    static_assert(is_hash_equivalent<T, T1>(), "Incompatible types");
+    return hashing<T1>{};
+  }
+
   constexpr hash_t operator()(T const& el, hash_t const seed = BASE_HASH) {
     using Type = decay_t<T>;
     if constexpr (has_hash_v<Type>) {
       return el.hash();
+    } else if constexpr (std::is_pointer_v<Type>) {
+      return hash_combine(seed, reinterpret_cast<intptr_t>(el));
+    } else if constexpr (is_char_array_v<Type>) {
+      return hash(std::string_view{el, sizeof(el) - 1}, seed);
     } else if constexpr (std::is_scalar_v<Type>) {
       return hash_combine(seed, el);
-    } else if constexpr (has_std_hash_v<Type>) {
-      return std::hash<Type>()(el);
     } else if constexpr (is_iterable_v<Type>) {
       auto h = seed;
       for (auto const& v : el) {
         h = hashing<decltype(v)>()(v, h);
       }
       return h;
+    } else if constexpr (has_std_hash_v<Type>) {
+      return std::hash<Type>()(el);
     } else if constexpr (to_tuple_works_v<Type>) {
       auto h = seed;
       for_each_field(el, [&h](auto&& f) { h = hashing<decltype(f)>{}(f, h); });
@@ -82,7 +137,7 @@ template <typename... Args>
 struct hashing<std::tuple<Args...>> {
   constexpr hash_t operator()(std::tuple<Args...> const& el,
                               hash_t const seed = BASE_HASH) {
-    std::size_t h = seed;
+    hash_t h = seed;
     std::apply(
         [&h](auto&&... args) {
           ((h = hashing<decltype(args)>{}(args, h)), ...);
@@ -91,5 +146,19 @@ struct hashing<std::tuple<Args...>> {
     return h;
   }
 };
+
+template <>
+struct hashing<char const*> {
+  hash_t operator()(char const* el, hash_t const seed = BASE_HASH) {
+    return hash(std::string_view{el}, seed);
+  }
+};
+
+template <typename... Args>
+hash_t build_hash(Args... args) {
+  hash_t h = BASE_HASH;
+  ((h = hashing<decltype(args)>{}(args, h)), ...);
+  return h;
+}
 
 }  // namespace cista
