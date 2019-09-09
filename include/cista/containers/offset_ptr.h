@@ -40,23 +40,11 @@ struct offset_ptr {
   }
 
   operator bool() const { return offset_ != NULLPTR_OFFSET; }
+  operator T*() const { return get(); }
+  T& operator*() const { return *get(); }
+  T* operator->() const { return get(); }
 
-  operator T*() { return get(); }
-  operator T const*() const { return get(); }
-  T& operator*() { return *get(); }
-  T const& operator*() const { return *get(); }
-
-  T* operator->() { return get(); }
-  T const* operator->() const { return get(); }
-
-  T const* get() const {
-    auto const ptr = offset_ == NULLPTR_OFFSET
-                         ? nullptr
-                         : reinterpret_cast<T const*>(
-                               reinterpret_cast<intptr_t>(this) + offset_);
-    return ptr;
-  }
-  T* get() {
+  T* get() const {
     auto const ptr =
         offset_ == NULLPTR_OFFSET
             ? nullptr
@@ -143,15 +131,7 @@ struct offset_ptr<T, std::enable_if_t<std::is_same_v<void, T>>> {
   }
 
   operator bool() const { return offset_ != NULLPTR_OFFSET; }
-
-  T const* get() const {
-    auto const ptr = offset_ == NULLPTR_OFFSET
-                         ? nullptr
-                         : reinterpret_cast<T const*>(
-                               reinterpret_cast<intptr_t>(this) + offset_);
-    return ptr;
-  }
-  T* get() {
+  T* get() const {
     auto const ptr =
         offset_ == NULLPTR_OFFSET
             ? nullptr

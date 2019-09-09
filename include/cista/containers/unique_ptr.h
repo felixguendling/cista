@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cinttypes>
+#include <cstddef>
 
 #include "cista/containers/ptr.h"
 
@@ -38,8 +39,22 @@ struct basic_unique_ptr {
     }
   }
 
-  T* get() { return el_; }
-  T const* get() const { return el_; }
+  explicit operator bool() const { return el_ != nullptr; }
+
+  friend bool operator==(basic_unique_ptr const& a, std::nullptr_t) {
+    return a.el_ == nullptr;
+  }
+  friend bool operator==(std::nullptr_t, basic_unique_ptr const& a) {
+    return a.el_ == nullptr;
+  }
+  friend bool operator!=(basic_unique_ptr const& a, std::nullptr_t) {
+    return a.el_ != nullptr;
+  }
+  friend bool operator!=(std::nullptr_t, basic_unique_ptr const& a) {
+    return a.el_ != nullptr;
+  }
+
+  T* get() const { return el_; }
   T* operator->() { return el_; }
   T& operator*() { return *el_; }
   T const& operator*() const { return *el_; }
