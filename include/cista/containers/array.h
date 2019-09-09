@@ -14,11 +14,14 @@ struct array {
 
   constexpr T const& operator[](size_t index) const { return el_[index]; }
   constexpr T& operator[](size_t index) { return el_[index]; }
-  constexpr T const& at(size_t index) const {
+  constexpr T& at(size_t index) {
     if (index >= Size) {
       throw std::out_of_range{"array index out of range"};
     }
     return el_[index];
+  }
+  constexpr T const& at(size_t index) const {
+    return const_cast<array*>(this)->at(index);
   }
 
   constexpr T* begin() { return el_; }
