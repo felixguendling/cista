@@ -5,9 +5,13 @@
 #include <cstdlib>
 #include <cstring>
 #include <algorithm>
+#include <ostream>
 #include <type_traits>
+#include <vector>
 
 #include "cista/containers/ptr.h"
+#include "cista/is_comparable.h"
+#include "cista/is_iterable.h"
 #include "cista/next_power_of_2.h"
 
 namespace cista {
@@ -142,6 +146,35 @@ struct basic_vector {
     used_size_ = static_cast<TemplateSizeType>(range_size);
   }
 
+  friend std::ostream& operator<<(std::ostream& out, basic_vector const& v) {
+    out << "[\n  ";
+    auto first = true;
+    for (auto const& e : v) {
+      if (!first) {
+        out << ",\n  ";
+      }
+      out << e;
+      first = false;
+    }
+    return out << "\n]";
+  }
+
+  template <typename Arg>
+  void insert(T* it, Arg&& el) {
+    auto const pos = it - begin();
+
+    reserve(used_size_ + 1);
+    it = begin() + pos;
+
+    for (auto move_it = end() - 1, pred = end(); pred != it; --move_it) {
+      *pred = std::move(*move_it);
+      pred = move_it;
+    }
+
+    new (it) T{std::forward<Arg>(el)};
+    ++used_size_;
+  }
+
   void push_back(T const& el) {
     reserve(used_size_ + 1);
     new (el_ + used_size_) T(el);
@@ -157,10 +190,10 @@ struct basic_vector {
     return *ptr;
   }
 
-  void resize(size_type size) {
+  void resize(size_type size, T init = T{}) {
     reserve(size);
     for (auto i = used_size_; i < size; ++i) {
-      new (el_ + i) T();
+      new (el_ + i) T{init};
     }
     used_size_ = size;
   }
@@ -233,46 +266,95 @@ struct basic_vector {
   uint32_t __fill_2__{0};
 };
 
-template <typename T, typename Ptr, typename TemplateSizeType>
-inline bool operator==(basic_vector<T, Ptr, TemplateSizeType> const& a,
-                       basic_vector<T, Ptr, TemplateSizeType> const& b) {
+template <typename A, typename B>
+constexpr bool generate_vector_eq_v =
+    std::conjunction_v<is_iterable<A>, is_iterable<B>,
+                       is_eq_comparable<it_value_t<A>, it_value_t<B>>>;
+
+template <typename A, typename B>
+constexpr bool generate_vector_lt_v =
+    std::conjunction_v<is_iterable<A>, is_iterable<B>,
+                       is_lt_comparable<it_value_t<A>, it_value_t<B>>>;
+
+template <typename A, typename B>
+inline std::enable_if_t<generate_vector_eq_v<A, B>, bool> operator==(
+    A const& a, B const& b) {
   return a.size() == b.size() &&
          std::equal(std::begin(a), std::end(a), std::begin(b));
 }
 
-template <typename T, typename Ptr, typename TemplateSizeType>
-inline bool operator<(basic_vector<T, Ptr, TemplateSizeType> const& a,
-                      basic_vector<T, Ptr, TemplateSizeType> const& b) {
+template <typename A, typename B>
+inline std::enable_if_t<generate_vector_eq_v<A, B>, bool> operator!=(
+    A const& a, B const& b) {
+  return !(a == b);
+}
+
+template <typename A, typename B>
+inline std::enable_if_t<generate_vector_lt_v<A, B>, bool> operator<(
+    A const& a, B const& b) {
   return std::lexicographical_compare(std::begin(a), std::end(a), std::begin(b),
                                       std::end(b));
 }
 
-template <typename T, typename Ptr, typename TemplateSizeType>
-inline bool operator<=(basic_vector<T, Ptr, TemplateSizeType> const& a,
-                       basic_vector<T, Ptr, TemplateSizeType> const& b) {
+template <typename A, typename B>
+inline std::enable_if_t<generate_vector_lt_v<A, B>, bool> operator<=(
+    A const& a, B const& b) {
   return !(a > b);
 }
 
-template <typename T, typename Ptr, typename TemplateSizeType>
-inline bool operator>(basic_vector<T, Ptr, TemplateSizeType> const& a,
-                      basic_vector<T, Ptr, TemplateSizeType> const& b) {
+template <typename A, typename B>
+inline std::enable_if_t<generate_vector_lt_v<A, B>, bool> operator>(
+    A const& a, B const& b) {
   return b < a;
 }
 
-template <typename T, typename Ptr, typename TemplateSizeType>
-inline bool operator>=(basic_vector<T, Ptr, TemplateSizeType> const& a,
-                       basic_vector<T, Ptr, TemplateSizeType> const& b) {
+template <typename A, typename B>
+inline std::enable_if_t<generate_vector_lt_v<A, B>, bool> operator>=(
+    A const& a, B const& b) {
   return !(a < b);
 }
+
+#define CISTA_TO_VEC                                                          \
+  template <typename It, typename UnaryOperation>                             \
+  inline auto to_vec(It s, It e, UnaryOperation&& op)                         \
+      ->vector<decltype(op(*s))> {                                            \
+    vector<decltype(op(*s))> v;                                               \
+    v.reserve(static_cast<std::size_t>(std::distance(s, e)));                 \
+    std::transform(s, e, std::back_inserter(v), op);                          \
+    return v;                                                                 \
+  }                                                                           \
+                                                                              \
+  template <typename Container, typename UnaryOperation>                      \
+  inline auto to_vec(Container const& c, UnaryOperation&& op)                 \
+      ->vector<decltype(op(*std::begin(c)))> {                                \
+    vector<decltype(op(*std::begin(c)))> v;                                   \
+    v.reserve(                                                                \
+        static_cast<std::size_t>(std::distance(std::begin(c), std::end(c)))); \
+    std::transform(std::begin(c), std::end(c), std::back_inserter(v), op);    \
+    return v;                                                                 \
+  }                                                                           \
+                                                                              \
+  template <typename Container>                                               \
+  inline auto to_vec(Container const& c)->vector<decltype(*std::begin(c))> {  \
+    vector<decltype(*std::begin(c))> v;                                       \
+    v.reserve(                                                                \
+        static_cast<std::size_t>(std::distance(std::begin(c), std::end(c)))); \
+    std::copy(std::begin(c), std::end(c), std::back_inserter(v));             \
+    return v;                                                                 \
+  }
 
 namespace raw {
 template <typename T>
 using vector = basic_vector<T, ptr<T>>;
+CISTA_TO_VEC
 }  // namespace raw
 
 namespace offset {
 template <typename T>
 using vector = basic_vector<T, ptr<T>>;
+CISTA_TO_VEC
 }  // namespace offset
+
+#undef CISTA_TO_VEC
 
 }  // namespace cista
