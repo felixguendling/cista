@@ -1,5 +1,6 @@
 #include <queue>
 #include <set>
+#include <string>
 
 #include "doctest.h"
 
@@ -9,6 +10,7 @@
 #include "cista/containers/hash_map.h"
 #include "cista/containers/string.h"
 #include "cista/containers/vector.h"
+#include "cista/reflection/comparable.h"
 #endif
 
 namespace data = cista::raw;
@@ -35,6 +37,22 @@ public:
   size_t operator()(std_hash_key const& s) const { return s.i_; }
 };
 }  // namespace std
+
+struct my_type {
+  CISTA_COMPARABLE()
+  int code_{};
+  std::string text_;
+  std::string type_;
+};
+
+TEST_CASE("hashing std::string member") {
+  my_type k{3, std::string{"4321"}, std::string{"1234"}};
+  CHECK(cista::hashing<my_type>{}(k) ==
+        cista::hash(std::string{"1234"},
+                    cista::hash(std::string{"4321"},
+                    cista::hash_combine(cista::BASE_HASH, 3))));
+}
+
 
 TEST_CASE("std::hash override") {
   auto k = std_hash_key{4};

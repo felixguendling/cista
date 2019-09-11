@@ -8,7 +8,10 @@ namespace cista {
 
 template <typename T>
 constexpr auto to_tuple_works_v =
-    std::is_aggregate_v<T>&& std::is_standard_layout_v<T> &&
+    std::is_aggregate_v<T> &&
+#if !defined(_MSC_VER) || defined(NDEBUG)
+   std::is_standard_layout_v < T>&&
+#endif
     !std::is_polymorphic_v<T>;
 
 template <typename T>
