@@ -8,8 +8,6 @@ namespace cista {
 
 template <typename T, std::size_t Size>
 struct array {
-  array() = default;
-
   constexpr size_t size() const { return Size; }
 
   constexpr T const& operator[](size_t index) const { return el_[index]; }

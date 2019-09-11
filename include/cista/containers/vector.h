@@ -279,8 +279,9 @@ constexpr bool generate_vector_lt_v =
 template <typename A, typename B>
 inline std::enable_if_t<generate_vector_eq_v<A, B>, bool> operator==(
     A const& a, B const& b) {
-  return a.size() == b.size() &&
-         std::equal(std::begin(a), std::end(a), std::begin(b));
+  using std::begin;
+  using std::end;
+  return std::equal(begin(a), end(a), begin(b), end(b));
 }
 
 template <typename A, typename B>
