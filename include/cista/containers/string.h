@@ -25,7 +25,7 @@ struct generic_string {
   } non_owning{};
 
   generic_string() {
-    std::memset(this, 0, sizeof(*this));
+    std::memset(static_cast<void*>(this), 0, sizeof(*this));
     h_.ptr_ = nullptr;
   }
   ~generic_string() { reset(); }
@@ -60,7 +60,7 @@ struct generic_string {
     if (!h_.is_short_ && h_.ptr_ != nullptr && h_.self_allocated_) {
       std::free(const_cast<char*>(data()));
     }
-    std::memset(this, 0, sizeof(*this));
+    std::memset(static_cast<void*>(this), 0, sizeof(*this));
     h_.ptr_ = nullptr;
   }
 
@@ -123,9 +123,9 @@ struct generic_string {
   }
 
   void move_from(generic_string&& s) {
-    std::memcpy(this, &s, sizeof(*this));
+    std::memcpy(static_cast<void*>(this), &s, sizeof(*this));
     if constexpr (std::is_pointer_v<Ptr>) {
-      std::memset(&s, 0, sizeof(*this));
+      std::memset(static_cast<void*>(&s), 0, sizeof(*this));
     } else {
       if (!s.is_short()) {
         h_.ptr_ = s.h_.ptr_;
@@ -137,7 +137,7 @@ struct generic_string {
   void copy_from(generic_string const& s) {
     reset();
     if (s.is_short()) {
-      std::memcpy(this, &s, sizeof(s));
+      std::memcpy(static_cast<void*>(this), &s, sizeof(s));
     } else if (s.h_.self_allocated_) {
       set_owning(s.data(), s.size());
     } else {
