@@ -29,6 +29,7 @@ option(CISTA_COVERAGE "generate coverage report" OFF)
 
 add_library(cista INTERFACE)
 target_include_directories(cista INTERFACE include)
+target_compile_features(cista INTERFACE cxx_std_17)
 
 add_subdirectory(tools/doctest EXCLUDE_FROM_ALL)
 
@@ -53,6 +54,7 @@ target_link_libraries(cista-test-single-header doctest)
 target_include_directories(cista-test-single-header PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_options(cista-test-single-header PRIVATE ${cista-compile-flags})
 target_compile_definitions(cista-test-single-header PRIVATE SINGLE_HEADER)
+target_compile_features(cista-test-single-header PRIVATE cxx_std_17)
 
 add_executable(cista-test EXCLUDE_FROM_ALL ${cista-test-files})
 target_compile_options(cista-test PRIVATE ${cista-compile-flags})
