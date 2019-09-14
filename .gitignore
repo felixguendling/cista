@@ -5,3 +5,4 @@
 /.vs
 /CMakeSettings.json
 *.bin
+/include/cista/reflection/to_tuple.h

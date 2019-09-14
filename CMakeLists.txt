@@ -27,9 +27,17 @@ endif()
 
 option(CISTA_COVERAGE "generate coverage report" OFF)
 
+add_subdirectory(tools/to_tuple_generator EXCLUDE_FROM_ALL)
+add_custom_target(generate_to_tuple
+  COMMAND to_tuple_generator
+    64  # max number of supported member fields
+  > ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/reflection/to_tuple.h
+)
+
 add_library(cista INTERFACE)
 target_include_directories(cista INTERFACE include)
 target_compile_features(cista INTERFACE cxx_std_17)
+add_dependencies(cista generate_to_tuple)
 
 add_subdirectory(tools/doctest EXCLUDE_FROM_ALL)
 

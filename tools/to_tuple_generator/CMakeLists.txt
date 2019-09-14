@@ -1,0 +1,3 @@
+project(to_tuple_generator)
+
+add_executable(to_tuple_generator to_tuple_generator.cc)
