@@ -91,6 +91,7 @@ jobs:
     ROOT_DIR: /ppc-root
   steps:
   - script: |
+      sudo apt install -y --no-install-recommends binfmt-support qemu-user-static
       docker run \
         -v "$PWD:/repo" \
         -e "CXXFLAGS=-std=c++17 -static" \
