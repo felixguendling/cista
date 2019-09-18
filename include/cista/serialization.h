@@ -34,6 +34,24 @@ struct pending_offset {
   offset_t pos_;
 };
 
+struct vector_range {
+  bool contains(void const* begin, void const* ptr) const {
+    auto const ptr_int = reinterpret_cast<uintptr_t>(ptr);
+    auto const from = reinterpret_cast<uintptr_t>(begin);
+    auto const to =
+        reinterpret_cast<uintptr_t>(begin) + static_cast<uintptr_t>(size_);
+    return ptr_int >= from && ptr_int < to;
+  }
+
+  offset_t offset_of(void const* begin, void const* ptr) const {
+    return start_ + reinterpret_cast<intptr_t>(ptr) -
+           reinterpret_cast<intptr_t>(begin);
+  }
+
+  offset_t start_;
+  size_t size_;
+};
+
 template <typename Target, mode Mode>
 struct serialization_context {
   static constexpr auto const MODE = Mode;
@@ -50,9 +68,42 @@ struct serialization_context {
     t_.write(static_cast<std::size_t>(pos), val);
   }
 
+  template <typename Ptr>
+  bool resolve_pointer(Ptr ptr, offset_t const pos, bool add_pending = true) {
+    if (ptr == nullptr) {
+      write(pos, convert_endian<MODE>(NULLPTR_OFFSET));
+      return true;
+    } else if (auto const it = offsets_.find(ptr); it != end(offsets_)) {
+      write(pos, convert_endian<MODE>(it->second - pos));
+      return true;
+    } else if (auto const offset = resolve_vector_range_ptr(ptr);
+               offset.has_value()) {
+      write(pos, convert_endian<MODE>(*offset - pos));
+      return true;
+    } else if (add_pending) {
+      pending_.emplace_back(pending_offset{ptr, pos});
+      return true;
+    }
+    return false;
+  }
+
+  template <typename Ptr>
+  std::optional<offset_t> resolve_vector_range_ptr(Ptr ptr) {
+    auto const vec_it = vector_ranges_.upper_bound(ptr);
+    if (vec_it == begin(vector_ranges_)) {
+      return std::nullopt;
+    } else {
+      auto const pred = std::prev(vec_it);
+      return pred->second.contains(pred->first, ptr)
+                 ? std::make_optional(pred->second.offset_of(pred->first, ptr))
+                 : std::nullopt;
+    }
+  }
+
   uint64_t checksum(offset_t const from) const { return t_.checksum(from); }
 
   std::map<void const*, offset_t> offsets_;
+  std::map<void const*, vector_range> vector_ranges_;
   std::vector<pending_offset> pending_;
   Target& t_;
 };
@@ -64,14 +115,7 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
     static_assert(std::is_standard_layout_v<Type> &&
                   std::is_trivially_copyable_v<Type>);
   } else if constexpr (is_pointer_v<Type>) {
-    if (*origin == nullptr) {
-      c.write(pos, convert_endian<Ctx::MODE>(NULLPTR_OFFSET));
-    } else if (auto const it = c.offsets_.find(*origin);
-               it != end(c.offsets_)) {
-      c.write(pos, convert_endian<Ctx::MODE>(it->second - pos));
-    } else {
-      c.pending_.emplace_back(pending_offset{*origin, pos});
-    }
+    c.resolve_pointer(*origin, pos);
   } else if constexpr (!std::is_scalar_v<Type>) {
     static_assert(to_tuple_works_v<Type>, "Please implement custom serializer");
     for_each_ptr_field(*origin, [&](auto& member) {
@@ -89,25 +133,35 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
   }
 }
 
-template <typename Ctx, typename T, typename Ptr, typename TemplateSizeType>
-void serialize(Ctx& c, basic_vector<T, Ptr, TemplateSizeType> const* origin,
+template <typename Ctx, typename T, typename Ptr, bool Indexed,
+          typename TemplateSizeType>
+void serialize(Ctx& c,
+               basic_vector<T, Ptr, Indexed, TemplateSizeType> const* origin,
                offset_t const pos) {
+  using Type = basic_vector<T, Ptr, Indexed, TemplateSizeType>;
+
   auto const size = serialized_size<T>() * origin->used_size_;
   auto const start = origin->el_ == nullptr
                          ? NULLPTR_OFFSET
                          : c.write(static_cast<T const*>(origin->el_), size,
                                    std::alignment_of_v<T>);
 
-  c.write(pos + cista_member_offset(offset::vector<T>, el_),
+  c.write(pos + cista_member_offset(Type, el_),
           convert_endian<Ctx::MODE>(
               start == NULLPTR_OFFSET
                   ? start
-                  : start - cista_member_offset(offset::vector<T>, el_) - pos));
-  c.write(pos + cista_member_offset(offset::vector<T>, allocated_size_),
+                  : start - cista_member_offset(Type, el_) - pos));
+  c.write(pos + cista_member_offset(Type, allocated_size_),
           convert_endian<Ctx::MODE>(origin->used_size_));
-  c.write(pos + cista_member_offset(offset::vector<T>, used_size_),
+  c.write(pos + cista_member_offset(Type, used_size_),
           convert_endian<Ctx::MODE>(origin->used_size_));
-  c.write(pos + cista_member_offset(offset::vector<T>, self_allocated_), false);
+  c.write(pos + cista_member_offset(Type, self_allocated_), false);
+
+  if constexpr (Indexed) {
+    if (origin->el_ != nullptr) {
+      c.vector_ranges_.emplace(origin->el_, vector_range{start, size});
+    }
+  }
 
   if (origin->el_ != nullptr) {
     auto i = 0u;
@@ -120,6 +174,8 @@ void serialize(Ctx& c, basic_vector<T, Ptr, TemplateSizeType> const* origin,
 
 template <typename Ctx, typename Ptr>
 void serialize(Ctx& c, generic_string<Ptr> const* origin, offset_t const pos) {
+  using Type = generic_string<Ptr>;
+
   if (origin->is_short()) {
     return;
   }
@@ -127,15 +183,14 @@ void serialize(Ctx& c, generic_string<Ptr> const* origin, offset_t const pos) {
   auto const start = (origin->h_.ptr_ == nullptr)
                          ? NULLPTR_OFFSET
                          : c.write(origin->data(), origin->size());
-  c.write(
-      pos + cista_member_offset(offset::string, h_.ptr_),
-      convert_endian<Ctx::MODE>(
-          start == NULLPTR_OFFSET
-              ? start
-              : start - cista_member_offset(offset::string, h_.ptr_) - pos));
-  c.write(pos + cista_member_offset(offset::string, h_.size_),
+  c.write(pos + cista_member_offset(Type, h_.ptr_),
+          convert_endian<Ctx::MODE>(
+              start == NULLPTR_OFFSET
+                  ? start
+                  : start - cista_member_offset(Type, h_.ptr_) - pos));
+  c.write(pos + cista_member_offset(Type, h_.size_),
           convert_endian<Ctx::MODE>(origin->h_.size_));
-  c.write(pos + cista_member_offset(offset::string, h_.self_allocated_), false);
+  c.write(pos + cista_member_offset(Type, h_.self_allocated_), false);
 }
 
 template <typename Ctx, typename Ptr>
@@ -152,19 +207,19 @@ void serialize(Ctx& c, basic_string_view<Ptr> const* origin,
 template <typename Ctx, typename T, typename Ptr>
 void serialize(Ctx& c, basic_unique_ptr<T, Ptr> const* origin,
                offset_t const pos) {
+  using Type = basic_unique_ptr<T, Ptr>;
+
   auto const start =
       origin->el_ == nullptr
           ? NULLPTR_OFFSET
           : c.write(origin->el_, serialized_size<T>(), std::alignment_of_v<T>);
 
-  c.write(
-      pos + cista_member_offset(offset::unique_ptr<T>, el_),
-      convert_endian<Ctx::MODE>(
-          start == NULLPTR_OFFSET
-              ? start
-              : start - cista_member_offset(offset::unique_ptr<T>, el_) - pos));
-  c.write(pos + cista_member_offset(offset::unique_ptr<T>, self_allocated_),
-          false);
+  c.write(pos + cista_member_offset(Type, el_),
+          convert_endian<Ctx::MODE>(
+              start == NULLPTR_OFFSET
+                  ? start
+                  : start - cista_member_offset(Type, el_) - pos));
+  c.write(pos + cista_member_offset(Type, self_allocated_), false);
 
   if (origin->el_ != nullptr) {
     auto const ptr = static_cast<T const*>(origin->el_);
@@ -273,11 +328,8 @@ void serialize(Target& t, T& value) {
                     std::alignment_of_v<decay_t<decltype(value)>>));
 
   for (auto& p : c.pending_) {
-    if (auto const it = c.offsets_.find(p.origin_ptr_); it != end(c.offsets_)) {
-      c.write(p.pos_, convert_endian<Mode>(it->second - p.pos_));
-    } else {
-      printf("warning: dangling pointer %p serialized at offset %" PRI_O "\n",
-             p.origin_ptr_, p.pos_);
+    if (!c.resolve_pointer(p.origin_ptr_, p.pos_, false)) {
+      throw std::runtime_error("dangling pointer");
     }
   }
 
@@ -503,16 +555,19 @@ void recurse(Ctx& c, offset_ptr<T>* el, Fn&& fn) {
 }
 
 // --- VECTOR<T> ---
-template <typename Ctx, typename T, typename Ptr, typename TemplateSizeType>
-void convert_endian_and_ptr(Ctx const& c,
-                            basic_vector<T, Ptr, TemplateSizeType>* el) {
+template <typename Ctx, typename T, typename Ptr, bool Indexed,
+          typename TemplateSizeType>
+void convert_endian_and_ptr(
+    Ctx const& c, basic_vector<T, Ptr, Indexed, TemplateSizeType>* el) {
   deserialize(c, &el->el_);
   c.convert_endian(el->allocated_size_);
   c.convert_endian(el->used_size_);
 }
 
-template <typename Ctx, typename T, typename Ptr, typename TemplateSizeType>
-void check_state(Ctx const& c, basic_vector<T, Ptr, TemplateSizeType>* el) {
+template <typename Ctx, typename T, typename Ptr, bool Indexed,
+          typename TemplateSizeType>
+void check_state(Ctx const& c,
+                 basic_vector<T, Ptr, Indexed, TemplateSizeType>* el) {
   c.check_ptr(el->el_,
               checked_multiplication(static_cast<size_t>(el->allocated_size_),
                                      sizeof(T)));
@@ -522,9 +577,10 @@ void check_state(Ctx const& c, basic_vector<T, Ptr, TemplateSizeType>* el) {
   c.require((el->size() == 0) == (el->el_ == nullptr), "vec size=0 <=> ptr=0");
 }
 
-template <typename Ctx, typename T, typename Ptr, typename TemplateSizeType,
-          typename Fn>
-void recurse(Ctx&, basic_vector<T, Ptr, TemplateSizeType>* el, Fn&& fn) {
+template <typename Ctx, typename T, typename Ptr, bool Indexed,
+          typename TemplateSizeType, typename Fn>
+void recurse(Ctx&, basic_vector<T, Ptr, Indexed, TemplateSizeType>* el,
+             Fn&& fn) {
   for (auto& m : *el) {
     fn(&m);
   }

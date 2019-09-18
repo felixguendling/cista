@@ -16,7 +16,8 @@
 
 namespace cista {
 
-template <typename T, typename Ptr = T*, typename TemplateSizeType = uint32_t>
+template <typename T, typename Ptr = T*, bool IndexPointers = false,
+          typename TemplateSizeType = uint32_t>
 struct basic_vector {
   using size_type = TemplateSizeType;
   using value_type = T;
@@ -342,18 +343,59 @@ inline std::enable_if_t<generate_vector_lt_v<A, B>, bool> operator>=(
         static_cast<std::size_t>(std::distance(std::begin(c), std::end(c)))); \
     std::copy(std::begin(c), std::end(c), std::back_inserter(v));             \
     return v;                                                                 \
+  }                                                                           \
+                                                                              \
+  template <typename It, typename UnaryOperation>                             \
+  inline auto to_indexed_vec(It s, It e, UnaryOperation&& op)                 \
+      ->indexed_vector<decltype(op(*s))> {                                    \
+    indexed_vector<decltype(op(*s))> v;                                       \
+    v.reserve(static_cast<std::size_t>(std::distance(s, e)));                 \
+    std::transform(s, e, std::back_inserter(v), op);                          \
+    return v;                                                                 \
+  }                                                                           \
+                                                                              \
+  template <typename Container, typename UnaryOperation>                      \
+  inline auto to_indexed_vec(Container const& c, UnaryOperation&& op)         \
+      ->indexed_vector<decltype(op(*std::begin(c)))> {                        \
+    indexed_vector<decltype(op(*std::begin(c)))> v;                           \
+    v.reserve(                                                                \
+        static_cast<std::size_t>(std::distance(std::begin(c), std::end(c)))); \
+    std::transform(std::begin(c), std::end(c), std::back_inserter(v), op);    \
+    return v;                                                                 \
+  }                                                                           \
+                                                                              \
+  template <typename Container>                                               \
+  inline auto to_indexed_vec(Container const& c)                              \
+      ->indexed_vector<decltype(*std::begin(c))> {                            \
+    indexed_vector<decltype(*std::begin(c))> v;                               \
+    v.reserve(                                                                \
+        static_cast<std::size_t>(std::distance(std::begin(c), std::end(c)))); \
+    std::copy(std::begin(c), std::end(c), std::back_inserter(v));             \
+    return v;                                                                 \
   }
 
 namespace raw {
+
 template <typename T>
 using vector = basic_vector<T, ptr<T>>;
+
+template <typename T>
+using indexed_vector = basic_vector<T, ptr<T>, true>;
+
 CISTA_TO_VEC
+
 }  // namespace raw
 
 namespace offset {
+
 template <typename T>
 using vector = basic_vector<T, ptr<T>>;
+
+template <typename T>
+using indexed_vector = basic_vector<T, ptr<T>, true>;
+
 CISTA_TO_VEC
+
 }  // namespace offset
 
 #undef CISTA_TO_VEC
