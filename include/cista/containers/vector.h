@@ -4,6 +4,7 @@
 #include <cinttypes>
 #include <cstdlib>
 #include <cstring>
+
 #include <algorithm>
 #include <ostream>
 #include <type_traits>
@@ -85,6 +86,8 @@ struct basic_vector {
     self_allocated_ = 0;
   }
 
+  T const* data() const { return begin(); }
+  T* data() { return begin(); }
   T const* begin() const { return el_; }
   T const* end() const { return el_ + used_size_; }  // NOLINT
   T* begin() { return el_; }
