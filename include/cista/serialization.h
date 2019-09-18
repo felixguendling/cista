@@ -237,7 +237,7 @@ void serialize(
     Ctx& c,
     hash_storage<T, Ptr, uint32_t, GetKey, GetValue, Hash, Eq> const* origin,
     offset_t const pos) {
-  using Type = cista::raw::hash_set<T, Hash, Eq>;
+  using Type = hash_storage<T, Ptr, uint32_t, GetKey, GetValue, Hash, Eq>;
 
   auto const start = origin->entries_ == nullptr
                          ? NULLPTR_OFFSET
