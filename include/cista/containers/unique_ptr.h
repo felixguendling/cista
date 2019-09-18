@@ -34,9 +34,19 @@ struct basic_unique_ptr {
     return *this;
   }
 
-  ~basic_unique_ptr() {
+  basic_unique_ptr(std::nullptr_t) {};
+  basic_unique_ptr& operator=(std::nullptr_t) {
+    reset();
+    return *this;
+  }
+
+  ~basic_unique_ptr() { reset(); }
+
+  void reset() {
     if (self_allocated_ && el_ != nullptr) {
-      delete get();
+      delete el_;
+      el_ = nullptr;
+      self_allocated_ = false;
     }
   }
 
