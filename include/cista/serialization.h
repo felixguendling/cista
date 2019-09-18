@@ -533,7 +533,9 @@ void deserialize(Ctx const& c, T* el) {
   if constexpr ((Ctx::MODE & mode::_PHASE_II) == mode::NONE) {
     convert_endian_and_ptr(c, el);
   }
-  check_state(c, el);
+  if constexpr ((Ctx::MODE & mode::UNCHECKED) == mode::UNCHECKED) {
+    check_state(c, el);
+  }
   recurse(c, el, [&](auto* entry) { deserialize(c, entry); });
 }
 
