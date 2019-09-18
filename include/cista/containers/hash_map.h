@@ -1,9 +1,9 @@
 #pragma once
 
 #include <functional>
-#include <utility>
 
 #include "cista/containers/hash_storage.h"
+#include "cista/containers/pair.h"
 #include "cista/containers/ptr.h"
 #include "cista/equal_to.h"
 #include "cista/hashing.h"
@@ -27,14 +27,14 @@ struct get_second {
 namespace raw {
 template <typename Key, typename Value, typename Hash = hashing<Key>,
           typename Eq = equal_to<Key>>
-using hash_map = hash_storage<std::pair<Key, Value>, ptr, uint32_t, get_first,
+using hash_map = hash_storage<pair<Key, Value>, ptr, uint32_t, get_first,
                               get_second, Hash, Eq>;
 }  // namespace raw
 
 namespace offset {
 template <typename Key, typename Value, typename Hash = hashing<Key>,
           typename Eq = equal_to<Key>>
-using hash_map = hash_storage<std::pair<Key, Value>, ptr, uint32_t, get_first,
+using hash_map = hash_storage<pair<Key, Value>, ptr, uint32_t, get_first,
                               get_second, Hash, Eq>;
 }  // namespace offset
 
