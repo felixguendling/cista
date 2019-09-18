@@ -90,8 +90,10 @@ struct serialization_context {
 
   template <typename Ptr>
   std::optional<offset_t> resolve_vector_range_ptr(Ptr ptr) {
-    auto const vec_it = vector_ranges_.upper_bound(ptr);
-    if (vec_it == begin(vector_ranges_)) {
+    if (vector_ranges_.empty()) {
+      return std::nullopt;
+    } else if (auto const vec_it = vector_ranges_.upper_bound(ptr);
+               vec_it == begin(vector_ranges_)) {
       return std::nullopt;
     } else {
       auto const pred = std::prev(vec_it);
