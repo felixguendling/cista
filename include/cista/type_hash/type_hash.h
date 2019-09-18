@@ -48,9 +48,9 @@ hash_t type_hash(array<T, Size> const&, hash_t h,
   return type_hash(T{}, h, done);
 }
 
-template <typename T, typename Ptr, typename TemplateSizeType>
-hash_t type_hash(basic_vector<T, Ptr, TemplateSizeType> const&, hash_t h,
-                 std::map<hash_t, unsigned>& done) {
+template <typename T, typename Ptr, bool Indexed, typename TemplateSizeType>
+hash_t type_hash(basic_vector<T, Ptr, Indexed, TemplateSizeType> const&,
+                 hash_t h, std::map<hash_t, unsigned>& done) {
   h = hash_combine(h, hash("vector"));
   return type_hash(T{}, h, done);
 }
