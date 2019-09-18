@@ -185,7 +185,7 @@ struct basic_vector {
   template <typename... Args>
   T& emplace_back(Args&&... el) {
     reserve(used_size_ + 1);
-    new (el_ + used_size_) T(std::forward<Args>(el)...);
+    new (el_ + used_size_) T{std::forward<Args>(el)...};
     T* ptr = el_ + used_size_;
     ++used_size_;
     return *ptr;
