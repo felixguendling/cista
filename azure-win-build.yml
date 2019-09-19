@@ -15,8 +15,6 @@ jobs:
           BUILD_TYPE: RelWithDebInfo
     pool:
       vmImage: ${{ parameters.vmImage }}
-    variables:
-      CXXFLAGS: /std:c++latest
     steps:
     - task: CMake@1
       displayName: 'CMake'

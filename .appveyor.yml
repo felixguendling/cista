@@ -16,7 +16,6 @@ install:
   - ninja --version
 build_script:
   - mkdir build && cd build
-  - set CXXFLAGS="/std:c++latest"
   - cmake -GNinja -DCMAKE_BUILD_TYPE=%CONFIGURATION% ..
   - ninja cista-test
 test_script:

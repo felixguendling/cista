@@ -16,15 +16,15 @@ jobs:
     matrix:
       REL:
         BUILD_TYPE: Release
-        CXXFLAGS: '-std=c++17 -stdlib=libc++ -D_LIBCPP_VERSION=1 -march=native'
+        CXXFLAGS: '-stdlib=libc++ -D_LIBCPP_VERSION=1 -march=native'
         FUZZ: False
       DBG:
         BUILD_TYPE: Debug
-        CXXFLAGS: '-std=c++17 -stdlib=libc++ -D_LIBCPP_VERSION=1 -fno-omit-frame-pointer -fsanitize=address'
+        CXXFLAGS: '-stdlib=libc++ -D_LIBCPP_VERSION=1 -fno-omit-frame-pointer -fsanitize=address'
         FUZZ: False
       FUZZ:
         BUILD_TYPE: Debug
-        CXXFLAGS: '-std=c++17 -stdlib=libc++ -D_LIBCPP_VERSION=1 -fno-omit-frame-pointer'
+        CXXFLAGS: '-stdlib=libc++ -D_LIBCPP_VERSION=1 -fno-omit-frame-pointer'
         FUZZ: True
   pool:
     vmImage: ubuntu-16.04
@@ -59,10 +59,10 @@ jobs:
     matrix:
       REL:
         BUILD_TYPE: Release
-        CXXFLAGS: '-std=c++17 -march=native'
+        CXXFLAGS: '-march=native'
       DBG:
         BUILD_TYPE: Debug
-        CXXFLAGS: '-std=c++17 -D_LIBCPP_VERSION=1 -fno-omit-frame-pointer -fsanitize=address'
+        CXXFLAGS: '-D_LIBCPP_VERSION=1 -fno-omit-frame-pointer -fsanitize=address'
   pool:
     vmImage: ubuntu-16.04
   variables:
@@ -93,7 +93,7 @@ jobs:
   - script: |
       docker run \
         -v "$PWD:/repo" \
-        -e "CXXFLAGS=-std=c++17 -static" \
+        -e "CXXFLAGS=-static" \
         --rm \
         felixguendling/cross-build-cpp \
         bash -c "cmake-ppc /repo && ninja cista-test && qemu-ppc-static cista-test"
