@@ -1,5 +1,6 @@
 #include <cinttypes>
 #include <cstring>
+
 #include <unordered_map>
 
 #include "cista/containers/hash_map.h"
@@ -22,8 +23,8 @@ extern "C" int LLVMFuzzerTestOneInput(uint8_t const* data, size_t size) {
 
   for (auto bytes_to_process = size; bytes_to_process > 8;
        bytes_to_process -= 9, data += 9) {
-    auto key = 0U;
-    auto value = 0U;
+    auto key = 0;
+    auto value = 0;
     auto const insert = data[8] <= 128 ? true : false;
 
     std::memcpy(&key, data, sizeof(key));
