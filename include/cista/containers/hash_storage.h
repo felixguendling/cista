@@ -429,7 +429,9 @@ struct hash_storage {
 
   iterator begin() {
     auto it = iterator_at(0);
-    it.skip_empty_or_deleted();
+    if (!empty()) {
+      it.skip_empty_or_deleted();
+    }
     return it;
   }
   iterator end() { return {ctrl_ + capacity_}; }

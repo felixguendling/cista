@@ -33,9 +33,6 @@ namespace cista {
 struct pending_offset {
   void const* origin_ptr_;
   offset_t pos_;
-#if defined(CISTA_DEBUG_DANGLING)
-  std::string_view type_str_;
-#endif
 };
 
 struct vector_range {
@@ -85,13 +82,8 @@ struct serialization_context {
       write(pos, convert_endian<MODE>(*offset - pos));
       return true;
     } else if (add_pending) {
-      pending_.emplace_back(pending_offset {
-        ptr, pos
-#if defined(CISTA_DEBUG_DANGLING)
-            ,
-            type_str<Ptr>()
-#endif
-      });
+      write(pos, convert_endian<MODE>(DANGLING));
+      pending_.emplace_back(pending_offset{ptr, pos});
       return true;
     }
     return false;
@@ -128,6 +120,10 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
                   std::is_trivially_copyable_v<Type>);
   } else if constexpr (is_pointer_v<Type>) {
     c.resolve_pointer(*origin, pos);
+  } else if constexpr (is_indexed_v<Type>) {
+    printf("writing indexed at pos: %" PRI_O "\n", pos);
+    c.offsets_.emplace(origin, pos);
+    serialize(c, static_cast<typename Type::value_type const*>(origin), pos);
   } else if constexpr (!std::is_scalar_v<Type>) {
     static_assert(to_tuple_works_v<Type>, "Please implement custom serializer");
     for_each_ptr_field(*origin, [&](auto& member) {
@@ -341,13 +337,8 @@ void serialize(Target& t, T& value) {
 
   for (auto& p : c.pending_) {
     if (!c.resolve_pointer(p.origin_ptr_, p.pos_, false)) {
-#if defined(CISTA_DEBUG_DANGLING)
-      printf("warning: dangling pointer at %" PRI_O " (origin=%p, type=%.*s)\n",
-             p.pos_, p.origin_ptr_, static_cast<int>(p.type_str_.length()),
-             p.type_str_.data());
-#else
-      throw std::runtime_error{"dangling pointer"};
-#endif
+      printf("warning: dangling pointer at %" PRI_O " (origin=%p)\n", p.pos_,
+             p.origin_ptr_);
     }
   }
 
@@ -413,6 +404,9 @@ struct deserialization_context {
   void deserialize_ptr(Ptr** ptr) const {
     auto const offset =
         reinterpret_cast<offset_t>(::cista::convert_endian<MODE>(*ptr));
+    if (offset == DANGLING) {
+      throw std::runtime_error{"dangling pointer"};
+    }
     *ptr =
         offset == NULLPTR_OFFSET
             ? nullptr
@@ -528,7 +522,9 @@ void check_state(Ctx const& c, T* el) {
 template <typename Ctx, typename T, typename Fn>
 void recurse(Ctx& c, T* el, Fn&& fn) {
   using Type = decay_t<T>;
-  if constexpr (std::is_aggregate_v<Type> && !std::is_union_v<Type>) {
+  if constexpr (is_indexed_v<Type>) {
+    // fn(static_cast<typename T::value_type*>(el));
+  } else if constexpr (std::is_aggregate_v<Type> && !std::is_union_v<Type>) {
     for_each_ptr_field(*el, [&](auto& f) { fn(f); });
   } else if constexpr ((Ctx::MODE & mode::_PHASE_II) == mode::_PHASE_II &&
                        std::is_pointer_v<Type>) {
@@ -749,6 +745,9 @@ template <typename Ctx, typename T, template <typename> typename Ptr,
 void recurse(Ctx&,
              hash_storage<T, Ptr, uint32_t, GetKey, GetValue, Hash, Eq>* el,
              Fn&& fn) {
+  if (el->empty()) {
+    return;
+  }
   for (auto& m : *el) {
     fn(&m);
   }

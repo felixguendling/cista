@@ -5,6 +5,7 @@
 #include "cista/containers.h"
 #include "cista/decay.h"
 #include "cista/hash.h"
+#include "cista/indexed.h"
 #include "cista/reflection/for_each_field.h"
 #include "cista/type_hash/type_name.h"
 
@@ -78,6 +79,12 @@ template <typename Ptr>
 hash_t type_hash(basic_string_view<Ptr> const&, hash_t h,
                  std::map<hash_t, unsigned>&) {
   return hash_combine(h, hash("string"));
+}
+
+template <typename T>
+hash_t type_hash(indexed<T> const&, hash_t h,
+                 std::map<hash_t, unsigned>& done) {
+  return type_hash(T{}, h, done);
 }
 
 template <typename T>
