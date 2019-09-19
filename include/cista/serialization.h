@@ -572,9 +572,9 @@ void recurse(Ctx& c, offset_ptr<T>* el, Fn&& fn) {
       fn(static_cast<T*>(*el));
     }
   } else {
-    CISTA_UNUSED_PARAM(c);
-    CISTA_UNUSED_PARAM(el);
-    CISTA_UNUSED_PARAM(fn);
+    CISTA_UNUSED_PARAM(c)
+    CISTA_UNUSED_PARAM(el)
+    CISTA_UNUSED_PARAM(fn)
   }
 }
 
