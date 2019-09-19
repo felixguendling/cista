@@ -15,7 +15,7 @@ namespace data = cista::offset;
 constexpr auto const CHECKSUM_INTEGRITY_AND_VERSION =
     sizeof(void*) == 4 ? 12936113486144537849ULL : 1914690513476304635ULL;
 constexpr auto const CHECKSUM_BIG_ENDIAN =
-    sizeof(void*) == 4 ? 14829506244682160543ULL : 4906359262284789436ULL;
+    sizeof(void*) == 4 ? 14829506244682160543ULL : 18413276534389206184ULL;
 
 namespace graph_indexed_vec_ns::offset {
 
@@ -72,7 +72,7 @@ struct graph {
 
   data::indexed_vector<node> nodes_;
   data::indexed_vector<edge> edges_;
-  data::vector<data::string*> node_names_;
+  data::vector<data::ptr<data::string>> node_names_;
 };
 
 }  // namespace graph_indexed_vec_ns::offset
@@ -169,8 +169,9 @@ TEST_CASE("graph offset indexed vec serialize buf") {
 
 TEST_CASE("graph offset indexed vec serialize mmap file") {
   constexpr auto const FILENAME = "offset_graph_mmap.bin";
-  constexpr auto const MODE =
-      cista::mode::WITH_INTEGRITY | cista::mode::WITH_VERSION;
+  constexpr auto const MODE = cista::mode::WITH_INTEGRITY |
+                              cista::mode::WITH_VERSION |
+                              cista::mode::DEEP_CHECK;
 
   std::remove(FILENAME);
 
@@ -188,7 +189,6 @@ TEST_CASE("graph offset indexed vec serialize mmap file") {
 #else
   auto b = cista::file(FILENAME, "r").content();
 #endif
-  std::cout << static_cast<void*>(b.data()) << " " << b.size() << "\n";
   auto const g = cista::deserialize<graph, MODE>(b);
   auto const visited = bfs(&g->nodes_[0]);
   unsigned i = 0;

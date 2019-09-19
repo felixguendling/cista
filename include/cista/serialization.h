@@ -121,7 +121,6 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
   } else if constexpr (is_pointer_v<Type>) {
     c.resolve_pointer(*origin, pos);
   } else if constexpr (is_indexed_v<Type>) {
-    printf("writing indexed at pos: %" PRI_O "\n", pos);
     c.offsets_.emplace(origin, pos);
     serialize(c, static_cast<typename Type::value_type const*>(origin), pos);
   } else if constexpr (!std::is_scalar_v<Type>) {
@@ -523,7 +522,7 @@ template <typename Ctx, typename T, typename Fn>
 void recurse(Ctx& c, T* el, Fn&& fn) {
   using Type = decay_t<T>;
   if constexpr (is_indexed_v<Type>) {
-    // fn(static_cast<typename T::value_type*>(el));
+    fn(static_cast<typename T::value_type*>(el));
   } else if constexpr (std::is_aggregate_v<Type> && !std::is_union_v<Type>) {
     for_each_ptr_field(*el, [&](auto& f) { fn(f); });
   } else if constexpr ((Ctx::MODE & mode::_PHASE_II) == mode::_PHASE_II &&
