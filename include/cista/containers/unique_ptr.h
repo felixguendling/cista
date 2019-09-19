@@ -2,6 +2,7 @@
 
 #include <cinttypes>
 #include <cstddef>
+
 #include <utility>
 
 #include "cista/containers/ptr.h"
@@ -34,7 +35,7 @@ struct basic_unique_ptr {
     return *this;
   }
 
-  basic_unique_ptr(std::nullptr_t) {};
+  basic_unique_ptr(std::nullptr_t) {}
   basic_unique_ptr& operator=(std::nullptr_t) {
     reset();
     return *this;

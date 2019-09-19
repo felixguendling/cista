@@ -15,7 +15,7 @@ struct pair {
 };
 
 template <typename T1, typename T2>
-pair(T1&& t1, T2&& t2)->pair<decay_t<T1>, decay_t<T2>>;
+pair(T1&&, T2 &&)->pair<decay_t<T1>, decay_t<T2>>;
 
 namespace raw {
 using cista::pair;

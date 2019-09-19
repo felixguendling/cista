@@ -1,6 +1,6 @@
-#include "doctest.h"
-
 #include <vector>
+
+#include "doctest.h"
 
 #ifdef SINGLE_HEADER
 #include "cista.h"
@@ -48,8 +48,8 @@ inline void deserialize(Ctx const& c, std::vector<T>* el) {
 
   if (size != 0 && data != nullptr) {
     vec.resize(size);
-    vec.insert(begin(vec), std::move_iterator(data),
-               std::move_iterator(data + size));
+    vec.insert(begin(vec), std::make_move_iterator(data),
+               std::make_move_iterator(data + size));
   }
 }
 

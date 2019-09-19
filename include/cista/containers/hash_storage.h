@@ -2,6 +2,7 @@
 
 #include <cinttypes>
 #include <cstring>
+
 #include <functional>
 #include <iterator>
 #include <stdexcept>
@@ -311,7 +312,7 @@ struct hash_storage {
   mapped_type& bracket_operator_impl(Key&& key) {
     auto const res = find_or_prepare_insert(key);
     if (res.second) {
-      new (entries_ + res.first) T{key, mapped_type{}};
+      new (entries_ + res.first) T{static_cast<key_t>(key), mapped_type{}};
     }
     return GetValue{}(entries_[res.first]);
   }
@@ -347,8 +348,8 @@ struct hash_storage {
   }
 
   template <typename Key>
-  mapped_type const& at(key_t const& key) const {
-    return const_cast<hash_storage*>(this)->at(key);
+  mapped_type const& at(Key&& key) const {
+    return const_cast<hash_storage*>(this)->at(std::forward<Key>(key));
   }
 
   // --- find()
@@ -381,6 +382,7 @@ struct hash_storage {
   const_iterator find(key_t const& key) const {
     return const_cast<hash_storage*>(this)->find_impl(key);
   }
+
   iterator find(key_t const& key) { return find_impl(key); }
 
   template <class InputIt>

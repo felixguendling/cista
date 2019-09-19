@@ -48,8 +48,8 @@ TEST_CASE("array test move reverse") {
     arr1[0].i_ = 1;
     arr1[1].i_ = 2;
 
-    std::copy(std::move_iterator(arr1.rbegin()),
-              std::move_iterator(arr1.rend()), std::begin(arr2));
+    std::copy(std::make_move_iterator(arr1.rbegin()),
+              std::make_move_iterator(arr1.rend()), std::begin(arr2));
 
     CHECK(arr2.at(0).i_ == 2);
     CHECK(arr2[1].i_ == 1);

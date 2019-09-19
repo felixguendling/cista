@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <cstring>
+
 #include <memory>
 
 #include "cista/chunk.h"
@@ -70,5 +71,8 @@ struct buf {
   Buf buf_;
   offset_t curr_offset_{0};
 };
+
+template <typename Buf>
+buf(Buf &&)->buf<Buf>;
 
 }  // namespace cista

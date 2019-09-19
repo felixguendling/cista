@@ -33,6 +33,9 @@ namespace cista {
 struct pending_offset {
   void const* origin_ptr_;
   offset_t pos_;
+#if defined(CISTA_DEBUG_DANGLING)
+  std::string_view type_str_;
+#endif
 };
 
 struct vector_range {
@@ -82,7 +85,13 @@ struct serialization_context {
       write(pos, convert_endian<MODE>(*offset - pos));
       return true;
     } else if (add_pending) {
-      pending_.emplace_back(pending_offset{ptr, pos});
+      pending_.emplace_back(pending_offset {
+        ptr, pos
+#if defined(CISTA_DEBUG_DANGLING)
+            ,
+            type_str<Ptr>()
+#endif
+      });
       return true;
     }
     return false;
@@ -332,7 +341,13 @@ void serialize(Target& t, T& value) {
 
   for (auto& p : c.pending_) {
     if (!c.resolve_pointer(p.origin_ptr_, p.pos_, false)) {
-      throw std::runtime_error("dangling pointer");
+#if defined(CISTA_DEBUG_DANGLING)
+      printf("warning: dangling pointer at %" PRI_O " (origin=%p, type=%.*s)\n",
+             p.pos_, p.origin_ptr_, static_cast<int>(p.type_str_.length()),
+             p.type_str_.data());
+#else
+      throw std::runtime_error{"dangling pointer"};
+#endif
     }
   }
 
@@ -533,7 +548,7 @@ void deserialize(Ctx const& c, T* el) {
   if constexpr ((Ctx::MODE & mode::_PHASE_II) == mode::NONE) {
     convert_endian_and_ptr(c, el);
   }
-  if constexpr ((Ctx::MODE & mode::UNCHECKED) == mode::UNCHECKED) {
+  if constexpr ((Ctx::MODE & mode::UNCHECKED) == mode::NONE) {
     check_state(c, el);
   }
   recurse(c, el, [&](auto* entry) { deserialize(c, entry); });
