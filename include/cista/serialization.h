@@ -511,7 +511,7 @@ void convert_endian_and_ptr(Ctx const& c, T* el) {
 template <typename Ctx, typename T>
 void check_state(Ctx const& c, T* el) {
   using Type = decay_t<T>;
-  if constexpr (std::is_pointer_v<Type>) {
+  if constexpr (std::is_pointer_v<Type> && !std::is_same_v<Type, void*>) {
     c.check_ptr(*el);
   } else {
     CISTA_UNUSED_PARAM(c)
