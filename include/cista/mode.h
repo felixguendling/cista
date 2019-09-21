@@ -24,4 +24,12 @@ constexpr mode operator&(mode const& a, mode const& b) {
               static_cast<std::underlying_type_t<mode>>(b)};
 }
 
+constexpr bool is_mode_enabled(mode const in, mode const flag) {
+  return (in & flag) == flag;
+}
+
+constexpr bool is_mode_disabled(mode const in, mode const flag) {
+  return (in & flag) == mode::NONE;
+}
+
 }  // namespace cista
