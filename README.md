@@ -13,9 +13,11 @@
     <a href="https://dev.azure.com/felixguendling0388/cista/_build/latest?definitionId=1&branchName=master" >
         <img src="https://dev.azure.com/felixguendling0388/cista/_apis/build/status/felixguendling.cista?branchName=master">
     </a>
+    <!--
     <a href="https://coveralls.io/github/felixguendling/cista?branch=master">
         <img src="https://coveralls.io/repos/github/felixguendling/cista/badge.svg?branch=master">
     </a>
+    -->
     <a href="https://opensource.org/licenses/MIT" >
         <img src="https://img.shields.io/apm/l/vim-mode.svg">
     </a>
