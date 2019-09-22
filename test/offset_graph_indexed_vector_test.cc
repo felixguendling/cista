@@ -13,7 +13,7 @@
 namespace data = cista::offset;
 
 constexpr auto const CHECKSUM_INTEGRITY_AND_VERSION =
-    sizeof(void*) == 4 ? 12936113486144537849ULL : 1914690513476304635ULL;
+    sizeof(void*) == 4 ? 2197731000038797198ULL : 1914690513476304635ULL;
 constexpr auto const CHECKSUM_BIG_ENDIAN =
     sizeof(void*) == 4 ? 14829506244682160543ULL : 18413276534389206184ULL;
 
