@@ -145,7 +145,7 @@ private:
     auto const addr = ::mmap(nullptr, size_,
                              prot_ == protection::READ ? PROT_READ : PROT_WRITE,
                              MAP_SHARED, f_.fd(), OFFSET);
-    verify(addr != nullptr, "map error");
+    verify(addr != MAP_FAILED, "map error");
     return addr;
 #endif
   }

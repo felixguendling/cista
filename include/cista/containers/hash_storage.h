@@ -429,7 +429,9 @@ struct hash_storage {
 
   iterator begin() {
     auto it = iterator_at(0);
-    it.skip_empty_or_deleted();
+    if (ctrl_ != nullptr) {
+      it.skip_empty_or_deleted();
+    }
     return it;
   }
   iterator end() { return {ctrl_ + capacity_}; }
@@ -453,20 +455,34 @@ struct hash_storage {
   size_t capacity() const { return capacity_; }
   size_t max_size() const { return std::numeric_limits<size_t>::max(); }
 
+  bool is_free(int index) {
+    auto const index_before = (index - WIDTH) & capacity_;
+
+    auto const empty_after = group{ctrl_ + index}.match_empty();
+    auto const empty_before = group{ctrl_ + index_before}.match_empty();
+
+    return empty_before && empty_after &&
+           (empty_after.trailing_zeros() + empty_before.leading_zeros()) <
+               WIDTH;
+  }
+
+  inline bool was_never_full(size_t const index) {
+    auto const index_before = (index - WIDTH) & capacity_;
+
+    auto const empty_after = group{ctrl_ + index}.match_empty();
+    auto const empty_before = group{ctrl_ + index_before}.match_empty();
+
+    return empty_before && empty_after &&
+           (empty_after.trailing_zeros() + empty_before.leading_zeros()) <
+               WIDTH;
+  }
+
   void erase_meta_only(const_iterator it) {
     --size_;
     auto const index = static_cast<size_t>(it.inner_.ctrl_ - ctrl_);
-    auto const index_before = (index - WIDTH) & capacity_;
-
-    auto const empty_after = group{it.inner_.ctrl_}.match_empty();
-    auto const empty_before = group{ctrl_ + index_before}.match_empty();
-
-    auto const was_never_full =
-        empty_before && empty_after &&
-        (empty_after.trailing_zeros() + empty_before.leading_zeros()) < WIDTH;
-
-    set_ctrl(index, static_cast<h2_t>(was_never_full ? EMPTY : DELETED));
-    growth_left_ += was_never_full;
+    auto const wnf = was_never_full(index);
+    set_ctrl(index, static_cast<h2_t>(wnf ? EMPTY : DELETED));
+    growth_left_ += wnf;
   }
 
   void clear() {

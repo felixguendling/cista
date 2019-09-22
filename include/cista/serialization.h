@@ -33,9 +33,6 @@ namespace cista {
 struct pending_offset {
   void const* origin_ptr_;
   offset_t pos_;
-#if defined(CISTA_DEBUG_DANGLING)
-  std::string_view type_str_;
-#endif
 };
 
 struct vector_range {
@@ -85,13 +82,8 @@ struct serialization_context {
       write(pos, convert_endian<MODE>(*offset - pos));
       return true;
     } else if (add_pending) {
-      pending_.emplace_back(pending_offset {
-        ptr, pos
-#if defined(CISTA_DEBUG_DANGLING)
-            ,
-            type_str<Ptr>()
-#endif
-      });
+      write(pos, convert_endian<MODE>(DANGLING));
+      pending_.emplace_back(pending_offset{ptr, pos});
       return true;
     }
     return false;
@@ -128,6 +120,9 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
                   std::is_trivially_copyable_v<Type>);
   } else if constexpr (is_pointer_v<Type>) {
     c.resolve_pointer(*origin, pos);
+  } else if constexpr (is_indexed_v<Type>) {
+    c.offsets_.emplace(origin, pos);
+    serialize(c, static_cast<typename Type::value_type const*>(origin), pos);
   } else if constexpr (!std::is_scalar_v<Type>) {
     static_assert(to_tuple_works_v<Type>, "Please implement custom serializer");
     for_each_ptr_field(*origin, [&](auto& member) {
@@ -341,13 +336,8 @@ void serialize(Target& t, T& value) {
 
   for (auto& p : c.pending_) {
     if (!c.resolve_pointer(p.origin_ptr_, p.pos_, false)) {
-#if defined(CISTA_DEBUG_DANGLING)
-      printf("warning: dangling pointer at %" PRI_O " (origin=%p, type=%.*s)\n",
-             p.pos_, p.origin_ptr_, static_cast<int>(p.type_str_.length()),
-             p.type_str_.data());
-#else
-      throw std::runtime_error{"dangling pointer"};
-#endif
+      printf("warning: dangling pointer at %" PRI_O " (origin=%p)\n", p.pos_,
+             p.origin_ptr_);
     }
   }
 
@@ -371,9 +361,18 @@ byte_buf serialize(T& el) {
 template <typename Arg, typename... Args>
 Arg checked_addition(Arg a1, Args... aN) {
   using Type = decay_t<Arg>;
-  auto add_if_ok = [&](auto x) {
-    if (a1 > std::numeric_limits<Type>::max() - x) {
-      throw std::overflow_error("addition overflow");
+
+  auto add_if_ok = [&](Arg x) {
+    if (x == 0) {
+      return;
+    } else if (x < 0) {
+      if (a1 < std::numeric_limits<Type>::min() - x) {
+        throw std::overflow_error("addition overflow");
+      }
+    } else if (x > 0) {
+      if (a1 > std::numeric_limits<Type>::max() - x) {
+        throw std::overflow_error("addition overflow");
+      }
     }
     a1 = a1 + x;
   };
@@ -413,10 +412,13 @@ struct deserialization_context {
   void deserialize_ptr(Ptr** ptr) const {
     auto const offset =
         reinterpret_cast<offset_t>(::cista::convert_endian<MODE>(*ptr));
-    *ptr =
-        offset == NULLPTR_OFFSET
-            ? nullptr
-            : reinterpret_cast<Ptr*>(reinterpret_cast<offset_t>(ptr) + offset);
+    if (offset == DANGLING) {
+      throw std::runtime_error{"dangling pointer"};
+    }
+    *ptr = offset == NULLPTR_OFFSET
+               ? nullptr
+               : reinterpret_cast<Ptr*>(
+                     checked_addition(reinterpret_cast<offset_t>(ptr), offset));
   }
 
   template <typename T>
@@ -517,7 +519,7 @@ void convert_endian_and_ptr(Ctx const& c, T* el) {
 template <typename Ctx, typename T>
 void check_state(Ctx const& c, T* el) {
   using Type = decay_t<T>;
-  if constexpr (std::is_pointer_v<Type>) {
+  if constexpr (std::is_pointer_v<Type> && !std::is_same_v<Type, void*>) {
     c.check_ptr(*el);
   } else {
     CISTA_UNUSED_PARAM(c)
@@ -528,9 +530,11 @@ void check_state(Ctx const& c, T* el) {
 template <typename Ctx, typename T, typename Fn>
 void recurse(Ctx& c, T* el, Fn&& fn) {
   using Type = decay_t<T>;
-  if constexpr (std::is_aggregate_v<Type> && !std::is_union_v<Type>) {
+  if constexpr (is_indexed_v<Type>) {
+    fn(static_cast<typename T::value_type*>(el));
+  } else if constexpr (std::is_aggregate_v<Type> && !std::is_union_v<Type>) {
     for_each_ptr_field(*el, [&](auto& f) { fn(f); });
-  } else if constexpr ((Ctx::MODE & mode::_PHASE_II) == mode::_PHASE_II &&
+  } else if constexpr (is_mode_enabled(Ctx::MODE, mode::_PHASE_II) &&
                        std::is_pointer_v<Type>) {
     if (*el != nullptr && c.add_checked(el)) {
       fn(*el);
@@ -545,10 +549,10 @@ void recurse(Ctx& c, T* el, Fn&& fn) {
 template <typename Ctx, typename T>
 void deserialize(Ctx const& c, T* el) {
   c.check_ptr(el);
-  if constexpr ((Ctx::MODE & mode::_PHASE_II) == mode::NONE) {
+  if constexpr (is_mode_disabled(Ctx::MODE, mode::_PHASE_II)) {
     convert_endian_and_ptr(c, el);
   }
-  if constexpr ((Ctx::MODE & mode::UNCHECKED) == mode::NONE) {
+  if constexpr (is_mode_disabled(Ctx::MODE, mode::UNCHECKED)) {
     check_state(c, el);
   }
   recurse(c, el, [&](auto* entry) { deserialize(c, entry); });
@@ -567,7 +571,7 @@ void check_state(Ctx const& c, offset_ptr<T>* el) {
 
 template <typename Ctx, typename T, typename Fn>
 void recurse(Ctx& c, offset_ptr<T>* el, Fn&& fn) {
-  if constexpr ((Ctx::MODE & mode::_PHASE_II) == mode::_PHASE_II) {
+  if constexpr (is_mode_enabled(Ctx::MODE, mode::_PHASE_II)) {
     if (*el != nullptr && c.add_checked(el)) {
       fn(static_cast<T*>(*el));
     }
@@ -724,12 +728,6 @@ void check_state(
 
   c.require(el->ctrl_[el->capacity_] == Type::END,
             "hash storage: end ctrl byte");
-
-  auto const full_ctrl =
-      std::accumulate(el->ctrl_, el->ctrl_ + el->capacity_, size_t{0U},
-                      [](size_t const acc, typename Type::ctrl_t ctrl) {
-                        return Type::is_full(ctrl) ? acc + 1 : acc;
-                      });
   c.require(std::all_of(el->ctrl_, el->ctrl_ + el->capacity_ + 1U + Type::WIDTH,
                         [](typename Type::ctrl_t const ctrl) {
                           return Type::is_empty(ctrl) ||
@@ -738,9 +736,29 @@ void check_state(
                                  ctrl == Type::ctrl_t::END;
                         }),
             "hash storage: ctrl bytes must be empty or deleted or full");
-  c.require(el->capacity_ - el->growth_left_ == full_ctrl,
+
+  auto [empty, full, deleted, growth] = std::accumulate(
+      el->ctrl_, el->ctrl_ + el->capacity_,
+      std::tuple{size_t{0U}, size_t{0U}, size_t{0U}, size_t{0}},
+      [&](std::tuple<size_t, size_t, size_t, size_t> const acc,
+          typename Type::ctrl_t const& ctrl) {
+        auto const [empty, full, deleted, growth_left] = acc;
+        return std::tuple{
+            Type::is_empty(ctrl) ? empty + 1 : empty,
+            Type::is_full(ctrl) ? full + 1 : full,
+            Type::is_deleted(ctrl) ? deleted + 1 : deleted,
+            (Type::is_empty(ctrl) &&
+                     el->was_never_full(static_cast<size_t>(&ctrl - el->ctrl_))
+                 ? growth_left + 1
+                 : growth_left)};
+      });
+
+  c.require(el->size_ == full, "hash storage: size");
+  c.require(empty + full + deleted == el->capacity_,
+            "hash storage: empty + full + deleted = capacity");
+  c.require(std::min(Type::capacity_to_growth(el->capacity_) - el->size_,
+                     growth) <= el->growth_left_,
             "hash storage: growth left");
-  c.require(el->size_ == full_ctrl, "hash storage: size");
 }
 
 template <typename Ctx, typename T, template <typename> typename Ptr,
