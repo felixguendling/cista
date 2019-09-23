@@ -110,8 +110,14 @@ struct basic_vector {
   friend T* begin(basic_vector& a) { return a.begin(); }
   friend T* end(basic_vector& a) { return a.end(); }
 
-  inline T const& operator[](size_t index) const { return el_[index]; }
-  inline T& operator[](size_t index) { return el_[index]; }
+  inline T const& operator[](size_t index) const {
+    assert(el_ != nullptr && index < used_size_);
+    return el_[index];
+  }
+  inline T& operator[](size_t index) {
+    assert(el_ != nullptr && index < used_size_);
+    return el_[index];
+  }
 
   inline T& at(size_t index) {
     if (index >= used_size_) {
