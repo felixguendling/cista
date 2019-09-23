@@ -276,15 +276,26 @@ struct basic_vector {
   uint32_t __fill_2__{0};
 };
 
-template <typename A, typename B>
-constexpr bool generate_vector_eq_v =
-    std::conjunction_v<is_iterable<A>, is_iterable<B>,
-                       is_eq_comparable<it_value_t<A>, it_value_t<B>>>;
+template <typename Ptr>
+struct is_vector_helper : std::false_type {};
+
+template <typename T, typename Ptr, bool IndexPointers,
+          typename TemplateSizeType>
+struct is_vector_helper<basic_vector<T, Ptr, IndexPointers, TemplateSizeType>>
+    : std::true_type {};
+
+template <class T>
+constexpr bool is_vector_v = is_vector_helper<std::remove_cv_t<T>>::value;
 
 template <typename A, typename B>
-constexpr bool generate_vector_lt_v =
-    std::conjunction_v<is_iterable<A>, is_iterable<B>,
-                       is_lt_comparable<it_value_t<A>, it_value_t<B>>>;
+constexpr bool generate_vector_eq_v = std::conjunction_v<
+    std::disjunction<is_vector_helper<A>, is_vector_helper<B>>, is_iterable<A>,
+    is_iterable<B>, is_eq_comparable<it_value_t<A>, it_value_t<B>>>;
+
+template <typename A, typename B>
+constexpr bool generate_vector_lt_v = std::conjunction_v<
+    std::disjunction<is_vector_helper<A>, is_vector_helper<B>>, is_iterable<A>,
+    is_iterable<B>, is_lt_comparable<it_value_t<A>, it_value_t<B>>>;
 
 template <typename A, typename B>
 inline std::enable_if_t<generate_vector_eq_v<A, B>, bool> operator==(

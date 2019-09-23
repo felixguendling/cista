@@ -2,6 +2,7 @@
 
 #include <cinttypes>
 #include <cstring>
+
 #include <ostream>
 #include <string>
 #include <string_view>
@@ -158,6 +159,126 @@ struct generic_string {
     return out << s.view();
   }
 
+  friend bool operator==(generic_string const& a, generic_string const& b) {
+    return a.view() == b.view();
+  }
+
+  friend bool operator!=(generic_string const& a, generic_string const& b) {
+    return a.view() != b.view();
+  }
+
+  friend bool operator<(generic_string const& a, generic_string const& b) {
+    return a.view() < b.view();
+  }
+
+  friend bool operator>(generic_string const& a, generic_string const& b) {
+    return a.view() > b.view();
+  }
+
+  friend bool operator<=(generic_string const& a, generic_string const& b) {
+    return a.view() <= b.view();
+  }
+
+  friend bool operator>=(generic_string const& a, generic_string const& b) {
+    return a.view() >= b.view();
+  }
+
+  friend bool operator==(generic_string const& a, std::string_view b) {
+    return a.view() == b;
+  }
+
+  friend bool operator!=(generic_string const& a, std::string_view b) {
+    return a.view() != b;
+  }
+
+  friend bool operator<(generic_string const& a, std::string_view b) {
+    return a.view() < b;
+  }
+
+  friend bool operator>(generic_string const& a, std::string_view b) {
+    return a.view() > b;
+  }
+
+  friend bool operator<=(generic_string const& a, std::string_view b) {
+    return a.view() <= b;
+  }
+
+  friend bool operator>=(generic_string const& a, std::string_view b) {
+    return a.view() >= b;
+  }
+
+  friend bool operator==(std::string_view a, generic_string const& b) {
+    return a == b.view();
+  }
+
+  friend bool operator!=(std::string_view a, generic_string const& b) {
+    return a != b.view();
+  }
+
+  friend bool operator<(std::string_view a, generic_string const& b) {
+    return a < b.view();
+  }
+
+  friend bool operator>(std::string_view a, generic_string const& b) {
+    return a > b.view();
+  }
+
+  friend bool operator<=(std::string_view a, generic_string const& b) {
+    return a <= b.view();
+  }
+
+  friend bool operator>=(std::string_view a, generic_string const& b) {
+    return a >= b.view();
+  }
+
+  friend bool operator==(generic_string const& a, char const* b) {
+    return a.view() == std::string_view{b};
+  }
+
+  friend bool operator!=(generic_string const& a, char const* b) {
+    return a.view() != std::string_view{b};
+  }
+
+  friend bool operator<(generic_string const& a, char const* b) {
+    return a.view() < std::string_view{b};
+  }
+
+  friend bool operator>(generic_string const& a, char const* b) {
+    return a.view() > std::string_view{b};
+  }
+
+  friend bool operator<=(generic_string const& a, char const* b) {
+    return a.view() <= std::string_view{b};
+  }
+
+  friend bool operator>=(generic_string const& a, char const* b) {
+    return a.view() >= std::string_view{b};
+  }
+
+  friend bool operator==(char const* a, generic_string const& b) {
+    return std::string_view{a} == b.view();
+  }
+
+  friend bool operator!=(char const* a, generic_string const& b) {
+    return std::string_view{a} != b.view();
+  }
+
+  friend bool operator<(char const* a, generic_string const& b) {
+    return std::string_view{a} < b.view();
+  }
+
+  friend bool operator>(char const* a, generic_string const& b) {
+    return std::string_view{a} > b.view();
+  }
+
+  friend bool operator<=(char const* a, generic_string const& b) {
+    return std::string_view{a} <= b.view();
+  }
+
+  friend bool operator>=(char const* a, generic_string const& b) {
+    return std::string_view{a} >= b.view();
+  }
+
   char* data() {
     if constexpr (std::is_pointer_v<Ptr>) {
       return is_short() ? const_cast<char*>(s_.s_) : const_cast<char*>(h_.ptr_);
@@ -219,72 +340,6 @@ struct basic_string : public generic_string<Ptr> {
     return out << s.view();
   }
 
-  template <typename T>
-  friend bool operator==(basic_string const& a, T const& b) {
-    return a.view() == std::string_view{b};
-  }
-
-  template <typename T>
-  friend bool operator!=(basic_string const& a, T const& b) {
-    return a.view() != std::string_view{b};
-  }
-
-  template <typename T>
-  friend bool operator<(basic_string const& a, T const& b) {
-    return a.view() < std::string_view{b};
-  }
-
-  template <typename T>
-  friend bool operator>(basic_string const& a, T const& b) {
-    return a.view() > std::string_view{b};
-  }
-
-  template <typename T>
-  friend bool operator<=(basic_string const& a, T const& b) {
-    return a.view() <= std::string_view{b};
-  }
-
-  template <typename T>
-  friend bool operator>=(basic_string const& a, T const& b) {
-    return a.view() >= std::string_view{b};
-  }
-
-  template <typename T>
-  friend std::enable_if_t<!std::is_same_v<decay_t<T>, basic_string>, bool>
-  operator==(T const& a, basic_string const& b) {
-    return std::string_view{a} == b.view();
-  }
-
-  template <typename T>
-  friend std::enable_if_t<!std::is_same_v<decay_t<T>, basic_string>, bool>
-  operator!=(T const& a, basic_string const& b) {
-    return std::string_view{a} != b.view();
-  }
-
-  template <typename T>
-  friend std::enable_if_t<!std::is_same_v<decay_t<T>, basic_string>, bool>
-  operator<(T const& a, basic_string const& b) {
-    return std::string_view{a} < b.view();
-  }
-
-  template <typename T>
-  friend std::enable_if_t<!std::is_same_v<decay_t<T>, basic_string>, bool>
-  operator>(T const& a, basic_string const& b) {
-    return std::string_view{a} > b.view();
-  }
-
-  template <typename T>
-  friend std::enable_if_t<!std::is_same_v<decay_t<T>, basic_string>, bool>
-  operator<=(T const& a, basic_string const& b) {
-    return std::string_view{a} <= b.view();
-  }
-
-  template <typename T>
-  friend std::enable_if_t<!std::is_same_v<decay_t<T>, basic_string>, bool>
-  operator>=(T const& a, basic_string const& b) {
-    return std::string_view{a} >= b.view();
-  }
-
   explicit operator std::string() const { return {base::data(), base::size()}; }
 
   basic_string(std::string_view s) : base{s, base::owning} {}
@@ -330,72 +385,6 @@ struct basic_string_view : public generic_string<Ptr> {
   friend std::ostream& operator<<(std::ostream& out,
                                   basic_string_view const& s) {
     return out << s.view();
-  }
-
-  template <typename T>
-  friend bool operator==(basic_string_view const& a, T const& b) {
-    return a.view() == std::string_view{b};
-  }
-
-  template <typename T>
-  friend bool operator!=(basic_string_view const& a, T const& b) {
-    return a.view() != std::string_view{b};
-  }
-
-  template <typename T>
-  friend bool operator<(basic_string_view const& a, T const& b) {
-    return a.view() < std::string_view{b};
-  }
-
-  template <typename T>
-  friend bool operator>(basic_string_view const& a, T const& b) {
-    return a.view() > std::string_view{b};
-  }
-
-  template <typename T>
-  friend bool operator<=(basic_string_view const& a, T const& b) {
-    return a.view() <= std::string_view{b};
-  }
-
-  template <typename T>
-  friend bool operator>=(basic_string_view const& a, T const& b) {
-    return a.view() >= std::string_view{b};
-  }
-
-  template <typename T>
-  friend std::enable_if_t<!std::is_same_v<decay_t<T>, basic_string_view>, bool>
-  operator==(T const& b, basic_string_view const& a) {
-    return std::string_view{a} == b.view();
-  }
-
-  template <typename T>
-  friend std::enable_if_t<!std::is_same_v<decay_t<T>, basic_string_view>, bool>
-  operator!=(T const& a, basic_string_view const& b) {
-    return std::string_view{a} != b.view();
-  }
-
-  template <typename T>
-  friend std::enable_if_t<!std::is_same_v<decay_t<T>, basic_string_view>, bool>
-  operator<(T const& a, basic_string_view const& b) {
-    return std::string_view{a} < b.view();
-  }
-
-  template <typename T>
-  friend std::enable_if_t<!std::is_same_v<decay_t<T>, basic_string_view>, bool>
-  operator>(T const& a, basic_string_view const& b) {
-    return std::string_view{a} > b.view();
-  }
-
-  template <typename T>
-  friend std::enable_if_t<!std::is_same_v<decay_t<T>, basic_string_view>, bool>
-  operator<=(T const& a, basic_string_view const& b) {
-    return std::string_view{a} <= b.view();
-  }
-
-  template <typename T>
-  friend std::enable_if_t<!std::is_same_v<decay_t<T>, basic_string_view>, bool>
-  operator>=(T const& a, basic_string_view const& b) {
-    return std::string_view{a} >= b.view();
   }
 
   basic_string_view(std::string_view s) : base{s, base::owning} {}
@@ -447,11 +436,13 @@ template <class T>
 constexpr bool is_string_v = is_string_helper<std::remove_cv_t<T>>::value;
 
 namespace raw {
+using generic_string = generic_string<ptr<char const>>;
 using string = basic_string<ptr<char const>>;
 using string_view = basic_string_view<ptr<char const>>;
 }  // namespace raw
 
 namespace offset {
+using generic_string = generic_string<ptr<char const>>;
 using string = basic_string<ptr<char const>>;
 using string_view = basic_string_view<ptr<char const>>;
 }  // namespace offset
