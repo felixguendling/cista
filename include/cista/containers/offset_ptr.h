@@ -85,7 +85,7 @@ struct offset_ptr {
     return r;
   }
 
-  offset_t offset_;
+  offset_t offset_{};
 };
 
 template <typename T>
@@ -145,7 +145,7 @@ struct offset_ptr<T, std::enable_if_t<std::is_same_v<void, T>>> {
     return o.offset_ != NULLPTR_OFFSET;
   }
 
-  offset_t offset_;
+  offset_t offset_{};
 };
 
 template <class T>
