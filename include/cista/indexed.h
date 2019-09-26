@@ -1,10 +1,13 @@
 #pragma once
 
+#include <type_traits>
+
 namespace cista {
 
 template <typename T>
 struct indexed : public T {
   using value_type = T;
+  using T::T;
   using T::operator=;
 };
 
