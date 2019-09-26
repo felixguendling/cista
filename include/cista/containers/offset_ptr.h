@@ -32,6 +32,8 @@ struct offset_ptr {
     return *this;
   }
 
+  ~offset_ptr() = default;
+
   offset_t ptr_to_offset(T const* p) const {
     return p == nullptr
                ? NULLPTR_OFFSET
@@ -39,7 +41,9 @@ struct offset_ptr {
                                        reinterpret_cast<uintptr_t>(this));
   }
 
-  operator bool() const { return offset_ != NULLPTR_OFFSET; }
+  explicit operator bool() const { return offset_ != NULLPTR_OFFSET; }
+  explicit operator void*() const { return get(); }
+  explicit operator void const*() const { return get(); }
   operator T*() const { return get(); }
   T& operator*() const { return *get(); }
   T* operator->() const { return get(); }
@@ -81,19 +85,6 @@ struct offset_ptr {
     return r;
   }
 
-  friend bool operator==(std::nullptr_t, offset_ptr const& o) {
-    return o.offset_ == NULLPTR_OFFSET;
-  }
-  friend bool operator==(offset_ptr const& o, std::nullptr_t) {
-    return o.offset_ == NULLPTR_OFFSET;
-  }
-  friend bool operator!=(std::nullptr_t, offset_ptr const& o) {
-    return o.offset_ != NULLPTR_OFFSET;
-  }
-  friend bool operator!=(offset_ptr const& o, std::nullptr_t) {
-    return o.offset_ != NULLPTR_OFFSET;
-  }
-
   offset_t offset_;
 };
 
@@ -131,6 +122,8 @@ struct offset_ptr<T, std::enable_if_t<std::is_same_v<void, T>>> {
   }
 
   operator bool() const { return offset_ != NULLPTR_OFFSET; }
+  explicit operator void*() const { return get(); }
+  explicit operator void const*() const { return get(); }
   T* get() const {
     auto const ptr =
         offset_ == NULLPTR_OFFSET

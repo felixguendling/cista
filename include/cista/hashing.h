@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+
 #include <functional>
 #include <string>
 #include <string_view>
@@ -95,8 +96,8 @@ struct hashing {
     using Type = decay_t<T>;
     if constexpr (has_hash_v<Type>) {
       return el.hash();
-    } else if constexpr (std::is_pointer_v<Type>) {
-      return hash_combine(seed, reinterpret_cast<intptr_t>(el));
+    } else if constexpr (is_pointer_v<Type>) {
+      return hash_combine(seed, reinterpret_cast<intptr_t>(ptr_cast(el)));
     } else if constexpr (is_char_array_v<Type>) {
       return hash(std::string_view{el, sizeof(el) - 1}, seed);
     } else if constexpr (std::is_scalar_v<Type>) {

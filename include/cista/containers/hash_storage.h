@@ -10,6 +10,7 @@
 
 #include "cista/aligned_alloc.h"
 #include "cista/bit_counting.h"
+#include "cista/containers/ptr.h"
 #include "cista/decay.h"
 #include "cista/endian/conversion.h"
 #include "cista/offset_t.h"
@@ -572,8 +573,8 @@ struct hash_storage {
     auto const size =
         capacity_ * sizeof(T) + (capacity_ + 1 + WIDTH) * sizeof(ctrl_t);
     entries_ = reinterpret_cast<T*>(CISTA_ALIGNED_ALLOC(sizeof(T), size));
-    ctrl_ = reinterpret_cast<ctrl_t*>(reinterpret_cast<uint8_t*>(entries_) +
-                                      capacity_ * sizeof(T));
+    ctrl_ = reinterpret_cast<ctrl_t*>(
+        reinterpret_cast<uint8_t*>(ptr_cast(entries_)) + capacity_ * sizeof(T));
     reset_ctrl();
     reset_growth_left();
   }

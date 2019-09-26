@@ -69,12 +69,22 @@ struct serialization_context {
     t_.write(static_cast<std::size_t>(pos), val);
   }
 
+  template <typename T>
+  bool resolve_pointer(offset_ptr<T> const& ptr, offset_t const pos,
+                       bool add_pending = true) {
+    return resolve_pointer(ptr.get(), pos, add_pending);
+  }
+
   template <typename Ptr>
   bool resolve_pointer(Ptr ptr, offset_t const pos, bool add_pending = true) {
-    if (ptr == nullptr) {
+    if (std::is_same_v<decay_t<remove_pointer_t<Ptr>>, void> && add_pending) {
       write(pos, convert_endian<MODE>(NULLPTR_OFFSET));
       return true;
-    } else if (auto const it = offsets_.find(ptr); it != end(offsets_)) {
+    } else if (ptr == nullptr) {
+      write(pos, convert_endian<MODE>(NULLPTR_OFFSET));
+      return true;
+    } else if (auto const it = offsets_.find(ptr_cast(ptr));
+               it != end(offsets_)) {
       write(pos, convert_endian<MODE>(it->second - pos));
       return true;
     } else if (auto const offset = resolve_vector_range_ptr(ptr);
@@ -83,7 +93,7 @@ struct serialization_context {
       return true;
     } else if (add_pending) {
       write(pos, convert_endian<MODE>(DANGLING));
-      pending_.emplace_back(pending_offset{ptr, pos});
+      pending_.emplace_back(pending_offset{ptr_cast(ptr), pos});
       return true;
     }
     return false;
@@ -229,9 +239,8 @@ void serialize(Ctx& c, basic_unique_ptr<T, Ptr> const* origin,
   c.write(pos + cista_member_offset(Type, self_allocated_), false);
 
   if (origin->el_ != nullptr) {
-    auto const ptr = static_cast<T const*>(origin->el_);
-    c.offsets_[ptr] = start;
-    serialize(c, ptr, start);
+    c.offsets_[origin->el_] = start;
+    serialize(c, ptr_cast(origin->el_), start);
   }
 }
 
@@ -283,7 +292,7 @@ void serialize(
                                              serialized_size<T>());
          it += serialized_size<T>(), ++i) {
       if (Type::is_full(origin->ctrl_[i])) {
-        serialize(c, origin->entries_ + i, it);
+        serialize(c, static_cast<T*>(origin->entries_ + i), it);
       }
     }
   }
@@ -413,7 +422,7 @@ struct deserialization_context {
     auto const offset =
         reinterpret_cast<offset_t>(::cista::convert_endian<MODE>(*ptr));
     if (offset == DANGLING) {
-      throw std::runtime_error{"dangling pointer"};
+      return;
     }
     *ptr = offset == NULLPTR_OFFSET
                ? nullptr
@@ -422,14 +431,24 @@ struct deserialization_context {
   }
 
   template <typename T>
+  constexpr static size_t type_size() {
+    using Type = decay_t<T>;
+    if constexpr (std::is_same_v<Type, void>) {
+      return 0;
+    } else {
+      return sizeof(Type);
+    }
+  }
+
+  template <typename T>
   void check_ptr(offset_ptr<T> const& el,
-                 size_t const size = sizeof(decay_t<T>)) const {
+                 size_t const size = type_size<T>()) const {
     checked_addition(el.offset_, reinterpret_cast<intptr_t>(&el));
     check_ptr(el.get(), size);
   }
 
   template <typename T>
-  void check_ptr(T* el, size_t const size = sizeof(decay_t<T>)) const {
+  void check_ptr(T* el, size_t const size = type_size<T>()) const {
     if constexpr ((MODE & mode::UNCHECKED) == mode::UNCHECKED) {
       return;
     }
@@ -439,14 +458,17 @@ struct deserialization_context {
     }
 
     auto const pos = reinterpret_cast<intptr_t>(el);
-    verify((pos & static_cast<intptr_t>(std::alignment_of<decay_t<T>>() - 1)) ==
-               0U,
-           "ptr alignment");
-    verify(size < static_cast<size_t>(std::numeric_limits<intptr_t>::max()),
-           "size out of bounds");
     verify(pos >= from_, "underflow");
     verify(checked_addition(pos, static_cast<intptr_t>(size)) <= to_,
            "overflow");
+    verify(size < static_cast<size_t>(std::numeric_limits<intptr_t>::max()),
+           "size out of bounds");
+
+    if constexpr (!std::is_same_v<T, void>) {
+      verify((pos &
+              static_cast<intptr_t>(std::alignment_of<decay_t<T>>() - 1)) == 0U,
+             "ptr alignment");
+    }
   }
 
   static void check_bool(bool const& b) {
@@ -561,6 +583,10 @@ void deserialize(Ctx const& c, T* el) {
 // --- OFFSET_PTR<T> ---
 template <typename Ctx, typename T>
 void convert_endian_and_ptr(Ctx const& c, offset_ptr<T>* el) {
+  if (el->offset_ == DANGLING) {
+    el->offset_ = NULLPTR_OFFSET;
+    return;
+  }
   c.convert_endian(el->offset_);
 }
 
@@ -689,11 +715,17 @@ template <typename Ctx, typename T, template <typename> typename Ptr,
 void convert_endian_and_ptr(
     Ctx const& c,
     hash_storage<T, Ptr, uint32_t, GetKey, GetValue, Hash, Eq>* el) {
+  using Type = hash_storage<T, Ptr, uint32_t, GetKey, GetValue, Hash, Eq>;
+
   deserialize(c, &el->entries_);
   deserialize(c, &el->ctrl_);
   c.convert_endian(el->size_);
   c.convert_endian(el->capacity_);
   c.convert_endian(el->growth_left_);
+
+  if (el->entries_ == nullptr) {
+    el->ctrl_ = Type::empty_group();
+  }
 }
 
 template <typename Ctx, typename T, template <typename> typename Ptr,
@@ -710,8 +742,8 @@ void check_state(
               checked_addition(el->capacity_, 1U, Type::WIDTH),
               sizeof(typename Type::ctrl_t))));
   c.require(el->entries_ == nullptr ||
-                reinterpret_cast<uint8_t const*>(el->ctrl_) ==
-                    reinterpret_cast<uint8_t const*>(el->entries_) +
+                reinterpret_cast<uint8_t const*>(ptr_cast(el->ctrl_)) ==
+                    reinterpret_cast<uint8_t const*>(ptr_cast(el->entries_)) +
                         checked_multiplication(
                             static_cast<size_t>(el->capacity_), sizeof(T)),
             "hash storage: entries!=null -> ctrl = entries+capacity");
