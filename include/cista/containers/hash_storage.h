@@ -311,7 +311,7 @@ struct hash_storage {
   // --- operator[]
   template <typename Key>
   mapped_type& bracket_operator_impl(Key&& key) {
-    auto const res = find_or_prepare_insert(key);
+    auto const res = find_or_prepare_insert(std::forward<Key>(key));
     if (res.second) {
       new (entries_ + res.first) T{static_cast<key_t>(key), mapped_type{}};
     }
@@ -330,7 +330,7 @@ struct hash_storage {
   // --- at()
   template <typename Key>
   mapped_type& at_impl(Key&& key) {
-    if (auto it = find(key); it != end()) {
+    if (auto it = find(std::forward<Key>(key)); it != end()) {
       return GetValue{}(*it);
     } else {
       throw std::out_of_range{"hash_storage::at() key not found"};
