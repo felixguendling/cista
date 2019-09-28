@@ -30,7 +30,7 @@ hash_t type_hash(T const& el, hash_t h, std::map<hash_t, unsigned>& done) {
   if constexpr (is_pointer_v<Type>) {
     using PointeeType = remove_pointer_t<Type>;
     if constexpr (std::is_same_v<PointeeType, void>) {
-      return hash_combine(h, "void*");
+      return hash_combine(h, hash("void*"));
     } else {
       return type_hash(remove_pointer_t<Type>{},
                        hash_combine(h, hash("pointer")), done);
