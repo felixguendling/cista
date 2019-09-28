@@ -92,7 +92,7 @@ struct serialization_context {
       write(pos, convert_endian<MODE>(*offset - pos));
       return true;
     } else if (add_pending) {
-      write(pos, convert_endian<MODE>(DANGLING));
+      write(pos, convert_endian<MODE>(NULLPTR_OFFSET));
       pending_.emplace_back(pending_offset{ptr_cast(ptr), pos});
       return true;
     }
@@ -261,7 +261,8 @@ void serialize(
                                    std::alignment_of_v<T>);
   auto const ctrl_start =
       start == NULLPTR_OFFSET
-          ? NULLPTR_OFFSET
+          ? c.write(Type::empty_group(), 16 * sizeof(typename Type::ctrl_t),
+                    std::alignment_of_v<typename Type::ctrl_t>)
           : start +
                 static_cast<offset_t>(origin->capacity_ * serialized_size<T>());
 
@@ -421,9 +422,6 @@ struct deserialization_context {
   void deserialize_ptr(Ptr** ptr) const {
     auto const offset =
         reinterpret_cast<offset_t>(::cista::convert_endian<MODE>(*ptr));
-    if (offset == DANGLING) {
-      return;
-    }
     *ptr = offset == NULLPTR_OFFSET
                ? nullptr
                : reinterpret_cast<Ptr*>(
@@ -583,10 +581,6 @@ void deserialize(Ctx const& c, T* el) {
 // --- OFFSET_PTR<T> ---
 template <typename Ctx, typename T>
 void convert_endian_and_ptr(Ctx const& c, offset_ptr<T>* el) {
-  if (el->offset_ == DANGLING) {
-    el->offset_ = NULLPTR_OFFSET;
-    return;
-  }
   c.convert_endian(el->offset_);
 }
 
@@ -722,10 +716,6 @@ void convert_endian_and_ptr(
   c.convert_endian(el->size_);
   c.convert_endian(el->capacity_);
   c.convert_endian(el->growth_left_);
-
-  if (el->entries_ == nullptr) {
-    el->ctrl_ = Type::empty_group();
-  }
 }
 
 template <typename Ctx, typename T, template <typename> typename Ptr,
@@ -734,6 +724,7 @@ void check_state(
     Ctx const& c,
     hash_storage<T, Ptr, uint32_t, GetKey, GetValue, Hash, Eq>* el) {
   using Type = decay_t<remove_pointer_t<decltype(el)>>;
+  c.require(el->ctrl_ != nullptr, "hash storage: ctrl must be set");
   c.check_ptr(
       el->entries_,
       checked_addition(
@@ -741,6 +732,9 @@ void check_state(
           checked_multiplication(
               checked_addition(el->capacity_, 1U, Type::WIDTH),
               sizeof(typename Type::ctrl_t))));
+  c.check_ptr(el->ctrl_, checked_multiplication(
+                             checked_addition(el->capacity_, 1U, Type::WIDTH),
+                             sizeof(typename Type::ctrl_t)));
   c.require(el->entries_ == nullptr ||
                 reinterpret_cast<uint8_t const*>(ptr_cast(el->ctrl_)) ==
                     reinterpret_cast<uint8_t const*>(ptr_cast(el->entries_)) +
@@ -750,17 +744,14 @@ void check_state(
   c.require(
       (el->entries_ == nullptr) == (el->capacity_ == 0U && el->size_ == 0U),
       "hash storage: entries=null <=> size=capacity=0");
-  if (el->entries_ == nullptr) {
-    el->ctrl_ = Type::empty_group();
-    return;
-  }
 
   c.check_bool(el->self_allocated_);
   c.require(!el->self_allocated_, "hash storage: self-allocated");
 
   c.require(el->ctrl_[el->capacity_] == Type::END,
             "hash storage: end ctrl byte");
-  c.require(std::all_of(el->ctrl_, el->ctrl_ + el->capacity_ + 1U + Type::WIDTH,
+  c.require(std::all_of(ptr_cast(el->ctrl_),
+                        ptr_cast(el->ctrl_) + el->capacity_ + 1U + Type::WIDTH,
                         [](typename Type::ctrl_t const ctrl) {
                           return Type::is_empty(ctrl) ||
                                  Type::is_deleted(ctrl) ||
@@ -770,7 +761,7 @@ void check_state(
             "hash storage: ctrl bytes must be empty or deleted or full");
 
   auto [empty, full, deleted, growth] = std::accumulate(
-      el->ctrl_, el->ctrl_ + el->capacity_,
+      ptr_cast(el->ctrl_), ptr_cast(el->ctrl_) + el->capacity_,
       std::tuple{size_t{0U}, size_t{0U}, size_t{0U}, size_t{0}},
       [&](std::tuple<size_t, size_t, size_t, size_t> const acc,
           typename Type::ctrl_t const& ctrl) {
