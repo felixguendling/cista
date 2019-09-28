@@ -28,8 +28,13 @@ hash_t type_hash(T const& el, hash_t h, std::map<hash_t, unsigned>& done) {
   }
 
   if constexpr (is_pointer_v<Type>) {
-    return type_hash(remove_pointer_t<Type>{}, hash_combine(h, hash("pointer")),
-                     done);
+    using PointeeType = remove_pointer_t<Type>;
+    if constexpr (std::is_same_v<PointeeType, void>) {
+      return hash_combine(h, "void*");
+    } else {
+      return type_hash(remove_pointer_t<Type>{},
+                       hash_combine(h, hash("pointer")), done);
+    }
   } else if constexpr (std::is_scalar_v<Type>) {
     return hash_combine(h, type2str_hash<T>());
   } else {
