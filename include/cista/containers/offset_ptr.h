@@ -21,8 +21,8 @@ struct offset_ptr {
     return *this;
   }
 
-  offset_ptr(offset_ptr const& o) : offset_ptr{o.get()} {}
-  offset_ptr(offset_ptr&& o) : offset_ptr{o.get()} {}
+  offset_ptr(offset_ptr const& o) : offset_{ptr_to_offset(o.get())} {}
+  offset_ptr(offset_ptr&& o) : offset_{ptr_to_offset(o.get())} {}
   offset_ptr& operator=(offset_ptr const& o) {
     offset_ = ptr_to_offset(o.get());
     return *this;
@@ -37,8 +37,8 @@ struct offset_ptr {
   offset_t ptr_to_offset(T const* p) const {
     return p == nullptr
                ? NULLPTR_OFFSET
-               : static_cast<offset_t>(reinterpret_cast<uintptr_t>(p) -
-                                       reinterpret_cast<uintptr_t>(this));
+               : static_cast<offset_t>(reinterpret_cast<intptr_t>(p) -
+                                       reinterpret_cast<intptr_t>(this));
   }
 
   explicit operator bool() const { return offset_ != NULLPTR_OFFSET; }
@@ -47,6 +47,7 @@ struct offset_ptr {
   operator T*() const { return get(); }
   T& operator*() const { return *get(); }
   T* operator->() const { return get(); }
+  T& operator[](size_t const i) const { return *(get() + i); }
 
   T* get() const {
     auto const ptr =
@@ -57,33 +58,27 @@ struct offset_ptr {
   }
 
   template <typename Int>
-  offset_ptr operator+(Int i) const {
-    offset_ptr r = *this;
-    r.offset_ += i * sizeof(T);
-    return r;
+  T* operator+(Int i) const {
+    return get() + i;
+  }
+
+  template <typename Int>
+  T* operator-(Int i) const {
+    return get() - i;
   }
 
   offset_ptr& operator++() {
-    offset_ += sizeof(T);
+    offset_ = ptr_to_offset(get() + 1);
     return *this;
   }
 
   offset_ptr& operator--() {
-    offset_ -= sizeof(T);
+    offset_ = ptr_to_offset(get() - 1);
     return *this;
   }
 
-  offset_ptr operator++(int) const {
-    offset_ptr r = *this;
-    r.offset_ += sizeof(T);
-    return r;
-  }
-
-  offset_ptr operator--(int) const {
-    offset_ptr r = *this;
-    r.offset_ -= sizeof(T);
-    return r;
-  }
+  offset_ptr operator++(int) const { return offset_ptr{get() + 1}; }
+  offset_ptr operator--(int) const { return offset_ptr{get() - 1}; }
 
   offset_t offset_{NULLPTR_OFFSET};
 };
@@ -103,8 +98,8 @@ struct offset_ptr<T, std::enable_if_t<std::is_same_v<void, T>>> {
     return *this;
   }
 
-  offset_ptr(offset_ptr const& o) : offset_ptr{o.get()} {}
-  offset_ptr(offset_ptr&& o) : offset_ptr{o.get()} {}
+  offset_ptr(offset_ptr const& o) : offset_{ptr_to_offset(o.get())} {}
+  offset_ptr(offset_ptr&& o) : offset_{ptr_to_offset(o.get())} {}
   offset_ptr& operator=(offset_ptr const& o) {
     offset_ = ptr_to_offset(o.get());
     return *this;
@@ -117,8 +112,8 @@ struct offset_ptr<T, std::enable_if_t<std::is_same_v<void, T>>> {
   offset_t ptr_to_offset(T const* p) const {
     return p == nullptr
                ? NULLPTR_OFFSET
-               : static_cast<offset_t>(reinterpret_cast<uintptr_t>(p) -
-                                       reinterpret_cast<uintptr_t>(this));
+               : static_cast<offset_t>(reinterpret_cast<intptr_t>(p) -
+                                       reinterpret_cast<intptr_t>(this));
   }
 
   operator bool() const { return offset_ != NULLPTR_OFFSET; }
