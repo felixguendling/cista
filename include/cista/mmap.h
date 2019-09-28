@@ -25,6 +25,8 @@ struct mmap {
   static constexpr auto const ENTIRE_FILE = std::numeric_limits<size_t>::max();
   enum class protection { READ, WRITE };
 
+  mmap() = default;
+
   explicit mmap(char const* path, protection const prot = protection::WRITE)
       : f_{path, prot == protection::READ ? "r" : "w+"},
         prot_{prot},

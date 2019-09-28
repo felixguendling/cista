@@ -38,6 +38,8 @@ inline HANDLE open_file(char const* path, char const* mode) {
 }
 
 struct file {
+  file() = default;
+
   file(char const* path, char const* mode)
       : f_(open_file(path, mode)), size_{size()} {
     verify(f_ != INVALID_HANDLE_VALUE, "unable to open file");
@@ -47,6 +49,7 @@ struct file {
     if (f_ != nullptr) {
       CloseHandle(f_);
     }
+    f_ = nullptr;
   }
 
   file(file const&) = delete;
@@ -168,7 +171,7 @@ struct file {
     return offset;
   }
 
-  HANDLE f_;
+  HANDLE f_{nullptr};
   size_t size_{0U};
 };
 }  // namespace cista
@@ -181,6 +184,8 @@ struct file {
 namespace cista {
 
 struct file {
+  file() = default;
+
   file(char const* path, char const* mode)
       : f_{std::fopen(path, mode)}, size_{size()} {
     verify(f_ != nullptr, "unable to open file");
@@ -273,7 +278,7 @@ struct file {
     return static_cast<offset_t>(curr_offset);
   }
 
-  FILE* f_;
+  FILE* f_{nullptr};
   std::size_t size_ = 0u;
 };
 

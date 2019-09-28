@@ -19,7 +19,7 @@ using byte_buf = std::vector<uint8_t>;
 
 template <typename Buf = byte_buf>
 struct buf {
-  buf() { static_assert(std::is_default_constructible_v<Buf>, "default ctor"); }
+  buf() = default;
   explicit buf(Buf&& buf) : buf_{std::forward<Buf>(buf)} {}
 
   uint8_t* addr(offset_t const offset) { return (&buf_[0]) + offset; }
@@ -67,6 +67,10 @@ struct buf {
     curr_offset_ += size;
     return start;
   }
+
+  unsigned char& operator[](size_t i) { return buf_[i]; }
+  unsigned char const& operator[](size_t i) const { return buf_[i]; }
+  size_t size() const { return buf_.size(); }
 
   Buf buf_;
   offset_t curr_offset_{0};
