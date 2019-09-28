@@ -709,8 +709,6 @@ template <typename Ctx, typename T, template <typename> typename Ptr,
 void convert_endian_and_ptr(
     Ctx const& c,
     hash_storage<T, Ptr, uint32_t, GetKey, GetValue, Hash, Eq>* el) {
-  using Type = hash_storage<T, Ptr, uint32_t, GetKey, GetValue, Hash, Eq>;
-
   deserialize(c, &el->entries_);
   deserialize(c, &el->ctrl_);
   c.convert_endian(el->size_);
