@@ -36,9 +36,7 @@ struct equal_to {
   constexpr bool operator()(T const& a, T1 const& b) const {
     using Type = decay_t<T>;
     using Type1 = decay_t<T1>;
-    if constexpr (is_eq_comparable_v<Type, Type1>) {
-      return a == b;
-    } else if constexpr (is_iterable_v<Type> && is_iterable_v<Type1>) {
+    if constexpr (is_iterable_v<Type> && is_iterable_v<Type1>) {
       using std::begin;
       using std::end;
       auto const eq = std::equal(
@@ -49,6 +47,8 @@ struct equal_to {
       return tuple_equal(
           [](auto&& x, auto&& y) { return equal_to<decltype(x)>{}(x, y); },
           to_tuple(a), to_tuple(b));
+    } else if constexpr (is_eq_comparable_v<Type, Type1>) {
+      return a == b;
     } else {
       static_assert(is_iterable_v<Type> || is_eq_comparable_v<Type, Type1> ||
                         to_tuple_works_v<Type>,

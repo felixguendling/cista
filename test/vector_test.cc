@@ -1,11 +1,12 @@
-#include "doctest.h"
-
 #include <set>
+
+#include "doctest.h"
 
 #ifdef SINGLE_HEADER
 #include "cista.h"
 #else
 #include "cista/containers/vector.h"
+#include "cista/equal_to.h"
 #include "cista/is_iterable.h"
 #include "cista/reflection/printable.h"
 #include "cista/type_hash/type_name.h"
@@ -42,6 +43,6 @@ TEST_CASE("iterable comparison") {
   std::vector<int> std_v{1, 2, 3};
   cista::raw::vector<int> cista_v{1, 2, 3};
   std::set<int> std_s{1, 2, 3};
-  CHECK(std_v == cista_v);
-  CHECK(std_s == cista_v);
+  CHECK(cista::equal_to<decltype(std_v)>{}(std_v, cista_v));
+  CHECK(cista::equal_to<decltype(std_s)>{}(std_s, cista_v));
 }

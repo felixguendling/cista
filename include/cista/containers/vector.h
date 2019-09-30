@@ -267,6 +267,25 @@ struct basic_vector {
 
   bool contains(T const* el) const { return el >= begin() && el < end(); }
 
+  friend bool operator==(basic_vector const& a, basic_vector const& b) {
+    return std::equal(a.begin(), a.end(), b.begin(), b.end());
+  }
+  friend bool operator!=(basic_vector const& a, basic_vector const& b) {
+    return !(a == b);
+  }
+  friend bool operator<(basic_vector const& a, basic_vector const& b) {
+    return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
+  }
+  friend bool operator>(basic_vector const& a, basic_vector const& b) {
+    return b < a;
+  }
+  friend bool operator<=(basic_vector const& a, basic_vector const& b) {
+    return !(a > b);
+  }
+  friend bool operator>=(basic_vector const& a, basic_vector const& b) {
+    return !(a < b);
+  }
+
   Ptr el_{nullptr};
   TemplateSizeType used_size_{0};
   TemplateSizeType allocated_size_{0};
@@ -275,66 +294,6 @@ struct basic_vector {
   uint16_t __fill_1__{0};
   uint32_t __fill_2__{0};
 };
-
-template <typename Ptr>
-struct is_vector_helper : std::false_type {};
-
-template <typename T, typename Ptr, bool IndexPointers,
-          typename TemplateSizeType>
-struct is_vector_helper<basic_vector<T, Ptr, IndexPointers, TemplateSizeType>>
-    : std::true_type {};
-
-template <class T>
-constexpr bool is_vector_v = is_vector_helper<std::remove_cv_t<T>>::value;
-
-template <typename A, typename B>
-constexpr bool generate_vector_eq_v = std::conjunction_v<
-    std::disjunction<is_vector_helper<A>, is_vector_helper<B>>, is_iterable<A>,
-    is_iterable<B>, is_eq_comparable<it_value_t<A>, it_value_t<B>>>;
-
-template <typename A, typename B>
-constexpr bool generate_vector_lt_v = std::conjunction_v<
-    std::disjunction<is_vector_helper<A>, is_vector_helper<B>>, is_iterable<A>,
-    is_iterable<B>, is_lt_comparable<it_value_t<A>, it_value_t<B>>>;
-
-template <typename A, typename B>
-inline std::enable_if_t<generate_vector_eq_v<A, B>, bool> operator==(
-    A const& a, B const& b) {
-  using std::begin;
-  using std::end;
-  return std::equal(begin(a), end(a), begin(b), end(b));
-}
-
-template <typename A, typename B>
-inline std::enable_if_t<generate_vector_eq_v<A, B>, bool> operator!=(
-    A const& a, B const& b) {
-  return !(a == b);
-}
-
-template <typename A, typename B>
-inline std::enable_if_t<generate_vector_lt_v<A, B>, bool> operator<(
-    A const& a, B const& b) {
-  return std::lexicographical_compare(std::begin(a), std::end(a), std::begin(b),
-                                      std::end(b));
-}
-
-template <typename A, typename B>
-inline std::enable_if_t<generate_vector_lt_v<A, B>, bool> operator<=(
-    A const& a, B const& b) {
-  return !(a > b);
-}
-
-template <typename A, typename B>
-inline std::enable_if_t<generate_vector_lt_v<A, B>, bool> operator>(
-    A const& a, B const& b) {
-  return b < a;
-}
-
-template <typename A, typename B>
-inline std::enable_if_t<generate_vector_lt_v<A, B>, bool> operator>=(
-    A const& a, B const& b) {
-  return !(a < b);
-}
 
 #define CISTA_TO_VEC                                                          \
   template <typename It, typename UnaryOperation>                             \
