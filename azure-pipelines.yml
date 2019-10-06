@@ -1,14 +1,14 @@
 jobs:
-  - job: VS2019
-    strategy:
-      matrix:
-        REL:
-          BUILD_TYPE: Release
-        DBG:
-          BUILD_TYPE: Debug
-    pool:
-      vmImage: windows-2019
-    steps:
+- job: VS2019
+  strategy:
+    matrix:
+      REL:
+         BUILD_TYPE: Release
+      DBG:
+        BUILD_TYPE: Debug
+  pool:
+     vmImage: windows-2019
+  steps:
     - task: CMake@1
       displayName: 'CMake'
       inputs:
@@ -18,10 +18,8 @@ jobs:
       inputs:
         solution: build/cista.sln
         msbuildArguments: '/m /p:Configuration=$(BUILD_TYPE)'
-    - powershell: .\cista-test
-      displayName: 'Run Tests'
-      errorActionPreference: continue
-      workingDirectory: build\$(BUILD_TYPE)
+    - script: .\cista-test
+      displayName: Run Tests
 
 - job: LINUX_CLANG
   strategy:
