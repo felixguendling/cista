@@ -11,7 +11,6 @@
 #include <vector>
 
 #include "cista/containers/ptr.h"
-#include "cista/is_comparable.h"
 #include "cista/is_iterable.h"
 #include "cista/next_power_of_2.h"
 

@@ -4,7 +4,6 @@
 #include <type_traits>
 
 #include "cista/decay.h"
-#include "cista/is_comparable.h"
 #include "cista/is_iterable.h"
 #include "cista/reflection/to_tuple.h"
 
@@ -29,6 +28,18 @@ constexpr decltype(auto) tuple_equal(F&& is_equal, Tuple&& a, Tuple&& b) {
       std::make_index_sequence<
           std::tuple_size_v<std::remove_reference_t<Tuple>>>{});
 }
+
+
+template <typename A, typename B, typename = void>
+struct is_eq_comparable : std::false_type {};
+
+template <typename A, typename B>
+struct is_eq_comparable<
+    A, B, std::void_t<decltype(std::declval<A>() == std::declval<B>())>>
+    : std::true_type {};
+
+template <typename A, typename B>
+constexpr bool is_eq_comparable_v = is_eq_comparable<A, B>::value;
 
 template <typename T>
 struct equal_to {
