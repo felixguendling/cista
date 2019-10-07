@@ -18,7 +18,8 @@ jobs:
       inputs:
         solution: build/cista.sln
         msbuildArguments: '/m /p:Configuration=$(BUILD_TYPE)'
-    - script: .\cista-test
+    - script: cista-test
+      workingDirectory: build\$(BUILD_TYPE)
       displayName: Run Tests
 
 - job: LINUX_CLANG
