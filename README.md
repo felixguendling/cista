@@ -38,51 +38,33 @@ The underlying reflection mechanism can be used in [other ways](https://cista.ro
 
 **Example:**
 
-Download the [latest release](https://github.com/felixguendling/cista/releases/download/v0.5/cista.h) and try it out or try this example [online](https://wandbox.org/permlink/AWzbmK5uUPyWd2Lm).
+Download the [latest release](https://github.com/felixguendling/cista/releases/download/v0.5/cista.h) and try it out or try this example [online](https://wandbox.org/permlink/rQ1oc4CEEGhnBgYh).
 
 ```cpp
-#include <iostream>
 #include "cista.h"
 
 int main() {
   namespace data = cista::offset;
+  constexpr auto const MODE =
+      cista::mode::WITH_VERSION |  // data structure version
+      cista::mode::WITH_INTEGRITY;  // content checksum
 
-  constexpr auto const FILENAME = "data.bin";
-  constexpr auto const MODE = cista::mode::WITH_VERSION |
-                              cista::mode::WITH_INTEGRITY |
-                              cista::mode::DEEP_CHECK;
-
-  struct pos {
-    int x, y;
-  };
+  // Equality & hash function will be auto-generated at compile time.
+  struct pos { int x, y; };
   using pos_map =
-      // Note: comparison and hash functions for data::vector<pos>
-      //       will be auto-generated at compile time.
       data::hash_map<data::vector<pos>, data::hash_set<data::string>>;
 
   // Serialize.
   {
     auto positions = pos_map{{{{1, 2}, {3, 4}}, {"hello", "cista"}},
                              {{{5, 6}, {7, 8}}, {"hello", "world"}}};
-    cista::buf<cista::mmap> mmap{cista::mmap{FILENAME}};
+    cista::buf mmap{cista::mmap{"data.bin"}};
     cista::serialize<MODE>(mmap, positions);
   }
 
   // Deserialize.
-  auto b = cista::mmap(FILENAME, cista::mmap::protection::READ);
-  auto const deserialized = cista::deserialize<pos_map, MODE>(b);
-
-  // Print deserialized.
-  for (auto const& [positions, names] : *deserialized) {
-    for (auto const& name : names) {
-      std::cout << name << " ";
-    }
-    std::cout << ": [ ";
-    for (auto const& [x, y] : positions) {
-      std::cout << "{" << x << ", " << y << "} ";
-    }
-    std::cout << "]\n";
-  }
+  auto b = cista::mmap("data.bin", cista::mmap::protection::READ);
+  pos_map const* deserialized = cista::deserialize<pos_map, MODE>(b);
 }
 ```
 
