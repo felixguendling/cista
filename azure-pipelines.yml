@@ -1,15 +1,26 @@
 jobs:
-- template: azure-win-build.yml
-  parameters:
-   name: VS2019
-   vmImage: windows-2019
-   cmakeArgs: '-G "Visual Studio 16 2019" -A x64 ..'
-
-- template: azure-win-build.yml
-  parameters:
-   name: VS2017
-   vmImage: vs2017-win2016
-   cmakeArgs: '-G "Visual Studio 15 2017" -A x64 ..'
+- job: VS2019
+  strategy:
+    matrix:
+      REL:
+         BUILD_TYPE: Release
+      DBG:
+        BUILD_TYPE: Debug
+  pool:
+     vmImage: windows-2019
+  steps:
+    - task: CMake@1
+      displayName: 'CMake'
+      inputs:
+        cmakeArgs: -G "Visual Studio 16 2019" -A x64 ..
+    - task: MSBuild@1
+      displayName: 'Build Solution'
+      inputs:
+        solution: build/cista.sln
+        msbuildArguments: '/m /p:Configuration=$(BUILD_TYPE)'
+    - script: cista-test
+      workingDirectory: build\$(BUILD_TYPE)
+      displayName: Run Tests
 
 - job: LINUX_CLANG
   strategy:
