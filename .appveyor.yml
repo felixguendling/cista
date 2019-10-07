@@ -1,5 +1,5 @@
 shallow_clone: true
-image: Visual Studio 2017
+image: Visual Studio 2019
 configuration:
   - Debug
   - Release
@@ -11,7 +11,7 @@ install:
         Start-FileDownload 'https://github.com/ninja-build/ninja/releases/download/v1.8.2/ninja-win.zip'
         7z x -y ninja-win.zip -oC:\ninja-1.8.2
       }
-  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+  - call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
   - cmake --version
   - ninja --version
 build_script:
