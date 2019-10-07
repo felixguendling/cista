@@ -311,7 +311,7 @@ void serialize(Ctx& c, array<T, Size> const* origin, offset_t const pos) {
 
 constexpr offset_t integrity_start(mode const m) {
   offset_t start = 0;
-  if ((m & mode::WITH_VERSION) == mode::WITH_VERSION) {
+  if (is_mode_enabled(m, mode::WITH_VERSION)) {
     start += sizeof(uint64_t);
   }
   return start;
@@ -319,7 +319,7 @@ constexpr offset_t integrity_start(mode const m) {
 
 constexpr offset_t data_start(mode const m) {
   auto start = integrity_start(m);
-  if ((m & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
+  if (is_mode_enabled(m, mode::WITH_INTEGRITY)) {
     start += sizeof(uint64_t);
   }
   return start;
@@ -329,13 +329,13 @@ template <mode const Mode = mode::NONE, typename Target, typename T>
 void serialize(Target& t, T& value) {
   serialization_context<Target, Mode> c{t};
 
-  if constexpr ((Mode & mode::WITH_VERSION) == mode::WITH_VERSION) {
+  if constexpr (is_mode_enabled(Mode, mode::WITH_VERSION)) {
     auto const h = convert_endian<Mode>(type_hash<decay_t<T>>());
     c.write(&h, sizeof(h));
   }
 
   auto integrity_offset = offset_t{0};
-  if constexpr ((Mode & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
+  if constexpr (is_mode_enabled(Mode, mode::WITH_INTEGRITY)) {
     auto const h = hash_t{};
     integrity_offset = c.write(&h, sizeof(h));
   }
@@ -351,7 +351,7 @@ void serialize(Target& t, T& value) {
     }
   }
 
-  if constexpr ((Mode & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
+  if constexpr (is_mode_enabled(Mode, mode::WITH_INTEGRITY)) {
     auto const csum =
         c.checksum(integrity_offset + static_cast<offset_t>(sizeof(hash_t)));
     c.write(integrity_offset, convert_endian<Mode>(csum));

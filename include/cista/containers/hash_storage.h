@@ -263,7 +263,7 @@ struct hash_storage {
   }
 
   hash_storage(hash_storage const& other) {
-    resize(other.size());
+    resize(other.size() + 1);
     for (const auto& v : other) {
       auto const hash = compute_hash(GetKey()(v));
       auto target = find_first_non_full(hash);
