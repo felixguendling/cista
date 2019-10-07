@@ -38,34 +38,28 @@ The underlying reflection mechanism can be used in [other ways](https://cista.ro
 
 **Example:**
 
-Download the [latest release](https://github.com/felixguendling/cista/releases/download/v0.5/cista.h) and try it out or try this example [online](https://wandbox.org/permlink/rQ1oc4CEEGhnBgYh).
+Download the [latest release](https://github.com/felixguendling/cista/releases/download/v0.5/cista.h) and try it out or try this example [online](https://wandbox.org/permlink/MTEkEp3IBgHMSZjN).
 
 ```cpp
-#include "cista.h"
+namespace data = cista::offset;
+constexpr auto const MODE =
+    cista::mode::WITH_VERSION |  // data structure version
+    cista::mode::WITH_INTEGRITY;  // content checksum
 
-int main() {
-  namespace data = cista::offset;
-  constexpr auto const MODE =
-      cista::mode::WITH_VERSION |  // data structure version
-      cista::mode::WITH_INTEGRITY;  // content checksum
+struct pos { int x, y; };
+using pos_map =  // Automatic deduction of hash & equality functions.
+    data::hash_map<data::vector<pos>, data::hash_set<data::string>>;
 
-  // Equality & hash function will be auto-generated at compile time.
-  struct pos { int x, y; };
-  using pos_map =
-      data::hash_map<data::vector<pos>, data::hash_set<data::string>>;
-
-  // Serialize.
-  {
-    auto positions = pos_map{{{{1, 2}, {3, 4}}, {"hello", "cista"}},
-                             {{{5, 6}, {7, 8}}, {"hello", "world"}}};
-    cista::buf mmap{cista::mmap{"data.bin"}};
-    cista::serialize<MODE>(mmap, positions);
-  }
-
-  // Deserialize.
-  auto b = cista::mmap("data.bin", cista::mmap::protection::READ);
-  pos_map const* deserialized = cista::deserialize<pos_map, MODE>(b);
+{  // Serialize.
+  auto positions = pos_map{{{{1, 2}, {3, 4}}, {"hello", "cista"}},
+                           {{{5, 6}, {7, 8}}, {"hello", "world"}}};
+  cista::buf mmap{cista::mmap{"data.bin"}};
+  cista::serialize<MODE>(mmap, positions);
 }
+
+// Deserialize.
+auto b = cista::mmap("data.bin", cista::mmap::protection::READ);
+pos_map const* deserialized = cista::deserialize<pos_map, MODE>(b);
 ```
 
 # Benchmarks
