@@ -188,8 +188,10 @@
       background-repeat: no-repeat;
     }
 
-    .container {
-      max-width: 68em;
+    @media (min-width: 1200px) {
+      .container {
+          max-width: 1140px;
+      }
     }
 
     .masthead-brand a:hover {
@@ -248,25 +250,27 @@
           </div>
           <div class="col col-md-auto pt-3">
             <div class="code">
-              <a href="https://onlinegdb.com/ByuE4jo-4" class="try badge badge-run" target="_blank">compile & run</a>
-              <pre class="box-shadow rounded p-4"><code class="language-cpp">// Define your struct.
-struct my_struct {
-  int a_{0};
-  struct inner {
-    int b_{0};
-    data::string d_;
-  } j;
-};
+              <a href="https://wandbox.org/permlink/iNgGkW2dfbNY2YV9" class="try badge badge-run" target="_blank">compile & run</a>
+              <pre class="box-shadow rounded p-4"><code class="language-cpp">namespace data = cista::offset;
+constexpr auto const MODE =  // opt. versioning + check sum
+    cista::mode::WITH_VERSION | cista::mode::WITH_INTEGRITY;
 
-std::vector&lt;unsigned char&gt; buf;
-{  // Serialize an object of class my_struct.
-  my_struct obj{1, {2, data::string{"test"}}};
-  buf = cista::serialize(obj);
-}  // End of life for the "obj" value
+struct pos { int x, y; };
+using pos_map =  // Automatic deduction of hash & equality
+    data::hash_map&lt;data::vector&lt;pos&gt;,
+                   data::hash_set&lt;data::string&gt;&gt;;
 
-// Deserialize and read.
-auto deserialized = data::deserialize&lt;my_struct&gt;(buf);
-assert(deserialized-&gt;j.d_ == data::string{"test"});</code></pre>
+{  // Serialize.
+  auto positions =
+      pos_map{{{{1, 2}, {3, 4}}, {"hello", "cista"}},
+              {{{5, 6}, {7, 8}}, {"hello", "world"}}};
+  cista::buf mmap{cista::mmap{"data"}};
+  cista::serialize&lt;MODE&gt;(mmap, positions);
+}
+
+// Deserialize.
+auto b = cista::mmap("data", cista::mmap::protection::READ);
+auto positions = cista::deserialize&lt;pos_map, MODE&gt;(b);</code></pre>
           </div>
         </div>
       </main> <!-- MAIN END -->
