@@ -29,7 +29,6 @@ constexpr decltype(auto) tuple_equal(F&& is_equal, Tuple&& a, Tuple&& b) {
           std::tuple_size_v<std::remove_reference_t<Tuple>>>{});
 }
 
-
 template <typename A, typename B, typename = void>
 struct is_eq_comparable : std::false_type {};
 
@@ -54,7 +53,7 @@ struct equal_to {
           begin(a), end(a), begin(b), end(b),
           [](auto&& x, auto&& y) { return equal_to<decltype(x)>{}(x, y); });
       return eq;
-    } else if constexpr (to_tuple_works_v<Type>) {
+    } else if constexpr (to_tuple_works_v<Type> && to_tuple_works_v<Type1>) {
       return tuple_equal(
           [](auto&& x, auto&& y) { return equal_to<decltype(x)>{}(x, y); },
           to_tuple(a), to_tuple(b));
