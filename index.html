@@ -14,7 +14,9 @@
     <title>Cista++ | Homepage</title>
 
     <link href="bootstrap.min.css" rel="stylesheet">
-    <link href="prism.css" rel="stylesheet">
+    <link href="darcula.css" rel="stylesheet">
+    <script src="highlight.pack.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
 
     <style>
     /*
@@ -182,15 +184,17 @@
 
     html {
       background-color: #333;
-      background: url('trianglify.svg');
-      background-size: cover;
-      background-attachment: fixed;
-      background-repeat: no-repeat;
     }
 
     @media (min-width: 1200px) {
       .container {
-          max-width: 1140px;
+          max-width: 1160px;
+      }
+    }
+
+    @media (min-width: 1400px) {
+      .container {
+          max-width: 1300px;
       }
     }
 
@@ -233,7 +237,7 @@
           <div class="col">
             <h1 style="font-size: 2.35em">C++ Serialization &amp; Reflection</h1>
             <p class="lead">
-              Cista++ is a simple, open source (MIT license) C++17 compatible way of
+              Cista++ is a simple, open source (MIT license) <span style="white-space: nowrap;">C++17 compatible</span> way of
               (de-)serializing C++ data structures.<br/>
               <b><i>Single header. No macros. No source code generation.</i></b>
             </p>
@@ -251,7 +255,7 @@
           <div class="col col-md-auto pt-3">
             <div class="code">
               <a href="https://wandbox.org/permlink/iNgGkW2dfbNY2YV9" class="try badge badge-run" target="_blank">compile & run</a>
-              <pre class="box-shadow rounded p-4"><code class="language-cpp">namespace data = cista::offset;
+              <pre><code class="cpp box-shadow rounded p-4">namespace data = cista::offset;
 constexpr auto const MODE =  // opt. versioning + check sum
     cista::mode::WITH_VERSION | cista::mode::WITH_INTEGRITY;
 
@@ -271,6 +275,7 @@ using pos_map =  // Automatic deduction of hash & equality
 // Deserialize.
 auto b = cista::mmap("data", cista::mmap::protection::READ);
 auto positions = cista::deserialize&lt;pos_map, MODE&gt;(b);</code></pre>
+            </div>
           </div>
         </div>
       </main> <!-- MAIN END -->
@@ -470,7 +475,7 @@ auto positions = cista::deserialize&lt;pos_map, MODE&gt;(b);</code></pre>
                 It is also available <a href="https://github.com/felixguendling/cista/blob/master/test/offset_graph_test.cc">here</a>
               </p>
               <h6>Data structure definition</h6>
-              <pre class="box-shadow rounded p-4"><code class="language-cpp">namespace data = cista::raw;
+              <pre class="box-shadow rounded p-4"><code class="cpp">namespace data = cista::raw;
 
 // Forward declare `node` to be able to use it in `edge`.
 struct node;
@@ -897,7 +902,7 @@ int main() {
       <footer class="mastfoot mt-auto">
         <div class="text-center">
           <div class="copyright p-2">
-            ©2018 made with
+            ©2019 made with
             <span style="font-family: Times, serif">&#10084;</span> by
             <a href="https://github.com/felixguendling" target="_blank">Felix Gündling</a>
           </div>
