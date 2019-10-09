@@ -9,7 +9,7 @@ Darcula color scheme from the JetBrains family of IDEs
   display: block;
   overflow-x: auto;
   padding: 0.5em;
-  background: #272822;
+  background: #2b2e3b;
 }
 
 .hljs {
@@ -74,5 +74,5 @@ Darcula color scheme from the JetBrains family of IDEs
 .hljs-comment,
 .hljs-deletion,
 .hljs-meta {
-  color: #75715e;
+  color: #6272a4;
 }

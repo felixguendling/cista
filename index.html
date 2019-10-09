@@ -1,24 +1,25 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="Cista++ is an open source, single file C++17 serialization library.">
-    <meta name="keywords" content="cista, serialization, C++, C++17, cpp, single header, marshalling">
-    <meta name="author" content="Felix Gündling">
 
-    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Cista++ is an open source, single file C++17 serialization library.">
+  <meta name="keywords" content="cista, serialization, C++, C++17, cpp, single header, marshalling">
+  <meta name="author" content="Felix Gündling">
 
-    <title>Cista++ | Homepage</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
 
-    <link href="bootstrap.min.css" rel="stylesheet">
-    <link href="darcula.css" rel="stylesheet">
-    <script src="highlight.pack.js"></script>
-    <script>hljs.initHighlightingOnLoad();</script>
+  <title>Cista++ | Homepage</title>
 
-    <style>
+  <link href="bootstrap.min.css" rel="stylesheet">
+  <link href="darcula.css" rel="stylesheet">
+  <script src="highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+
+  <style>
     /*
      * Globals
      */
@@ -27,7 +28,7 @@
     a,
     a:focus,
     a:hover {
-      color: #9763ff;
+      color: #ffe953;
     }
 
     /* Custom default button */
@@ -35,47 +36,56 @@
     .btn-secondary:hover,
     .btn-secondary:focus {
       color: #333;
-      text-shadow: none; /* Prevent inheritance from `body` */
+      text-shadow: none;
+      /* Prevent inheritance from `body` */
       background-color: #fff;
       border: .05rem solid #fff;
     }
 
+    .btn {
+      text-shadow: none;
+    }
+
     .btn-primary {
-      color: #fff;
-      background-color: #9763ff;
-      border-color: #9763ff;
+      color: #111;
+      background-color: #ffe953;
+      border-color: #ffe953;
     }
+
     .btn-primary:hover {
-      color: #fff;
-      background-color: #7f41fc;
-      border-color: #7f41fc;
+      color: #111;
+      background-color: #ffe220;
+      border-color: #ffe220;
     }
 
-    .badge-run {
-      color: #fff;
-      background-color: #9763ff;
-      border-color: #9763ff;
-    }
-    .badge-run:hover {
-      color: #fff;
-      background-color: #7f41fc;
-      border-color: #7f41fc;
-      text-decoration: none;
-    }
-
-    /*
     .badge-run {
       color: #212529;
-      background-color: #ffc107;
+      background-color: #ffe953;
       border-color: #ffc107;
     }
+
     .badge-run:hover {
       color: #212529;
       background-color: #d39e00;
       border-color: #212529;
       text-decoration: none;
     }
-    */
+
+    .lead {
+      margin: 2em 0;
+    }
+
+    .lead>li::before {
+      content: "» ";
+      font-weight: bold;
+      margin-right: 8px;
+      color: #ffe953;
+    }
+
+    .lead>li {
+      list-style-type: none;
+      margin-top: .4em;
+    }
 
     /*
      * Base structure
@@ -102,7 +112,8 @@
       margin-bottom: 0;
     }
 
-    .nav-masthead .nav-link, .nav-masthead .nav-icon {
+    .nav-masthead .nav-link,
+    .nav-masthead .nav-icon {
       padding: .25rem 0;
       font-weight: 700;
       color: rgba(255, 255, 255, .5);
@@ -115,10 +126,11 @@
       border-bottom-color: rgba(255, 255, 255, .25);
     }
 
-    .nav-masthead .nav-link + .nav-link {
+    .nav-masthead .nav-link+.nav-link {
       margin-left: 1rem;
     }
-    .nav-masthead .nav-link + .nav-icon {
+
+    .nav-masthead .nav-link+.nav-icon {
       margin-left: 2rem;
     }
 
@@ -126,7 +138,9 @@
       color: #fff;
       border-bottom-color: #fff;
     }
-    .nav-icon,.nav-icon:hover {
+
+    .nav-icon,
+    .nav-icon:hover {
       border: none !important;
     }
 
@@ -134,9 +148,11 @@
       .masthead-brand {
         float: left;
       }
+
       .nav-masthead {
         float: right;
       }
+
       html {
         height: 100%;
       }
@@ -148,30 +164,34 @@
      */
     .cover {
       padding: 0 1rem;
-      margin-top: auto;
-      margin-bottom: auto;
     }
+
     .cover .btn-lg {
       padding: .75rem 1.25rem;
       font-weight: 700;
     }
+
     .message {
       color: #fff;
       text-shadow: 0 .05rem .1rem rgba(0, 0, 0, .5);
     }
+
     .message .badge {
       text-shadow: none;
     }
+
     .try {
       float: right;
       position: absolute;
       right: 15px;
       top: 12px;
     }
+
     .code {
       position: relative;
     }
-    .lead > li + li {
+
+    .lead>li+li {
       padding-top: 0.4em;
     }
 
@@ -183,18 +203,18 @@
     }
 
     html {
-      background-color: #333;
+      background-color: #1e202a;
     }
 
     @media (min-width: 1200px) {
       .container {
-          max-width: 1160px;
+        max-width: 1160px;
       }
     }
 
     @media (min-width: 1400px) {
       .container {
-          max-width: 1300px;
+        max-width: 1300px;
       }
     }
 
@@ -207,62 +227,105 @@
         margin-bottom: 2em;
       }
     }
-    </style>
-  </head>
 
-  <body>
-    <!-- ****  HOME **** -->
-    <div class="container d-flex h-100 p-3 mx-auto flex-column">
-      <header class="masthead mt-3">
-        <div class="inner">
-          <h3 class="masthead-brand text-center text-md-left mb-3">
-            <a href="#main" style="color:white">
-              <img style="position: relative; top: -3px" class="mr-3" src="logo.svg" alt="" width="64" height="64"/>
-              Cista++
-            </a>
-          </h3>
-          <nav class="nav nav-masthead justify-content-center">
-            <a class="nav-link active" href="#main">Home</a>
-            <a class="nav-link" href="#serialization">Serialization</a>
-            <a class="nav-link" href="#reflection">Reflection</a>
-            <a class="nav-icon" href="https://github.com/felixguendling/cista">
-              <img style="position: relative; top: -3px" class="mr-3" src="github.svg" alt="" width="32" height="32"/>
-            </a>
-          </nav>
-        </div>
-      </header>
+    .card {
+      background-color: #2b2e3b;
+      color: white;
+    }
 
-      <main id="main" role="main" class="inner cover mb-5">
-        <div class="row message">
-          <div class="col">
-            <h1 style="font-size: 2.35em">C++ Serialization &amp; Reflection</h1>
-            <p class="lead">
-              Cista++ is a simple, open source (MIT license) <span style="white-space: nowrap;">C++17 compatible</span> way of
-              (de-)serializing C++ data structures.<br/>
-              <b><i>Single header. No macros. No source code generation.</i></b>
-            </p>
-            <ul class="lead">
-              <li>Raw performance - use your native structs.<br />Supports modification/resizing of deserialized data!</li>
-              <li>Supports complex and cyclic data structures including cyclic references, recursive data structures, etc.</li>
-              <li>Save 50% memory: serialize directly to the filesystem if needed, no intermediate buffer required.</li>
-              <li>Compatible with Clang, GCC, and MSVC</li>
-            </ul>
-            <div class="buttons text-center mt-4">
-              <a href="https://github.com/felixguendling/cista/releases/download/v0.4/cista.h" style="margin-left: auto; margin-right: auto" class="btn btn-lg btn-primary mr-3">Download</a>
-              <a href="#serialization" style="margin-left: auto; margin-right: auto" class="btn btn-lg btn-secondary">Learn more</a>
-            </div>
+    .table-striped tbody tr:nth-of-type(2n+1) {
+      background-color: rgba(0, 0, 0, 0.33);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ****  HOME **** -->
+  <div class="container d-flex h-100 p-3 mx-auto flex-column">
+    <header class="masthead mt-3">
+      <div class="inner">
+        <h3 class="masthead-brand text-center text-md-left mb-3">
+          <a href="#main" style="color:white">
+            <img style="position: relative; top: -3px" class="mr-3" src="logo.svg" alt="" width="64" height="64" />
+            Cista++
+          </a>
+        </h3>
+        <nav class="nav nav-masthead justify-content-center">
+          <a class="nav-link active" href="#main">Home</a>
+          <a class="nav-link" href="#serialization">Serialization</a>
+          <a class="nav-link" href="#reflection">Reflection</a>
+          <a class="nav-icon" href="https://github.com/felixguendling/cista">
+            <img style="position: relative; top: -3px" class="mr-3" src="github.svg" alt="" width="32" height="32" />
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" role="main" class="inner cover mb-5">
+      <div class="row message">
+        <div class="col">
+          <h1 style="font-size: 2.35em; color: #ffe953">C++ Serialization &amp; Reflection</h1>
+          <p class="lead">
+            Cista++ is a simple, open source (MIT license) <span style="white-space: nowrap;">C++17 compatible</span>
+            way of
+            (de-)serializing C++ data structures.<br />
+            <b><i>Single header. No macros. No source code generation.</i></b>
+          </p>
+          <ul class="lead">
+            <li>Raw performance - use your native structs.<br />Supports modification/resizing of deserialized data!
+            </li>
+            <li>Supports complex and cyclic data structures including cyclic references, recursive data structures, etc.
+            </li>
+            <li>Save 50% memory: serialize directly to the filesystem if needed, no intermediate buffer required.</li>
+            <li>Fuzzing-checked though continuous fuzzing using LLVMs LibFuzzer.</li>
+            <li>Comes with a serializable high-performance hash map and hash set implementation based on Google's Swiss
+              Table technique.</li>
+            <li>Reduce boilerplate code: automatic derivation of hash and equality functions.</li>
+            <li>Optional: built-in automatic data structure versioning through recursive type hashing.</li>
+            <li>Optional: check sum to prevent deserialization of corrupt data.</li>
+            <li><b>Compatible with Clang, GCC, and MSVC</b></li>
+          </ul>
+          <div class="buttons text-center mt-4">
+            <a href="https://github.com/felixguendling/cista/releases/download/v0.4/cista.h"
+              style="margin-left: auto; margin-right: auto" class="btn btn-lg btn-primary mr-3">Download</a>
+            <a href="https://github.com/felixguendling/cista/wiki" style="margin-left: auto; margin-right: auto"
+              class="btn btn-lg btn-secondary">Documentation</a>
           </div>
-          <div class="col col-md-auto pt-3">
-            <div class="code">
-              <a href="https://wandbox.org/permlink/iNgGkW2dfbNY2YV9" class="try badge badge-run" target="_blank">compile & run</a>
-              <pre><code class="cpp box-shadow rounded p-4">namespace data = cista::offset;
+        </div>
+
+        <div class="col col-md-auto pt-3">
+          <div class="code">
+            <a href="https://wandbox.org/permlink/iNgGkW2dfbNY2YV9" class="try badge badge-run" target="_blank">compile
+              & run</a>
+            <pre><code class="cpp box-shadow rounded p-4">namespace data = cista::raw;
+struct my_struct {  // Define your struct.
+  int a_{0};
+  struct inner {
+      data::string b_;
+  } j;
+};
+
+std::vector&lt;unsigned char&gt; buf;
+{  // Serialize.
+  my_struct obj{1, {data::string{"test"}}};
+  buf = cista::serialize(obj);
+}
+
+// Deserialize.
+auto deserialized = cista::deserialize&lt;my_struct&gt;(buf);
+assert(deserialized-&gt;j.b_ == data::string{"test"});</code></pre>
+          </div>
+          <div class="code">
+            <a href="https://wandbox.org/permlink/iNgGkW2dfbNY2YV9" class="try badge badge-run" target="_blank">compile
+              & run</a>
+            <pre><code class="cpp box-shadow rounded p-4">namespace data = cista::offset;
 constexpr auto const MODE =  // opt. versioning + check sum
     cista::mode::WITH_VERSION | cista::mode::WITH_INTEGRITY;
 
 struct pos { int x, y; };
 using pos_map =  // Automatic deduction of hash & equality
     data::hash_map&lt;data::vector&lt;pos&gt;,
-                   data::hash_set&lt;data::string&gt;&gt;;
+                    data::hash_set&lt;data::string&gt;&gt;;
 
 {  // Serialize.
   auto positions =
@@ -275,481 +338,138 @@ using pos_map =  // Automatic deduction of hash & equality
 // Deserialize.
 auto b = cista::mmap("data", cista::mmap::protection::READ);
 auto positions = cista::deserialize&lt;pos_map, MODE&gt;(b);</code></pre>
-            </div>
           </div>
         </div>
-      </main> <!-- MAIN END -->
+      </div>
+    </main> <!-- MAIN END -->
 
-      <!-- ****  ABOUT **** -->
-      <main id="serialization" role="main" class="inner">
+    <!-- ****  ABOUT **** -->
+    <main id="serialization" role="main" class="inner">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Use Cases</h5>
+          <p class="card-text">
+            <p>Reader and writer should run on the same architecture (e.g. 64 bit little endian). Examples:</p>
+            <ul>
+              <li>Asset loading for all kinds of applications (i.e. game assets, GIS data, large graphs, etc.)</li>
+              <li>Transferring data over network</li>
+              <li>Shared memory applications</li>
+            </ul>
+            <p>
+              Currently, only C++17 software can read/write data.
+              It is possible to generate accessors for other programming languages, too.
+            </p>
+          </p>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-body">
+          <h5 class="card-title">Benchmarks</h5>
+          <p class="card-text">
+            <p>Have a look at the <a href="https://github.com/felixguendling/cpp-serialization-benchmark">benchmark
+                repository</a> for more details.</p>
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th scope="col" align="left">Library</th>
+                  <th scope="col" align="right">Serialize</th>
+                  <th scope="col" align="right">Deserialize</th>
+                  <th scope="col" align="right">Fast Deserialize</th>
+                  <th scope="col" align="right">Traverse</th>
+                  <th scope="col" align="right">Deserialize &amp; Traverse</th>
+                  <th scope="col" align="right">Size</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td align="left"><a href="https://capnproto.org/capnp-tool.html" rel="nofollow">Cap’n Proto</a></td>
+                  <td align="right">105 ms</td>
+                  <td align="right"><strong>0.002 ms</strong></td>
+                  <td align="right"><strong>0.0 ms</strong></td>
+                  <td align="right">356 ms</td>
+                  <td align="right">353 ms</td>
+                  <td align="right">50.5M</td>
+                </tr>
+                <tr>
+                  <td align="left"><a href="https://uscilab.github.io/cereal/index.html" rel="nofollow">cereal</a></td>
+                  <td align="right">239 ms</td>
+                  <td align="right">197.000 ms</td>
+                  <td align="right">-</td>
+                  <td align="right">125 ms</td>
+                  <td align="right">322 ms</td>
+                  <td align="right">37.8M</td>
+                </tr>
+                <tr>
+                  <td align="left"><a href="https://cista.rocks/" rel="nofollow">Cista++</a> <code>offset</code></td>
+                  <td align="right"><strong>72 ms</strong></td>
+                  <td align="right">0.053 ms</td>
+                  <td align="right"><strong>0.0 ms</strong></td>
+                  <td align="right">132 ms</td>
+                  <td align="right"><strong>132 ms</strong></td>
+                  <td align="right"><strong>25.3M</strong></td>
+                </tr>
+                <tr>
+                  <td align="left"><a href="https://cista.rocks/" rel="nofollow">Cista++</a> <code>raw</code></td>
+                  <td align="right">3555 ms</td>
+                  <td align="right">68.900 ms</td>
+                  <td align="right">21.5 ms</td>
+                  <td align="right"><strong>112 ms</strong></td>
+                  <td align="right"><strong>133 ms</strong></td>
+                  <td align="right">176.4M</td>
+                </tr>
+                <tr>
+                  <td align="left"><a href="https://google.github.io/flatbuffers/" rel="nofollow">Flatbuffers</a></td>
+                  <td align="right">2349 ms</td>
+                  <td align="right">15.400 ms</td>
+                  <td align="right"><strong>0.0 ms</strong></td>
+                  <td align="right">136 ms</td>
+                  <td align="right"><strong>133 ms</strong></td>
+                  <td align="right">378.0M</td>
+                </tr>
+              </tbody>
+            </table>
+          </p>
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-body">
+          <h5 class="card-title">Alternatives</h5>
+          <p class="card-text">
+            <p>
+              If you need to be compatible with other programming languages
+              or require protocol evolution (downward compatibility)
+              you should look for another solution.
+              The following libraries provide some/all of those features.
+            </p>
+            <p>Alternative libraries:</p>
+            <ul class="mt-2">
+              <li><a href="https://developers.google.com/protocol-buffers/">Protocol Buffers</a></li>
+              <li><a href="https://capnproto.org/">Cap’n Proto</a></li>
+              <li><a href="https://google.github.io/flatbuffers/">Flatbuffers</a></li>
+              <li><a href="https://uscilab.github.io/cereal/">cereal</a></li>
+              <li><a href="https://www.boost.org/doc/libs/1_68_0/libs/serialization/doc/index.html">Boost
+                  Serialization</a></li>
+              <li><a href="https://msgpack.org/">MessagePack</a></li>
+              <li><a href="https://en.wikipedia.org/wiki/Comparison_of_data_serialization_formats">... many more</a>
+              </li>
+            </ul>
+          </p>
+        </div>
+      </div>
+    </main> <!-- ABOUT END -->
+
+    <!-- ****  Reflection **** -->
+    <main id="reflection" role="main" class="inner">
+      <div class="card-columns">
         <div class="card">
           <div class="card-body">
-            <h5 class="card-title">Use Cases</h5>
+            <h5 class="card-title">Human Readable to String</h5>
             <p class="card-text">
-              <p>Reader and writer should run on the same architecture (e.g. 64 bit little endian). Examples:</p>
-              <ul>
-                <li>Asset loading for all kinds of applications (i.e. game assets, GIS data, large graphs, etc.)</li>
-                <li>Transferring data over network</li>
-                <li>Shared memory applications</li>
-              </ul>
-              <p>
-                Currently, only C++17 software can read/write data.
-                It is possible to generate accessors for other programming languages, too.
-              </p>
-            </p>
-          </div>
-        </div>
-
-        <div class="card mt-3">
-          <div class="card-body">
-            <h5 class="card-title">Benchmarks</h5>
-            <p class="card-text">
-              <p>Have a look at the <a href="https://github.com/felixguendling/cpp-serialization-benchmark">benchmark repository</a> for more details.</p>
-              <table class="table table-striped">
-                <thead>
-                  <tr>
-                    <th scope="col" align="left">Library</th>
-                    <th scope="col" align="right">Serialize</th>
-                    <th scope="col" align="right">Deserialize</th>
-                    <th scope="col" align="right">Fast Deserialize</th>
-                    <th scope="col" align="right">Traverse</th>
-                    <th scope="col" align="right">Deserialize &amp; Traverse</th>
-                    <th scope="col" align="right">Size</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td align="left"><a href="https://capnproto.org/capnp-tool.html" rel="nofollow">Cap’n Proto</a></td>
-                    <td align="right">105 ms</td>
-                    <td align="right"><strong>0.002 ms</strong></td>
-                    <td align="right"><strong>0.0 ms</strong></td>
-                    <td align="right">356 ms</td>
-                    <td align="right">353 ms</td>
-                    <td align="right">50.5M</td>
-                  </tr>
-                  <tr>
-                    <td align="left"><a href="https://uscilab.github.io/cereal/index.html" rel="nofollow">cereal</a></td>
-                    <td align="right">239 ms</td>
-                    <td align="right">197.000 ms</td>
-                    <td align="right">-</td>
-                    <td align="right">125 ms</td>
-                    <td align="right">322 ms</td>
-                    <td align="right">37.8M</td>
-                  </tr>
-                  <tr>
-                    <td align="left"><a href="https://cista.rocks/" rel="nofollow">Cista++</a> <code>offset</code></td>
-                    <td align="right"><strong>72 ms</strong></td>
-                    <td align="right">0.053 ms</td>
-                    <td align="right"><strong>0.0 ms</strong></td>
-                    <td align="right">132 ms</td>
-                    <td align="right"><strong>132 ms</strong></td>
-                    <td align="right"><strong>25.3M</strong></td>
-                  </tr>
-                  <tr>
-                    <td align="left"><a href="https://cista.rocks/" rel="nofollow">Cista++</a> <code>raw</code></td>
-                    <td align="right">3555 ms</td>
-                    <td align="right">68.900 ms</td>
-                    <td align="right">21.5 ms</td>
-                    <td align="right"><strong>112 ms</strong></td>
-                    <td align="right"><strong>133 ms</strong></td>
-                    <td align="right">176.4M</td>
-                  </tr>
-                  <tr>
-                    <td align="left"><a href="https://google.github.io/flatbuffers/" rel="nofollow">Flatbuffers</a></td>
-                    <td align="right">2349 ms</td>
-                    <td align="right">15.400 ms</td>
-                    <td align="right"><strong>0.0 ms</strong></td>
-                    <td align="right">136 ms</td>
-                    <td align="right"><strong>133 ms</strong></td>
-                    <td align="right">378.0M</td>
-                  </tr>
-                </tbody>
-              </table>
-            </p>
-          </div>
-        </div>
-
-        <div class="card mt-3">
-          <div class="card-body">
-            <h5 class="card-title">Alternatives</h5>
-            <p class="card-text">
-              <p>
-                If you need to be compatible with other programming languages
-                or require protocol evolution (downward compatibility)
-                you should look for another solution.
-                The following libraries provide some/all of those features.
-              </p>
-              <p>Alternative libraries:</p>
-              <ul class="mt-2">
-                <li><a href="https://developers.google.com/protocol-buffers/">Protocol Buffers</a></li>
-                <li><a href="https://capnproto.org/">Cap’n Proto</a></li>
-                <li><a href="https://google.github.io/flatbuffers/">Flatbuffers</a></li>
-                <li><a href="https://uscilab.github.io/cereal/">cereal</a></li>
-                <li><a href="https://www.boost.org/doc/libs/1_68_0/libs/serialization/doc/index.html">Boost Serialization</a></li>
-                <li><a href="https://msgpack.org/">MessagePack</a></li>
-                <li><a href="https://en.wikipedia.org/wiki/Comparison_of_data_serialization_formats">... many more</a></li>
-              </ul>
-            </p>
-          </div>
-        </div>
-
-        <div class="card mt-3">
-          <div class="card-body">
-            <h5 class="card-title">Usage</h5>
-            <p class="card-text">
-              <ul>
-                <li>Declare the data structures you want to serialize as regular C++ structs
-                (using scalar types, <code>cista::raw/offset::string</code>, <code>cista::raw/offset::unique_ptr&lt;T&amp;&gt;</code>,
-                and <code>cista::raw/offset::vector&lt;T&amp;&gt;</code> - more types such as <code>map</code>/<code>set</code>/etc. may follow).</li>
-                <li>Do <em>NOT</em> declare any constructors (reflection will not work otherwise).</li>
-                <li>Always use data types with known sizes such as <code>int32_t</code>, <code>uint8_t</code> for compatibility across platforms (with the same architecture).</li>
-                <li>To use pointers: store the object you want to reference as <code>cista::raw/offset::unique_ptr&lt;T&amp;&gt;</code> and use a raw pointer <code>T*</code> to reference it.</li>
-                <li>Optional: if you need deterministic buffer contents, you need to fill spare bytes in your structs (see the advanced example below).</li>
-              </ul>
-
-              <p>Cista++ supports two serialization formats:</p>
-
-              <p><em>Offset Based Data Structures</em></p>
-              <ul>
-                <li><code>+</code> can be read without any deserialization step</li>
-                <li><code>+</code> suitable for shared memory applications</li>
-                <li><code>-</code> slower at runtime (pointers need to be resolved using on more add)</li>
-              </ul>
-
-              <p><em>Raw Data Structures</em></p>
-              <ul>
-                <li><code>-</code> deserialize step takes time (but still very fast also for GBs of data)</li>
-                <li><code>-</code> the buffer containing the serialized data needs to be modified</li>
-                <li><code>+</code> fast runtime access (raw access)</li>
-              </ul>
-            </p>
-          </div>
-        </div>
-
-        <div class="card mt-3">
-          <div class="card-body">
-            <h5 class="card-title">API Documentation</h5>
-            <p class="card-text">
-              <p>Both namespaces <code>cista::offset</code> and <code>cista::raw</code> have the same structure. They provide the same data structures and functions. They have the same behavior.</p>
-
-              <h6>Data Structures</h6>
-              <p>The following data structures exist in <code>cista::offset</code> and <code>cista::raw</code>:</p>
-              <ul>
-                <li><strong><code>vector&lt;T&gt;</code></strong>: serializable version of <code>std::vector&lt;T&gt;</code></li>
-                <li><strong><code>string</code></strong>: serializable version of <code>std::string</code></li>
-                <li><strong><code>unique_ptr&lt;T&gt;</code></strong>: serializable version of <code>std::unique_ptr&lt;T&gt;</code></li>
-                <li><strong><code>ptr&lt;T&gt;</code></strong>: serializable pointer: <code>cista::raw::ptr&lt;T&gt;</code> is just a <code>T*</code>, <code>cista::offset::ptr&lt;T&gt;</code> is a specialized data structure that behaves mostly like a <code>T*</code> (overloaded <code>-&gt;</code>, <code>*</code>, etc. operators).</li>
-              </ul>
-
-              <p>Currently, <code>vector</code>, <code>string</code>, and <code>unique_ptr</code> do not provide exactly the same interface as their <code>std::</code> equivalents. Standard compliance was not a goal. This can change in future releases. It is possible to add more data structures to Cista++.</p>
-
-              <h6>Serialization and Deserialization Functions</h6>
-
-              <h7>Serialization</h7>
-              <p>The following methods can be used to serialize either to a <code>std::vector&lt;uint8_t&gt;</code> (default) or to an arbitrary serialization target.</p>
-              <ul>
-                <li><strong><code>std::vector&lt;uint8_t&gt; cista::serialize&lt;T&gt;(T const&amp;)</code></strong> serializes an object of type <code>T</code>and returns a buffer containing the serialized object.</li>
-                <li><strong><code>void cista::serialize&lt;Target, T&gt;(Target&amp;, T const&amp;)</code></strong> serializes an object of type <code>T</code> to the specified target. Targets are either <code>cista::buf</code> or <code>cista::sfile</code>. Custom target sturcts should provide <code>write</code> functions as described <a href="#serialization">here</a>.</li>
-              </ul>
-
-              <h7>Deserialization</h7>
-              <p>The following functions exist in <code>cista::offset</code> and <code>cista::raw</code>:</p>
-              <ul>
-                <li><strong><code>T* deserialize&lt;T, Container&gt;(Container&amp;)</code></strong> deserializes an object from a <code>std::vector&lt;uint8_t&gt;</code> or similar data structure. This function throws a <code>std::runtimer_error</code> if the data is not well-formed.</li>
-                <li><strong><code>T* deserialize&lt;T&gt;(uint8_t* from, uint8_t* to)</code></strong> deserializes an object from a pointer range. This function throws a <code>std::runtimer_error</code> if the data is not well-formed.</li>
-                <li><strong><code>T* unchecked_deserialize&lt;T, Container&gt;(Container&amp;)</code></strong> deserializes an object from a <code>std::vector&lt;uint8_t&gt;</code> or similar data structure. No checking is performed!</li>
-                <li><strong><code>T* unchecked_deserialize&lt;T&gt;(uint8_t* from, uint8_t* to)</code></strong> deserializes an object from a pointer range. No checking is performed!</li>
-              </ul>
-              <p><code>cista::offset::unchecked_deserialize</code> performs just a pointer cast!</p>
-            </p>
-          </div>
-        </div>
-
-        <div class="card mt-3">
-          <div class="card-body">
-            <h5 class="card-title">Advanced Example</h5>
-            <p class="card-text">
-              <p>
-                The following example shows serialization and deserialization
-                of more complex data structures.
-                It is also available <a href="https://github.com/felixguendling/cista/blob/master/test/offset_graph_test.cc">here</a>
-              </p>
-              <h6>Data structure definition</h6>
-              <pre class="box-shadow rounded p-4"><code class="cpp">namespace data = cista::raw;
-
-// Forward declare `node` to be able to use it in `edge`.
-struct node;
-
-// Always use types that have a fixed size on every
-// platform: (u)int16_t, (u)int32_t, ...
-using node_id_t = uint32_t;
-
-struct edge {
-  data::ptr&lt;node&gt; from_;
-  data::ptr&lt;node&gt; to_;
-};
-
-struct node {
-  void add_edge(edge* e) { edges_.emplace_back(e); }
-  node_id_t id() const { return id_; }
-
-  node_id_t id_{0};
-  node_id_t fill_{0};
-  data::vector&lt;data::ptr&lt;edge&gt;&gt; edges_;
-  data::string name_;
-};
-
-struct graph {
-  node* make_node(data::string name) {
-    return nodes_
-        .emplace_back(data::make_unique&lt;node&gt;(
-            node{next_node_id_++, 0, data::vector&lt;data::ptr&lt;edge&gt;&gt;{0u},
-                 std::move(name)}))
-        .get();
-  }
-
-  edge* make_edge(node_id_t const from, node_id_t const to) {
-    return edges_
-        .emplace_back(
-            data::make_unique&lt;edge&gt;(edge{nodes_[from].get(), nodes_[to].get()}))
-        .get();
-  }
-
-  // Use unique_ptr to enable pointers to these objects.
-  data::vector&lt;data::unique_ptr&lt;node&gt;&gt; nodes_;
-  data::vector&lt;data::unique_ptr&lt;edge&gt;&gt; edges_;
-  node_id_t next_node_id_{0};
-  node_id_t fill_{0};  // optional: zero out spare bytes for
-                       // deterministic buffer contents
-};</code></pre>
-            <h6>Creating the Graph and De-/Serialization</h6>
-            <div class="code">
-              <a href="https://onlinegdb.com/rJ-DDD9ZN" class="try badge badge-run" target="_blank">compile & run</a>
-              <pre class="box-shadow rounded p-4"><code class="language-cpp">// Create cyclic graph with nodes and edges.
-{
-  graph g;
-
-  auto const n1 = g.make_node(data::string{"NODE A"});
-  auto const n2 = g.make_node(data::string{"NODE B"});
-  auto const n3 = g.make_node(data::string{"NODE C"});
-
-  auto const e1 = g.make_edge(n1-&gt;id(), n2-&gt;id());
-  auto const e2 = g.make_edge(n2-&gt;id(), n3-&gt;id());
-  auto const e3 = g.make_edge(n3-&gt;id(), n1-&gt;id());
-
-  n1-&gt;add_edge(e1);
-  n2-&gt;add_edge(e2);
-  n3-&gt;add_edge(e3);
-
-  cista::sfile f{"test.bin", "wb"};
-  cista::serialize(f, g);
-}  // EOL graph
-
-auto b = cista::file("test.bin", "r").content();
-auto const g = data::deserialize&lt;graph&gt;(b);
-
-use(g);
-</code></pre>
-              </div>
-            </p>
-          </div>
-        </div>
-
-        <div class="card mt-3">
-          <div class="card-body">
-            <h5 class="card-title">How Does It Work?</h5>
-            <p class="card-text">
-              Basically, the only thing the <code>cista::serialize()</code>
-              call does, is to copy everything into one coherent target
-              (e.g. file or memory buffer) byte-by-byte.
-              Additionally, each pointer gets converted to an offset
-              at serialization and back to a real pointer at deserialization.
-              Every data structure can be (de-)serialized using a custom
-              (de-)serialization function (see below for more details).
-              All this is done recursively.
-            </p>
-          </div>
-        </div>
-
-        <div class="card mt-3">
-          <div class="card-body">
-            <h5 class="card-title">Security</h5>
-            <p class="card-text">
-              <p>
-                Generally, all serialized data is checked so that every pointer
-                <code>T*</code> is either a <code>nullptr</code>
-                or points to a valid position within
-                the buffer with enough bytes for <code>T</code>.
-                Scalar values are checked to fit into the buffer at their position, too.
-                Code can be found <a href="https://github.com/felixguendling/cista/blob/master/include/cista/serialization.h#L215">here</a>.
-              </p>
-
-              <p>
-                Note that modifying serialized data may corrupt it
-                in unexpected ways. Therefore, it is not safe to access
-                modified deserialized data coming from untrusted sources.
-                However, deserializing and reading data from untrusted
-                sources is safe.
-              </p>
-            </p>
-          </div>
-        </div>
-
-        <div class="card mt-3">
-          <div class="card-body">
-            <h5 class="card-title">Custom (De-)Serialization Functions</h5>
-            <p class="card-text">
-              If you have 3rd-party structs, structs with constructors
-              or structs that manage memory, etc. you need to override
-              the serialize and deserialize functions.
-
-              A (very simple) example can be found <a href="https://github.com/felixguendling/cista/blob/master/test/custom_struct_test.cc">here</a>.
-
-              <h6>Serialization</h6>
-              <p>
-                By default, every value gets copied raw byte-by-byte.
-                For each type you would like serialize with a custom function,
-                you need to override the following function for your type.
-
-                This function will be called with
-                <ul>
-                  <li>
-                    The serialization context (described below).
-                    It provides functions to write to the buffer
-                    and to translate pointers to offsets.
-                  </li>
-                  <li>
-                    A pointer to the original value (i.e. not the serialized!)
-                    of your struct.
-                  </li>
-                  <li>
-                    The offset value where the value of <code>YourType</code> has been
-                    copied to. You can use this information to adjust certain
-                    members of <code>YourType</code>. For example:
-                    <code>ctx.write(pos + offsetof(cista::string, h_.ptr_), start)</code>.
-                    This overrides the pointer contained in <code>cista::string</code>
-                    with the offset, the bytes have been copied to by calling
-                    <code>start = c.write(orig->data(), orig->size(), 1)</code>.
-                  </li>
-                </ul>
-
-                <pre class="box-shadow rounded p-4"><code class="language-cpp">template &lt;typename Ctx&gt;
-void serialize(Ctx&, YourType const*, cista::offset_t const);</code></pre>
-              </p>
-
-              <p>
-                The <code>Ctx</code> parameter is templated to support different
-                serialization targets (e.g. file and buffer).
-                <code>Ctx</code> provides the following members:
-
-                <pre class="box-shadow rounded p-4"><code class="language-cpp">struct serialization_context {
-  /**
-   * Writes the values at [ptr, ptr + size[ to
-   * the end of the serialization target buffer.
-   * Adjusts for alignment if needed and returns
-   * the new (aligned) offset the value was written to.
-   *
-   * Appends to the buffer (resize).
-   *
-   * \param ptr         points to the data to write
-   * \param size        number of bytes to write
-   * \param alignment   the alignment to consider
-   * \return the alignment adjusted offset
-   */
-  offset_t write(void const* ptr, offset_t const size,
-                 offset_t alignment = 0);
-
-  /**
-   * Overrides the value at `pos` with value `val`.
-   *
-   * Note: does not append to the buffer.
-   * The position `pos` needs to exist already
-   * and provide enough space to write `val`.
-   *
-   * \param pos  the position to write to
-   * \param val  the value to copy to position `pos`
-   */
-  template &lt;typename T&gt;
-  void write(offset_t const pos, T const& val);
-
-  /**
-   * Lookup table from original pointer
-   * to the offset the data was written to.
-   */
-  std::map&lt;void*, offset_t&gt; offsets_;
-
-  /**
-   * Pending pointers that could not yet get
-   * resolved (i.e. the value they point to has not
-   * yet been written yet but will be later).
-   */
-  std::vector&lt;pending_offset&gt; pending_;
-};</code></pre>
-              </p>
-
-              <h6>Deserialization</h6>
-
-              <p>
-                To enable a custom deserialization, you need to create a specialized
-                function for your type with the following signature:
-                <pre class="box-shadow rounded p-4"><code class="language-cpp">void deserialize(cista::deserialization_context const&, YourType*) {}</code></pre>
-              </p>
-
-              With this function you should:
-              <ul>
-                <li>
-                  convert offsets back to pointers using the
-                  <code>deserialization_context::deserialize()</code>
-                  member function.
-                </li>
-                <li>
-                  and check that pointers point to memory addresses
-                  that are located inside the buffer
-                  using <code>deserialization_context::check()</code>
-                </li>
-              </ul>
-
-              <p>
-                Both functions (<code>deserialize()</code> and <code>check()</code>)
-                are provided by the <code>deserialization_context</code>:
-                <pre class="box-shadow rounded p-4"><code class="language-cpp">struct deserialization_context {
-  /**
-   * Converts a stored offset back to the original pointer
-   * by adding the base address.
-   *
-   * \param ptr  offset (given as a pointer)
-   * \return offset converted to pointer
-   */
-  template &lt;typename T, typename Ptr&gt;
-  T deserialize(Ptr* ptr) const;
-
-  /**
-   * Checks whether the pointer points to
-   * a valid memory address within the buffer
-   * where at least `size` bytes are available.
-   *
-   * \param el    the memory address to check
-   * \param size  the size to check for
-   * \throws if there are bytes outside the buffer
-   */
-  template &lt;typename T&gt;
-  void check(T* el, size_t size) const;
-};</code></pre>
-            </p>
-          </div>
-        </div>
-      </main> <!-- ABOUT END -->
-
-      <!-- ****  Reflection **** -->
-      <main id="reflection" role="main" class="inner">
-        <div class="card-columns">
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Human Readable to String</h5>
-              <p class="card-text">
-                <div class="code">
-                  <a href="https://onlinegdb.com/SyE6anqkV" class="try badge badge-run" target="_blank">compile & run</a>
-                  <pre class="box-shadow rounded p-2"><code class="language-cpp">struct a {
+              <div class="code">
+                <a href="https://onlinegdb.com/SyE6anqkV" class="try badge badge-run" target="_blank">compile & run</a>
+                <pre class="box-shadow rounded p-2"><code class="language-cpp">struct a {
   CISTA_PRINTABLE(a)
   int i_ = 1;
   int j_ = 2;
@@ -762,17 +482,17 @@ int main() {
   std::cout &lt;&lt; instance;
   // "{1, 2, 100, hello}"
 }</code></pre>
-                </div>
-              </p>
-            </div>
+              </div>
+            </p>
           </div>
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Modify Struct as Tuple</h5>
-              <p class="card-text">
-                <div class="code">
-                  <a href="https://onlinegdb.com/SJKvTh5yE" class="try badge badge-run" target="_blank">compile & run</a>
-                  <pre class="box-shadow rounded p-2"><code class="language-cpp">struct a {
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Modify Struct as Tuple</h5>
+            <p class="card-text">
+              <div class="code">
+                <a href="https://onlinegdb.com/SJKvTh5yE" class="try badge badge-run" target="_blank">compile & run</a>
+                <pre class="box-shadow rounded p-2"><code class="language-cpp">struct a {
   int i_ = 1;
   int j_ = 2;
   double d_ = 100.0;
@@ -788,35 +508,36 @@ int main() {
   get<2>(to_tuple(i)) = 2.0;
   get<3>(to_tuple(i)) = "yeah";
 }</code></pre>
-                </div>
-              </p>
-            </div>
+              </div>
+            </p>
           </div>
-          <div class="card text-white text-right p-3" style="background-color: #272822">
-            <blockquote class="blockquote mb-0">
-              <p>
-                The Cista++ Serialization is based on
-                a powerful reflection concept made possible
-                by the C++17 structured bindings feature.
-              </p>
-              <p>
-                This page presents some other
-                utilities enabled by this technique.
-              </p>
-              <footer class="blockquote-footer">
-                <small class="text-muted">
-                  <i>Credits:</i> based on the idea presented <a href="http://playfulprogramming.blogspot.com/2016/12/serializing-structs-with-c17-structured.html">here</a>.
-                </small>
-              </footer>
-            </blockquote>
-          </div>
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Comparable: Generate Operators</h5>
-              <p class="card-text">
-                <div class="code">
-                  <a href="https://onlinegdb.com/rk0fTh5kN" class="try badge badge-run" target="_blank">compile & run</a>
-                  <pre class="box-shadow rounded p-2"><code class="language-cpp">struct a {
+        </div>
+        <div class="card text-white text-right p-3" style="background-color: #272822">
+          <blockquote class="blockquote mb-0">
+            <p>
+              The Cista++ Serialization is based on
+              a powerful reflection concept made possible
+              by the C++17 structured bindings feature.
+            </p>
+            <p>
+              This page presents some other
+              utilities enabled by this technique.
+            </p>
+            <footer class="blockquote-footer">
+              <small class="text-muted">
+                <i>Credits:</i> based on the idea presented <a
+                  href="http://playfulprogramming.blogspot.com/2016/12/serializing-structs-with-c17-structured.html">here</a>.
+              </small>
+            </footer>
+          </blockquote>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Comparable: Generate Operators</h5>
+            <p class="card-text">
+              <div class="code">
+                <a href="https://onlinegdb.com/rk0fTh5kN" class="try badge badge-run" target="_blank">compile & run</a>
+                <pre class="box-shadow rounded p-2"><code class="language-cpp">struct a {
   CISTA_COMPARABLE()
   int i_ = 1;
   int j_ = 2;
@@ -835,17 +556,17 @@ int main() {
   CHECK(inst1 != inst2);
   CHECK(inst1 &lt;= inst2);
 }</code></pre>
-                </div>
-              </p>
-            </div>
+              </div>
+            </p>
           </div>
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Iterate Each Field</h5>
-              <p class="card-text">
-                <div class="code">
-                  <a href="https://onlinegdb.com/ryRp33qkV" class="try badge badge-run" target="_blank">compile & run</a>
-                  <pre class="box-shadow rounded p-2"><code class="language-cpp">struct a {
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Iterate Each Field</h5>
+            <p class="card-text">
+              <div class="code">
+                <a href="https://onlinegdb.com/ryRp33qkV" class="try badge badge-run" target="_blank">compile & run</a>
+                <pre class="box-shadow rounded p-2"><code class="language-cpp">struct a {
   int i_ = 1;
   int j_ = 2;
   double d_ = 100.0;
@@ -861,17 +582,17 @@ int main() {
   CHECK(i.d_ == 0.0);
   CHECK(i.s_ == "");
 }</code></pre>
-                </div>
-              </p>
-            </div>
+              </div>
+            </p>
           </div>
-          <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Generate SQL Statements</h5>
-              <p class="card-text">
-                <div class="code">
-                  <a href="https://onlinegdb.com/BkEgNzpkN" class="try badge badge-run" target="_blank">compile & run</a>
-                  <pre class="box-shadow rounded p-2"><code class="language-cpp">struct row {
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Generate SQL Statements</h5>
+            <p class="card-text">
+              <div class="code">
+                <a href="https://onlinegdb.com/BkEgNzpkN" class="try badge badge-run" target="_blank">compile & run</a>
+                <pre class="box-shadow rounded p-2"><code class="language-cpp">struct row {
   sql_col&lt;
     int, name("id"),
     primary, not_null&gt; user_id;
@@ -892,35 +613,35 @@ int main() {
   //   last TEXT NOT NULL
   // );
 }</code></pre>
-                </div>
-              </p>
-            </div>
+              </div>
+            </p>
           </div>
         </div>
-      </main>
+      </div>
+    </main>
 
-      <footer class="mastfoot mt-auto">
-        <div class="text-center">
-          <div class="copyright p-2">
-            ©2019 made with
-            <span style="font-family: Times, serif">&#10084;</span> by
-            <a href="https://github.com/felixguendling" target="_blank">Felix Gündling</a>
-          </div>
+    <footer class="mastfoot mt-auto">
+      <div class="text-center">
+        <div class="copyright p-2">
+          ©2019 made with
+          <span style="font-family: Times, serif">&#10084;</span> by
+          <a href="https://github.com/felixguendling" target="_blank">Felix Gündling</a>
         </div>
-      </footer>
-    </div>
+      </div>
+    </footer>
+  </div>
 
 
-    <!-- Bootstrap core JavaScript
+  <!-- Bootstrap core JavaScript
     ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script>window.jQuery || document.write('<script src="jquery-slim.min.js"><\/script>')</script>
-    <script src="prism.js"></script>
-    <script>
+  <!-- Placed at the end of the document so the pages load faster -->
+  <script>window.jQuery || document.write('<script src="jquery-slim.min.js"><\/script>')</script>
+  <script src="prism.js"></script>
+  <script>
     function nav(route) {
       var title = 'Cista++';
       var separator = ' | ';
-      var route_names = {main: 'Homepage', serialization: 'Serialization', reflection: 'Reflection'};
+      var route_names = { main: 'Homepage', serialization: 'Serialization', reflection: 'Reflection' };
       var routes = ['main', 'serialization', 'reflection'];
       var path = (route || window.location.hash).slice(1).split('-');
 
@@ -949,6 +670,7 @@ int main() {
     window.addEventListener("hashchange", function () { nav(); }, false);
 
     nav();
-    </script>
-  </body>
+  </script>
+</body>
+
 </html>
