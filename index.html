@@ -327,7 +327,7 @@ constexpr auto const MODE =  // opt. versioning + check sum
 struct pos { int x, y; };
 using pos_map =  // Automatic deduction of hash & equality
     data::hash_map&lt;data::vector&lt;pos&gt;,
-                    data::hash_set&lt;data::string&gt;&gt;;
+                   data::hash_set&lt;data::string&gt;&gt;;
 
 {  // Serialize.
   auto positions =
