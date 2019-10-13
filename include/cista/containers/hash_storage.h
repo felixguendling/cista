@@ -583,6 +583,7 @@ struct hash_storage {
     auto const old_ctrl = ctrl_;
     auto const old_entries = entries_;
     auto const old_capacity = capacity_;
+    auto const old_self_allocated = self_allocated_;
 
     capacity_ = new_capacity;
     initialize_entries();
@@ -597,10 +598,12 @@ struct hash_storage {
       }
     }
 
-    if (old_capacity != 0U && self_allocated_) {
+    if (old_capacity != 0U && old_self_allocated) {
       CISTA_ALIGNED_FREE(old_entries);
     }
   }
+
+  void rehash() { resize(capacity_); }
 
   iterator iterator_at(size_t const i) { return {ctrl_ + i, entries_ + i}; }
   const_iterator iterator_at(size_t i) const {
