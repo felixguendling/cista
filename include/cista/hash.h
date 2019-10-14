@@ -12,10 +12,12 @@ using hash_t = std::uint64_t;
 
 constexpr auto const BASE_HASH = 14695981039346656037ULL;
 
-template <typename T>
-constexpr hash_t hash_combine(hash_t const h, T const val) {
-  constexpr hash_t prime = 1099511628211ULL;
-  return (h ^ static_cast<hash_t>(val)) * prime;
+template <typename... Args>
+constexpr hash_t hash_combine(hash_t h, Args... val) {
+  constexpr hash_t fnv_prime = 1099511628211ULL;
+  auto fnv = [&](auto arg) { h = (h ^ static_cast<hash_t>(arg)) * fnv_prime; };
+  ((fnv(val)), ...);
+  return h;
 }
 
 inline hash_t hash(std::string_view s, hash_t h = BASE_HASH) {
