@@ -13,7 +13,7 @@
 namespace cista {
 
 template <typename T>
-constexpr size_t trailing_zeros(T t) {
+constexpr unsigned trailing_zeros(T t) {
   static_assert(sizeof(T) == 8 || sizeof(T) == 4, "not supported");
 
   if (t == 0) {
@@ -34,7 +34,7 @@ constexpr size_t trailing_zeros(T t) {
     _BitScanForward(&index, t);
     return index;
 #else
-    return static_cast<size_t>(__builtin_ctzll(t));
+    return static_cast<unsigned>(__builtin_ctzll(t));
 #endif
   } else if constexpr (sizeof(T) == 4) {  // 32bit
 #if defined(_MSC_VER)
@@ -42,13 +42,13 @@ constexpr size_t trailing_zeros(T t) {
     _BitScanForward(&index, t);
     return index;
 #else
-    return static_cast<size_t>(__builtin_ctz(t));
+    return static_cast<unsigned>(__builtin_ctz(t));
 #endif
   }
 }
 
 template <typename T>
-constexpr size_t leading_zeros(T t) {
+constexpr unsigned leading_zeros(T t) {
   static_assert(sizeof(T) == 8 || sizeof(T) == 4, "not supported");
 
   if (t == 0) {
@@ -72,7 +72,7 @@ constexpr size_t leading_zeros(T t) {
     }
     return 64;
 #else
-    return static_cast<size_t>(__builtin_clzll(t));
+    return static_cast<unsigned>(__builtin_clzll(t));
 #endif
   } else if constexpr (sizeof(T) == 4) {  // 32bit
 #if defined(_MSC_VER)
@@ -82,7 +82,7 @@ constexpr size_t leading_zeros(T t) {
     }
     return 32;
 #else
-    return static_cast<size_t>(__builtin_clz(t));
+    return static_cast<unsigned>(__builtin_clz(t));
 #endif
   }
 }

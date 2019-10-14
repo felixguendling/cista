@@ -726,13 +726,10 @@ void check_state(
   c.check_ptr(
       el->entries_,
       checked_addition(
-          checked_multiplication(static_cast<size_t>(el->capacity_), sizeof(T)),
           checked_multiplication(
-              checked_addition(el->capacity_, 1U, Type::WIDTH),
-              sizeof(typename Type::ctrl_t))));
-  c.check_ptr(el->ctrl_, checked_multiplication(
-                             checked_addition(el->capacity_, 1U, Type::WIDTH),
-                             sizeof(typename Type::ctrl_t)));
+              el->capacity_, static_cast<typename Type::size_type>(sizeof(T))),
+          checked_addition(el->capacity_, 1U, Type::WIDTH)));
+  c.check_ptr(el->ctrl_, checked_addition(el->capacity_, 1U, Type::WIDTH));
   c.require(el->entries_ == nullptr ||
                 reinterpret_cast<uint8_t const*>(ptr_cast(el->ctrl_)) ==
                     reinterpret_cast<uint8_t const*>(ptr_cast(el->entries_)) +
@@ -758,10 +755,11 @@ void check_state(
                         }),
             "hash storage: ctrl bytes must be empty or deleted or full");
 
+  using st_t = typename Type::size_type;
   auto [empty, full, deleted, growth] = std::accumulate(
       ptr_cast(el->ctrl_), ptr_cast(el->ctrl_) + el->capacity_,
-      std::tuple{size_t{0U}, size_t{0U}, size_t{0U}, size_t{0}},
-      [&](std::tuple<size_t, size_t, size_t, size_t> const acc,
+      std::tuple{st_t{0U}, st_t{0U}, st_t{0U}, st_t{0}},
+      [&](std::tuple<st_t, st_t, st_t, st_t> const acc,
           typename Type::ctrl_t const& ctrl) {
         auto const [empty, full, deleted, growth_left] = acc;
         return std::tuple{
@@ -769,7 +767,7 @@ void check_state(
             Type::is_full(ctrl) ? full + 1 : full,
             Type::is_deleted(ctrl) ? deleted + 1 : deleted,
             (Type::is_empty(ctrl) &&
-                     el->was_never_full(static_cast<size_t>(&ctrl - el->ctrl_))
+                     el->was_never_full(static_cast<st_t>(&ctrl - el->ctrl_))
                  ? growth_left + 1
                  : growth_left)};
       });

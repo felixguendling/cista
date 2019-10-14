@@ -33,14 +33,15 @@ namespace cista {
 //   - sanitizer support (Sanitizer[Un]PoisonMemoryRegion)
 //   - overloads (conveniance as well to reduce copying) in the interface
 //   - allocator support
-template <typename T, template <typename> typename Ptr,
-          typename TemplateSizeType, typename GetKey, typename GetValue,
-          typename Hash, typename Eq>
+template <typename T, template <typename> typename Ptr, typename SizeType,
+          typename GetKey, typename GetValue, typename Hash, typename Eq>
 struct hash_storage {
-  static constexpr auto const WIDTH = 8U;
+  static_assert(std::is_unsigned_v<SizeType>, "unsupported signed size type");
+  static constexpr SizeType const WIDTH = 8U;
 
   using entry_t = T;
   using difference_type = ptrdiff_t;
+  using size_type = SizeType;
   using key_t =
       decay_t<decltype(std::declval<GetKey>().operator()(std::declval<T>()))>;
   using mapped_type =
@@ -49,11 +50,11 @@ struct hash_storage {
   using h2_t = uint8_t;
 
   template <typename Key>
-  size_t compute_hash(Key const& k) {
+  size_type compute_hash(Key const& k) {
     if constexpr (std::is_same_v<decay_t<Key>, key_t>) {
-      return Hash{}(k);
+      return static_cast<size_type>(Hash{}(k));
     } else {
-      return Hash::template create<Key>()(k);
+      return static_cast<size_type>(Hash::template create<Key>()(k));
     }
   }
 
@@ -64,18 +65,19 @@ struct hash_storage {
   };
 
   struct find_info {
-    size_t offset_, probe_length_;
+    size_type offset_, probe_length_;
   };
 
   struct probe_seq {
-    probe_seq(size_t hash, size_t mask) : mask_{mask}, offset_{hash & mask_} {}
-    size_t offset(size_t const i) const { return (offset_ + i) & mask_; }
+    probe_seq(size_type hash, size_type mask)
+        : mask_{mask}, offset_{hash & mask_} {}
+    size_type offset(size_type const i) const { return (offset_ + i) & mask_; }
     void next() {
       index_ += WIDTH;
       offset_ += index_;
       offset_ &= mask_;
     }
-    size_t mask_, offset_, index_{0U};
+    size_type mask_, offset_, index_{0U};
   };
 
   struct bit_mask {
@@ -88,18 +90,18 @@ struct hash_storage {
       return *this;
     }
 
-    size_t operator*() const { return trailing_zeros(); }
+    size_type operator*() const { return trailing_zeros(); }
 
     explicit operator bool() const { return mask_ != 0U; }
 
     bit_mask begin() const { return *this; }
     bit_mask end() const { return bit_mask{0}; }
 
-    size_t trailing_zeros() const {
+    size_type trailing_zeros() const {
       return ::cista::trailing_zeros(mask_) >> SHIFT;
     }
 
-    size_t leading_zeros() const {
+    size_type leading_zeros() const {
       constexpr int total_significant_bits = 8 << SHIFT;
       constexpr int extra_bits = sizeof(group_t) * 8 - total_significant_bits;
       return ::cista::leading_zeros(mask_ << extra_bits) >> SHIFT;
@@ -229,15 +231,17 @@ struct hash_storage {
   static inline bool is_deleted(ctrl_t const c) { return c == DELETED; }
   static inline bool is_empty_or_deleted(ctrl_t const c) { return c < END; }
 
-  static inline size_t normalize_capacity(size_t const n) {
-    return n == 0U ? 1 : ~size_t{} >> leading_zeros(n);
+  static inline size_t normalize_capacity(size_type const n) {
+    return n == 0U ? 1 : ~size_type{} >> leading_zeros(n);
   }
 
-  static inline size_t h1(size_t const hash) { return (hash >> 7) ^ 16777619; }
+  static inline size_type h1(size_type const hash) {
+    return (hash >> 7) ^ 16777619;
+  }
 
-  static inline h2_t h2(size_t const hash) { return hash & 0x7F; }
+  static inline h2_t h2(size_type const hash) { return hash & 0x7F; }
 
-  static inline size_t capacity_to_growth(size_t const capacity) {
+  static inline size_type capacity_to_growth(size_type const capacity) {
     return (capacity == 7) ? 6 : capacity - (capacity / 8);
   }
 
@@ -508,7 +512,7 @@ struct hash_storage {
   }
 
   template <typename Key>
-  std::pair<size_t, bool> find_or_prepare_insert(Key&& key) {
+  std::pair<size_type, bool> find_or_prepare_insert(Key&& key) {
     auto const hash = compute_hash(key);
     for (auto seq = probe_seq{h1(hash), capacity_}; true; seq.next()) {
       group g{ctrl_ + seq.offset_};
@@ -524,7 +528,7 @@ struct hash_storage {
     return {prepare_insert(hash), true};
   }
 
-  find_info find_first_non_full(size_t const hash) const {
+  find_info find_first_non_full(size_type const hash) const {
     for (auto seq = probe_seq{h1(hash), capacity_}; true; seq.next()) {
       if (auto const mask = group{ctrl_ + seq.offset_}.match_empty_or_deleted();
           mask) {
@@ -533,7 +537,7 @@ struct hash_storage {
     }
   }
 
-  size_t prepare_insert(size_t const hash) {
+  size_t prepare_insert(size_type const hash) {
     auto target = find_first_non_full(hash);
     if (growth_left_ == 0U && !is_deleted(ctrl_[target.offset_])) {
       rehash_and_grow_if_necessary();
@@ -579,7 +583,7 @@ struct hash_storage {
     reset_growth_left();
   }
 
-  void resize(size_t const new_capacity) {
+  void resize(size_type const new_capacity) {
     auto const old_ctrl = ctrl_;
     auto const old_entries = entries_;
     auto const old_capacity = capacity_;
@@ -588,7 +592,7 @@ struct hash_storage {
     capacity_ = new_capacity;
     initialize_entries();
 
-    for (auto i = size_t{0U}; i != old_capacity; ++i) {
+    for (auto i = size_type{0U}; i != old_capacity; ++i) {
       if (is_full(old_ctrl[i])) {
         auto const hash = compute_hash(GetKey()(old_entries[i]));
         auto const target = find_first_non_full(hash);
@@ -605,14 +609,14 @@ struct hash_storage {
 
   void rehash() { resize(capacity_); }
 
-  iterator iterator_at(size_t const i) { return {ctrl_ + i, entries_ + i}; }
-  const_iterator iterator_at(size_t i) const {
+  iterator iterator_at(size_type const i) { return {ctrl_ + i, entries_ + i}; }
+  const_iterator iterator_at(size_type const i) const {
     return {ctrl_ + i, entries_ + i};
   }
 
   Ptr<T> entries_{nullptr};
   Ptr<ctrl_t> ctrl_{empty_group()};
-  size_t size_{0U}, capacity_{0U}, growth_left_{0U};
+  size_type size_{0U}, capacity_{0U}, growth_left_{0U};
   bool self_allocated_{false};
 };
 
