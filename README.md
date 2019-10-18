@@ -22,7 +22,7 @@
 
 Cista++ is a simple, open source (MIT license) C++17 compatible way of (de-)serializing C++ data structures.
 
-*Single header. No macros. No source code generation.*
+*Single header - no dependencies. No macros. No source code generation.*
 
   - Raw performance - use your native structs. Supports modification/resizing of deserialized data!
   - Supports complex and cyclic data structures including cyclic references, recursive data structures, etc.
@@ -30,8 +30,8 @@ Cista++ is a simple, open source (MIT license) C++17 compatible way of (de-)seri
   - Fuzzing-checked though continuous fuzzing using LLVMs LibFuzzer.
   - Comes with a serializable high-performance hash map and hash set implementation based on Google's Swiss Table technique.
   - Reduce boilerplate code: automatic derivation of hash and equality functions.
-  - Optional: built-in automatic data structure versioning through recursive type hashing.
-  - Optional: check sum to prevent deserialization of corrupt data.
+  - Built-in optional automatic data structure versioning through recursive type hashing.
+  - Optional check sum to prevent deserialization of corrupt data.
   - Compatible with Clang, GCC, and MSVC
 
 The underlying reflection mechanism can be used in [other ways](https://cista.rocks/#reflection), too!
