@@ -52,8 +52,8 @@ TEST_CASE("hash int struct != int") {
 }
 
 TEST_CASE("hash test struct field order") {
-  CHECK(6887577786639913368ULL == cista::type_hash<hash_test::s1>());
-  CHECK(9308933672233384881ULL == cista::type_hash<hash_test::s2>());
+  CHECK(2060989771674233508ULL == cista::type_hash<hash_test::s1>());
+  CHECK(8501584041991634637ULL == cista::type_hash<hash_test::s2>());
 }
 
 TEST_CASE("recursive type hash does work") {
