@@ -12,7 +12,7 @@
 namespace data = cista::raw;
 
 constexpr auto const CHECKSUM_INTEGRITY_AND_VERSION =
-    sizeof(void*) == 4 ? 1677829801727797916ULL : 10074751584048131577ULL;
+    sizeof(void*) == 4 ? 13555853665375988614ULL : 10074751584048131577ULL;
 
 namespace graphns::raw {
 
