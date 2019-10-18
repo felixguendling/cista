@@ -11,33 +11,17 @@ KeepEmptyLinesAtTheStartOfBlocks: true
 AllowShortCaseLabelsOnASingleLine: true
 AlwaysBreakTemplateDeclarations: true
 SpacesBeforeTrailingComments: 2
+IncludeBlocks: Preserve
 IncludeCategories:
   - Regex:           '^<.*\.h>'
     Priority:        1
   - Regex:           '^<c.*'
     Priority:        2
-  - Regex:           '^"boost.*'
     Priority:        3
-  - Regex:           '^"motis/core/common.*'
-    Priority:        4
-  - Regex:           '^"motis/core/schedule.*'
-    Priority:        5
-  - Regex:           '^"motis/core/.*'
-    Priority:        6
-  - Regex:           '^"motis/module/.*'
-    Priority:        7
-  - Regex:           '^"motis/bootstrap/.*'
-    Priority:        8
-  - Regex:           '^"motis/loader/.*'
-    Priority:        9
-  - Regex:           '^"motis/.*'
-    Priority:        10
-  - Regex:           '^"motis/protocol.*'
-    Priority:        11
   - Regex:           '^<.*'
-    Priority:        12
+    Priority:        4
   - Regex:           '.*'
-    Priority:        13
+    Priority:        5
 ---
 BasedOnStyle: Google
 ColumnLimit: 80
@@ -52,30 +36,14 @@ KeepEmptyLinesAtTheStartOfBlocks: true
 AllowShortCaseLabelsOnASingleLine: true
 AlwaysBreakTemplateDeclarations: true
 SpacesBeforeTrailingComments: 2
+IncludeBlocks: Preserve
 IncludeCategories:
   - Regex:           '^<.*\.h>'
     Priority:        1
   - Regex:           '^<c.*'
     Priority:        2
-  - Regex:           '^"boost.*'
     Priority:        3
-  - Regex:           '^"motis/core/common.*'
-    Priority:        4
-  - Regex:           '^"motis/core/schedule.*'
-    Priority:        5
-  - Regex:           '^"motis/core/.*'
-    Priority:        6
-  - Regex:           '^"motis/module/.*'
-    Priority:        7
-  - Regex:           '^"motis/bootstrap/.*'
-    Priority:        8
-  - Regex:           '^"motis/loader/.*'
-    Priority:        9
-  - Regex:           '^"motis/.*'
-    Priority:        10
-  - Regex:           '^"motis/protocol.*'
-    Priority:        11
   - Regex:           '^<.*'
-    Priority:        12
+    Priority:        4
   - Regex:           '.*'
-    Priority:        13
+    Priority:        5

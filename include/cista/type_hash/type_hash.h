@@ -35,6 +35,8 @@ hash_t type_hash(T const& el, hash_t h, std::map<hash_t, unsigned>& done) {
       return type_hash(remove_pointer_t<Type>{},
                        hash_combine(h, hash("pointer")), done);
     }
+  } else if constexpr (std::is_integral_v<Type>) {
+    return hash_combine(h, hash("i"), sizeof(Type));
   } else if constexpr (std::is_scalar_v<Type>) {
     return hash_combine(h, type2str_hash<T>());
   } else {
