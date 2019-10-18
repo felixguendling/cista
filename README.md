@@ -129,7 +129,7 @@ you should look for another solution:
 
 # Documentation
 
-Find the documentation in the [here](https://github.com/felixguendling/cista/wiki).
+Find the documentation [here](https://github.com/felixguendling/cista/wiki).
 
 # Contribute
 
