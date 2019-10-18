@@ -59,6 +59,11 @@ struct serialization_context {
 
   explicit serialization_context(Target& t) : t_{t} {}
 
+  static bool compare(std::pair<void const*, vector_range> const& a,
+                      std::pair<void const*, vector_range> const& b) {
+    return a.first < b.first;
+  }
+
   offset_t write(void const* ptr, std::size_t const size,
                  std::size_t const alignment = 0) {
     return t_.write(ptr, size, alignment);
@@ -103,7 +108,10 @@ struct serialization_context {
   std::optional<offset_t> resolve_vector_range_ptr(Ptr ptr) {
     if (vector_ranges_.empty()) {
       return std::nullopt;
-    } else if (auto const vec_it = vector_ranges_.upper_bound(ptr);
+    } else if (auto const vec_it = std::upper_bound(
+                   begin(vector_ranges_), end(vector_ranges_),
+                   std::pair{static_cast<void const*>(ptr), vector_range{0, 0}},
+                   compare);
                vec_it == begin(vector_ranges_)) {
       return std::nullopt;
     } else {
@@ -116,8 +124,8 @@ struct serialization_context {
 
   uint64_t checksum(offset_t const from) const { return t_.checksum(from); }
 
-  std::map<void const*, offset_t> offsets_;
-  std::map<void const*, vector_range> vector_ranges_;
+  cista::raw::hash_map<void const*, offset_t> offsets_;
+  std::vector<std::pair<void const*, vector_range>> vector_ranges_;
   std::vector<pending_offset> pending_;
   Target& t_;
 };
@@ -176,7 +184,12 @@ void serialize(Ctx& c,
 
   if constexpr (Indexed) {
     if (origin->el_ != nullptr) {
-      c.vector_ranges_.emplace(origin->el_, vector_range{start, size});
+      auto p = std::pair{static_cast<void const*>(origin->el_),
+                         vector_range{start, size}};
+      c.vector_ranges_.emplace(
+          std::upper_bound(begin(c.vector_ranges_), end(c.vector_ranges_), p,
+                           Ctx::compare),
+          p);
     }
   }
 
