@@ -129,7 +129,15 @@ you should look for another solution:
 
 # Documentation
 
-Find the documentation [here](https://github.com/felixguendling/cista/wiki).
+* [Installation and Usage](https://github.com/felixguendling/cista/wiki/Installation-and-Usage)
+* [Serialization Reference](https://github.com/felixguendling/cista/wiki/Serialization-Reference)
+* [Custom (De-)Serialization Functions](https://github.com/felixguendling/cista/wiki/Custom-(De-)Serialization-Functions)
+* [Data Structure Versioning](https://github.com/felixguendling/cista/wiki/Data-Structure-Versioning)
+* [Hash Containers](https://github.com/felixguendling/cista/wiki/Hash-Containers)
+  * [Hashing Framework](https://github.com/felixguendling/cista/wiki/Hashing-Framework)
+  * [Equality Framework](https://github.com/felixguendling/cista/wiki/Equality-Framework)
+  * [Benchmark](https://github.com/felixguendling/cista/wiki/Hash-Map-Benchmark)
+* [Security](https://github.com/felixguendling/cista/wiki/Security)
 
 # Contribute
 
