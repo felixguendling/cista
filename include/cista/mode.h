@@ -11,6 +11,7 @@ enum class mode {
   WITH_INTEGRITY = 1U << 2U,
   SERIALIZE_BIG_ENDIAN = 1U << 3U,
   DEEP_CHECK = 1U << 4U,
+  CAST = 1U << 5U,
   _PHASE_II = 1U << 30U
 };
 

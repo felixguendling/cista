@@ -814,18 +814,22 @@ void recurse(Ctx&, array<T, Size>* el, Fn&& fn) {
 
 template <typename T, mode const Mode = mode::NONE>
 T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
-  check<T, Mode>(from, to);
-  auto const el = reinterpret_cast<T*>(from + data_start(Mode));
+  if constexpr (is_mode_enabled(Mode, mode::CAST)) {
+    return reinterpret_cast<T*>(from);
+  } else {
+    check<T, Mode>(from, to);
+    auto const el = reinterpret_cast<T*>(from + data_start(Mode));
 
-  deserialization_context<Mode> c{from, to};
-  deserialize(c, el);
+    deserialization_context<Mode> c{from, to};
+    deserialize(c, el);
 
-  if constexpr ((Mode & mode::DEEP_CHECK) == mode::DEEP_CHECK) {
-    deep_check_context<Mode | mode::_PHASE_II> c1{from, to};
-    deserialize(c1, el);
+    if constexpr ((Mode & mode::DEEP_CHECK) == mode::DEEP_CHECK) {
+      deep_check_context<Mode | mode::_PHASE_II> c1{from, to};
+      deserialize(c1, el);
+    }
+
+    return el;
   }
-
-  return el;
 }
 
 template <typename T, mode const Mode = mode::NONE, typename Container>
