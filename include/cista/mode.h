@@ -12,6 +12,7 @@ enum class mode {
   SERIALIZE_BIG_ENDIAN = 1U << 3U,
   DEEP_CHECK = 1U << 4U,
   CAST = 1U << 5U,
+  _CONST = 1U << 29U,
   _PHASE_II = 1U << 30U
 };
 
