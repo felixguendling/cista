@@ -435,6 +435,8 @@ struct deserialization_context {
   void deserialize_ptr(Ptr** ptr) const {
     auto const offset =
         reinterpret_cast<offset_t>(::cista::convert_endian<MODE>(*ptr));
+    static_assert(is_mode_disabled(MODE, mode::_CONST),
+                  "raw pointer deserialize is not const");
     *ptr = offset == NULLPTR_OFFSET
                ? nullptr
                : reinterpret_cast<Ptr*>(
