@@ -21,6 +21,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
      -Wno-return-std-move-in-c++11
      -Wno-gnu-zero-variadic-macro-arguments
      -Wno-unknown-pragmas
+     -Wno-documentation-unknown-command
      -Werror
   )
 endif()
@@ -28,7 +29,10 @@ endif()
 option(CISTA_COVERAGE "generate coverage report" OFF)
 option(CISTA_GENERATE_TO_TUPLE "generate include/cista/reflection/to_tuple.h" OFF)
 
+add_subdirectory(tools/xxh3)
+
 add_library(cista INTERFACE)
+target_link_libraries(cista INTERFACE xxh3)
 target_include_directories(cista INTERFACE include)
 target_compile_features(cista INTERFACE cxx_std_17)
 

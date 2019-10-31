@@ -3,14 +3,16 @@
 #include <cinttypes>
 #include <string_view>
 
+#include "xxh3.h"
+
 namespace cista {
 
 // Algorithm: 64bit FNV-1a
 // Source: http://www.isthe.com/chongo/tech/comp/fnv/
 
-using hash_t = std::uint64_t;
+using hash_t = XXH64_hash_t;
 
-constexpr auto const BASE_HASH = 14695981039346656037ULL;
+constexpr auto const BASE_HASH = 0ULL;
 
 template <typename... Args>
 constexpr hash_t hash_combine(hash_t h, Args... val) {
@@ -21,22 +23,17 @@ constexpr hash_t hash_combine(hash_t h, Args... val) {
 }
 
 inline hash_t hash(std::string_view s, hash_t h = BASE_HASH) {
-  auto const ptr = reinterpret_cast<uint8_t const*>(s.data());
-  for (auto i = size_t{0ULL}; i < s.size(); ++i) {
-    h = hash_combine(h, ptr[i]);
-  }
-  return h;
+  return XXH3_64bits_withSeed(s.data(), s.size(), h);
 }
 
 template <size_t N>
 constexpr hash_t hash(const char (&str)[N], hash_t const h = BASE_HASH) {
-  return hash(std::string_view{str, N - 1}, h);
+  return XXH3_64bits_withSeed(str, N - 1, h);
 }
 
 template <typename T>
 constexpr uint64_t hash(T const& buf, hash_t const h = BASE_HASH) {
-  return hash(
-      std::string_view{reinterpret_cast<char const*>(&buf[0]), buf.size()}, h);
+  return XXH3_64bits_withSeed(&buf[0], buf.size(), h);
 }
 
 }  // namespace cista

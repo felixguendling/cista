@@ -98,6 +98,10 @@ struct hashing {
       return hash_combine(seed, reinterpret_cast<intptr_t>(ptr_cast(el)));
     } else if constexpr (is_char_array_v<Type>) {
       return hash(std::string_view{el, sizeof(el) - 1}, seed);
+    } else if constexpr (is_string_like_v<Type>) {
+      using std::begin;
+      using std::end;
+      return hash(std::string_view{&(*begin(el)), el.size()});
     } else if constexpr (std::is_scalar_v<Type>) {
       return hash_combine(seed, el);
     } else if constexpr (is_iterable_v<Type>) {
