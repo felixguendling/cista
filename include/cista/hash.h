@@ -16,8 +16,9 @@ constexpr auto const BASE_HASH = 0ULL;
 
 template <typename... Args>
 constexpr hash_t hash_combine(hash_t h, Args... val) {
-  constexpr hash_t fnv_prime = 1099511628211ULL;
-  auto fnv = [&](auto arg) { h = (h ^ static_cast<hash_t>(arg)) * fnv_prime; };
+  auto fnv = [&](auto const& arg) {
+    h = XXH3_64bits_withSeed(&arg, sizeof(arg), h);
+  };
   ((fnv(val)), ...);
   return h;
 }
