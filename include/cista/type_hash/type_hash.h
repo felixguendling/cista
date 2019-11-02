@@ -13,7 +13,7 @@ namespace cista {
 
 template <typename T>
 hash_t type2str_hash() {
-  return hash_combine(hash(canonical_type_str<decay_t<T>>(), sizeof(T)));
+  return hash_combine(hash(canonical_type_str<decay_t<T>>()), sizeof(T));
 }
 
 template <typename T>
