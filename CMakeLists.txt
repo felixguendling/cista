@@ -30,9 +30,13 @@ option(CISTA_COVERAGE "generate coverage report" OFF)
 option(CISTA_GENERATE_TO_TUPLE "generate include/cista/reflection/to_tuple.h" OFF)
 
 add_subdirectory(tools/xxh3)
+option(CISTA_XXH3 "Use experimental xxhash xxh3" FALSE)
 
 add_library(cista INTERFACE)
-target_link_libraries(cista INTERFACE xxh3)
+if (CISTA_XXH3)
+  target_link_libraries(cista INTERFACE xxh3)
+  target_compile_definitions(cista INTERFACE CISTA_XXH3=1)
+endif()
 target_include_directories(cista INTERFACE include)
 target_compile_features(cista INTERFACE cxx_std_17)
 

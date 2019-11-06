@@ -17,11 +17,16 @@ void write_file(std::string const& include_path, std::string const& path,
       constexpr auto const include_start = R"(#include ")";
       auto const include_start_len = std::strlen(include_start);
       if (starts_with(line, include_start)) {
-        auto const path =
-            include_path + "/" +
+        auto const include_file =
             line.substr(include_start_len, line.size() - include_start_len - 1);
+        auto const path = include_path + "/" + include_file;
+        ;
         if (included.insert(path).second) {
-          write_file(include_path, path, included);
+          try {
+            write_file(include_path, path, included);
+          } catch (std::exception const& e) {
+            std::cout << "// " << include_file << ": " << e.what() << "\n";
+          }
         }
       } else if (starts_with(line, "#pragma once")) {
         // ignore
@@ -30,7 +35,6 @@ void write_file(std::string const& include_path, std::string const& path,
       }
     }
   } catch (...) {
-    std::cerr << "error reading file " << path << "\n";
     throw;
   }
 }
