@@ -537,7 +537,7 @@ struct hash_storage {
     }
   }
 
-  size_t prepare_insert(size_type const hash) {
+  size_type prepare_insert(size_type const hash) {
     auto target = find_first_non_full(hash);
     if (growth_left_ == 0U && !is_deleted(ctrl_[target.offset_])) {
       rehash_and_grow_if_necessary();
