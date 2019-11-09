@@ -102,7 +102,7 @@ Have a look at the [benchmark repository](https://github.com/felixguendling/cpp-
 
 # Use Cases
 
-Reader and writer should run on the same architecture (e.g. 64 bit big endian).
+Reader and writer should have the same pointer width. Loading data on systems with a different byte order (endianess) is supported.
 Examples:
 
   - Asset loading for all kinds of applications (i.e. game assets, GIS data, large graphs, etc.)
