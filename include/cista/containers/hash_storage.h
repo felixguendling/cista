@@ -573,8 +573,8 @@ struct hash_storage {
 
   void initialize_entries() {
     self_allocated_ = true;
-    auto const size =
-        capacity_ * sizeof(T) + (capacity_ + 1 + WIDTH) * sizeof(ctrl_t);
+    auto const size = size_t{capacity_ * sizeof(T) +
+                             (capacity_ + 1 + WIDTH) * sizeof(ctrl_t)};
     entries_ = reinterpret_cast<T*>(CISTA_ALIGNED_ALLOC(sizeof(T), size));
     ctrl_ = reinterpret_cast<ctrl_t*>(
         reinterpret_cast<uint8_t*>(ptr_cast(entries_)) + capacity_ * sizeof(T));
