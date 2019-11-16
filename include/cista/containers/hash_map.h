@@ -27,15 +27,15 @@ struct get_second {
 namespace raw {
 template <typename Key, typename Value, typename Hash = hashing<Key>,
           typename Eq = equal_to<Key>>
-using hash_map = hash_storage<pair<Key, Value>, ptr, uint32_t, get_first,
-                              get_second, Hash, Eq>;
+using hash_map =
+    hash_storage<pair<Key, Value>, ptr, get_first, get_second, Hash, Eq>;
 }  // namespace raw
 
 namespace offset {
 template <typename Key, typename Value, typename Hash = hashing<Key>,
           typename Eq = equal_to<Key>>
-using hash_map = hash_storage<pair<Key, Value>, ptr, uint32_t, get_first,
-                              get_second, Hash, Eq>;
+using hash_map =
+    hash_storage<pair<Key, Value>, ptr, get_first, get_second, Hash, Eq>;
 }  // namespace offset
 
 }  // namespace cista

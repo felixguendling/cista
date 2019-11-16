@@ -18,12 +18,12 @@ struct identity {
 
 namespace raw {
 template <typename T, typename Hash = hashing<T>, typename Eq = equal_to<T>>
-using hash_set = hash_storage<T, ptr, uint32_t, identity, identity, Hash, Eq>;
+using hash_set = hash_storage<T, ptr, identity, identity, Hash, Eq>;
 }  // namespace raw
 
 namespace offset {
 template <typename T, typename Hash = hashing<T>, typename Eq = equal_to<T>>
-using hash_set = hash_storage<T, ptr, uint32_t, identity, identity, Hash, Eq>;
+using hash_set = hash_storage<T, ptr, identity, identity, Hash, Eq>;
 }  // namespace offset
 
 }  // namespace cista

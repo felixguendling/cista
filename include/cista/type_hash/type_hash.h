@@ -70,12 +70,10 @@ hash_t type_hash(basic_unique_ptr<T, Ptr> const&, hash_t h,
   return type_hash(T{}, h, done);
 }
 
-template <typename T, template <typename> typename Ptr,
-          typename TemplateSizeType, typename GetKey, typename GetValue,
-          typename Hash, typename Eq>
-hash_t type_hash(
-    hash_storage<T, Ptr, TemplateSizeType, GetKey, GetValue, Hash, Eq> const&,
-    hash_t h, std::map<hash_t, unsigned>& done) {
+template <typename T, template <typename> typename Ptr, typename GetKey,
+          typename GetValue, typename Hash, typename Eq>
+hash_t type_hash(hash_storage<T, Ptr, GetKey, GetValue, Hash, Eq> const&,
+                 hash_t h, std::map<hash_t, unsigned>& done) {
   h = hash_combine(h, hash("hash_storage"));
   return type_hash(T{}, h, done);
 }

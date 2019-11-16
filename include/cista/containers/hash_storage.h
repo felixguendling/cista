@@ -13,6 +13,7 @@
 #include "cista/containers/ptr.h"
 #include "cista/decay.h"
 #include "cista/endian/conversion.h"
+#include "cista/hash.h"
 #include "cista/offset_t.h"
 
 namespace cista {
@@ -33,24 +34,22 @@ namespace cista {
 //   - sanitizer support (Sanitizer[Un]PoisonMemoryRegion)
 //   - overloads (conveniance as well to reduce copying) in the interface
 //   - allocator support
-template <typename T, template <typename> typename Ptr, typename SizeType,
-          typename GetKey, typename GetValue, typename Hash, typename Eq>
+template <typename T, template <typename> typename Ptr, typename GetKey,
+          typename GetValue, typename Hash, typename Eq>
 struct hash_storage {
-  static_assert(std::is_unsigned_v<SizeType>, "unsupported signed size type");
-  static constexpr SizeType const WIDTH = 8U;
-
   using entry_t = T;
   using difference_type = ptrdiff_t;
-  using size_type = SizeType;
+  using size_type = hash_t;
   using key_t =
       decay_t<decltype(std::declval<GetKey>().operator()(std::declval<T>()))>;
   using mapped_type =
       decay_t<decltype(std::declval<GetValue>().operator()(std::declval<T>()))>;
   using group_t = uint64_t;
   using h2_t = uint8_t;
+  static constexpr size_type const WIDTH = 8U;
 
   template <typename Key>
-  size_type compute_hash(Key const& k) {
+  hash_t compute_hash(Key const& k) {
     if constexpr (std::is_same_v<decay_t<Key>, key_t>) {
       return static_cast<size_type>(Hash{}(k));
     } else {
