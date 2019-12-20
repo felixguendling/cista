@@ -69,13 +69,13 @@ union union_type {
 
   friend std::ostream& operator<<(std::ostream& out, union_type const& u) {
     switch (u.type_) {
-      case type_t::NONE: out << "{empty}"; break;
-      case type_t::MAP:
+      case union_type::type_t::NONE: out << "{empty}"; break;
+      case union_type::type_t::MAP:
         for (auto const& [k, v] : u.a_.map_) {
           out << k << ", " << v << "\n";
         }
         break;
-      case type_t::VEC:
+      case union_type::type_t::VEC:
         for (auto const& [k, v] : u.b_.vec_) {
           out << k << ", " << v << "\n";
         }
