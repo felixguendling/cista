@@ -124,5 +124,8 @@ TEST_CASE("complex union") {
   }
 
   auto const u = cista::deserialize<union_type, cista::mode::CAST>(buf);
-  CHECK((std::stringstream{} << *u).str() == "1, 2\n3, 4\n");
+
+  std::stringstream ss;
+  ss << *u;
+  CHECK(ss.str() == "1, 2\n3, 4\n");
 }
