@@ -110,7 +110,18 @@ void serialize(Ctx& c, union_type const* el, cista::offset_t const pos) {
 }
 
 template <typename Ctx>
-void deserialize(Ctx const&, union_type*) {}
+void deserialize(Ctx const& c, union_type* el) {
+  switch (el->type_) {
+    case union_type::type_t::MAP:
+      deserialize(c, &el->a_);
+      break;
+    case union_type::type_t::VEC:
+      deserialize(c, &el->b_);
+      break;
+    case union_type::type_t::NONE:
+      break;
+  }
+}
 
 TEST_CASE("complex union") {
   cista::byte_buf buf;
@@ -123,7 +134,7 @@ TEST_CASE("complex union") {
     buf = cista::serialize(obj);
   }
 
-  auto const u = cista::deserialize<union_type, cista::mode::CAST>(buf);
+  auto const u = cista::deserialize<union_type>(buf);
 
   std::stringstream ss;
   ss << *u;
