@@ -130,7 +130,7 @@ private:
 #ifdef _MSC_VER
     auto const size_low = static_cast<DWORD>(size_);
 #ifdef _WIN64
-    auto const size_high = static_cast<DWORD>(size_) >> 32;
+    auto const size_high = static_cast<DWORD>(size_ >> 32);
 #else
     auto const size_high = static_cast<DWORD>(0);
 #endif
