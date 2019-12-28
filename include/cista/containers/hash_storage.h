@@ -567,7 +567,7 @@ struct hash_storage {
   }
 
   void reset_ctrl() {
-    std::memset(ctrl_, EMPTY, capacity_ + WIDTH + 1U);
+    std::memset(ctrl_, EMPTY, static_cast<size_t>(capacity_ + WIDTH + 1U));
     ctrl_[capacity_] = END;
   }
 

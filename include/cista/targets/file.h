@@ -74,7 +74,7 @@ struct file {
     } else {
       LARGE_INTEGER filesize;
       verify(GetFileSizeEx(f_, &filesize), "file size error");
-      return filesize.QuadPart;
+      return static_cast<size_t>(filesize.QuadPart);
     }
   }
 
@@ -87,7 +87,9 @@ struct file {
     chunk(block_size, size(), [&](size_t const from, unsigned block_size) {
       OVERLAPPED overlapped = {0};
       overlapped.Offset = static_cast<DWORD>(from);
+#ifdef _WIN64
       overlapped.OffsetHigh = static_cast<DWORD>(from >> 32u);
+#endif
       ReadFile(f_, b.data() + from, static_cast<DWORD>(block_size), nullptr,
                &overlapped);
     });
@@ -103,7 +105,9 @@ struct file {
           [&](auto const from, auto const size) {
             OVERLAPPED overlapped = {0};
             overlapped.Offset = static_cast<DWORD>(start + from);
+#ifdef _WIN64
             overlapped.OffsetHigh = static_cast<DWORD>((start + from) >> 32U);
+#endif
             DWORD bytes_read = {0};
             verify(ReadFile(f_, buf, static_cast<DWORD>(size), &bytes_read,
                             &overlapped),
@@ -118,7 +122,9 @@ struct file {
   void write(std::size_t const pos, T const& val) {
     OVERLAPPED overlapped = {0};
     overlapped.Offset = static_cast<DWORD>(pos);
+#ifdef _WIN64
     overlapped.OffsetHigh = pos >> 32u;
+#endif
     DWORD bytes_written = {0};
     verify(WriteFile(f_, &val, sizeof(T), &bytes_written, &overlapped),
            "write(pos, val) write error");
@@ -144,7 +150,9 @@ struct file {
       verify(num_padding_bytes < 16, "invalid padding size");
       OVERLAPPED overlapped = {0};
       overlapped.Offset = static_cast<uint32_t>(size_);
+#ifdef _WIN64
       overlapped.OffsetHigh = static_cast<uint32_t>(size_ >> 32u);
+#endif
       DWORD bytes_written = {0};
       verify(WriteFile(f_, buf, num_padding_bytes, &bytes_written, &overlapped),
              "write padding error");

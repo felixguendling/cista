@@ -259,9 +259,9 @@ void serialize(Ctx& c,
   auto const start = origin->entries_ == nullptr
                          ? NULLPTR_OFFSET
                          : c.write(origin->entries_,
-                                   origin->capacity_ * serialized_size<T>() +
+                                   static_cast<size_t>(origin->capacity_ * serialized_size<T>() +
                                        (origin->capacity_ + 1 + Type::WIDTH) *
-                                           sizeof(typename Type::ctrl_t),
+                                           sizeof(typename Type::ctrl_t)),
                                    std::alignment_of_v<T>);
   auto const ctrl_start =
       start == NULLPTR_OFFSET

@@ -67,7 +67,7 @@ constexpr unsigned leading_zeros(T t) {
     if ((t >> 32) && _BitScanReverse(&index, t >> 32)) {
       return 31 - index;
     }
-    if (_BitScanReverse(&index, t)) {
+    if (_BitScanReverse(&index, static_cast<uint32_t>(t))) {
       return 63 - index;
     }
     return 64;
