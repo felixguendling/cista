@@ -455,9 +455,9 @@ struct hash_storage {
   friend const_iterator cend(hash_storage const& h) { return h.begin(); }
 
   bool empty() const { return size() == 0U; }
-  size_t size() const { return size_; }
-  size_t capacity() const { return capacity_; }
-  size_t max_size() const { return std::numeric_limits<size_t>::max(); }
+  size_type size() const { return size_; }
+  size_type capacity() const { return capacity_; }
+  size_type max_size() const { return std::numeric_limits<size_t>::max(); }
 
   bool is_free(int index) {
     auto const index_before = (index - WIDTH) & capacity_;
@@ -548,7 +548,7 @@ struct hash_storage {
     return target.offset_;
   }
 
-  void set_ctrl(size_t const i, h2_t const c) {
+  void set_ctrl(size_type const i, h2_t const c) {
     ctrl_[i] = static_cast<ctrl_t>(c);
     ctrl_[((i - WIDTH) & capacity_) + 1 + ((WIDTH - 1) & capacity_)] =
         static_cast<ctrl_t>(c);
@@ -573,9 +573,9 @@ struct hash_storage {
 
   void initialize_entries() {
     self_allocated_ = true;
-    auto const size = size_t{capacity_ * sizeof(T) +
-                             (capacity_ + 1 + WIDTH) * sizeof(ctrl_t)};
-    entries_ = reinterpret_cast<T*>(CISTA_ALIGNED_ALLOC(sizeof(T), size));
+    auto const size = static_cast<size_type>(capacity_ * sizeof(T) +
+                             (capacity_ + 1 + WIDTH) * sizeof(ctrl_t));
+    entries_ = reinterpret_cast<T*>(CISTA_ALIGNED_ALLOC(sizeof(T), static_cast<size_t>(size)));
     ctrl_ = reinterpret_cast<ctrl_t*>(
         reinterpret_cast<uint8_t*>(ptr_cast(entries_)) + capacity_ * sizeof(T));
     reset_ctrl();

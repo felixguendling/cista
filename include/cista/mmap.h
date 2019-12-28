@@ -128,7 +128,6 @@ private:
 
   void* map() {
 #ifdef _MSC_VER
-    static_assert(sizeof(size_t) == 8U);
     auto const size_low = static_cast<DWORD>(size_);
     auto const size_high = static_cast<DWORD>(size_ >> 32);
     const auto fm = ::CreateFileMapping(

@@ -142,7 +142,7 @@ struct basic_vector {
   template <typename It>
   void set(It begin_it, It end_it) {
     auto range_size = std::distance(begin_it, end_it);
-    assert(range_size <= std::numeric_limits<TemplateSizeType>::max() &&
+    assert(range_size <= static_cast<decltype(range_size)>(std::numeric_limits<TemplateSizeType>::max()) &&
            "size type overflow");
     reserve(static_cast<TemplateSizeType>(range_size));
 

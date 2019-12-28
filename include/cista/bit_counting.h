@@ -31,7 +31,7 @@ constexpr unsigned trailing_zeros(T t) {
       _BitScanForward(&index, t >> 32);
       return index + 32;
     }
-    _BitScanForward(&index, t);
+    _BitScanForward(&index, static_cast<uint32_t>(t));
     return index;
 #else
     return static_cast<unsigned>(__builtin_ctzll(t));
@@ -64,7 +64,7 @@ constexpr unsigned leading_zeros(T t) {
     return 64;
 #elif defined(_MSC_VER)
     unsigned long index = 0;
-    if ((n >> 32) && _BitScanReverse(&index, t >> 32)) {
+    if ((t >> 32) && _BitScanReverse(&index, t >> 32)) {
       return 31 - index;
     }
     if (_BitScanReverse(&index, t)) {
