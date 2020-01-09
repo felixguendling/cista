@@ -15,7 +15,7 @@ struct vec3 {
 };
 
 struct mat4 {
-  float d[16];
+  data::array<float, 16> d;
 };
 
 struct Vertex {
@@ -41,12 +41,6 @@ struct Group {
   Meshes meshes;
   Stagings stagings;
 };
-
-template <typename Ctx>
-void serialize(Ctx&, mat4 const*, offset_t const) {}
-
-template <typename Ctx>
-void deserialize(Ctx const&, mat4*) {}
 
 TEST_CASE("mesh test") {
   constexpr auto const FILENAME = "group.bin";
