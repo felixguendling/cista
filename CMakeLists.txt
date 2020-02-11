@@ -1,5 +1,12 @@
-project(cista)
 cmake_minimum_required(VERSION 3.5)
+
+if (NOT DEFINED PROJECT_NAME)
+  set(NOT_SUBPROJECT ON)
+endif()
+
+project(cista LANGUAGES CXX VERSION 0.6)
+
+include(GNUInstallDirs)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -37,7 +44,9 @@ if (CISTA_XXH3)
   target_link_libraries(cista INTERFACE xxh3)
   target_compile_definitions(cista INTERFACE CISTA_XXH3=1)
 endif()
-target_include_directories(cista INTERFACE include)
+target_include_directories(cista INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_compile_features(cista INTERFACE cxx_std_17)
 
 if (${CISTA_GENERATE_TO_TUPLE})
@@ -139,7 +148,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     add_executable(cista-fuzz-${test-name} EXCLUDE_FROM_ALL ${fuzz-file})
     target_link_libraries(cista-fuzz-${test-name} cista -fsanitize=address,undefined,fuzzer)
     target_compile_options(cista-fuzz-${test-name} PRIVATE -g -O0 -fsanitize=address,fuzzer)
-    
+
     add_executable(cista-fuzz-${test-name}-seed EXCLUDE_FROM_ALL ${fuzz-file})
     target_link_libraries(cista-fuzz-${test-name}-seed cista)
     target_compile_definitions(cista-fuzz-${test-name}-seed PRIVATE GENERATE_SEED)
@@ -159,4 +168,47 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 
   add_custom_target(cista-fuzz)
   add_dependencies(cista-fuzz ${cista-fuzz-targets})
+endif()
+
+add_library(cista::cista ALIAS cista)
+
+# Export targets when not used via `add_subdirectory`
+if (NOT_SUBPROJECT)
+  include(CMakePackageConfigHelpers)
+  set(CISTA_CMAKE_CONFIG_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/cista")
+
+  configure_package_config_file(
+    ${CMAKE_CURRENT_LIST_DIR}/CMake/cistaConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/cistaConfig.cmake
+    INSTALL_DESTINATION ${CISTA_CMAKE_CONFIG_DESTINATION}
+  )
+
+  install(
+    TARGETS cista
+    EXPORT cistaTargets
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+
+  install(
+    EXPORT cistaTargets
+    NAMESPACE cista::
+    DESTINATION ${CISTA_CMAKE_CONFIG_DESTINATION}
+  )
+
+  install(
+    DIRECTORY "include/"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+  )
+
+  write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/cistaConfigVersion.cmake"
+    COMPATIBILITY SameMajorVersion
+  )
+
+  install(
+    FILES
+      "${CMAKE_CURRENT_BINARY_DIR}/cistaConfig.cmake"
+      "${CMAKE_CURRENT_BINARY_DIR}/cistaConfigVersion.cmake"
+    DESTINATION ${CISTA_CMAKE_CONFIG_DESTINATION}
+  )
 endif()
