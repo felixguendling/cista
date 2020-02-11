@@ -9,6 +9,7 @@
 #include "cista/equal_to.h"
 #include "cista/is_iterable.h"
 #include "cista/reflection/printable.h"
+#include "cista/serialization.h"
 #include "cista/type_hash/type_name.h"
 #endif
 
@@ -45,4 +46,44 @@ TEST_CASE("iterable comparison") {
   std::set<int> std_s{1, 2, 3};
   CHECK(cista::equal_to<decltype(std_v)>{}(std_v, cista_v));
   CHECK(cista::equal_to<decltype(std_s)>{}(std_s, cista_v));
+}
+
+TEST_CASE("to_vec") {
+  namespace data = cista::raw;
+
+  std::vector<unsigned char> buf;
+  {  // Serialize.
+    auto const v = std::vector<double>({1.0, 2.0});
+    auto o = data::to_vec(v);
+    CHECK(o == data::to_vec(v, [](auto&& e) { return e; }));
+    CHECK(o == data::to_vec(begin(v), end(v), [](auto&& e) { return e; }));
+    buf = cista::serialize(o);
+  }
+
+  // Deserialize.
+  auto const& deserialized = *cista::deserialize<data::vector<double>>(buf);
+  REQUIRE(deserialized.size() == 2);
+  CHECK(deserialized[0] == 1.0);
+  CHECK(deserialized[1] == 2.0);
+}
+
+TEST_CASE("to_indexed_vec") {
+  namespace data = cista::raw;
+
+  std::vector<unsigned char> buf;
+  {  // Serialize.
+    auto const v = std::vector<double>({1.0, 2.0});
+    auto o = data::to_indexed_vec(v);
+    CHECK(o == data::to_indexed_vec(v, [](auto&& e) { return e; }));
+    CHECK(o ==
+          data::to_indexed_vec(begin(v), end(v), [](auto&& e) { return e; }));
+    buf = cista::serialize(o);
+  }
+
+  // Deserialize.
+  auto const& deserialized =
+      *cista::deserialize<data::indexed_vector<double>>(buf);
+  REQUIRE(deserialized.size() == 2);
+  CHECK(deserialized[0] == 1.0);
+  CHECK(deserialized[1] == 2.0);
 }

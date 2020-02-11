@@ -294,64 +294,65 @@ struct basic_vector {
   uint32_t __fill_2__{0};
 };
 
-#define CISTA_TO_VEC                                                         \
-  template <typename It, typename UnaryOperation>                            \
-  inline auto to_vec(It s, It e, UnaryOperation&& op)                        \
-      ->vector<decltype(op(*s))> {                                           \
-    vector<decltype(op(*s))> v;                                              \
-    v.reserve(                                                               \
-        static_cast<typename decltype(v)::size_type>(std::distance(s, e)));  \
-    std::transform(s, e, std::back_inserter(v), op);                         \
-    return v;                                                                \
-  }                                                                          \
-                                                                             \
-  template <typename Container, typename UnaryOperation>                     \
-  inline auto to_vec(Container const& c, UnaryOperation&& op)                \
-      ->vector<decltype(op(*std::begin(c)))> {                               \
-    vector<decltype(op(*std::begin(c)))> v;                                  \
-    v.reserve(static_cast<typename decltype(v)::size_type>(                  \
-        std::distance(std::begin(c), std::end(c))));                         \
-    std::transform(std::begin(c), std::end(c), std::back_inserter(v), op);   \
-    return v;                                                                \
-  }                                                                          \
-                                                                             \
-  template <typename Container>                                              \
-  inline auto to_vec(Container const& c)->vector<decltype(*std::begin(c))> { \
-    vector<decltype(*std::begin(c))> v;                                      \
-    v.reserve(static_cast<typename decltype(v)::size_type>(                  \
-        std::distance(std::begin(c), std::end(c))));                         \
-    std::copy(std::begin(c), std::end(c), std::back_inserter(v));            \
-    return v;                                                                \
-  }                                                                          \
-                                                                             \
-  template <typename It, typename UnaryOperation>                            \
-  inline auto to_indexed_vec(It s, It e, UnaryOperation&& op)                \
-      ->indexed_vector<decltype(op(*s))> {                                   \
-    indexed_vector<decltype(op(*s))> v;                                      \
-    v.reserve(                                                               \
-        static_cast<typename decltype(v)::size_type>(std::distance(s, e)));  \
-    std::transform(s, e, std::back_inserter(v), op);                         \
-    return v;                                                                \
-  }                                                                          \
-                                                                             \
-  template <typename Container, typename UnaryOperation>                     \
-  inline auto to_indexed_vec(Container const& c, UnaryOperation&& op)        \
-      ->indexed_vector<decltype(op(*std::begin(c)))> {                       \
-    indexed_vector<decltype(op(*std::begin(c)))> v;                          \
-    v.reserve(static_cast<typename decltype(v)::size_type>(                  \
-        std::distance(std::begin(c), std::end(c))));                         \
-    std::transform(std::begin(c), std::end(c), std::back_inserter(v), op);   \
-    return v;                                                                \
-  }                                                                          \
-                                                                             \
-  template <typename Container>                                              \
-  inline auto to_indexed_vec(Container const& c)                             \
-      ->indexed_vector<decltype(*std::begin(c))> {                           \
-    indexed_vector<decltype(*std::begin(c))> v;                              \
-    v.reserve(static_cast<typename decltype(v)::size_type>(                  \
-        std::distance(std::begin(c), std::end(c))));                         \
-    std::copy(std::begin(c), std::end(c), std::back_inserter(v));            \
-    return v;                                                                \
+#define CISTA_TO_VEC                                                        \
+  template <typename It, typename UnaryOperation>                           \
+  inline auto to_vec(It s, It e, UnaryOperation&& op)                       \
+      ->vector<decay_t<decltype(op(*s))>> {                                 \
+    vector<decay_t<decltype(op(*s))>> v;                                    \
+    v.reserve(                                                              \
+        static_cast<typename decltype(v)::size_type>(std::distance(s, e))); \
+    std::transform(s, e, std::back_inserter(v), op);                        \
+    return v;                                                               \
+  }                                                                         \
+                                                                            \
+  template <typename Container, typename UnaryOperation>                    \
+  inline auto to_vec(Container const& c, UnaryOperation&& op)               \
+      ->vector<decltype(op(*std::begin(c)))> {                              \
+    vector<decltype(op(*std::begin(c)))> v;                                 \
+    v.reserve(static_cast<typename decltype(v)::size_type>(                 \
+        std::distance(std::begin(c), std::end(c))));                        \
+    std::transform(std::begin(c), std::end(c), std::back_inserter(v), op);  \
+    return v;                                                               \
+  }                                                                         \
+                                                                            \
+  template <typename Container>                                             \
+  inline auto to_vec(Container const& c)                                    \
+      ->vector<decay_t<decltype(*std::begin(c))>> {                         \
+    vector<decay_t<decltype(*std::begin(c))>> v;                            \
+    v.reserve(static_cast<typename decltype(v)::size_type>(                 \
+        std::distance(std::begin(c), std::end(c))));                        \
+    std::copy(std::begin(c), std::end(c), std::back_inserter(v));           \
+    return v;                                                               \
+  }                                                                         \
+                                                                            \
+  template <typename It, typename UnaryOperation>                           \
+  inline auto to_indexed_vec(It s, It e, UnaryOperation&& op)               \
+      ->indexed_vector<decay_t<decltype(op(*s))>> {                         \
+    indexed_vector<decay_t<decltype(op(*s))>> v;                            \
+    v.reserve(                                                              \
+        static_cast<typename decltype(v)::size_type>(std::distance(s, e))); \
+    std::transform(s, e, std::back_inserter(v), op);                        \
+    return v;                                                               \
+  }                                                                         \
+                                                                            \
+  template <typename Container, typename UnaryOperation>                    \
+  inline auto to_indexed_vec(Container const& c, UnaryOperation&& op)       \
+      ->indexed_vector<decay_t<decltype(op(*std::begin(c)))>> {             \
+    indexed_vector<decay_t<decltype(op(*std::begin(c)))>> v;                \
+    v.reserve(static_cast<typename decltype(v)::size_type>(                 \
+        std::distance(std::begin(c), std::end(c))));                        \
+    std::transform(std::begin(c), std::end(c), std::back_inserter(v), op);  \
+    return v;                                                               \
+  }                                                                         \
+                                                                            \
+  template <typename Container>                                             \
+  inline auto to_indexed_vec(Container const& c)                            \
+      ->indexed_vector<decay_t<decltype(*std::begin(c))>> {                 \
+    indexed_vector<decay_t<decltype(*std::begin(c))>> v;                    \
+    v.reserve(static_cast<typename decltype(v)::size_type>(                 \
+        std::distance(std::begin(c), std::end(c))));                        \
+    std::copy(std::begin(c), std::end(c), std::back_inserter(v));           \
+    return v;                                                               \
   }
 
 namespace raw {
