@@ -63,7 +63,9 @@ TEST_CASE("to_vec") {
   }
 
   // Deserialize.
-  auto const& deserialized = *cista::deserialize<data::vector<double>>(buf);
+  std::string s{reinterpret_cast<char*>(&buf.buf_[0]), buf.buf_.size()};
+  auto const& deserialized =
+      *cista::deserialize<data::vector<double>>(&s[0], &s[0] + s.size());
   REQUIRE(deserialized.size() == 2);
   CHECK(deserialized[0] == 1.0);
   CHECK(deserialized[1] == 2.0);

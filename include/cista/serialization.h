@@ -803,8 +803,10 @@ void recurse(Ctx&, array<T, Size>* el, Fn&& fn) {
 }
 
 template <typename T, mode const Mode = mode::NONE, typename CharT>
-T* deserialize(CharT* from, CharT* to = nullptr) {
-  static_assert(sizeof(decltype(from[0])) == 1U, "byte container");
+T* deserialize(CharT* from_src, CharT* to_src = nullptr) {
+  static_assert(sizeof(CharT) == 1U, "byte container");
+  auto const from = reinterpret_cast<uint8_t*>(from_src);
+  auto const to = reinterpret_cast<uint8_t*>(to_src);
   if constexpr (is_mode_enabled(Mode, mode::CAST)) {
     CISTA_UNUSED_PARAM(to)
     return reinterpret_cast<T*>(from);
