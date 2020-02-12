@@ -825,7 +825,6 @@ T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
 
 template <typename T, mode const Mode = mode::NONE>
 T const* deserialize(uint8_t const* from, uint8_t const* to = nullptr) {
-  auto constexpr ConstMode = Mode | mode::_CONST;
   static_assert(!endian_conversion_necessary<Mode>(), "cannot be const");
   return deserialize<T, Mode | mode::_CONST>(const_cast<uint8_t*>(from),
                                              const_cast<uint8_t*>(to));
