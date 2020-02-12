@@ -411,7 +411,7 @@ template <mode Mode>
 struct deserialization_context {
   static constexpr auto const MODE = Mode;
 
-  deserialization_context(uint8_t* from, uint8_t* to)
+  deserialization_context(uint8_t const* from, uint8_t const* to)
       : from_{reinterpret_cast<intptr_t>(from)},
         to_{reinterpret_cast<intptr_t>(to)} {}
 
@@ -802,11 +802,8 @@ void recurse(Ctx&, array<T, Size>* el, Fn&& fn) {
   }
 }
 
-template <typename T, mode const Mode = mode::NONE, typename CharT>
-T* deserialize(CharT* from_src, CharT* to_src = nullptr) {
-  static_assert(sizeof(CharT) == 1U, "byte container");
-  auto const from = reinterpret_cast<uint8_t*>(from_src);
-  auto const to = reinterpret_cast<uint8_t*>(to_src);
+template <typename T, mode const Mode = mode::NONE>
+T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
   if constexpr (is_mode_enabled(Mode, mode::CAST)) {
     CISTA_UNUSED_PARAM(to)
     return reinterpret_cast<T*>(from);
@@ -827,27 +824,35 @@ T* deserialize(CharT* from_src, CharT* to_src = nullptr) {
 }
 
 template <typename T, mode const Mode = mode::NONE>
+T const* deserialize(uint8_t const* from, uint8_t const* to = nullptr) {
+  auto constexpr ConstMode = Mode | mode::_CONST;
+  static_assert(!endian_conversion_necessary<Mode>(), "cannot be const");
+  return deserialize<T, Mode | mode::_CONST>(const_cast<uint8_t*>(from),
+                                             const_cast<uint8_t*>(to));
+}
+
+template <typename T, mode const Mode = mode::NONE, typename CharT>
+T const* deserialize(CharT const* from, CharT const* to = nullptr) {
+  static_assert(sizeof(CharT) == 1U, "byte size entries");
+  return deserialize<T, Mode>(reinterpret_cast<uint8_t const*>(from),
+                              reinterpret_cast<uint8_t const*>(to));
+}
+
+template <typename T, mode const Mode = mode::NONE, typename CharT>
+T* deserialize(CharT* from, CharT* to = nullptr) {
+  static_assert(sizeof(CharT) == 1U, "byte size entries");
+  return deserialize<T, Mode>(reinterpret_cast<uint8_t*>(from),
+                              reinterpret_cast<uint8_t*>(to));
+}
+
+template <typename T, mode const Mode = mode::NONE>
 T const* deserialize(std::string_view c) {
-  static_assert(!endian_conversion_necessary<Mode>(), "cannot be const");
-  return deserialize<T const, Mode | mode::_CONST>(
-      reinterpret_cast<uint8_t const*>(&c[0]),
-      reinterpret_cast<uint8_t const*>(&c[0] + c.size()));
+  return deserialize<T const, Mode>(&c[0], &c[0] + c.size());
 }
 
 template <typename T, mode const Mode = mode::NONE, typename Container>
-T const* deserialize(Container const& c) {
-  static_assert(sizeof(decay_t<decltype(c[0])>) == 1U, "byte size entries");
-  static_assert(!endian_conversion_necessary<Mode>(), "cannot be const");
-  return deserialize<T const, Mode | mode::_CONST>(
-      reinterpret_cast<uint8_t const*>(&c[0]),
-      reinterpret_cast<uint8_t const*>(&c[0] + c.size()));
-}
-
-template <typename T, mode const Mode = mode::NONE, typename Container>
-T* deserialize(Container& c) {
-  static_assert(sizeof(decay_t<decltype(c[0])>) == 1U, "byte size entries");
-  return deserialize<T, Mode>(reinterpret_cast<uint8_t*>(&c[0]),
-                              reinterpret_cast<uint8_t*>(&c[0] + c.size()));
+auto deserialize(Container& c) {
+  return deserialize<T, Mode>(&c[0], &c[0] + c.size());
 }
 
 template <typename T, mode const Mode = mode::NONE>
