@@ -37,43 +37,38 @@ struct buf {
     std::memcpy(&buf_[pos], &val, serialized_size<T>());
   }
 
-  offset_t write(void const* ptr, std::size_t const size,
+  offset_t write(void const* ptr, std::size_t const num_bytes,
                  std::size_t alignment = 0) {
-    auto aligned_size = size;
-
+    auto start = static_cast<offset_t>(size());
     if (alignment != 0 && alignment != 1 && buf_.size() != 0) {
-      auto unaligned_ptr = static_cast<void*>(addr(curr_offset_));
+      auto unaligned_ptr = static_cast<void*>(addr(start));
       auto space = std::numeric_limits<std::size_t>::max();
       auto const aligned_ptr =
-          std::align(alignment, size, unaligned_ptr, space);
+          std::align(alignment, num_bytes, unaligned_ptr, space);
       auto const new_offset = static_cast<offset_t>(
           aligned_ptr ? static_cast<uint8_t*>(aligned_ptr) - base() : 0);
-      auto const adjustment =
-          static_cast<std::size_t>(new_offset - curr_offset_);
-      curr_offset_ += adjustment;
-      aligned_size += adjustment;
+      auto const adjustment = static_cast<std::size_t>(new_offset - start);
+      start += adjustment;
     }
 
     auto const space_left =
-        static_cast<int64_t>(buf_.size()) - static_cast<int64_t>(curr_offset_);
-    if (space_left < static_cast<int64_t>(aligned_size)) {
+        static_cast<int64_t>(buf_.size()) - static_cast<int64_t>(start);
+    if (space_left < static_cast<int64_t>(num_bytes)) {
       auto const missing = static_cast<std::size_t>(
-          static_cast<int64_t>(aligned_size) - space_left);
+          static_cast<int64_t>(num_bytes) - space_left);
       buf_.resize(buf_.size() + missing);
     }
+    std::memcpy(addr(start), ptr, num_bytes);
 
-    auto const start = curr_offset_;
-    std::memcpy(addr(curr_offset_), ptr, size);
-    curr_offset_ += size;
     return start;
   }
 
   unsigned char& operator[](size_t i) { return buf_[i]; }
   unsigned char const& operator[](size_t i) const { return buf_[i]; }
   size_t size() const { return buf_.size(); }
+  void reset() { buf_.resize(0U); }
 
   Buf buf_;
-  offset_t curr_offset_{0};
 };
 
 template <typename Buf>

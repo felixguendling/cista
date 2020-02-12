@@ -51,13 +51,15 @@ TEST_CASE("iterable comparison") {
 TEST_CASE("to_vec") {
   namespace data = cista::raw;
 
-  std::vector<unsigned char> buf;
-  {  // Serialize.
+  cista::buf<std::vector<uint8_t>> buf;
+  for (auto i = 0U; i != 3; ++i) {  // Serialize.
+    buf.reset();
+
     auto const v = std::vector<double>({1.0, 2.0});
     auto o = data::to_vec(v);
     CHECK(o == data::to_vec(v, [](auto&& e) { return e; }));
     CHECK(o == data::to_vec(begin(v), end(v), [](auto&& e) { return e; }));
-    buf = cista::serialize(o);
+    cista::serialize(buf, o);
   }
 
   // Deserialize.
