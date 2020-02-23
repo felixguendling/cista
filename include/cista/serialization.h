@@ -146,8 +146,7 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
                                 reinterpret_cast<intptr_t>(origin));
       serialize(c, member, pos + member_offset);
     });
-  } else if constexpr (std::numeric_limits<Type>::is_integer ||
-                       std::is_floating_point_v<Type>) {
+  } else if constexpr (std::numeric_limits<Type>::is_integer) {
     c.write(pos, convert_endian<Ctx::MODE>(*origin));
   } else {
     (void)origin;
@@ -256,13 +255,15 @@ void serialize(Ctx& c,
                offset_t const pos) {
   using Type = hash_storage<T, Ptr, GetKey, GetValue, Hash, Eq>;
 
-  auto const start = origin->entries_ == nullptr
-                         ? NULLPTR_OFFSET
-                         : c.write(origin->entries_,
-                                   static_cast<size_t>(origin->capacity_ * serialized_size<T>() +
-                                       (origin->capacity_ + 1 + Type::WIDTH) *
-                                           sizeof(typename Type::ctrl_t)),
-                                   std::alignment_of_v<T>);
+  auto const start =
+      origin->entries_ == nullptr
+          ? NULLPTR_OFFSET
+          : c.write(
+                origin->entries_,
+                static_cast<size_t>(origin->capacity_ * serialized_size<T>() +
+                                    (origin->capacity_ + 1 + Type::WIDTH) *
+                                        sizeof(typename Type::ctrl_t)),
+                std::alignment_of_v<T>);
   auto const ctrl_start =
       start == NULLPTR_OFFSET
           ? c.write(Type::empty_group(), 16 * sizeof(typename Type::ctrl_t),
@@ -533,8 +534,7 @@ void convert_endian_and_ptr(Ctx const& c, T* el) {
   using Type = decay_t<T>;
   if constexpr (std::is_pointer_v<Type>) {
     c.deserialize_ptr(el);
-  } else if constexpr (std::numeric_limits<Type>::is_integer ||
-                       std::is_floating_point_v<Type>) {
+  } else if constexpr (std::numeric_limits<Type>::is_integer) {
     c.convert_endian(*el);
   } else {
     CISTA_UNUSED_PARAM(c)
