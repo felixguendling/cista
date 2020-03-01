@@ -29,7 +29,7 @@ TEST_CASE("union_test") {
 }
 
 struct Base {};
-struct Derive:Base {
+struct Derive : Base {
   int field;
 };
 
@@ -56,14 +56,9 @@ union union_type {
   union_type() : type_{type_t::NONE} {}
   ~union_type() {
     switch (type_) {
-      case type_t::MAP:
-        a_.~a();
-        break;
-      case type_t::VEC:
-        b_.~b();
-        break;
-      case type_t::NONE:
-        break;
+      case type_t::MAP: a_.~a(); break;
+      case type_t::VEC: b_.~b(); break;
+      case type_t::NONE: break;
     }
   }
 
@@ -98,28 +93,18 @@ union union_type {
 template <typename Ctx>
 void serialize(Ctx& c, union_type const* el, cista::offset_t const pos) {
   switch (el->type_) {
-    case union_type::type_t::MAP:
-      serialize(c, &el->a_, pos);
-      break;
-    case union_type::type_t::VEC:
-      serialize(c, &el->b_, pos);
-      break;
-    case union_type::type_t::NONE:
-      break;
+    case union_type::type_t::MAP: serialize(c, &el->a_, pos); break;
+    case union_type::type_t::VEC: serialize(c, &el->b_, pos); break;
+    case union_type::type_t::NONE: break;
   }
 }
 
 template <typename Ctx>
 void deserialize(Ctx const& c, union_type* el) {
   switch (el->type_) {
-    case union_type::type_t::MAP:
-      deserialize(c, &el->a_);
-      break;
-    case union_type::type_t::VEC:
-      deserialize(c, &el->b_);
-      break;
-    case union_type::type_t::NONE:
-      break;
+    case union_type::type_t::MAP: deserialize(c, &el->a_); break;
+    case union_type::type_t::VEC: deserialize(c, &el->b_); break;
+    case union_type::type_t::NONE: break;
   }
 }
 
@@ -128,9 +113,7 @@ TEST_CASE("complex union") {
   {
     union_type obj;
     obj.type_ = union_type::type_t::MAP;
-    obj.a_.map_ = {
-        {1, 2}, {3, 4}
-    };
+    obj.a_.map_ = {{1, 2}, {3, 4}};
     buf = cista::serialize(obj);
   }
 
@@ -138,5 +121,6 @@ TEST_CASE("complex union") {
 
   std::stringstream ss;
   ss << *u;
-  CHECK(ss.str() == "1, 2\n3, 4\n");
+  auto const check = ss.str() == "1, 2\n3, 4\n" || ss.str() == "3, 4\n1, 2\n";
+  CHECK(check);
 }

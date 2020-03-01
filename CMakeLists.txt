@@ -1,14 +1,12 @@
 cmake_minimum_required(VERSION 3.5)
 
-if (NOT DEFINED PROJECT_NAME)
-  set(NOT_SUBPROJECT ON)
+if (NOT DEFINED PROJECT_NAME AND CISTA_HASH STREQUAL "FNV1A")
+  set(CISTA_INSTALL ON)
 endif()
 
 project(cista LANGUAGES CXX VERSION 0.6)
 
 include(GNUInstallDirs)
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   set(cista-compile-flags
@@ -35,15 +33,21 @@ endif()
 
 option(CISTA_COVERAGE "generate coverage report" OFF)
 option(CISTA_GENERATE_TO_TUPLE "generate include/cista/reflection/to_tuple.h" OFF)
-
-add_subdirectory(tools/xxh3)
-option(CISTA_XXH3 "Use experimental xxhash xxh3" FALSE)
+set(CISTA_HASH "FNV1A" CACHE STRING "Options: FNV1A XXH3 WYHASH WYHASH_FASTEST")
 
 add_library(cista INTERFACE)
-if (CISTA_XXH3)
+if (CISTA_HASH STREQUAL "XXH3")
+  message(STATUS "include xxh3")
+  add_subdirectory(tools/xxh3)
   target_link_libraries(cista INTERFACE xxh3)
-  target_compile_definitions(cista INTERFACE CISTA_XXH3=1)
+elseif(CISTA_HASH STREQUAL "WYHASH" OR CISTA_HASH STREQUAL "WYHASH_FASTEST")
+  message(STATUS "include wyhash")
+  add_subdirectory(tools/wyhash)
+  target_link_libraries(cista INTERFACE wyhash)
+else()
+  message(STATUS "include nothing ${CISTA_HASH}")
 endif()
+target_compile_definitions(cista INTERFACE CISTA_${CISTA_HASH}=1)
 target_include_directories(cista INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
@@ -173,7 +177,7 @@ endif()
 add_library(cista::cista ALIAS cista)
 
 # Export targets when not used via `add_subdirectory`
-if (NOT_SUBPROJECT)
+if (CISTA_INSTALL)
   include(CMakePackageConfigHelpers)
   set(CISTA_CMAKE_CONFIG_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/cista")
 
