@@ -128,13 +128,16 @@ private:
 
   void* map() {
 #ifdef _MSC_VER
-    static_assert(sizeof(size_t) == 8U);
     auto const size_low = static_cast<DWORD>(size_);
+#ifdef _WIN64
     auto const size_high = static_cast<DWORD>(size_ >> 32);
+#else
+    auto const size_high = static_cast<DWORD>(0);
+#endif
     const auto fm = ::CreateFileMapping(
         f_.f_, 0, prot_ == protection::READ ? PAGE_READONLY : PAGE_READWRITE,
         size_high, size_low, 0);
-    verify(fm != INVALID_HANDLE_VALUE, "file mapping error");
+    verify(fm != NULL, "file mapping error");
     file_mapping_ = fm;
 
     auto const addr = ::MapViewOfFile(

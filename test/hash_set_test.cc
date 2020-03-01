@@ -158,6 +158,7 @@ TEST_CASE("serialize hash_set test") {
   CHECK(*deserialized->find(make_e3()) == make_e3());
 }
 
+#ifndef _MSC_VER  // MSVC compiler bug :/
 TEST_CASE("string view get") {
   using namespace cista::raw;
 
@@ -219,3 +220,4 @@ TEST_CASE("string view get") {
   CHECK(s.erase(string{"2"}) == 0);
   CHECK(s.erase("2") == 0);
 }
+#endif
