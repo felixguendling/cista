@@ -190,6 +190,7 @@ struct variant {
         if constexpr (B + 15 < sizeof...(T)) {
           return f(as<type_at_index_t<B + 15, T...>>());
         }
+        break;
     }
 
     if constexpr (B + 15 < sizeof...(T)) {
@@ -283,6 +284,7 @@ struct variant {
         if constexpr (B + 15 < sizeof...(T)) {
           return f(as<type_at_index_t<B + 15, T...>>());
         }
+        break;
     }
 
     if constexpr (B + 15 < sizeof...(T)) {
