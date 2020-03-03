@@ -107,13 +107,13 @@ struct variant {
     });
   }
 
-  template <typename F, std::size_t B = 0U>
-  auto apply(F&& f) const
+  template <typename F, std::size_t B = 0U, typename... Vs>
+  static auto apply(F&& f, index_t const idx, Vs... vs)
       -> std::invoke_result_t<F, type_at_index_t<0U, T...>> {
-    switch (idx_) {
+    switch (idx) {
       case B + 0:
         if constexpr (B + 0 < sizeof...(T)) {
-          return f(as<type_at_index_t<B + 0, T...>>());
+          return f(vs.template as<type_at_index_t<B + 0, T...>>()...);
         }
         [[fallthrough]];
       case B + 1:
