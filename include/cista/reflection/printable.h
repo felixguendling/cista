@@ -1,38 +1,28 @@
 #pragma once
 
 #include <ostream>
-#include <type_traits>
 
 #ifndef CISTA_PRINTABLE_NO_VEC
 #include <vector>
 #endif
 
+#include "cista/decay.h"
 #include "cista/reflection/for_each_field.h"
-
-namespace cista {
-
-namespace enum_ostream_operators {
-
-template <typename E, typename = std::enable_if_t<std::is_enum_v<std::decay_t<E>>>>
-std::ostream& operator<<(std::ostream& out, E value) {
-  return out << static_cast<std::underlying_type_t<std::decay_t<E>>>(value);
-}
-
-}  // namespace cista::enum_ostream_operators
-
-}  // namespace cista
 
 #ifndef CISTA_PRINTABLE_NO_VEC
 template <typename T>
 inline std::ostream& operator<<(std::ostream& out, std::vector<T> const& v) {
-  using namespace ::cista::enum_ostream_operators;
   out << "[\n  ";
   auto first = true;
   for (auto const& e : v) {
     if (!first) {
       out << ",\n  ";
     }
-    out << e;
+    if constexpr (std::is_enum_v<::cista::decay_t<T>>) {
+      out << static_cast<std::underlying_type_t<std::decay_t<T>>>(e);
+    } else {
+      out << e;
+    }
     first = false;
   }
   return out << "\n]";
@@ -44,12 +34,16 @@ inline std::ostream& operator<<(std::ostream& out, std::vector<T> const& v) {
     bool first = true;                                                      \
     out << "{";                                                             \
     ::cista::for_each_field(o, [&](auto&& f) {                              \
-      using namespace ::cista::enum_ostream_operators;                      \
-      if (first) {                                                          \
-        out << f;                                                           \
-        first = false;                                                      \
+      using Type = ::cista::decay_t<decltype(f)>;                           \
+      if (!first) {                                                         \
+        out << ", ";                                                        \
       } else {                                                              \
-        out << ", " << f;                                                   \
+        first = false;                                                      \
+      }                                                                     \
+      if constexpr (std::is_enum_v<Type>) {                                 \
+        out << static_cast<std::underlying_type_t<Type>>(f);                \
+      } else {                                                              \
+        out << f;                                                           \
       }                                                                     \
     });                                                                     \
     return out << "}";                                                      \
