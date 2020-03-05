@@ -8,6 +8,8 @@
 #include "cista/reflection/printable.h"
 #endif
 
+namespace {
+
 enum class Color : int { RED, BLUE, GREEN };
 
 struct a {
@@ -18,6 +20,8 @@ struct a {
   std::string s_ = "hello world";
   Color c_ = Color::BLUE;
 };
+
+}  // namespace
 
 TEST_CASE("printable") {
   a instance;
