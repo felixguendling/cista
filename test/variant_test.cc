@@ -8,6 +8,7 @@
 #include "cista/containers/variant.h"
 #include "cista/mmap.h"
 #include "cista/serialization.h"
+#include "cista/targets/file.h"
 #endif
 
 namespace data = cista::offset;
@@ -207,7 +208,7 @@ TEST_CASE("variant serialization") {
   }
 
   // Deserialize.
-  auto b = cista::mmap("data", cista::mmap::protection::READ);
+  auto b = cista::file{"data", "ro"}.content();
   auto positions = cista::deserialize<pos_map, MODE>(b);
 
   // Check.
