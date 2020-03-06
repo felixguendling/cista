@@ -102,7 +102,7 @@ TEST_CASE("variant basic methods") {
 }
 
 TEST_CASE("variant comparison") {
-  data::variant<int, float> v{1}, u{0.5f};
+  data::variant<int, std::string> v{1}, u{std::string{"hello"}};
   CHECK(u > v);
   CHECK(v < u);
   CHECK(u >= v);
