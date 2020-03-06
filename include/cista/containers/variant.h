@@ -68,8 +68,9 @@ using type_at_index_t = typename type_at_index<Index, T...>::type;
 template <typename... T>
 struct variant {
   using index_t = variant_index_t<T...>;
+  static constexpr auto NO_VALUE = std::numeric_limits<index_t>::max();
 
-  variant() : idx_{std::numeric_limits<index_t>::max()} {}
+  variant() : idx_{NO_VALUE} {}
 
   template <typename Arg,
             typename = std::enable_if_t<
@@ -85,8 +86,11 @@ struct variant {
       new (&storage_) Type(std::forward<decltype(el)>(el));
     });
   }
-  variant(variant&& o) {
-    o.apply([this](auto&& el) { *this = std::move(el); });
+  variant(variant&& o) : idx_{o.idx_} {
+    o.apply([this](auto&& el) {
+      using Type = std::decay_t<decltype(el)>;
+      new (&storage_) Type(std::move(el));
+    });
   }
 
   variant& operator=(variant const& o) {
@@ -196,10 +200,12 @@ struct variant {
   }
 
   void destruct() {
-    apply([](auto&& el) {
-      using el_type = std::decay_t<decltype(el)>;
-      el.~el_type();
-    });
+    if (idx_ != NO_VALUE) {
+      apply([](auto&& el) {
+        using el_type = std::decay_t<decltype(el)>;
+        el.~el_type();
+      });
+    }
   }
 
   template <typename F>

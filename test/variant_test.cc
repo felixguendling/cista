@@ -107,7 +107,7 @@ TEST_CASE("variant basic methods") {
   entries = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
   v.swap(u);
-  CHECK(entries == std::array<int, NUM_ENTRIES>{0, 0, 1, 0, 0, 2,  //
+  CHECK(entries == std::array<int, NUM_ENTRIES>{0, 0, 1, 0, 0, 1,  //
                                                 0, 0, 2, 0, 0, 2});
 
   v = a{};
@@ -192,7 +192,7 @@ TEST_CASE("variant serialization") {
   struct pos {
     int x, y;
   };
-  using property = data::variant<data::string, std::int64_t, double>;
+  using property = data::variant<data::string, std::int64_t>;
   using pos_map =  // Automatic deduction of hash & equality
       data::hash_map<data::vector<pos>, data::hash_set<property>>;
 
