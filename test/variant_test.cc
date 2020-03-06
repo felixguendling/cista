@@ -208,7 +208,7 @@ TEST_CASE("variant serialization") {
   }
 
   // Deserialize.
-  auto b = cista::file{"data", "ro"}.content();
+  auto b = cista::file("data", "r").content();
   auto positions = cista::deserialize<pos_map, MODE>(b);
 
   // Check.
