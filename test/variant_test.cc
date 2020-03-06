@@ -99,10 +99,32 @@ TEST_CASE("variant basic methods") {
   CHECK(entries == std::array<int, NUM_ENTRIES>{0, 0, 0, 0, 0, 1,  //
                                                 0, 1, 0, 0, 0, 0});
   entries = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+  v = a{};
+  u = b{};
+  entries = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+  v.swap(u);
+  CHECK(entries == std::array<int, NUM_ENTRIES>{0, 0, 1, 0, 0, 2,  //
+                                                0, 0, 2, 0, 0, 2});
+
+  v = a{};
+  u = a{};
+  entries = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  v.swap(u);
+  CHECK(entries == std::array<int, NUM_ENTRIES>{0, 0, 1, 2, 0, 1,  //
+                                                0, 0, 0, 0, 0, 0});
 }
 
 TEST_CASE("variant comparison") {
   data::variant<int, std::string> v{1}, u{std::string{"hello"}};
+  static_assert(cista::variant_size_v<decltype(v)> == 2);
+
+  CHECK(v.index() == 0);
+  CHECK(u.index() == 1);
+  CHECK(cista::holds_alternative<int>(v));
+  CHECK(cista::holds_alternative<std::string>(u));
+
   CHECK(u > v);
   CHECK(v < u);
   CHECK(u >= v);
@@ -118,6 +140,9 @@ TEST_CASE("variant comparison") {
   CHECK(v != u);
   CHECK(!(v == u));
 
+  CHECK(10 == (v.emplace<int>(0) = 10));
+  CHECK(20 == (v.emplace<0>(0) = 20));
+
   v = 0;
   CHECK(!(u < v));
   CHECK(!(v > u));
@@ -125,4 +150,34 @@ TEST_CASE("variant comparison") {
   CHECK(u <= v);
   CHECK(v == u);
   CHECK(!(v != u));
+}
+
+TEST_CASE("variant get") {
+  data::variant<int, std::string> v{1}, u{std::string{"hello"}};
+
+  CHECK(cista::get_if<0>(u) == nullptr);
+  CHECK(cista::get_if<1>(v) == nullptr);
+  CHECK(*cista::get_if<0>(v) == 1);
+  CHECK(*cista::get_if<1>(u) == std::string{"hello"});
+
+  v.swap(u);
+
+  CHECK(std::get<int>(u) == 1);
+  CHECK(std::get<std::string>(v) == "hello");
+  CHECK(std::get<0>(u) == 1);
+  CHECK(std::get<1>(v) == "hello");
+}
+
+TEST_CASE("variant get const") {
+  data::variant<int, std::string> const v{1}, u{std::string{"hello"}};
+
+  CHECK(cista::get_if<0>(u) == nullptr);
+  CHECK(cista::get_if<1>(v) == nullptr);
+  CHECK(*cista::get_if<0>(v) == 1);
+  CHECK(*cista::get_if<1>(u) == std::string{"hello"});
+
+  CHECK(std::get<int>(v) == 1);
+  CHECK(std::get<std::string>(u) == "hello");
+  CHECK(std::get<0>(v) == 1);
+  CHECK(std::get<1>(u) == "hello");
 }

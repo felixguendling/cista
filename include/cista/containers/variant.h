@@ -66,7 +66,7 @@ struct variant {
   using index_t = variant_index_t<T...>;
 
   template <typename Arg,
-            typename Enable = std::enable_if_t<
+            typename = std::enable_if_t<
                 index_of_type<std::decay_t<Arg>, T...>() != TYPE_NOT_FOUND>>
   explicit variant(Arg&& arg)
       : idx_{static_cast<index_t>(index_of_type<Arg, T...>())} {
@@ -89,13 +89,22 @@ struct variant {
   }
 
   template <typename Arg,
-            typename Enable = std::enable_if_t<
+            typename = std::enable_if_t<
                 index_of_type<std::decay_t<Arg>, T...>() != TYPE_NOT_FOUND>>
   variant& operator=(Arg&& arg) {
-    destruct();
-    idx_ = index_of_type<Arg, T...>();
-    new (&storage_) std::decay_t<Arg>{std::forward<Arg>(arg)};
-    return *this;
+    if (index_of_type<Arg, T...>() == idx_) {
+      apply([&](auto&& el) {
+        if constexpr (std::is_same_v<std::decay_t<decltype(el)>, Arg>) {
+          el = std::move(arg);
+        }
+      });
+      return *this;
+    } else {
+      destruct();
+      idx_ = static_cast<index_t>(index_of_type<Arg, T...>());
+      new (&storage_) std::decay_t<Arg>{std::forward<Arg>(arg)};
+      return *this;
+    }
   }
 
   ~variant() { destruct(); }
@@ -140,6 +149,41 @@ struct variant {
                ? apply([](auto&& u, auto&& v) -> bool { return u >= v; },
                        a.idx_, a, b)
                : a.idx_ >= b.idx_;
+  }
+
+  template <typename Arg, typename... CtorArgs>
+  Arg& emplace(CtorArgs&&... ctor_args) {
+    static_assert(index_of_type<Arg, T...>() != TYPE_NOT_FOUND);
+    destruct();
+    idx_ = static_cast<index_t>(index_of_type<Arg, T...>());
+    return *(new (&storage_)
+                 std::decay_t<Arg>{std::forward<CtorArgs>(ctor_args)...});
+  }
+
+  template <size_t I, typename... CtorArgs>
+  type_at_index_t<I, T...>& emplace(CtorArgs&&... ctor_args) {
+    static_assert(I < sizeof...(T));
+    destruct();
+    idx_ = I;
+    return *(new (&storage_) std::decay_t<type_at_index_t<I, T...>>{
+        std::forward<CtorArgs>(ctor_args)...});
+  }
+
+  constexpr std::size_t index() { return idx_; }
+
+  void swap(variant& o) {
+    if (idx_ == o.idx_) {
+      apply(
+          [](auto&& a, auto&& b) {
+            using std::swap;
+            swap(a, b);
+          },
+          idx_, *this, o);
+    } else {
+      variant tmp{std::move(o)};
+      o = std::move(*this);
+      *this = std::move(tmp);
+    }
   }
 
   void destruct() {
@@ -269,6 +313,73 @@ struct variant {
   std::aligned_union_t<0, T...> storage_;
 };
 
+template <typename T, typename... Ts>
+bool holds_alternative(variant<Ts...> const& v) {
+  return v.idx_ == index_of_type<std::decay_t<T>, Ts...>();
+}
+
+template <std::size_t I, typename... Ts>
+constexpr cista::type_at_index_t<I, Ts...> const& get(
+    cista::variant<Ts...> const& v) {
+  return v.template as<cista::type_at_index_t<I, Ts...>>();
+}
+
+template <std::size_t I, typename... Ts>
+constexpr cista::type_at_index_t<I, Ts...>& get(cista::variant<Ts...>& v) {
+  return v.template as<cista::type_at_index_t<I, Ts...>>();
+}
+
+template <class T, class... Ts>
+constexpr T const& get(cista::variant<Ts...> const& v) {
+  static_assert(cista::index_of_type<T, Ts...>() != cista::TYPE_NOT_FOUND);
+  return v.template as<T>();
+}
+template <class T, class... Ts>
+constexpr T& get(cista::variant<Ts...>& v) {
+  static_assert(cista::index_of_type<T, Ts...>() != cista::TYPE_NOT_FOUND);
+  return v.template as<T>();
+}
+
+template <class T, class... Ts>
+constexpr std::add_pointer_t<T> get_if(cista::variant<Ts...>& v) {
+  static_assert(cista::index_of_type<T, Ts...>() != cista::TYPE_NOT_FOUND);
+  return v.idx_ == &cista::index_of_type<T, Ts...> ? v.template as<T>()
+                                                   : nullptr;
+}
+
+template <std::size_t I, typename... Ts>
+constexpr std::add_pointer_t<cista::type_at_index_t<I, Ts...> const> get_if(
+    cista::variant<Ts...> const& v) {
+  static_assert(I < sizeof...(Ts));
+  return v.idx_ == I ? &v.template as<cista::type_at_index_t<I, Ts...>>()
+                     : nullptr;
+}
+
+template <std::size_t I, typename... Ts>
+constexpr std::add_pointer_t<cista::type_at_index_t<I, Ts...>> get_if(
+    cista::variant<Ts...>& v) {
+  static_assert(I < sizeof...(Ts));
+  return v.idx_ == I ? &v.template as<cista::type_at_index_t<I, Ts...>>()
+                     : nullptr;
+}
+
+template <class T, class... Ts>
+constexpr std::add_pointer_t<T const> get_if(cista::variant<Ts...> const& v) {
+  static_assert(cista::index_of_type<T, Ts...>() != cista::TYPE_NOT_FOUND);
+  return v.idx_ == cista::index_of_type<T, Ts...> ? &v.template as<T>()
+                                                  : nullptr;
+}
+
+template <class T>
+struct variant_size;
+
+template <class... T>
+struct variant_size<variant<T...>>
+    : std::integral_constant<std::size_t, sizeof...(T)> {};
+
+template <class T>
+inline constexpr std::size_t variant_size_v = variant_size<T>::value;
+
 namespace raw {
 using cista::variant;
 }  // namespace raw
@@ -278,3 +389,9 @@ using cista::variant;
 }  // namespace offset
 
 }  // namespace cista
+
+namespace std {
+
+using cista::get;
+
+}  // namespace std
