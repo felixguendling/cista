@@ -104,4 +104,25 @@ TEST_CASE("variant basic methods") {
 TEST_CASE("variant comparison") {
   data::variant<int, float> v{1}, u{0.5f};
   CHECK(u > v);
+  CHECK(v < u);
+  CHECK(u >= v);
+  CHECK(v <= u);
+  CHECK(v != u);
+  CHECK(!(v == u));
+
+  u = 0;
+  CHECK(u < v);
+  CHECK(v > u);
+  CHECK(v >= u);
+  CHECK(u <= v);
+  CHECK(v != u);
+  CHECK(!(v == u));
+
+  v = 0;
+  CHECK(!(u < v));
+  CHECK(!(v > u));
+  CHECK(v >= u);
+  CHECK(u <= v);
+  CHECK(v == u);
+  CHECK(!(v != u));
 }

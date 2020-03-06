@@ -150,24 +150,19 @@ struct variant {
   }
 
   template <typename F>
-  auto apply(F&& f) -> std::invoke_result_t<F, type_at_index_t<0U, T...>> {
+  auto apply(F&& f) -> decltype(f(std::declval<type_at_index_t<0U, T...>>())) {
     return apply(std::forward<F>(f), idx_, *this);
   }
 
   template <typename F>
   auto apply(F&& f) const
-      -> std::invoke_result_t<F, type_at_index_t<0U, T...>> {
+      -> decltype(f(std::declval<type_at_index_t<0U, T...>>())) {
     return apply(std::forward<F>(f), idx_, *this);
   }
 
   template <typename F, std::size_t B = 0U, typename... Vs>
   static auto apply(F&& f, index_t const idx, Vs&&... vs)
-  //      -> std::conditional_t<sizeof...(Vs) == 1,
-  //                            std::invoke_result_t<F, type_at_index_t<0U,
-  //                            T...>>, std::invoke_result_t<F,
-  //                            type_at_index_t<0U, T...>,
-  //                                                 type_at_index_t<0U, T...>>>
-  {
+      -> decltype(f((vs, std::declval<type_at_index_t<0U, T...>>())...)) {
     switch (idx) {
       case B + 0:
         if constexpr (B + 0 < sizeof...(T)) {
@@ -252,7 +247,7 @@ struct variant {
     }
 
     if constexpr (B + 15 < sizeof...(T)) {
-      return apply<B + 16U, T...>(std::forward<F>(f), std::forward<Vs>(vs)...);
+      return apply<F, B + 16U>(std::forward<F>(f), std::forward<Vs>(vs)...);
     }
 
 #ifndef _MSC_VER
