@@ -78,6 +78,14 @@ hash_t type_hash(hash_storage<T, Ptr, GetKey, GetValue, Hash, Eq> const&,
   return type_hash(T{}, h, done);
 }
 
+template <typename... T>
+hash_t type_hash(variant<T...> const&, hash_t h,
+                 std::map<hash_t, unsigned>& done) {
+  h = hash_combine(h, hash("variant"));
+  ((h = type_hash(T{}, h, done)), ...);
+  return h;
+}
+
 template <typename Ptr>
 hash_t type_hash(generic_string<Ptr> const&, hash_t h,
                  std::map<hash_t, unsigned>&) {

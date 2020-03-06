@@ -1,8 +1,12 @@
+#pragma once
+
 #include <cinttypes>
 #include <algorithm>
 #include <array>
 #include <limits>
 #include <type_traits>
+
+#include "cista/hashing.h"
 
 namespace cista {
 
@@ -65,6 +69,8 @@ template <typename... T>
 struct variant {
   using index_t = variant_index_t<T...>;
 
+  variant() : idx_{std::numeric_limits<index_t>::max()} {}
+
   template <typename Arg,
             typename = std::enable_if_t<
                 index_of_type<std::decay_t<Arg>, T...>() != TYPE_NOT_FOUND>>
@@ -73,8 +79,11 @@ struct variant {
     new (&storage_) Arg(std::forward<Arg>(arg));
   }
 
-  variant(variant const& o) {
-    o.apply([this](auto&& el) { *this = el; });
+  variant(variant const& o) : idx_{o.idx_} {
+    o.apply([this](auto&& el) {
+      using Type = std::decay_t<decltype(el)>;
+      new (&storage_) Type(std::forward<decltype(el)>(el));
+    });
   }
   variant(variant&& o) {
     o.apply([this](auto&& el) { *this = std::move(el); });
@@ -169,7 +178,7 @@ struct variant {
         std::forward<CtorArgs>(ctor_args)...});
   }
 
-  constexpr std::size_t index() { return idx_; }
+  constexpr std::size_t index() const { return idx_; }
 
   void swap(variant& o) {
     if (idx_ == o.idx_) {
@@ -379,6 +388,20 @@ struct variant_size<variant<T...>>
 
 template <class T>
 inline constexpr std::size_t variant_size_v = variant_size<T>::value;
+
+template <typename... T>
+struct hashing<variant<T...>> {
+  constexpr hash_t operator()(variant<T...> const& el,
+                              hash_t const seed = BASE_HASH) {
+    return el.apply([&](auto&& val) {
+      auto const idx = el.index();
+      auto h = seed;
+      h = hashing<decltype(idx)>{}(idx, h);
+      h = hashing<decltype(val)>{}(val, h);
+      return h;
+    });
+  }
+};
 
 namespace raw {
 using cista::variant;

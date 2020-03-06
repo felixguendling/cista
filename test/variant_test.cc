@@ -6,6 +6,8 @@
 #include "cista.h"
 #else
 #include "cista/containers/variant.h"
+#include "cista/mmap.h"
+#include "cista/serialization.h"
 #endif
 
 namespace data = cista::offset;
@@ -180,4 +182,40 @@ TEST_CASE("variant get const") {
   CHECK(std::get<std::string>(u) == "hello");
   CHECK(std::get<0>(v) == 1);
   CHECK(std::get<1>(u) == "hello");
+}
+
+TEST_CASE("variant serialization") {
+  namespace data = cista::offset;
+  constexpr auto const MODE =  // opt. versioning + check sum
+      cista::mode::WITH_VERSION | cista::mode::WITH_INTEGRITY;
+
+  struct pos {
+    int x, y;
+  };
+  using property = data::variant<data::string, std::int64_t, double>;
+  using pos_map =  // Automatic deduction of hash & equality
+      data::hash_map<data::vector<pos>, data::hash_set<property>>;
+
+  {  // Serialize.
+    auto positions = pos_map{
+        {{{1, 2}, {3, 4}},
+         {property{data::string{"hello"}}, property{std::int64_t{123}}}},
+        {{{5, 6}, {7, 8}},
+         {property{std::int64_t{456}}, property{data::string{"world"}}}}};
+    cista::buf mmap{cista::mmap{"data"}};
+    cista::serialize<MODE>(mmap, positions);
+  }
+
+  // Deserialize.
+  auto b = cista::mmap("data", cista::mmap::protection::READ);
+  auto positions = cista::deserialize<pos_map, MODE>(b);
+
+  // Check.
+  CHECK(positions->size() == 2);
+  auto const one = positions->find(pos_map::key_t{{1, 2}, {3, 4}});
+  auto const two = positions->find(pos_map::key_t{{5, 6}, {7, 8}});
+  CHECK(one != positions->end());
+  CHECK(two != positions->end());
+  CHECK(one->second.find(property{data::string{"hello"}}) != end(one->second));
+  CHECK(two->second.find(property{std::int64_t{456}}) != end(two->second));
 }
