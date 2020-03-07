@@ -18,8 +18,9 @@ inline std::ostream& operator<<(std::ostream& out, std::vector<T> const& v) {
     if (!first) {
       out << ",\n  ";
     }
-    if constexpr (std::is_enum_v<::cista::decay_t<T>>) {
-      out << static_cast<std::underlying_type_t<std::decay_t<T>>>(e);
+    using Type = cista::decay_t<T>;
+    if constexpr (std::is_enum_v<Type>) {
+      out << static_cast<std::underlying_type_t<Type>>(e);
     } else {
       out << e;
     }
