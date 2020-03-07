@@ -314,6 +314,16 @@ void serialize(Ctx& c, array<T, Size> const* origin, offset_t const pos) {
   }
 }
 
+template <typename Ctx, typename... T>
+void serialize(Ctx& c, variant<T...> const* origin, offset_t const pos) {
+  using Type = decay_t<decltype(*origin)>;
+  c.write(pos + cista_member_offset(Type, idx_),
+          convert_endian<Ctx::MODE>(origin->idx_));
+  origin->apply([&](auto&& t) {
+    serialize(c, &t, pos + cista_member_offset(Type, storage_));
+  });
+}
+
 constexpr offset_t integrity_start(mode const m) {
   offset_t start = 0;
   if (is_mode_enabled(m, mode::WITH_VERSION)) {
@@ -800,6 +810,22 @@ void recurse(Ctx&, array<T, Size>* el, Fn&& fn) {
   for (auto& m : *el) {
     fn(&m);
   }
+}
+
+// --- VARIANT<T...> ---
+template <typename Ctx, typename Fn, typename... T>
+void convert_endian_and_ptr(Ctx const& c, variant<T...>* el) {
+  c.convert_endian(el->idx_);
+}
+
+template <typename Ctx, typename Fn, typename... T>
+void recurse(Ctx&, variant<T...>* el, Fn&& fn) {
+  el->apply([&](auto&& t) { fn(&t); });
+}
+
+template <typename Ctx, typename... T>
+void check_state(Ctx const& c, variant<T...>* el) {
+  c.require(el->index() < sizeof...(T), "variant index");
 }
 
 template <typename T, mode const Mode = mode::NONE>

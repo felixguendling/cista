@@ -10,7 +10,6 @@
 
 #include "cista/containers/offset_ptr.h"
 #include "cista/containers/string.h"
-#include "cista/containers/unique_ptr.h"
 #include "cista/decay.h"
 #include "cista/hash.h"
 #include "cista/is_iterable.h"
