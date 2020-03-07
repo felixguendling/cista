@@ -219,6 +219,10 @@ struct variant {
     return apply(std::forward<F>(f), idx_, *this);
   }
 
+#ifdef _MSC_VER
+  static __declspec(noreturn) void noret() {}
+#endif
+
   template <typename F, std::size_t B = 0U, typename... Vs>
   static auto apply(F&& f, index_t const idx, Vs&&... vs)
       -> decltype(f((vs, std::declval<type_at_index_t<0U, T...>>())...)) {
@@ -311,6 +315,8 @@ struct variant {
 
 #ifndef _MSC_VER
     __builtin_unreachable();
+#else
+    noret();
 #endif
   }
 
