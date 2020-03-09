@@ -1,109 +1,117 @@
 jobs:
-- job: VS2019
-  strategy:
-    matrix:
-      REL:
-         BUILD_TYPE: Release
-      DBG:
-        BUILD_TYPE: Debug
-  pool:
-     vmImage: windows-2019
-  steps:
-    - task: CMake@1
-      displayName: 'CMake'
-      inputs:
-        cmakeArgs: -G "Visual Studio 16 2019" -A x64 ..
-    - task: MSBuild@1
-      displayName: 'Build Solution'
-      inputs:
-        solution: build/cista.sln
-        msbuildArguments: '/m /p:Configuration=$(BUILD_TYPE)'
-    - script: cista-test
-      workingDirectory: build\$(BUILD_TYPE)
-      displayName: Run Tests
+  - job: VS2019
+    strategy:
+      matrix:
+        REL-WIN32:
+          BUILD_TYPE: Release
+          ARCH: Win32
+        DBG-WIN32:
+          BUILD_TYPE: Debug
+          ARCH: Win32
+        REL-X64:
+          BUILD_TYPE: Release
+          ARCH: x64
+        DBG-X64:
+          BUILD_TYPE: Debug
+          ARCH: x64
+    pool:
+      vmImage: windows-2019
+    steps:
+      - task: CMake@1
+        displayName: 'CMake'
+        inputs:
+          cmakeArgs: -G "Visual Studio 16 2019" -A x64 ..
+      - task: MSBuild@1
+        displayName: 'Build Solution'
+        inputs:
+          solution: build/cista.sln
+          msbuildArguments: '/m /p:Configuration=$(BUILD_TYPE)'
+      - script: cista-test
+        workingDirectory: build\$(BUILD_TYPE)
+        displayName: Run Tests
 
-- job: LINUX_CLANG
-  strategy:
-    matrix:
-      REL:
-        BUILD_TYPE: Release
-        CXXFLAGS: '-stdlib=libc++ -D_LIBCPP_VERSION=1 -march=native'
-        FUZZ: False
-      DBG:
-        BUILD_TYPE: Debug
-        CXXFLAGS: '-stdlib=libc++ -D_LIBCPP_VERSION=1 -fno-omit-frame-pointer -fsanitize=address'
-        FUZZ: False
-      FUZZ:
-        BUILD_TYPE: Debug
-        CXXFLAGS: '-stdlib=libc++ -D_LIBCPP_VERSION=1 -fno-omit-frame-pointer'
-        FUZZ: True
-  pool:
-    vmImage: ubuntu-16.04
-  variables:
-    CXX: /opt/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/clang++
-    LD_LIBRARY_PATH: /opt/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04/lib
-    ASAN_SYMBOLIZER_PATH: /opt/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/llvm-symbolizer
-  steps:
-  - script: |
-      sudo curl -Ls http://releases.llvm.org/8.0.0/clang%2bllvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz -o clang.tar.xz
-      sudo tar -xf clang.tar.xz -C /opt
-  - script: |
-      mkdir build
-      cd build
-      cmake -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) ..
-    displayName: 'CMake'
-  - script: make cista-test
-    workingDirectory: build
-    displayName: 'Build'
-    condition: not(eq(variables['FUZZ'], 'True'))
-  - script: make cista-fuzz
-    workingDirectory: build
-    displayName: 'Build & Execute Fuzzing'
-    condition: eq(variables['FUZZ'], 'True')
-  - script: ./cista-test
-    workingDirectory: build
-    displayName: 'Run Tests'
-    condition: not(eq(variables['FUZZ'], 'True'))
+  - job: LINUX_CLANG
+    strategy:
+      matrix:
+        REL:
+          BUILD_TYPE: Release
+          CXXFLAGS: '-stdlib=libc++ -D_LIBCPP_VERSION=1 -march=native'
+          FUZZ: False
+        DBG:
+          BUILD_TYPE: Debug
+          CXXFLAGS: '-stdlib=libc++ -D_LIBCPP_VERSION=1 -fno-omit-frame-pointer -fsanitize=address'
+          FUZZ: False
+        FUZZ:
+          BUILD_TYPE: Debug
+          CXXFLAGS: '-stdlib=libc++ -D_LIBCPP_VERSION=1 -fno-omit-frame-pointer'
+          FUZZ: True
+    pool:
+      vmImage: ubuntu-16.04
+    variables:
+      CXX: /opt/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/clang++
+      LD_LIBRARY_PATH: /opt/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04/lib
+      ASAN_SYMBOLIZER_PATH: /opt/clang+llvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04/bin/llvm-symbolizer
+    steps:
+      - script: |
+          sudo curl -Ls http://releases.llvm.org/8.0.0/clang%2bllvm-8.0.0-x86_64-linux-gnu-ubuntu-16.04.tar.xz -o clang.tar.xz
+          sudo tar -xf clang.tar.xz -C /opt
+      - script: |
+          mkdir build
+          cd build
+          cmake -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) ..
+        displayName: 'CMake'
+      - script: make cista-test
+        workingDirectory: build
+        displayName: 'Build'
+        condition: not(eq(variables['FUZZ'], 'True'))
+      - script: make cista-fuzz
+        workingDirectory: build
+        displayName: 'Build & Execute Fuzzing'
+        condition: eq(variables['FUZZ'], 'True')
+      - script: ./cista-test
+        workingDirectory: build
+        displayName: 'Run Tests'
+        condition: not(eq(variables['FUZZ'], 'True'))
 
-- job: LINUX_GCC
-  strategy:
-    matrix:
-      REL:
-        BUILD_TYPE: Release
-        CXXFLAGS: '-march=native'
-      DBG:
-        BUILD_TYPE: Debug
-        CXXFLAGS: '-D_LIBCPP_VERSION=1 -fno-omit-frame-pointer -fsanitize=address'
-  pool:
-    vmImage: ubuntu-16.04
-  variables:
-    CXX: g++-8
-  steps:
-  - script: |
-      sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-      sudo apt update
-      sudo apt install -y --no-install-recommends g++-8
-  - script: |
-      mkdir build
-      cd build
-      cmake -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) ..
-    displayName: 'CMake'
-  - script: make cista-test
-    workingDirectory: build
-    displayName: 'Build'
-  - script: ./cista-test
-    workingDirectory: build
-    displayName: 'Run Tests'
+  - job: LINUX_GCC
+    strategy:
+      matrix:
+        REL:
+          BUILD_TYPE: Release
+          CXXFLAGS: '-march=native'
+        DBG:
+          BUILD_TYPE: Debug
+          CXXFLAGS: '-D_LIBCPP_VERSION=1 -fno-omit-frame-pointer -fsanitize=address'
+    pool:
+      vmImage: ubuntu-16.04
+    variables:
+      CXX: g++-8
+    steps:
+      - script: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt update
+          sudo apt install -y --no-install-recommends g++-8
+      - script: |
+          mkdir build
+          cd build
+          cmake -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) ..
+        displayName: 'CMake'
+      - script: make cista-test
+        workingDirectory: build
+        displayName: 'Build'
+      - script: ./cista-test
+        workingDirectory: build
+        displayName: 'Run Tests'
 
-- job: POWERPC
-  pool:
-    vmImage: ubuntu-16.04
-  steps:
-  - script: |
-      docker run \
-        -v "$PWD:/repo" \
-        -e "CXXFLAGS=-static" \
-        --rm \
-        felixguendling/cross-build-cpp \
-        bash -c "cmake-ppc /repo && ninja cista-test && qemu-ppc-static cista-test"
-    displayName: 'Build & Run Tests'
+  - job: POWERPC
+    pool:
+      vmImage: ubuntu-16.04
+    steps:
+      - script: |
+          docker run \
+            -v "$PWD:/repo" \
+            -e "CXXFLAGS=-static" \
+            --rm \
+            felixguendling/cross-build-cpp \
+            bash -c "cmake-ppc /repo && ninja cista-test && qemu-ppc-static cista-test"
+        displayName: 'Build & Run Tests'
