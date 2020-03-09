@@ -47,7 +47,7 @@ inline void deserialize(Ctx const& c, std::vector<T>* el) {
   auto& vec = *new (static_cast<void*>(el)) std::vector<T>();
 
   if (size != 0 && data != nullptr) {
-    vec.resize(static_cast<std::vector<T>::size_type>(size));
+    vec.resize(static_cast<typename std::vector<T>::size_type>(size));
     vec.insert(begin(vec), std::make_move_iterator(data),
                std::make_move_iterator(data + size));
   }
