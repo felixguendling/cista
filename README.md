@@ -38,7 +38,7 @@ The underlying reflection mechanism can be used in [other ways](https://cista.ro
 
 **Examples:**
 
-Download the [latest release](https://github.com/felixguendling/cista/releases/download/v0.6/cista.h) and try it out.
+Download the [latest release](https://github.com/felixguendling/cista/releases/download/v0.7/cista.h) and try it out.
 
 Simple example writing to a buffer:
 
