@@ -4,7 +4,7 @@ if (NOT DEFINED PROJECT_NAME AND CISTA_HASH STREQUAL "FNV1A")
   set(CISTA_INSTALL ON)
 endif()
 
-project(cista LANGUAGES CXX VERSION 0.6)
+project(cista LANGUAGES CXX VERSION 0.7)
 
 include(GNUInstallDirs)
 
