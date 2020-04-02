@@ -82,7 +82,7 @@ add_custom_command(
 
 file(GLOB_RECURSE cista-test-files test/*.cc)
 add_executable(cista-test-single-header EXCLUDE_FROM_ALL ${cista-test-files} ${CMAKE_CURRENT_BINARY_DIR}/cista.h)
-target_link_libraries(cista-test-single-header doctest)
+target_link_libraries(cista-test-single-header cista-doctest)
 target_include_directories(cista-test-single-header PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_compile_options(cista-test-single-header PRIVATE ${cista-compile-flags})
 target_compile_definitions(cista-test-single-header PRIVATE SINGLE_HEADER)
@@ -90,7 +90,7 @@ target_compile_features(cista-test-single-header PRIVATE cxx_std_17)
 
 add_executable(cista-test EXCLUDE_FROM_ALL ${cista-test-files})
 target_compile_options(cista-test PRIVATE ${cista-compile-flags})
-target_link_libraries(cista-test doctest cista)
+target_link_libraries(cista-test cista-doctest cista)
 if(CISTA_COVERAGE)
   target_compile_options(cista-test PRIVATE -fprofile-arcs -ftest-coverage)
   set_target_properties(cista-test PROPERTIES LINK_FLAGS --coverage)
