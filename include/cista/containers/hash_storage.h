@@ -573,9 +573,10 @@ struct hash_storage {
 
   void initialize_entries() {
     self_allocated_ = true;
-    auto const size = static_cast<size_type>(capacity_ * sizeof(T) +
-                             (capacity_ + 1 + WIDTH) * sizeof(ctrl_t));
-    entries_ = reinterpret_cast<T*>(CISTA_ALIGNED_ALLOC(sizeof(T), static_cast<size_t>(size)));
+    auto const size = static_cast<size_type>(
+        capacity_ * sizeof(T) + (capacity_ + 1 + WIDTH) * sizeof(ctrl_t));
+    entries_ = reinterpret_cast<T*>(
+        CISTA_ALIGNED_ALLOC(sizeof(T), static_cast<size_t>(size)));
     ctrl_ = reinterpret_cast<ctrl_t*>(
         reinterpret_cast<uint8_t*>(ptr_cast(entries_)) + capacity_ * sizeof(T));
     reset_ctrl();
@@ -598,6 +599,7 @@ struct hash_storage {
         auto const new_index = target.offset_;
         set_ctrl(new_index, h2(hash));
         new (entries_ + new_index) T{std::move(old_entries[i])};
+        old_entries[i].~T();
       }
     }
 
