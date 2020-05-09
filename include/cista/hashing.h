@@ -100,7 +100,9 @@ struct hashing {
     } else if constexpr (is_string_like_v<Type>) {
       using std::begin;
       using std::end;
-      return hash(std::string_view{&(*begin(el)), el.size()}, seed);
+      return el.size() == 0U
+                 ? seed
+                 : hash(std::string_view{&(*begin(el)), el.size()}, seed);
     } else if constexpr (std::is_scalar_v<Type>) {
       return hash_combine(seed, el);
     } else if constexpr (is_iterable_v<Type>) {
