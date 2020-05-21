@@ -64,7 +64,7 @@ jobs:
         if: matrix.config.cc == 'clang-9'
         env:
           DEBIAN_FRONTEND: noninteractive
-        run: apt install -y --no-install-recommends libc++-9-dev libc++abi-9-dev libfuzzer-9-dev
+        run: sudo apt-get install -y --no-install-recommends libc++-9-dev libc++abi-9-dev libfuzzer-9-dev
 
       # ==== BUILD ====
       - name: CMake
@@ -90,7 +90,7 @@ jobs:
         if: matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-9'
         env:
           DEBIAN_FRONTEND: noninteractive
-        run: apt install -y --no-install-recommends valgrind
+        run: sudo apt-get install -y --no-install-recommends valgrind
       - name: Run Single Header Tests Valgrind
         if: matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-9'
         run: valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full ./build/cista-test
