@@ -87,6 +87,9 @@ target_include_directories(cista-test-single-header PRIVATE ${CMAKE_CURRENT_BINA
 target_compile_options(cista-test-single-header PRIVATE ${cista-compile-flags})
 target_compile_definitions(cista-test-single-header PRIVATE SINGLE_HEADER)
 target_compile_features(cista-test-single-header PRIVATE cxx_std_17)
+if (CISTA_ZERO_OUT)
+  target_compile_definitions(cista-test-single-header PRIVATE CISTA_ZERO_OUT=1)
+endif()
 
 add_executable(cista-test EXCLUDE_FROM_ALL ${cista-test-files})
 target_compile_options(cista-test PRIVATE ${cista-compile-flags})
