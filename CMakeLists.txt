@@ -99,41 +99,6 @@ if(CISTA_COVERAGE)
   set_target_properties(cista-test PROPERTIES LINK_FLAGS --coverage)
 endif()
 
-add_custom_target(cista-format-check
-  find
-    ${CMAKE_CURRENT_SOURCE_DIR}/test
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    -type f
-    (
-    -name "*.cc"
-    -o
-    -name "*.h"
-    -o
-    -name "*.hpp"
-    )
-    -not -name "doctest.h"
-    -print0
-  | xargs -0 clang-format -i
-  COMMAND
-  git status --porcelain | xargs -I {} -0 test -z \"{}\"
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMENT "Checking source code formatting"
-  VERBATIM
-)
-
-add_custom_target(cista-lint
-  /usr/bin/python
-    ${CMAKE_CURRENT_SOURCE_DIR}/tools/run-clang-tidy.py
-      -exit-on-error
-      -quiet
-      -clang-tidy-binary clang-tidy-7
-      -header-filter "^${CMAKE_CURRENT_SOURCE_DIR}/(include/)"
-      "^${CMAKE_CURRENT_SOURCE_DIR}/test/"
-  COMMENT "Running clang-tidy"
-  VERBATIM
-)
-add_dependencies(cista-lint cista-test)
-
 add_custom_target(cista-coverage
   rm -rf *.info &&
   find . -name "*.gcda" -delete &&
