@@ -61,7 +61,7 @@ jobs:
       # ==== BUILD ====
       - name: CMake
         run: |
-          cmake-${{ matrix.cxx }} \
+          cmake \
             -G Ninja -S . -B build \
             -DCMAKE_C_COMPILER=${{ matrix.cc }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
