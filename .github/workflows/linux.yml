@@ -46,8 +46,6 @@ jobs:
           cxx: clang++-9
           cc: clang-9
           mode: Debug
-          cxxflags: -stdlib=libc++
-          ldflags: -lc++abi
           fuzz: true
         - key: Clang 9 Sanitizer
           cxx: clang++-9
