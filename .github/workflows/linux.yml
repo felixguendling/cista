@@ -105,7 +105,7 @@ jobs:
 
       # ==== FUZZ ====
       - name: Fuzzing
-        if: matrix.config.fuzzing
+        if: matrix.config.fuzz
         run: cmake --build build --target cista-fuzz
 
       # ==== DISTRIBUTION ====
