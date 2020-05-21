@@ -41,11 +41,13 @@ jobs:
           cc: clang-9
           mode: Release
           cxxflags: -stdlib=libc++
+          ldflags: -lc++abi
         - name: Clang 9 Debug
           cxx: clang++-9
           cc: clang-9
           mode: Debug
           cxxflags: -stdlib=libc++
+          ldflags: -lc++abi
           fuzz: true
         - key: Clang 9 Sanitizer
           cxx: clang++-9
@@ -53,6 +55,7 @@ jobs:
           mode: Debug
           cflags: -fsanitize=address,undefined -fno-omit-frame-pointer
           cxxflags: -fsanitize=address,undefined -fno-omit-frame-pointer -stdlib=libc++
+          ldflags: -lc++abi
     env:
       UBSAN_OPTIONS: halt_on_error=1:abort_on_error=1
     steps:
@@ -75,6 +78,8 @@ jobs:
             -DCMAKE_CXX_COMPILER=${{ matrix.config.cxx }} \
             -DCMAKE_C_FLAGS="${{ matrix.config.cflags }}" \
             -DCMAKE_CXX_FLAGS="${{ matrix.config.cxxflags }}" \
+            -DCMAKE_CXX_LINKER_FLAGS=${{ matrix.config.ldflags }}" \
+            -DCMAKE_CXX_EXE_LINKER_FLAGS="${{ matrix.config.ldflags }} \
             -DCMAKE_BUILD_TYPE=${{ matrix.config.mode }}
       - name: Build
         run: cmake --build build --target cista-test cista-test-single-header
