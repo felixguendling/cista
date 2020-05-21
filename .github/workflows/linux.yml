@@ -80,7 +80,8 @@ jobs:
             -DCMAKE_CXX_FLAGS="${{ matrix.config.cxxflags }}" \
             -DCMAKE_CXX_LINKER_FLAGS=${{ matrix.config.ldflags }}" \
             -DCMAKE_CXX_EXE_LINKER_FLAGS="${{ matrix.config.ldflags }} \
-            -DCMAKE_BUILD_TYPE=${{ matrix.config.mode }}
+            -DCMAKE_BUILD_TYPE=${{ matrix.config.mode }} \
+            -DCISTA_ZERO_OUT=${{ matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-9' }}
       - name: Build
         run: cmake --build build --target cista-test cista-test-single-header
 

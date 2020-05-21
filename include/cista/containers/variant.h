@@ -77,6 +77,9 @@ struct variant {
                 index_of_type<std::decay_t<Arg>, T...>() != TYPE_NOT_FOUND>>
   explicit variant(Arg&& arg)
       : idx_{static_cast<index_t>(index_of_type<Arg, T...>())} {
+#if defined(CISTA_ZERO_OUT)
+    std::memset(&storage_, 0, sizeof(storage_));
+#endif
     new (&storage_) Arg(std::forward<Arg>(arg));
   }
 

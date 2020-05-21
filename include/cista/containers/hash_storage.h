@@ -577,6 +577,9 @@ struct hash_storage {
         capacity_ * sizeof(T) + (capacity_ + 1 + WIDTH) * sizeof(ctrl_t));
     entries_ = reinterpret_cast<T*>(
         CISTA_ALIGNED_ALLOC(sizeof(T), static_cast<size_t>(size)));
+#if defined(CISTA_ZERO_OUT)
+    std::memset(entries_, 0, size);
+#endif
     ctrl_ = reinterpret_cast<ctrl_t*>(
         reinterpret_cast<uint8_t*>(ptr_cast(entries_)) + capacity_ * sizeof(T));
     reset_ctrl();

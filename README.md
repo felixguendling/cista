@@ -4,14 +4,11 @@
     <a href="https://isocpp.org/">
         <img src="https://img.shields.io/badge/language-C%2B%2B17-blue.svg">
     </a>
-    <a href="https://travis-ci.org/felixguendling/cista">
-        <img src="https://travis-ci.org/felixguendling/cista.svg?branch=master">
+    <a href="https://github.com/felixguendling/cista/actions?query=workflow%3A%22Linux+Build%22">
+        <img src="https://github.com/felixguendling/cista/workflows/Linux%20Build/badge.svg">
     </a>
-    <a href="https://ci.appveyor.com/project/felixguendling/cista/branch/master">
-        <img src="https://ci.appveyor.com/api/projects/status/cwcwp808uhaa5d3w/branch/master?svg=true">
-    </a>
-    <a href="https://dev.azure.com/felixguendling0388/cista/_build/latest?definitionId=1&branchName=master" >
-        <img src="https://dev.azure.com/felixguendling0388/cista/_apis/build/status/felixguendling.cista?branchName=master">
+    <a href="https://github.com/felixguendling/cista/actions?query=workflow%3A%22Windows+Build%22">
+        <img src="https://github.com/felixguendling/cista/workflows/Windows%20Build/badge.svg">
     </a>
     <a href="https://opensource.org/licenses/MIT" >
         <img src="https://img.shields.io/apm/l/vim-mode.svg">
