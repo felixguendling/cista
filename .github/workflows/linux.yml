@@ -61,7 +61,7 @@ jobs:
       
       # ==== INSTALL ====
       - name: Install
-        if: matrix.config.cc == clang-9
+        if: matrix.config.cc == 'clang-9'
         env:
           DEBIAN_FRONTEND: noninteractive
         run: apt install -y --no-install-recommends libc++-9-dev libc++abi-9-dev libfuzzer-9-dev
@@ -87,15 +87,15 @@ jobs:
 
       # ==== VALGRIND ====
       - name: Install Valgrind
-        if: matrix.config.mode == Debug && matrix.config.cc == gcc-9
+        if: matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-9'
         env:
           DEBIAN_FRONTEND: noninteractive
         run: apt install -y --no-install-recommends valgrind
       - name: Run Single Header Tests Valgrind
-        if: matrix.config.mode == Debug && matrix.config.cc == gcc-9
+        if: matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-9'
         run: valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full ./build/cista-test
       - name: Run Single Header Tests Tests Valgrind
-        if: matrix.config.mode == Debug && matrix.config.cc == gcc-9
+        if: matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-9'
         run: valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full ./build/cista-test-single-header
 
       # ==== FUZZ ====
@@ -105,7 +105,7 @@ jobs:
 
       # ==== DISTRIBUTION ====
       - name: Upload Distribution
-        if: matrix.config.mode == Release && matrix.config.cc == gcc-9
+        if: matrix.config.mode == 'Release' && matrix.config.cc == 'gcc-9'
         uses: actions/upload-artifact@v1
         with:
           name: cista.h
@@ -113,7 +113,7 @@ jobs:
 
       # ==== RELEASE ====
       - name: Upload Release
-        if: github.event.action == published && matrix.config.mode == Release && matrix.config.cc == gcc-9
+        if: github.event.action == 'published' && matrix.config.mode == 'Release' && matrix.config.cc == 'gcc-9'
         uses: actions/upload-release-asset@v1.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
