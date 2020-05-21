@@ -31,23 +31,23 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   )
 endif()
 
+option(CISTA_ZERO_OUT "zero out fresh memory for valgrind" OFF)
 option(CISTA_COVERAGE "generate coverage report" OFF)
 option(CISTA_GENERATE_TO_TUPLE "generate include/cista/reflection/to_tuple.h" OFF)
 set(CISTA_HASH "FNV1A" CACHE STRING "Options: FNV1A XXH3 WYHASH WYHASH_FASTEST")
 
 add_library(cista INTERFACE)
 if (CISTA_HASH STREQUAL "XXH3")
-  message(STATUS "include xxh3")
   add_subdirectory(tools/xxh3)
   target_link_libraries(cista INTERFACE xxh3)
 elseif(CISTA_HASH STREQUAL "WYHASH" OR CISTA_HASH STREQUAL "WYHASH_FASTEST")
-  message(STATUS "include wyhash")
   add_subdirectory(tools/wyhash)
   target_link_libraries(cista INTERFACE wyhash)
-else()
-  message(STATUS "include nothing ${CISTA_HASH}")
 endif()
 target_compile_definitions(cista INTERFACE CISTA_${CISTA_HASH}=1)
+if (CISTA_ZERO_OUT)
+  target_compile_definitions(cista INTERFACE CISTA_ZERO_OUT=1)
+endif()
 target_include_directories(cista INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
@@ -87,6 +87,9 @@ target_include_directories(cista-test-single-header PRIVATE ${CMAKE_CURRENT_BINA
 target_compile_options(cista-test-single-header PRIVATE ${cista-compile-flags})
 target_compile_definitions(cista-test-single-header PRIVATE SINGLE_HEADER)
 target_compile_features(cista-test-single-header PRIVATE cxx_std_17)
+if (CISTA_ZERO_OUT)
+  target_compile_definitions(cista-test-single-header PRIVATE CISTA_ZERO_OUT=1)
+endif()
 
 add_executable(cista-test EXCLUDE_FROM_ALL ${cista-test-files})
 target_compile_options(cista-test PRIVATE ${cista-compile-flags})
@@ -95,41 +98,6 @@ if(CISTA_COVERAGE)
   target_compile_options(cista-test PRIVATE -fprofile-arcs -ftest-coverage)
   set_target_properties(cista-test PROPERTIES LINK_FLAGS --coverage)
 endif()
-
-add_custom_target(cista-format-check
-  find
-    ${CMAKE_CURRENT_SOURCE_DIR}/test
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
-    -type f
-    (
-    -name "*.cc"
-    -o
-    -name "*.h"
-    -o
-    -name "*.hpp"
-    )
-    -not -name "doctest.h"
-    -print0
-  | xargs -0 clang-format -i
-  COMMAND
-  git status --porcelain | xargs -I {} -0 test -z \"{}\"
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-  COMMENT "Checking source code formatting"
-  VERBATIM
-)
-
-add_custom_target(cista-lint
-  /usr/bin/python
-    ${CMAKE_CURRENT_SOURCE_DIR}/tools/run-clang-tidy.py
-      -exit-on-error
-      -quiet
-      -clang-tidy-binary clang-tidy-7
-      -header-filter "^${CMAKE_CURRENT_SOURCE_DIR}/(include/)"
-      "^${CMAKE_CURRENT_SOURCE_DIR}/test/"
-  COMMENT "Running clang-tidy"
-  VERBATIM
-)
-add_dependencies(cista-lint cista-test)
 
 add_custom_target(cista-coverage
   rm -rf *.info &&

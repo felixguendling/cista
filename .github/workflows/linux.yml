@@ -1,0 +1,128 @@
+name: Linux Build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  release:
+    types:
+      - published
+
+jobs:
+  formatting:
+    # ==== FORMAT CHECK ====
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Format files
+        run: find include test -type f -a \( -name "*.cc" -o -name "*.h" \) -print0 | xargs -0 clang-format-9 -i
+
+      - name: Check for differences
+        run: |
+          git status --porcelain
+          git status --porcelain | xargs -I {} -0 test -z \"{}\"
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        config:
+        - name: GCC 9 Release
+          cxx: g++-9
+          cc: gcc-9
+          mode: Release
+        - name: GCC 9 Debug
+          cxx: g++-9
+          cc: gcc-9
+          mode: Debug
+        - name: Clang 9 Release
+          cxx: clang++-9
+          cc: clang-9
+          mode: Release
+          cxxflags: -stdlib=libc++
+          ldflags: -lc++abi
+        - name: Clang 9 Debug
+          cxx: clang++-9
+          cc: clang-9
+          mode: Debug
+          fuzz: true
+        - key: Clang 9 Sanitizer
+          cxx: clang++-9
+          cc: clang-9
+          mode: Debug
+          cflags: -fsanitize=address,undefined -fno-omit-frame-pointer
+          cxxflags: -fsanitize=address,undefined -fno-omit-frame-pointer -stdlib=libc++
+          ldflags: -lc++abi
+    env:
+      UBSAN_OPTIONS: halt_on_error=1:abort_on_error=1
+    steps:
+      - uses: actions/checkout@v2
+      - uses: seanmiddleditch/gha-setup-ninja@master
+      
+      # ==== INSTALL ====
+      - name: Install
+        if: matrix.config.cc == 'clang-9'
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: sudo apt-get install -y --no-install-recommends libc++-9-dev libc++abi-9-dev libfuzzer-9-dev
+
+      # ==== BUILD ====
+      - name: CMake
+        run: |
+          cmake \
+            -G Ninja -S . -B build \
+            -DCMAKE_C_COMPILER=${{ matrix.config.cc }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.config.cxx }} \
+            -DCMAKE_C_FLAGS="${{ matrix.config.cflags }}" \
+            -DCMAKE_CXX_FLAGS="${{ matrix.config.cxxflags }}" \
+            -DCMAKE_CXX_LINKER_FLAGS=${{ matrix.config.ldflags }}" \
+            -DCMAKE_CXX_EXE_LINKER_FLAGS="${{ matrix.config.ldflags }} \
+            -DCMAKE_BUILD_TYPE=${{ matrix.config.mode }} \
+            -DCISTA_ZERO_OUT=${{ matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-9' }}
+      - name: Build
+        run: cmake --build build --target cista-test cista-test-single-header
+
+      # ==== TESTS ====
+      - name: Run Tests
+        run: ./build/cista-test
+      - name: Run Single Header Tests
+        run: ./build/cista-test-single-header
+
+      # ==== VALGRIND ====
+      - name: Install Valgrind
+        if: matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-9'
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: sudo apt-get install -y --no-install-recommends valgrind
+      - name: Run Single Header Tests Valgrind
+        if: matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-9'
+        run: valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full ./build/cista-test
+      - name: Run Single Header Tests Tests Valgrind
+        if: matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-9'
+        run: valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full ./build/cista-test-single-header
+
+      # ==== FUZZ ====
+      - name: Fuzzing
+        if: matrix.config.fuzz
+        run: cmake --build build --target cista-fuzz
+
+      # ==== DISTRIBUTION ====
+      - name: Upload Distribution
+        if: matrix.config.mode == 'Release' && matrix.config.cc == 'gcc-9'
+        uses: actions/upload-artifact@v1
+        with:
+          name: cista.h
+          path: build/cista.h
+
+      # ==== RELEASE ====
+      - name: Upload Release
+        if: github.event.action == 'published' && matrix.config.mode == 'Release' && matrix.config.cc == 'gcc-9'
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./build/cista.h
+          asset_name: cista.h
+          asset_content_type: text/plain
