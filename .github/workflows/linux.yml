@@ -51,7 +51,7 @@ jobs:
           cxx: clang++-9
           cc: clang-9
           mode: Debug
-          cflags: -fsanitized=address,undefined -fno-omit-frame-pointer
+          cflags: -fsanitize=address,undefined -fno-omit-frame-pointer
           cxxflags: -fsanitize=address,undefined -fno-omit-frame-pointer -stdlib=libc++
     env:
       UBSAN_OPTIONS: halt_on_error=1:abort_on_error=1
