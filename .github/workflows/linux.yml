@@ -40,12 +40,12 @@ jobs:
           cxx: clang++-9
           cc: clang-9
           mode: Release
-          cxxflags: -static -stdlib=libc++ -pthread
+          cxxflags: -stdlib=libc++
         - name: Clang 9 Debug
           cxx: clang++-9
           cc: clang-9
           mode: Debug
-          cxxflags: -static -stdlib=libc++ -pthread
+          cxxflags: -stdlib=libc++
           fuzz: true
         - key: Clang 9 Sanitizer
           cxx: clang++-9
