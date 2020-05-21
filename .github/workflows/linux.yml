@@ -64,11 +64,11 @@ jobs:
         run: |
           cmake \
             -G Ninja -S . -B build \
-            -DCMAKE_C_COMPILER=${{ matrix.cc }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
-            -DCMAKE_C_FLAGS="${{ matrix.cflags }}" \
-            -DCMAKE_CXX_FLAGS="${{ matrix.cxxflags }}" \
-            -DCMAKE_BUILD_TYPE=${{ matrix.mode }}
+            -DCMAKE_C_COMPILER=${{ matrix.config.cc }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.config.cxx }} \
+            -DCMAKE_C_FLAGS="${{ matrix.config.cflags }}" \
+            -DCMAKE_CXX_FLAGS="${{ matrix.config.cxxflags }}" \
+            -DCMAKE_BUILD_TYPE=${{ matrix.config.mode }}
       - name: Build
         run: cmake --build build --target cista-test cista-test-single-header
 
@@ -80,25 +80,25 @@ jobs:
 
       # ==== VALGRIND ====
       - name: Install Valgrind
-        if: matrix.mode == 'Debug' && matrix.cc == 'gcc-9'
+        if: matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-9'
         env:
           DEBIAN_FRONTEND: noninteractive
         run: apt install -y --no-install-recommends valgrind
       - name: Run Single Header Tests Valgrind
-        if: matrix.mode == 'Debug' && matrix.cc == 'gcc-9'
+        if: matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-9'
         run: valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full ./build/cista-test
       - name: Run Single Header Tests Tests Valgrind
-        if: matrix.mode == 'Debug' && matrix.cc == 'gcc-9'
+        if: matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-9'
         run: valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full ./build/cista-test-single-header
 
       # ==== FUZZ ====
       - name: Fuzzing
-        if: matrix.fuzzing
+        if: matrix.config.fuzzing
         run: cmake --build build --target cista-fuzz
 
       # ==== DISTRIBUTION ====
       - name: Upload Distribution
-        if: matrix.mode == 'Release' && matrix.cc == 'gcc-9'
+        if: matrix.config.mode == 'Release' && matrix.config.cc == 'gcc-9'
         uses: actions/upload-artifact@v1
         with:
           name: cista.h
@@ -106,7 +106,7 @@ jobs:
 
       # ==== RELEASE ====
       - name: Upload Release
-        if: github.event.action == 'published' && matrix.mode == 'Release' && matrix.cc == 'gcc-9'
+        if: github.event.action == 'published' && matrix.config.mode == 'Release' && matrix.config.cc == 'gcc-9'
         uses: actions/upload-release-asset@v1.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
