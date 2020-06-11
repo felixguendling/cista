@@ -324,6 +324,19 @@ void serialize(Ctx& c, variant<T...> const* origin, offset_t const pos) {
   });
 }
 
+template <typename Ctx, typename... T>
+void serialize(Ctx& c, tuple<T...> const* origin,
+               cista::offset_t const offset) {
+  apply(
+      [&](auto&&... args) {
+        (serialize(c, &args,
+                   offset + (reinterpret_cast<intptr_t>(&args) -
+                             reinterpret_cast<intptr_t>(origin))),
+         ...);
+      },
+      *origin);
+}
+
 constexpr offset_t integrity_start(mode const m) {
   offset_t start = 0;
   if (is_mode_enabled(m, mode::WITH_VERSION)) {
@@ -826,6 +839,12 @@ void recurse(Ctx&, variant<T...>* el, Fn&& fn) {
 template <typename Ctx, typename... T>
 void check_state(Ctx const& c, variant<T...>* el) {
   c.require(el->index() < sizeof...(T), "variant index");
+}
+
+// --- TUPLE<T...> ---
+template <typename Ctx, typename... T>
+void recurse(Ctx const& c, tuple<T...>* el) {
+  apply([&](auto&&... args) { (deserialize(c, &args), ...); }, *el);
 }
 
 template <typename T, mode const Mode = mode::NONE>
