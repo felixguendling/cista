@@ -76,6 +76,7 @@ add_custom_command(
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/serialization.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/reflection/comparable.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/reflection/printable.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/reflection/member_index.h
   > ${CMAKE_CURRENT_BINARY_DIR}/cista.h
   DEPENDS ${cista-include-files}
 )
