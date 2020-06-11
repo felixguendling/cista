@@ -618,6 +618,18 @@ struct hash_storage {
     return {ctrl_ + i, entries_ + i};
   }
 
+  bool operator==(hash_storage const& b) const {
+    if (size() != b.size()) {
+      return false;
+    }
+    for (auto const& el : *this) {
+      if (b.find(GetKey()(el)) == b.end()) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   Ptr<T> entries_{nullptr};
   Ptr<ctrl_t> ctrl_{empty_group()};
   size_type size_{0U}, capacity_{0U}, growth_left_{0U};
