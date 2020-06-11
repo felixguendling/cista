@@ -21,6 +21,17 @@ TEST_CASE("tuple get") {
   CHECK(cista::get<2>(t) == '\0');
 }
 
+TEST_CASE("tuple comparison") {
+  auto a = cista::tuple{2, 'a'};
+  auto b = cista::tuple{1, 'b'};
+  CHECK(!(a == b));
+  CHECK(a != b);
+  CHECK(b < a);
+  CHECK(b <= a);
+  CHECK(a > b);
+  CHECK(!(b >= a));
+}
+
 TEST_CASE("tuple serialize") {
   namespace data = cista::offset;
   using serialize_me = cista::tuple<

@@ -89,9 +89,8 @@ constexpr decltype(auto) apply_impl(std::index_sequence<I...>, F&& f,
 
 template <typename F, typename Tuple>
 constexpr decltype(auto) apply(F&& f, Tuple&& t) {
-  return apply_impl(
-      std::make_index_sequence<tuple_size_v<std::remove_reference_t<Tuple>>>{},
-      std::forward<F>(f), std::forward<Tuple>(t));
+  return apply_impl(std::make_index_sequence<tuple_size_v<Tuple>>{},
+                    std::forward<F>(f), std::forward<Tuple>(t));
 }
 
 template <typename F, typename Tuple, std::size_t... I>
@@ -109,12 +108,65 @@ constexpr decltype(auto) apply(F&& f, Tuple&& a, Tuple&& b) {
       std::forward<F>(f), std::forward<Tuple>(a), std::forward<Tuple>(b));
 }
 
+template <typename Tuple, std::size_t... I>
+constexpr decltype(auto) eq(std::index_sequence<I...>, Tuple&& a, Tuple&& b) {
+  return ((get<I>(std::forward<Tuple>(a)) == get<I>(std::forward<Tuple>(b))) &&
+          ...);
+}
+
 template <typename Tuple>
 std::enable_if_t<is_tuple_v<decay_t<Tuple>>, bool> operator==(Tuple&& a,
                                                               Tuple&& b) {
-  auto eq = true;
-  apply([&](auto&& u, auto&& v) { eq &= u == v; }, a, b);
-  return eq;
+  return eq(
+      std::make_index_sequence<tuple_size_v<std::remove_reference_t<Tuple>>>{},
+      std::forward<Tuple>(a), std::forward<Tuple>(b));
+}
+
+template <typename Tuple>
+std::enable_if_t<is_tuple_v<decay_t<Tuple>>, bool> operator!=(Tuple&& a,
+                                                              Tuple&& b) {
+  return !(a == b);
+}
+
+template <typename Tuple, std::size_t Index = 0U>
+bool lt(Tuple&& a, Tuple&& b) {
+  if constexpr (Index == tuple_size_v<Tuple>) {
+    return false;
+  } else {
+    if (get<Index>(std::forward<Tuple>(a)) <
+        get<Index>(std::forward<Tuple>(b))) {
+      return true;
+    }
+    if (get<Index>(std::forward<Tuple>(b)) <
+        get<Index>(std::forward<Tuple>(a))) {
+      return false;
+    }
+    return lt<Tuple, Index + 1>(std::forward<Tuple>(a), std::forward<Tuple>(b));
+  }
+}
+
+template <typename Tuple>
+std::enable_if_t<is_tuple_v<decay_t<Tuple>>, bool> operator<(Tuple&& a,
+                                                             Tuple&& b) {
+  return lt(a, b);
+}
+
+template <typename Tuple>
+std::enable_if_t<is_tuple_v<decay_t<Tuple>>, bool> operator<=(Tuple&& a,
+                                                              Tuple&& b) {
+  return !(b < a);
+}
+
+template <typename Tuple>
+std::enable_if_t<is_tuple_v<decay_t<Tuple>>, bool> operator>(Tuple&& a,
+                                                             Tuple&& b) {
+  return b < a;
+}
+
+template <typename Tuple>
+std::enable_if_t<is_tuple_v<decay_t<Tuple>>, bool> operator>=(Tuple&& a,
+                                                              Tuple&& b) {
+  return !(a < b);
 }
 
 }  // namespace cista
