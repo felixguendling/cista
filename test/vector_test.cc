@@ -40,6 +40,16 @@ TEST_CASE("insert middle test") {
   CHECK(v == vector<int>{1, 4, 2, 3});
 }
 
+TEST_CASE("erase duplicates") {
+  using cista::raw::vector;
+
+  auto v = vector<int>{3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 9};
+  std::sort(begin(v), end(v));
+  v.erase(std::unique(begin(v), end(v)), end(v));
+
+  CHECK(v == vector<int>{1, 2, 3, 4, 5, 6, 9});
+}
+
 TEST_CASE("iterable comparison") {
   std::vector<int> std_v{1, 2, 3};
   cista::raw::vector<int> cista_v{1, 2, 3};

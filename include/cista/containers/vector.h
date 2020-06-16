@@ -265,6 +265,17 @@ struct basic_vector {
     return end();
   }
 
+  T* erase(T* first, T* last) {
+    if (first != last) {
+      auto const new_end = std::move(last, end(), first);
+      for (auto it = new_end; it != end(); ++it) {
+        it->~T();
+      }
+      used_size_ -= std::distance(new_end, end());
+    }
+    return end();
+  }
+
   bool contains(T const* el) const { return el >= begin() && el < end(); }
 
   friend bool operator==(basic_vector const& a, basic_vector const& b) {
