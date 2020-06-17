@@ -40,6 +40,46 @@ TEST_CASE("insert middle test") {
   CHECK(v == vector<int>{1, 4, 2, 3});
 }
 
+TEST_CASE("range insert begin test") {
+  using cista::raw::vector;
+
+  auto v = vector<int>{1, 2, 3};
+  auto w = vector<int>{8, 9};
+  v.insert(begin(v), begin(w), end(w));
+
+  CHECK(v == vector<int>{8, 9, 1, 2, 3});
+}
+
+TEST_CASE("range insert end test") {
+  using cista::raw::vector;
+
+  auto v = vector<int>{1, 2, 3};
+  auto w = vector<int>{8, 9};
+  v.insert(end(v), begin(w), end(w));
+
+  CHECK(v == vector<int>{1, 2, 3, 8, 9});
+}
+
+TEST_CASE("range insert middle test") {
+  using cista::raw::vector;
+
+  auto v = vector<int>{1, 2, 3};
+  auto w = vector<int>{8, 9};
+  v.insert(begin(v) + 1, begin(w), end(w));
+
+  CHECK(v == vector<int>{1, 8, 9, 2, 3});
+}
+
+TEST_CASE("range insert nothing") {
+  using cista::raw::vector;
+
+  auto v = vector<int>{1, 2, 3};
+  auto w = vector<int>{};
+  v.insert(begin(v) + 1, begin(w), end(w));
+
+  CHECK(v == vector<int>{1, 2, 3});
+}
+
 TEST_CASE("erase duplicates") {
   using cista::raw::vector;
 

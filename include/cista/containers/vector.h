@@ -185,6 +185,20 @@ struct basic_vector {
     ++used_size_;
   }
 
+  template <class InputIt>
+  T* insert(T* pos, InputIt first, InputIt last) {
+    auto const old_offset = std::distance(begin(), pos);
+    auto const old_size = used_size_;
+
+    for (; first != last; ++first) {
+      reserve(used_size_ + 1);
+      new (el_ + used_size_) T{std::forward<decltype(*first)>(*first)};
+      ++used_size_;
+    }
+
+    return std::rotate(begin() + old_offset, begin() + old_size, end());
+  }
+
   void push_back(T const& el) {
     reserve(used_size_ + 1);
     new (el_ + used_size_) T(el);
