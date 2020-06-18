@@ -1,3 +1,4 @@
+#include <memory>
 #include <set>
 
 #include "doctest.h"
@@ -11,6 +12,7 @@
 #include "cista/reflection/printable.h"
 #include "cista/serialization.h"
 #include "cista/type_hash/type_name.h"
+#include "cista/verify.h"
 #endif
 
 TEST_CASE("insert begin test") {
@@ -76,6 +78,78 @@ TEST_CASE("range insert nothing") {
   auto v = vector<int>{1, 2, 3};
   auto const w = vector<int>{};
   v.insert(begin(v) + 1, begin(w), end(w));
+
+  CHECK(v == vector<int>{1, 2, 3});
+}
+
+struct input_iterator {
+  using iterator_category = std::input_iterator_tag;
+  using value_type = int;
+  using difference_type = int;
+  using pointer = int*;
+  using reference = int&;
+
+  explicit input_iterator(int i) : i_{i}, consumed_{std::make_shared<int>(i)} {}
+
+  input_iterator& operator++() {
+    cista::verify(i_ == *consumed_, "input_iterator: iterate a stale copy");
+    *consumed_ = ++i_;
+    return *this;
+  }
+
+  int operator*() const {
+    cista::verify(i_ == *consumed_, "input_iterator: dereference a stale copy");
+    return i_;
+  }
+
+  friend bool operator==(input_iterator const& lhs, input_iterator const& rhs) {
+    return lhs.i_ == rhs.i_;
+  }
+
+  int i_;
+  std::shared_ptr<int> consumed_;
+};
+
+TEST_CASE("input iterator works") {
+  input_iterator a{42};
+  auto cpy = a;
+  ++a;
+  REQUIRE_THROWS(++cpy);
+  REQUIRE_THROWS(*cpy);
+}
+
+TEST_CASE("range insert input_iterator begin test") {
+  using cista::raw::vector;
+
+  auto v = vector<int>{1, 2, 3};
+  v.insert(begin(v), input_iterator{8}, input_iterator{10});
+
+  CHECK(v == vector<int>{8, 9, 1, 2, 3});
+}
+
+TEST_CASE("range insert input_iterator end test") {
+  using cista::raw::vector;
+
+  auto v = vector<int>{1, 2, 3};
+  v.insert(end(v), input_iterator{8}, input_iterator{10});
+
+  CHECK(v == vector<int>{1, 2, 3, 8, 9});
+}
+
+TEST_CASE("range insert input_iterator middle test") {
+  using cista::raw::vector;
+
+  auto v = vector<int>{1, 2, 3};
+  v.insert(begin(v) + 1, input_iterator{8}, input_iterator{10});
+
+  CHECK(v == vector<int>{1, 8, 9, 2, 3});
+}
+
+TEST_CASE("range insert input_iterator nothing") {
+  using cista::raw::vector;
+
+  auto v = vector<int>{1, 2, 3};
+  v.insert(begin(v) + 1, input_iterator{0}, input_iterator{0});
 
   CHECK(v == vector<int>{1, 2, 3});
 }
