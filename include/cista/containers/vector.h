@@ -150,7 +150,7 @@ struct basic_vector {
     auto copy_source = begin_it;
     auto copy_target = el_;
     for (; copy_source != end_it; ++copy_source, ++copy_target) {
-      new (copy_target) T(*copy_source);
+      new (copy_target) T{std::forward<decltype(*copy_source)>(*copy_source)};
     }
 
     used_size_ = static_cast<TemplateSizeType>(range_size);
