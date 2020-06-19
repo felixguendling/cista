@@ -82,78 +82,6 @@ TEST_CASE("range insert nothing") {
   CHECK(v == vector<int>{1, 2, 3});
 }
 
-struct input_iterator {
-  using iterator_category = std::input_iterator_tag;
-  using value_type = int;
-  using difference_type = int;
-  using pointer = int*;
-  using reference = int&;
-
-  explicit input_iterator(int i) : i_{i}, consumed_{std::make_shared<int>(i)} {}
-
-  input_iterator& operator++() {
-    cista::verify(i_ == *consumed_, "input_iterator: iterate a stale copy");
-    *consumed_ = ++i_;
-    return *this;
-  }
-
-  int operator*() const {
-    cista::verify(i_ == *consumed_, "input_iterator: dereference a stale copy");
-    return i_;
-  }
-
-  friend bool operator==(input_iterator const& lhs, input_iterator const& rhs) {
-    return lhs.i_ == rhs.i_;
-  }
-
-  int i_;
-  std::shared_ptr<int> consumed_;
-};
-
-TEST_CASE("input iterator works") {
-  input_iterator a{42};
-  auto cpy = a;
-  ++a;
-  REQUIRE_THROWS(++cpy);
-  REQUIRE_THROWS(*cpy);
-}
-
-TEST_CASE("range insert input_iterator begin test") {
-  using cista::raw::vector;
-
-  auto v = vector<int>{1, 2, 3};
-  v.insert(begin(v), input_iterator{8}, input_iterator{10});
-
-  CHECK(v == vector<int>{8, 9, 1, 2, 3});
-}
-
-TEST_CASE("range insert input_iterator end test") {
-  using cista::raw::vector;
-
-  auto v = vector<int>{1, 2, 3};
-  v.insert(end(v), input_iterator{8}, input_iterator{10});
-
-  CHECK(v == vector<int>{1, 2, 3, 8, 9});
-}
-
-TEST_CASE("range insert input_iterator middle test") {
-  using cista::raw::vector;
-
-  auto v = vector<int>{1, 2, 3};
-  v.insert(begin(v) + 1, input_iterator{8}, input_iterator{10});
-
-  CHECK(v == vector<int>{1, 8, 9, 2, 3});
-}
-
-TEST_CASE("range insert input_iterator nothing") {
-  using cista::raw::vector;
-
-  auto v = vector<int>{1, 2, 3};
-  v.insert(begin(v) + 1, input_iterator{0}, input_iterator{0});
-
-  CHECK(v == vector<int>{1, 2, 3});
-}
-
 struct move_only_int {
   explicit move_only_int(int i) : i_{i} {}
   move_only_int(move_only_int const&) = delete;
@@ -174,29 +102,87 @@ struct move_only_int {
   int i_;
 };
 
+cista::raw::vector<move_only_int> make_move_only_int_vector(
+    std::initializer_list<int> init) {
+  cista::raw::vector<move_only_int> v;
+  for (auto i : init) {
+    v.emplace_back(i);
+  }
+  return v;
+}
+
 TEST_CASE("range insert middle move only test") {
-  using cista::raw::vector;
-
-  vector<move_only_int> v;
-  v.emplace_back(1);
-  v.emplace_back(2);
-  v.emplace_back(3);
-
-  vector<move_only_int> w;
-  w.emplace_back(8);
-  w.emplace_back(9);
+  auto v = make_move_only_int_vector({1, 2, 3});
+  auto w = make_move_only_int_vector({8, 9});
 
   v.insert(begin(v) + 1, std::make_move_iterator(begin(w)),
            std::make_move_iterator(end(w)));
 
-  vector<move_only_int> x;
-  x.emplace_back(1);
-  x.emplace_back(8);
-  x.emplace_back(9);
-  x.emplace_back(2);
-  x.emplace_back(3);
+  CHECK(v == make_move_only_int_vector({1, 8, 9, 2, 3}));
+}
 
-  CHECK(v == x);
+struct input_iterator {
+  using iterator_category = std::input_iterator_tag;
+  using value_type = move_only_int;
+  using difference_type = int;
+  using pointer = move_only_int*;
+  using reference = move_only_int&;
+
+  explicit input_iterator(int i) : i_{i}, consumed_{std::make_shared<int>(i)} {}
+
+  input_iterator& operator++() {
+    cista::verify(i_ == *consumed_, "input_iterator: iterate a stale copy");
+    *consumed_ = ++i_;
+    return *this;
+  }
+
+  move_only_int operator*() const {
+    cista::verify(i_ == *consumed_, "input_iterator: dereference a stale copy");
+    return move_only_int{i_};
+  }
+
+  friend bool operator==(input_iterator const& lhs, input_iterator const& rhs) {
+    return lhs.i_ == rhs.i_;
+  }
+
+  int i_;
+  std::shared_ptr<int> consumed_;
+};
+
+TEST_CASE("input iterator works") {
+  input_iterator a{42};
+  auto cpy = a;
+  ++a;
+  REQUIRE_THROWS(++cpy);
+  REQUIRE_THROWS(*cpy);
+}
+
+TEST_CASE("range insert input_iterator begin test") {
+  auto v = make_move_only_int_vector({1, 2, 3});
+  v.insert(begin(v), input_iterator{8}, input_iterator{10});
+
+  CHECK(v == make_move_only_int_vector({8, 9, 1, 2, 3}));
+}
+
+TEST_CASE("range insert input_iterator end test") {
+  auto v = make_move_only_int_vector({1, 2, 3});
+  v.insert(end(v), input_iterator{8}, input_iterator{10});
+
+  CHECK(v == make_move_only_int_vector({1, 2, 3, 8, 9}));
+}
+
+TEST_CASE("range insert input_iterator middle test") {
+  auto v = make_move_only_int_vector({1, 2, 3});
+  v.insert(begin(v) + 1, input_iterator{8}, input_iterator{10});
+
+  CHECK(v == make_move_only_int_vector({1, 8, 9, 2, 3}));
+}
+
+TEST_CASE("range insert input_iterator nothing") {
+  auto v = make_move_only_int_vector({1, 2, 3});
+  v.insert(begin(v) + 1, input_iterator{0}, input_iterator{0});
+
+  CHECK(v == make_move_only_int_vector({1, 2, 3}));
 }
 
 TEST_CASE("erase duplicates") {
