@@ -154,6 +154,51 @@ TEST_CASE("range insert input_iterator nothing") {
   CHECK(v == vector<int>{1, 2, 3});
 }
 
+struct move_only_int {
+  explicit move_only_int(int i) : i_{i} {}
+  move_only_int(move_only_int const&) = delete;
+  move_only_int(move_only_int&& o) = default;
+  move_only_int& operator=(move_only_int const&) = delete;
+  move_only_int& operator=(move_only_int&& o) = default;
+  ~move_only_int() = default;
+
+  friend bool operator==(move_only_int const& lhs, move_only_int const& rhs) {
+    return lhs.i_ == rhs.i_;
+  }
+
+  friend std::ostream& operator<<(std::ostream& out, move_only_int const& e) {
+    out << e.i_;
+    return out;
+  }
+
+  int i_;
+};
+
+TEST_CASE("range insert middle move only test") {
+  using cista::raw::vector;
+
+  vector<move_only_int> v;
+  v.emplace_back(1);
+  v.emplace_back(2);
+  v.emplace_back(3);
+
+  vector<move_only_int> w;
+  w.emplace_back(8);
+  w.emplace_back(9);
+
+  v.insert(begin(v) + 1, std::make_move_iterator(begin(w)),
+           std::make_move_iterator(end(w)));
+
+  vector<move_only_int> x;
+  x.emplace_back(1);
+  x.emplace_back(8);
+  x.emplace_back(9);
+  x.emplace_back(2);
+  x.emplace_back(3);
+
+  CHECK(v == x);
+}
+
 TEST_CASE("erase duplicates") {
   using cista::raw::vector;
 
