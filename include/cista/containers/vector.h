@@ -150,7 +150,7 @@ struct basic_vector {
     auto copy_source = begin_it;
     auto copy_target = el_;
     for (; copy_source != end_it; ++copy_source, ++copy_target) {
-      new (copy_target) T(*copy_source);
+      new (copy_target) T{std::forward<decltype(*copy_source)>(*copy_source)};
     }
 
     used_size_ = static_cast<TemplateSizeType>(range_size);
@@ -183,6 +183,48 @@ struct basic_vector {
 
     new (it) T{std::forward<Arg>(el)};
     ++used_size_;
+  }
+
+  template <class InputIt>
+  T* insert(T* pos, InputIt first, InputIt last, std::input_iterator_tag) {
+    auto const old_offset = std::distance(begin(), pos);
+    auto const old_size = used_size_;
+
+    for (; !(first == last); ++first) {
+      reserve(used_size_ + 1);
+      new (el_ + used_size_) T{std::forward<decltype(*first)>(*first)};
+      ++used_size_;
+    }
+
+    return std::rotate(begin() + old_offset, begin() + old_size, end());
+  }
+
+  template <class FwdIt>
+  T* insert(T* pos, FwdIt first, FwdIt last, std::forward_iterator_tag) {
+    auto const old_offset = std::distance(begin(), pos);
+    auto const old_size = used_size_;
+
+    auto const new_count =
+        static_cast<TemplateSizeType>(std::distance(first, last));
+    reserve(used_size_ + new_count);
+    auto end_ptr = std::move_backward(begin() + old_offset, begin() + old_size,
+                                      begin() + old_size + new_count);
+    used_size_ += new_count;
+
+    auto insert_ptr = begin() + old_offset;
+    for (; !(first == last); ++first) {
+      *insert_ptr = std::forward<decltype(*first)>(*first);
+      ++insert_ptr;
+    }
+    assert(insert_ptr == end_ptr);
+
+    return end_ptr;
+  }
+
+  template <class It>
+  T* insert(T* pos, It first, It last) {
+    return insert(pos, first, last,
+                  typename std::iterator_traits<It>::iterator_category());
   }
 
   void push_back(T const& el) {
