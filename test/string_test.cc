@@ -6,6 +6,7 @@
 #include "cista.h"
 #else
 #include "cista/containers/string.h"
+#include "cista/hash.h"
 #endif
 
 using cista::raw::string;
@@ -75,4 +76,10 @@ TEST_CASE("string copy assign and copy construct") {
   s2 = s0;
   CHECK(s0 == s2);
   CHECK(s2.view() == LONG_STR);
+}
+
+TEST_CASE("string hash") {
+  auto str = string{""};
+  auto h = cista::hash(str, cista::BASE_HASH);
+  CHECK(cista::BASE_HASH == h);
 }

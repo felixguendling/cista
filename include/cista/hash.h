@@ -33,7 +33,7 @@ constexpr hash_t hash(const char (&str)[N], hash_t const h = BASE_HASH) {
 
 template <typename T>
 constexpr uint64_t hash(T const& buf, hash_t const h = BASE_HASH) {
-  return XXH3_64bits_withSeed(&buf[0], buf.size(), h);
+  return buf.size() == 0 ? h : XXH3_64bits_withSeed(&buf[0], buf.size(), h);
 }
 
 #elif defined(CISTA_WYHASH)
@@ -64,7 +64,8 @@ constexpr hash_t hash(const char (&str)[N], hash_t const h = BASE_HASH) {
 
 template <typename T>
 constexpr uint64_t hash(T const& buf, hash_t const h = BASE_HASH) {
-  return wyhash::wyhash(&buf[0], buf.size(), h, wyhash::_wyp);
+  return buf.size() == 0 ? h
+                         : wyhash::wyhash(&buf[0], buf.size(), h, wyhash::_wyp);
 }
 
 #elif defined(CISTA_WYHASH_FASTEST)
@@ -95,7 +96,7 @@ constexpr hash_t hash(const char (&str)[N], hash_t const h = BASE_HASH) {
 
 template <typename T>
 constexpr uint64_t hash(T const& buf, hash_t const h = BASE_HASH) {
-  return wyhash::FastestHash(&buf[0], buf.size(), h);
+  return buf.size() == 0 ? h : wyhash::FastestHash(&buf[0], buf.size(), h);
 }
 
 #else  // defined(CISTA_FNV1A)
@@ -130,8 +131,11 @@ constexpr hash_t hash(const char (&str)[N], hash_t const h = BASE_HASH) {
 
 template <typename T>
 constexpr uint64_t hash(T const& buf, hash_t const h = BASE_HASH) {
-  return hash(
-      std::string_view{reinterpret_cast<char const*>(&buf[0]), buf.size()}, h);
+  return buf.size() == 0
+             ? h
+             : hash(std::string_view{reinterpret_cast<char const*>(&buf[0]),
+                                     buf.size()},
+                    h);
 }
 
 #endif
