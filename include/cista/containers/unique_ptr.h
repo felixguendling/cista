@@ -21,13 +21,13 @@ struct basic_unique_ptr {
   basic_unique_ptr(basic_unique_ptr const&) = delete;
   basic_unique_ptr& operator=(basic_unique_ptr const&) = delete;
 
-  basic_unique_ptr(basic_unique_ptr&& o)
+  basic_unique_ptr(basic_unique_ptr&& o) noexcept
       : el_{o.el_}, self_allocated_{o.self_allocated_} {
     o.el_ = nullptr;
     o.self_allocated_ = false;
   }
 
-  basic_unique_ptr& operator=(basic_unique_ptr&& o) {
+  basic_unique_ptr& operator=(basic_unique_ptr&& o) noexcept {
     el_ = o.el_;
     self_allocated_ = o.self_allocated_;
     o.el_ = nullptr;
