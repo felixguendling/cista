@@ -250,7 +250,7 @@ struct hash_storage {
     insert(init.begin(), init.end());
   }
 
-  hash_storage(hash_storage&& other)
+  hash_storage(hash_storage&& other) noexcept
       : entries_{other.entries_},
         ctrl_{other.ctrl_},
         size_{other.size_},
@@ -277,7 +277,7 @@ struct hash_storage {
     growth_left_ -= other.size();
   }
 
-  hash_storage& operator=(hash_storage&& other) {
+  hash_storage& operator=(hash_storage&& other) noexcept {
     entries_ = other.entries_;
     ctrl_ = other.ctrl_;
     size_ = other.size_;
