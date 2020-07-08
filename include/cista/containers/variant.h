@@ -80,7 +80,8 @@ struct variant {
 #if defined(CISTA_ZERO_OUT)
     std::memset(&storage_, 0, sizeof(storage_));
 #endif
-    new (&storage_) Arg(std::forward<Arg>(arg));
+    using Type = std::decay_t<Arg>;
+    new (&storage_) Type(std::forward<Arg>(arg));
   }
 
   variant(variant const& o) : idx_{o.idx_} {
@@ -333,6 +334,16 @@ struct variant {
     return *reinterpret_cast<AsType const*>(&storage_);
   }
 
+  hash_t hash() const {
+    return apply([&](auto&& val) {
+      auto const idx = index();
+      auto h = BASE_HASH;
+      h = hashing<decltype(idx)>{}(idx, h);
+      h = hashing<decltype(val)>{}(val, h);
+      return h;
+    });
+  }
+
   index_t idx_;
   std::aligned_union_t<0, T...> storage_;
 };
@@ -403,20 +414,6 @@ struct variant_size<variant<T...>>
 
 template <class T>
 inline constexpr std::size_t variant_size_v = variant_size<T>::value;
-
-template <typename... T>
-struct hashing<variant<T...>> {
-  constexpr hash_t operator()(variant<T...> const& el,
-                              hash_t const seed = BASE_HASH) {
-    return el.apply([&](auto&& val) {
-      auto const idx = el.index();
-      auto h = seed;
-      h = hashing<decltype(idx)>{}(idx, h);
-      h = hashing<decltype(val)>{}(val, h);
-      return h;
-    });
-  }
-};
 
 namespace raw {
 using cista::variant;

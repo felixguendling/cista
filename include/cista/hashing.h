@@ -92,7 +92,7 @@ struct hashing {
   constexpr hash_t operator()(T const& el, hash_t const seed = BASE_HASH) {
     using Type = decay_t<T>;
     if constexpr (has_hash_v<Type>) {
-      return el.hash();
+      return hash_combine(el.hash(), seed);
     } else if constexpr (is_pointer_v<Type>) {
       return hash_combine(seed, reinterpret_cast<intptr_t>(ptr_cast(el)));
     } else if constexpr (is_char_array_v<Type>) {
@@ -124,7 +124,7 @@ struct hashing {
                     "Implement hash");
     }
   }
-};  // namespace cista
+};
 
 template <typename T1, typename T2>
 struct hashing<std::pair<T1, T2>> {
