@@ -459,7 +459,7 @@ struct hash_storage {
   friend const_iterator cbegin(hash_storage const& h) { return h.begin(); }
   friend iterator end(hash_storage& h) { return h.end(); }
   friend const_iterator end(hash_storage const& h) { return h.end(); }
-  friend const_iterator cend(hash_storage const& h) { return h.begin(); }
+  friend const_iterator cend(hash_storage const& h) { return h.end(); }
 
   bool empty() const { return size() == 0U; }
   size_type size() const { return size_; }
