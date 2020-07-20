@@ -60,7 +60,8 @@ TEST_CASE("std::hash override") {
 
 TEST_CASE("hash() override") {
   hash_override k{7};
-  CHECK(cista::hashing<hash_override>{}(k) == 7);
+  CHECK(cista::hashing<hash_override>{}(k) ==
+        cista::hash_combine(cista::BASE_HASH, 7));
 }
 
 TEST_CASE("automatic hash validation") {
