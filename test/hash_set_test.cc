@@ -221,3 +221,23 @@ TEST_CASE("string view get") {
   CHECK(s.erase("2") == 0);
 }
 #endif
+
+int make_hash_map_local_struct(int count) {
+  constexpr auto const kDefault = std::numeric_limits<int>::max();
+  struct value {
+    // value() = default;
+    std::vector<int> foo_;
+    int bar_{kDefault};
+  };
+
+  cista::raw::hash_map<int, value> map;
+  for (auto i = 0; i < count; ++i) {
+    map[i].foo_.push_back(i);
+  }
+
+  return static_cast<int>(map.size());
+}
+
+TEST_CASE("hash map local struct") {
+  CHECK(make_hash_map_local_struct(3) == 3);
+}
