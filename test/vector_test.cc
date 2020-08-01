@@ -246,3 +246,19 @@ TEST_CASE("to_indexed_vec") {
   CHECK(deserialized[0] == 1.0);
   CHECK(deserialized[1] == 2.0);
 }
+
+TEST_CASE("complex_type_insert") {
+  namespace data = cista::raw;
+
+  auto v = data::vector<data::vector<data::string>>{
+      {"abc", "def", "longlonglonglonglonglonglonglonglonglonglongstring"},
+      {"uvw", "xyz", "longlonglonglonglonglonglonglonglonglonglongstring"}};
+  auto u = v;
+  for (int i = 0; i < 10; ++i) {
+    auto const v_copy = v;
+    v.insert(begin(v), begin(u), end(u));
+    u.insert(begin(u), begin(v_copy), end(v_copy));
+  }
+  REQUIRE(u.size() == v.size());
+  REQUIRE(u.size() == 2048);
+}
