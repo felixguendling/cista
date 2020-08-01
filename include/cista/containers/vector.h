@@ -201,24 +201,32 @@ struct basic_vector {
 
   template <class FwdIt>
   T* insert(T* pos, FwdIt first, FwdIt last, std::forward_iterator_tag) {
-    auto const old_offset = std::distance(begin(), pos);
-    auto const old_size = used_size_;
-
+    auto const pos_idx = pos - begin();
     auto const new_count =
         static_cast<TemplateSizeType>(std::distance(first, last));
     reserve(used_size_ + new_count);
-    auto end_ptr = std::move_backward(begin() + old_offset, begin() + old_size,
-                                      begin() + old_size + new_count);
+    pos = begin() + pos_idx;
+
+    for (auto src_last = end() - 1, dest_last = end() + new_count - 1;
+         !(src_last == pos - 1); --src_last, --dest_last) {
+      if (dest_last >= end()) {
+        new (dest_last) T(std::move(*src_last));
+      } else {
+        *dest_last = std::move(*src_last);
+      }
+    }
+
+    for (auto insert_ptr = pos; !(first == last); ++first, ++insert_ptr) {
+      if (insert_ptr >= end()) {
+        new (insert_ptr) T(std::forward<decltype(*first)>(*first));
+      } else {
+        *insert_ptr = std::forward<decltype(*first)>(*first);
+      }
+    }
+
     used_size_ += new_count;
 
-    auto insert_ptr = begin() + old_offset;
-    for (; !(first == last); ++first) {
-      *insert_ptr = std::forward<decltype(*first)>(*first);
-      ++insert_ptr;
-    }
-    assert(insert_ptr == end_ptr);
-
-    return end_ptr;
+    return pos;
   }
 
   template <class It>
