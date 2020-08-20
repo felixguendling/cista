@@ -54,6 +54,9 @@ struct mmap {
         size_{o.size_},
         used_size_{o.used_size_},
         addr_{o.addr_} {
+#ifdef _MSC_VER
+    file_mapping_ = o.file_mapping_;
+#endif
     o.addr_ = nullptr;
   }
 
@@ -63,6 +66,9 @@ struct mmap {
     size_ = o.size_;
     used_size_ = o.used_size_;
     addr_ = o.addr_;
+#ifdef _MSC_VER
+    file_mapping_ = o.file_mapping_;
+#endif
     o.addr_ = nullptr;
     return *this;
   }
