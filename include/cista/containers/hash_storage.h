@@ -269,15 +269,9 @@ struct hash_storage {
     if (other.size() == 0U) {
       return;
     }
-    resize(other.size() + 1);
     for (const auto& v : other) {
-      auto const hash = compute_hash(GetKey()(v));
-      auto target = find_first_non_full(hash);
-      set_ctrl(target.offset_, h2(hash));
-      new (entries_ + target.offset_) T{v};
+      emplace(v);
     }
-    size_ = other.size();
-    growth_left_ -= other.size();
   }
 
   hash_storage& operator=(hash_storage&& other) noexcept {
@@ -301,15 +295,9 @@ struct hash_storage {
       clear();
       return *this;
     }
-    resize(other.size());
     for (const auto& v : other) {
-      auto const hash = compute_hash(GetKey()(v));
-      auto target = find_first_non_full(hash);
-      set_ctrl(target.offset_, h2(hash));
-      new (entries_ + target.offset_) T{v};
+      emplace(v);
     }
-    size_ = other.size();
-    growth_left_ -= other.size();
     return *this;
   }
 
