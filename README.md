@@ -122,6 +122,7 @@ you should look for another solution:
   - [cereal](https://uscilab.github.io/cereal/)
   - [Boost Serialization](https://www.boost.org/doc/libs/1_68_0/libs/serialization/doc/index.html)
   - [MessagePack](https://msgpack.org/)
+  - [tser](https://github.com/KonanM/tser)
   - [... many more](https://en.wikipedia.org/wiki/Comparison_of_data_serialization_formats)
 
 # Documentation
