@@ -1,5 +1,7 @@
 #include "doctest.h"
 
+#include <limits>
+
 #ifdef SINGLE_HEADER
 #include "cista.h"
 #else
