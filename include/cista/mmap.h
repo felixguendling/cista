@@ -23,12 +23,14 @@ namespace cista {
 struct mmap {
   static constexpr auto const OFFSET = 0ULL;
   static constexpr auto const ENTIRE_FILE = std::numeric_limits<size_t>::max();
-  enum class protection { READ, WRITE };
+  enum class protection { READ, WRITE, MODIFY };
 
   mmap() = default;
 
   explicit mmap(char const* path, protection const prot = protection::WRITE)
-      : f_{path, prot == protection::READ ? "r" : "w+"},
+      : f_{path, prot == protection::MODIFY
+                     ? "r+"
+                     : (prot == protection::READ ? "r" : "w+")},
         prot_{prot},
         size_{f_.size()},
         used_size_{f_.size()},
@@ -74,7 +76,8 @@ struct mmap {
   }
 
   void sync() {
-    if (prot_ == protection::WRITE && addr_ != nullptr) {
+    if ((prot_ == protection::WRITE || prot_ == protection::MODIFY) &&
+        addr_ != nullptr) {
 #ifdef _MSC_VER
       verify(::FlushViewOfFile(addr_, size_) != 0, "flush error");
       verify(::FlushFileBuffers(f_.f_) != 0, "flush error");
@@ -85,7 +88,8 @@ struct mmap {
   }
 
   void resize(size_t const new_size) {
-    verify(prot_ == protection::WRITE, "read-only not resizable");
+    verify(prot_ == protection::WRITE || prot_ == protection::MODIFY,
+           "read-only not resizable");
     if (size_ < new_size) {
       resize_map(next_power_of_two(new_size));
     }
@@ -93,7 +97,8 @@ struct mmap {
   }
 
   void reserve(size_t const new_size) {
-    verify(prot_ == protection::WRITE, "read-only not resizable");
+    verify(prot_ == protection::WRITE || prot_ == protection::MODIFY,
+           "read-only not resizable");
     if (size_ < new_size) {
       resize_map(next_power_of_two(new_size));
     }
@@ -153,9 +158,10 @@ private:
 
     return addr;
 #else
-    auto const addr = ::mmap(nullptr, size_,
-                             prot_ == protection::READ ? PROT_READ : PROT_WRITE,
-                             MAP_SHARED, f_.fd(), OFFSET);
+    auto const addr =
+        ::mmap(nullptr, size_,
+               prot_ == protection::READ ? PROT_READ : PROT_READ | PROT_WRITE,
+               MAP_SHARED, f_.fd(), OFFSET);
     verify(addr != MAP_FAILED, "map error");
     return addr;
 #endif
