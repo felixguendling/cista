@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -56,7 +56,7 @@ struct mmap {
         size_{o.size_},
         used_size_{o.used_size_},
         addr_{o.addr_} {
-#ifdef _MSC_VER
+#ifdef _WIN32
     file_mapping_ = o.file_mapping_;
 #endif
     o.addr_ = nullptr;
@@ -68,7 +68,7 @@ struct mmap {
     size_ = o.size_;
     used_size_ = o.used_size_;
     addr_ = o.addr_;
-#ifdef _MSC_VER
+#ifdef _WIN32
     file_mapping_ = o.file_mapping_;
 #endif
     o.addr_ = nullptr;
@@ -78,7 +78,7 @@ struct mmap {
   void sync() {
     if ((prot_ == protection::WRITE || prot_ == protection::MODIFY) &&
         addr_ != nullptr) {
-#ifdef _MSC_VER
+#ifdef _WIN32
       verify(::FlushViewOfFile(addr_, size_) != 0, "flush error");
       verify(::FlushFileBuffers(f_.f_) != 0, "flush error");
 #else
@@ -121,7 +121,7 @@ struct mmap {
 
 private:
   void unmap() {
-#ifdef _MSC_VER
+#ifdef _WIN32
     if (addr_ != nullptr) {
       verify(::UnmapViewOfFile(addr_), "unmap error");
       addr_ = nullptr;
@@ -138,7 +138,7 @@ private:
   }
 
   void* map() {
-#ifdef _MSC_VER
+#ifdef _WIN32
     auto const size_low = static_cast<DWORD>(size_);
 #ifdef _WIN64
     auto const size_high = static_cast<DWORD>(size_ >> 32);
@@ -172,7 +172,7 @@ private:
       return;
     }
 
-#ifdef _MSC_VER
+#ifdef _WIN32
     LARGE_INTEGER Size = {0};
     verify(::GetFileSizeEx(f_.f_, &Size), "resize: get file size error");
 
@@ -203,7 +203,7 @@ private:
   size_t size_;
   size_t used_size_;
   void* addr_;
-#ifdef _MSC_VER
+#ifdef _WIN32
   HANDLE file_mapping_;
 #endif
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -22,7 +22,7 @@
 #include "cista/targets/file.h"
 #include "cista/verify.h"
 
-#ifdef _MSC_VER
+#ifdef _WIN32
 namespace cista {
 inline HANDLE open_file(char const* path, char const* mode) {
   bool read = std::strcmp(mode, "r") == 0;
