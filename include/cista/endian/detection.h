@@ -4,16 +4,11 @@
 // https://stackoverflow.com/a/32210953 (MSVC)
 // https://stackoverflow.com/a/27054190 (GCC/Clang)
 
-#if !defined(CISTA_BIG_ENDIAN) && !defined(CISTA_LITTLE_ENDIAN)
-
 #if defined(__APPLE__)
 #include <machine/endian.h>
-#elif defined(__GNUC__)
-#include <endian.h>
-#elif defined(_MSC_VER)
+#elif defined(_WIN32)
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
-#endif
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
