@@ -28,44 +28,46 @@ jobs:
     strategy:
       matrix:
         config:
-        - name: GCC 9 Release
-          cxx: g++-9
-          cc: gcc-9
-          mode: Release
-        - name: GCC 9 Debug
-          cxx: g++-9
-          cc: gcc-9
-          mode: Debug
-        - name: Clang 9 Release
-          cxx: clang++-9
-          cc: clang-9
-          mode: Release
-          cxxflags: -stdlib=libc++
-          ldflags: -lc++abi
-        - name: Clang 9 Debug
-          cxx: clang++-9
-          cc: clang-9
-          mode: Debug
-          fuzz: true
-        - key: Clang 9 Sanitizer
-          cxx: clang++-9
-          cc: clang-9
-          mode: Debug
-          cflags: -fsanitize=address,undefined -fno-omit-frame-pointer
-          cxxflags: -fsanitize=address,undefined -fno-omit-frame-pointer -stdlib=libc++
-          ldflags: -lc++abi
+          - name: GCC 9 Release
+            cxx: g++-9
+            cc: gcc-9
+            mode: Release
+          - name: GCC 9 Debug
+            cxx: g++-9
+            cc: gcc-9
+            mode: Debug
+          - name: Clang 9 Release
+            cxx: clang++-9
+            cc: clang-9
+            mode: Release
+            cxxflags: -stdlib=libc++
+            ldflags: -lc++abi
+          - name: Clang 9 Debug
+            cxx: clang++-9
+            cc: clang-9
+            mode: Debug
+            fuzz: true
+          - key: Clang 9 Sanitizer
+            cxx: clang++-9
+            cc: clang-9
+            mode: Debug
+            cflags: -fsanitize=address,undefined -fno-omit-frame-pointer
+            cxxflags: -fsanitize=address,undefined -fno-omit-frame-pointer -stdlib=libc++
+            ldflags: -lc++abi
     env:
       UBSAN_OPTIONS: halt_on_error=1:abort_on_error=1
     steps:
       - uses: actions/checkout@v2
       - uses: seanmiddleditch/gha-setup-ninja@master
-      
+
       # ==== INSTALL ====
       - name: Install
         if: matrix.config.cc == 'clang-9'
         env:
           DEBIAN_FRONTEND: noninteractive
-        run: sudo apt-get install -y --no-install-recommends libc++-9-dev libc++abi-9-dev libfuzzer-9-dev
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libc++-9-dev libc++abi-9-dev libfuzzer-9-dev
 
       # ==== BUILD ====
       - name: CMake
@@ -94,7 +96,9 @@ jobs:
         if: matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-9'
         env:
           DEBIAN_FRONTEND: noninteractive
-        run: sudo apt-get install -y --no-install-recommends valgrind
+        run: |
+           sudo apt-get update
+           sudo apt-get install -y --no-install-recommends valgrind
       - name: Run Single Header Tests Valgrind
         if: matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-9'
         run: valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full ./build/cista-test
