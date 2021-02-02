@@ -48,7 +48,7 @@ target_compile_definitions(cista INTERFACE CISTA_${CISTA_HASH}=1)
 if (CISTA_ZERO_OUT)
   target_compile_definitions(cista INTERFACE CISTA_ZERO_OUT=1)
 endif()
-target_include_directories(cista INTERFACE
+target_include_directories(cista SYSTEM INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_compile_features(cista INTERFACE cxx_std_17)

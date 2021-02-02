@@ -658,7 +658,7 @@ template <typename Ctx, typename T, typename Ptr, bool Indexed,
           typename TemplateSizeType, typename Fn>
 void recurse(Ctx&, basic_vector<T, Ptr, Indexed, TemplateSizeType>* el,
              Fn&& fn) {
-  for (auto& m : *el) {
+  for (auto& m : *el) {  // NOLINT(clang-analyzer-core.NullDereference)
     fn(&m);
   }
 }
