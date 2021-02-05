@@ -26,7 +26,7 @@
 namespace cista {
 inline HANDLE open_file(char const* path, char const* mode) {
   bool read = std::strcmp(mode, "r") == 0;
-  bool write = std::strcmp(mode, "w+") == 0;
+  bool write = std::strcmp(mode, "w+") == 0 || std::strcmp(mode, "r+") == 0;
 
   verify(read || write, "open file mode not supported");
 
