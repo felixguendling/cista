@@ -1,3 +1,5 @@
+#pragma once
+
 #if defined(_MSC_VER)
 #include <intrin.h>
 #if defined(_M_X64)
