@@ -398,14 +398,14 @@ extern "C" __declspec(dllimport) void __stdcall DebugBreak();
 DOCTEST_MSVC_SUPPRESS_WARNING_WITH_PUSH(4643)
 
 // DOCTEST_STD_NAMESPACE_BEGIN
-// typedef decltype(nullptr) nullptr_t;
+// using nullptr_t = decltype(nullptr);
 // template <class charT>
 // struct char_traits;
 // template <>
 // struct char_traits<char>;
 // template <class charT, class traits>
 // class basic_ostream;
-// typedef basic_ostream<char, char_traits<char>> ostream;
+// using ostream = basic_ostream<char, char_traits<char>>;
 // template <class... Types>
 // class tuple;
 // DOCTEST_STD_NAMESPACE_END
@@ -753,16 +753,16 @@ namespace detail {
 
     template <typename TYPE>
     struct enable_if<true, TYPE>
-    { typedef TYPE type; };
+    { using type = TYPE; };
 #endif // DOCTEST_CONFIG_TREAT_CHAR_STAR_AS_STRING) || DOCTEST_CONFIG_INCLUDE_TYPE_TRAITS
 
     // clang-format off
-    template<class T> struct remove_reference      { typedef T type; };
-    template<class T> struct remove_reference<T&>  { typedef T type; };
-    template<class T> struct remove_reference<T&&> { typedef T type; };
+    template<class T> struct remove_reference      { using type = T; };
+    template<class T> struct remove_reference<T&>  { using type = T; };
+    template<class T> struct remove_reference<T&&> { using type = T; };
 
-    template<class T> struct remove_const          { typedef T type; };
-    template<class T> struct remove_const<const T> { typedef T type; };
+    template<class T> struct remove_const          { using type = T; };
+    template<class T> struct remove_const<const T> { using type = T; };
     // clang-format on
 
     template <typename T>
@@ -771,7 +771,7 @@ namespace detail {
     { static const bool value = false; };
 
     namespace has_insertion_operator_impl {
-        typedef char no;
+        using no = char;
         typedef char yes[2];
 
         struct any_t
@@ -980,9 +980,9 @@ DOCTEST_INTERFACE const ContextOptions* getContextOptions();
 namespace detail {
     // clang-format off
 #ifdef DOCTEST_CONFIG_TREAT_CHAR_STAR_AS_STRING
-    template<class T>               struct decay_array       { typedef T type; };
-    template<class T, unsigned N>   struct decay_array<T[N]> { typedef T* type; };
-    template<class T>               struct decay_array<T[]>  { typedef T* type; };
+    template<class T>               struct decay_array       { using type = T; };
+    template<class T, unsigned N>   struct decay_array<T[N]> { using type = T*; };
+    template<class T>               struct decay_array<T[]>  { using type = T*; };
 
     template<class T>   struct not_char_pointer              { enum { value = 1 }; };
     template<>          struct not_char_pointer<char*>       { enum { value = 0 }; };
@@ -999,7 +999,7 @@ namespace detail {
     };
 
     DOCTEST_INTERFACE bool checkIfShouldThrow(assertType::Enum at);
-    
+
 #ifndef DOCTEST_CONFIG_NO_EXCEPTIONS
     [[noreturn]]
 #endif // DOCTEST_CONFIG_NO_EXCEPTIONS
@@ -1252,7 +1252,7 @@ namespace detail {
         }
     };
 
-    typedef void (*funcType)();
+    using funcType = void (*)();
 
     struct DOCTEST_INTERFACE TestCase : public TestCaseData
     {
@@ -1303,7 +1303,7 @@ namespace detail {
 
     // clang-format off
     template <int, class L, class R> struct RelationalComparator     { bool operator()(const DOCTEST_REF_WRAP(L),     const DOCTEST_REF_WRAP(R)    ) const { return false;        } };
-    
+
 #define DOCTEST_BINARY_RELATIONAL_OP(n, op) \
     template <class L, class R> struct RelationalComparator<n, L, R> { bool operator()(const DOCTEST_REF_WRAP(L) lhs, const DOCTEST_REF_WRAP(R) rhs) const { return op(lhs, rhs); } };
     // clang-format on
@@ -1677,7 +1677,7 @@ int registerExceptionTranslator(String (*)(T)) {
 #endif // DOCTEST_CONFIG_DISABLE
 
 namespace detail {
-    typedef void (*assert_handler)(const AssertData&);
+    using assert_handler = void (*)(const AssertData&);
     struct ContextState;
 } // namespace detail
 
@@ -1813,7 +1813,7 @@ struct DOCTEST_INTERFACE IReporter
 };
 
 namespace detail {
-    typedef IReporter* (*reporterCreatorFunc)(const ContextOptions&);
+    using reporterCreatorFunc = IReporter* (*)(const ContextOptions&);
 
     DOCTEST_INTERFACE void registerReporterImpl(const char* name, int prio, reporterCreatorFunc c);
 
@@ -1922,7 +1922,7 @@ int registerReporter(const char* name, int priority) {
             DOCTEST_TYPE_TO_STRING_IMPL(__VA_ARGS__)                                               \
         }                                                                                          \
     }                                                                                              \
-    typedef int DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_)
+    using DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_) = int
 
 // for typed tests
 #define DOCTEST_REGISTER_TYPED_TEST_CASE_IMPL(func, type, decorators, idx)                         \
@@ -1969,7 +1969,7 @@ int registerReporter(const char* name, int priority) {
 
 #define DOCTEST_TEST_CASE_TEMPLATE_INVOKE(id, ...)                                                 \
     DOCTEST_TEST_CASE_TEMPLATE_INVOKE_IMPL(id, DOCTEST_ANONYMOUS(_DOCTEST_ANON_TMP_), __VA_ARGS__) \
-    typedef int DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_)
+    using DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_) = int
 
 #define DOCTEST_TEST_CASE_TEMPLATE_APPLY_IMPL(id, anon, ...)                                       \
     DOCTEST_GLOBAL_NO_WARNINGS(DOCTEST_CAT(anon, DUMMY)) = [] {                                    \
@@ -1981,7 +1981,7 @@ int registerReporter(const char* name, int priority) {
 
 #define DOCTEST_TEST_CASE_TEMPLATE_APPLY(id, ...)                                                  \
     DOCTEST_TEST_CASE_TEMPLATE_APPLY_IMPL(id, DOCTEST_ANONYMOUS(_DOCTEST_ANON_TMP_), __VA_ARGS__)  \
-    typedef int DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_)
+    using DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_) = int
 
 #define DOCTEST_TEST_CASE_TEMPLATE_IMPL(dec, T, anon, ...)                                         \
     DOCTEST_TEST_CASE_TEMPLATE_DEFINE_IMPL(dec, T, DOCTEST_CAT(anon, ITERATOR), anon);             \
@@ -2025,14 +2025,14 @@ int registerReporter(const char* name, int priority) {
     DOCTEST_GLOBAL_NO_WARNINGS(DOCTEST_ANONYMOUS(_DOCTEST_ANON_VAR_)) =                            \
             doctest::detail::setTestSuite(doctest::detail::TestSuite() * decorators);              \
     DOCTEST_GLOBAL_NO_WARNINGS_END()                                                               \
-    typedef int DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_)
+    using DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_) = int
 
 // for ending a testsuite block
 #define DOCTEST_TEST_SUITE_END                                                                     \
     DOCTEST_GLOBAL_NO_WARNINGS(DOCTEST_ANONYMOUS(_DOCTEST_ANON_VAR_)) =                            \
             doctest::detail::setTestSuite(doctest::detail::TestSuite() * "");                      \
     DOCTEST_GLOBAL_NO_WARNINGS_END()                                                               \
-    typedef int DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_)
+    using DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_) = int
 
 // for registering exception translators
 #define DOCTEST_REGISTER_EXCEPTION_TRANSLATOR_IMPL(translatorName, signature)                      \
@@ -2050,7 +2050,7 @@ int registerReporter(const char* name, int priority) {
 #define DOCTEST_REGISTER_REPORTER(name, priority, reporter)                                        \
     DOCTEST_GLOBAL_NO_WARNINGS(DOCTEST_ANONYMOUS(_DOCTEST_ANON_REPORTER_)) =                       \
             doctest::registerReporter<reporter>(name, priority);                                   \
-    DOCTEST_GLOBAL_NO_WARNINGS_END() typedef int DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_)
+    DOCTEST_GLOBAL_NO_WARNINGS_END() using DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_) = int
 
 // for logging
 #define DOCTEST_INFO(x)                                                                            \
@@ -2363,7 +2363,7 @@ constexpr T to_lvalue = x;
                               DOCTEST_ANONYMOUS(_DOCTEST_ANON_FUNC_), name)
 
 // for converting types to strings without the <typeinfo> header and demangling
-#define DOCTEST_TYPE_TO_STRING(...) typedef int DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_)
+#define DOCTEST_TYPE_TO_STRING(...) using DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_) = int
 #define DOCTEST_TYPE_TO_STRING_IMPL(...)
 
 // for typed tests
@@ -2376,10 +2376,10 @@ constexpr T to_lvalue = x;
     inline void DOCTEST_ANONYMOUS(_DOCTEST_ANON_TMP_)()
 
 #define DOCTEST_TEST_CASE_TEMPLATE_INVOKE(id, ...)                                                 \
-    typedef int DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_)
+    using DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_) = int
 
 #define DOCTEST_TEST_CASE_TEMPLATE_APPLY(id, ...)                                                  \
-    typedef int DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_)
+    using DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_) = int
 
 // for subcases
 #define DOCTEST_SUBCASE(name)
@@ -2388,10 +2388,10 @@ constexpr T to_lvalue = x;
 #define DOCTEST_TEST_SUITE(name) namespace
 
 // for starting a testsuite block
-#define DOCTEST_TEST_SUITE_BEGIN(name) typedef int DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_)
+#define DOCTEST_TEST_SUITE_BEGIN(name) using DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_) = int
 
 // for ending a testsuite block
-#define DOCTEST_TEST_SUITE_END typedef int DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_)
+#define DOCTEST_TEST_SUITE_END using DOCTEST_ANONYMOUS(_DOCTEST_ANON_FOR_SEMICOLON_) = int
 
 #define DOCTEST_REGISTER_EXCEPTION_TRANSLATOR(signature)                                           \
     template <typename DOCTEST_UNUSED_TEMPLATE_TYPE>                                               \
@@ -2949,7 +2949,7 @@ namespace detail {
 
 #ifndef DOCTEST_CONFIG_DISABLE
 
-    typedef uint64_t UInt64;
+    using UInt64 = uint64_t;
 
 #ifdef DOCTEST_CONFIG_GETCURRENTTICKS
     UInt64 getCurrentTicks() { return DOCTEST_CONFIG_GETCURRENTTICKS(); }
@@ -3496,7 +3496,7 @@ namespace doctest {
 namespace {
     // the int (priority) is part of the key for automatic sorting - sadly one can register a
     // reporter with a duplicate name and a different priority but hopefully that won't happen often :|
-    typedef std::map<std::pair<int, String>, reporterCreatorFunc> reporterMap;
+    using reporterMap = std::map<std::pair<int, String>, reporterCreatorFunc>;
     reporterMap&                                                  getReporters() {
         static reporterMap data;
         return data;

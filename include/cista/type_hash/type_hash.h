@@ -12,12 +12,13 @@
 namespace cista {
 
 template <typename T>
-hash_t type2str_hash() {
+hash_t type2str_hash() noexcept {
   return hash_combine(hash(canonical_type_str<decay_t<T>>()), sizeof(T));
 }
 
 template <typename T>
-hash_t type_hash(T const& el, hash_t h, std::map<hash_t, unsigned>& done) {
+hash_t type_hash(T const& el, hash_t h,
+                 std::map<hash_t, unsigned>& done) noexcept {
   using Type = decay_t<T>;
 
   auto const base_hash = type2str_hash<Type>();
@@ -50,7 +51,7 @@ hash_t type_hash(T const& el, hash_t h, std::map<hash_t, unsigned>& done) {
 
 template <typename T, size_t Size>
 hash_t type_hash(array<T, Size> const&, hash_t h,
-                 std::map<hash_t, unsigned>& done) {
+                 std::map<hash_t, unsigned>& done) noexcept {
   h = hash_combine(h, hash("array"));
   h = hash_combine(h, Size);
   return type_hash(T{}, h, done);
@@ -58,7 +59,7 @@ hash_t type_hash(array<T, Size> const&, hash_t h,
 
 template <typename T, typename Ptr, bool Indexed, typename TemplateSizeType>
 hash_t type_hash(basic_vector<T, Ptr, Indexed, TemplateSizeType> const&,
-                 hash_t h, std::map<hash_t, unsigned>& done) {
+                 hash_t h, std::map<hash_t, unsigned>& done) noexcept {
   h = hash_combine(h, hash("vector"));
   return type_hash(T{}, h, done);
 }

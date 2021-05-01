@@ -16,7 +16,7 @@ template <typename Ptr = char const*>
 struct generic_string {
   using msize_t = uint32_t;
 
-  static msize_t mstrlen(char const* s) {
+  static msize_t mstrlen(char const* s) noexcept {
     return static_cast<msize_t>(std::strlen(s));
   }
 
@@ -25,11 +25,11 @@ struct generic_string {
   static constexpr struct non_owning_t {
   } non_owning{};
 
-  generic_string() {
+  generic_string() noexcept {
     std::memset(static_cast<void*>(this), 0, sizeof(*this));
     h_.ptr_ = nullptr;
   }
-  ~generic_string() { reset(); }
+  ~generic_string() noexcept { reset(); }
 
   generic_string(std::string_view s, owning_t) : generic_string() {
     set_owning(s);
@@ -50,12 +50,12 @@ struct generic_string {
     set_non_owning(s);
   }
 
-  char* begin() { return data(); }
-  char* end() { return data() + size(); }
-  char const* begin() const { return data(); }
-  char const* end() const { return data() + size(); }
+  char* begin() noexcept { return data(); }
+  char* end() noexcept { return data() + size(); }
+  char const* begin() const noexcept { return data(); }
+  char const* end() const noexcept { return data() + size(); }
 
-  bool is_short() const { return s_.is_short_; }
+  bool is_short() const noexcept { return s_.is_short_; }
 
   void reset() {
     if (!h_.is_short_ && h_.ptr_ != nullptr && h_.self_allocated_) {
@@ -123,7 +123,7 @@ struct generic_string {
     h_.size_ = len;
   }
 
-  void move_from(generic_string&& s) {
+  void move_from(generic_string&& s) noexcept {
     std::memcpy(static_cast<void*>(this), &s, sizeof(*this));
     if constexpr (std::is_pointer_v<Ptr>) {
       std::memset(static_cast<void*>(&s), 0, sizeof(*this));
@@ -146,140 +146,146 @@ struct generic_string {
     }
   }
 
-  inline bool empty() const { return size() == 0U; }
-  std::string_view view() const { return {data(), size()}; }
+  bool empty() const noexcept { return size() == 0U; }
+  std::string_view view() const noexcept { return {data(), size()}; }
   std::string str() const { return {data(), size()}; }
 
   operator std::string_view() const { return view(); }
 
-  char& operator[](size_t i) { return data()[i]; }
-  char const& operator[](size_t i) const { return data()[i]; }
+  char& operator[](size_t i) noexcept { return data()[i]; }
+  char const& operator[](size_t i) const noexcept { return data()[i]; }
 
   friend std::ostream& operator<<(std::ostream& out, generic_string const& s) {
     return out << s.view();
   }
 
-  friend bool operator==(generic_string const& a, generic_string const& b) {
+  friend bool operator==(generic_string const& a,
+                         generic_string const& b) noexcept {
     return a.view() == b.view();
   }
 
-  friend bool operator!=(generic_string const& a, generic_string const& b) {
+  friend bool operator!=(generic_string const& a,
+                         generic_string const& b) noexcept {
     return a.view() != b.view();
   }
 
-  friend bool operator<(generic_string const& a, generic_string const& b) {
+  friend bool operator<(generic_string const& a,
+                        generic_string const& b) noexcept {
     return a.view() < b.view();
   }
 
-  friend bool operator>(generic_string const& a, generic_string const& b) {
+  friend bool operator>(generic_string const& a,
+                        generic_string const& b) noexcept {
     return a.view() > b.view();
   }
 
-  friend bool operator<=(generic_string const& a, generic_string const& b) {
+  friend bool operator<=(generic_string const& a,
+                         generic_string const& b) noexcept {
     return a.view() <= b.view();
   }
 
-  friend bool operator>=(generic_string const& a, generic_string const& b) {
+  friend bool operator>=(generic_string const& a,
+                         generic_string const& b) noexcept {
     return a.view() >= b.view();
   }
 
-  friend bool operator==(generic_string const& a, std::string_view b) {
+  friend bool operator==(generic_string const& a, std::string_view b) noexcept {
     return a.view() == b;
   }
 
-  friend bool operator!=(generic_string const& a, std::string_view b) {
+  friend bool operator!=(generic_string const& a, std::string_view b) noexcept {
     return a.view() != b;
   }
 
-  friend bool operator<(generic_string const& a, std::string_view b) {
+  friend bool operator<(generic_string const& a, std::string_view b) noexcept {
     return a.view() < b;
   }
 
-  friend bool operator>(generic_string const& a, std::string_view b) {
+  friend bool operator>(generic_string const& a, std::string_view b) noexcept {
     return a.view() > b;
   }
 
-  friend bool operator<=(generic_string const& a, std::string_view b) {
+  friend bool operator<=(generic_string const& a, std::string_view b) noexcept {
     return a.view() <= b;
   }
 
-  friend bool operator>=(generic_string const& a, std::string_view b) {
+  friend bool operator>=(generic_string const& a, std::string_view b) noexcept {
     return a.view() >= b;
   }
 
-  friend bool operator==(std::string_view a, generic_string const& b) {
+  friend bool operator==(std::string_view a, generic_string const& b) noexcept {
     return a == b.view();
   }
 
-  friend bool operator!=(std::string_view a, generic_string const& b) {
+  friend bool operator!=(std::string_view a, generic_string const& b) noexcept {
     return a != b.view();
   }
 
-  friend bool operator<(std::string_view a, generic_string const& b) {
+  friend bool operator<(std::string_view a, generic_string const& b) noexcept {
     return a < b.view();
   }
 
-  friend bool operator>(std::string_view a, generic_string const& b) {
+  friend bool operator>(std::string_view a, generic_string const& b) noexcept {
     return a > b.view();
   }
 
-  friend bool operator<=(std::string_view a, generic_string const& b) {
+  friend bool operator<=(std::string_view a, generic_string const& b) noexcept {
     return a <= b.view();
   }
 
-  friend bool operator>=(std::string_view a, generic_string const& b) {
+  friend bool operator>=(std::string_view a, generic_string const& b) noexcept {
     return a >= b.view();
   }
 
-  friend bool operator==(generic_string const& a, char const* b) {
+  friend bool operator==(generic_string const& a, char const* b) noexcept {
     return a.view() == std::string_view{b};
   }
 
-  friend bool operator!=(generic_string const& a, char const* b) {
+  friend bool operator!=(generic_string const& a, char const* b) noexcept {
     return a.view() != std::string_view{b};
   }
 
-  friend bool operator<(generic_string const& a, char const* b) {
+  friend bool operator<(generic_string const& a, char const* b) noexcept {
     return a.view() < std::string_view{b};
   }
 
-  friend bool operator>(generic_string const& a, char const* b) {
+  friend bool operator>(generic_string const& a, char const* b) noexcept {
     return a.view() > std::string_view{b};
   }
 
-  friend bool operator<=(generic_string const& a, char const* b) {
+  friend bool operator<=(generic_string const& a, char const* b) noexcept {
     return a.view() <= std::string_view{b};
   }
 
-  friend bool operator>=(generic_string const& a, char const* b) {
+  friend bool operator>=(generic_string const& a, char const* b) noexcept {
     return a.view() >= std::string_view{b};
   }
 
-  friend bool operator==(char const* a, generic_string const& b) {
+  friend bool operator==(char const* a, generic_string const& b) noexcept {
     return std::string_view{a} == b.view();
   }
 
-  friend bool operator!=(char const* a, generic_string const& b) {
+  friend bool operator!=(char const* a, generic_string const& b) noexcept {
     return std::string_view{a} != b.view();
   }
 
-  friend bool operator<(char const* a, generic_string const& b) {
+  friend bool operator<(char const* a, generic_string const& b) noexcept {
     return std::string_view{a} < b.view();
   }
 
-  friend bool operator>(char const* a, generic_string const& b) {
+  friend bool operator>(char const* a, generic_string const& b) noexcept {
     return std::string_view{a} > b.view();
   }
 
-  friend bool operator<=(char const* a, generic_string const& b) {
+  friend bool operator<=(char const* a, generic_string const& b) noexcept {
     return std::string_view{a} <= b.view();
   }
 
-  friend bool operator>=(char const* a, generic_string const& b) {
+  friend bool operator>=(char const* a, generic_string const& b) noexcept {
     return std::string_view{a} >= b.view();
   }
 
-  char* data() {
+  char* data() noexcept {
     if constexpr (std::is_pointer_v<Ptr>) {
       return is_short() ? const_cast<char*>(s_.s_) : const_cast<char*>(h_.ptr_);
     } else {
@@ -288,7 +294,7 @@ struct generic_string {
     }
   }
 
-  char const* data() const {
+  char const* data() const noexcept {
     if constexpr (std::is_pointer_v<Ptr>) {
       return is_short() ? s_.s_ : h_.ptr_;
     } else {
@@ -296,17 +302,12 @@ struct generic_string {
     }
   }
 
-  msize_t size() const {
+  msize_t size() const noexcept {
     if (is_short()) {
       auto const pos = static_cast<char const*>(std::memchr(s_.s_, '\0', 15));
-      if (pos == nullptr) {
-        return 15;
-      } else {
-        return static_cast<msize_t>(pos - s_.s_);
-      }
-    } else {
-      return h_.size_;
+      return (pos != nullptr) ? static_cast<msize_t>(pos - s_.s_) : 15;
     }
+    return h_.size_;
   }
 
   struct heap {

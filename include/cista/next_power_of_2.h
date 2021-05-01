@@ -3,7 +3,7 @@
 namespace cista {
 
 template <typename TemplateSizeType>
-constexpr TemplateSizeType next_power_of_two(TemplateSizeType n) {
+constexpr TemplateSizeType next_power_of_two(TemplateSizeType n) noexcept {
   n--;
   n |= n >> 1U;
   n |= n >> 2U;

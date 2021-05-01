@@ -70,8 +70,8 @@ struct hash_storage {
   struct probe_seq {
     probe_seq(size_type hash, size_type mask)
         : mask_{mask}, offset_{hash & mask_} {}
-    size_type offset(size_type const i) const { return (offset_ + i) & mask_; }
-    void next() {
+    size_type offset(size_type const i) const noexcept { return (offset_ + i) & mask_; }
+    void next() noexcept {
       index_ += WIDTH;
       offset_ += index_;
       offset_ &= mask_;
@@ -84,29 +84,29 @@ struct hash_storage {
 
     explicit bit_mask(group_t mask) : mask_{mask} {}
 
-    bit_mask& operator++() {
+    bit_mask& operator++() noexcept {
       mask_ &= (mask_ - 1);
       return *this;
     }
 
-    size_type operator*() const { return trailing_zeros(); }
+    size_type operator*() const noexcept { return trailing_zeros(); }
 
-    explicit operator bool() const { return mask_ != 0U; }
+    explicit operator bool() const noexcept { return mask_ != 0U; }
 
-    bit_mask begin() const { return *this; }
-    bit_mask end() const { return bit_mask{0}; }
+    bit_mask begin() const noexcept { return *this; }
+    bit_mask end() const noexcept { return bit_mask{0}; }
 
-    size_type trailing_zeros() const {
+    size_type trailing_zeros() const noexcept {
       return ::cista::trailing_zeros(mask_) >> SHIFT;
     }
 
-    size_type leading_zeros() const {
+    size_type leading_zeros() const noexcept {
       constexpr int total_significant_bits = 8 << SHIFT;
       constexpr int extra_bits = sizeof(group_t) * 8 - total_significant_bits;
       return ::cista::leading_zeros(mask_ << extra_bits) >> SHIFT;
     }
 
-    friend bool operator!=(bit_mask const& a, bit_mask const& b) {
+    friend bool operator!=(bit_mask const& a, bit_mask const& b) noexcept {
       return a.mask_ != b.mask_;
     }
 
@@ -118,23 +118,23 @@ struct hash_storage {
     static constexpr auto LSBS = 0x0101010101010101ULL;
     static constexpr auto GAPS = 0x00FEFEFEFEFEFEFEULL;
 
-    explicit group(ctrl_t const* pos) {
+    explicit group(ctrl_t const* pos) noexcept {
       std::memcpy(&ctrl_, pos, WIDTH);
 #if defined(CISTA_BIG_ENDIAN)
       ctrl_ = endian_swap(ctrl_);
 #endif
     }
-    bit_mask match(h2_t const hash) const {
+    bit_mask match(h2_t const hash) const noexcept {
       auto const x = ctrl_ ^ (LSBS * hash);
       return bit_mask{(x - LSBS) & ~x & MSBS};
     }
-    bit_mask match_empty() const {
+    bit_mask match_empty() const noexcept {
       return bit_mask{(ctrl_ & (~ctrl_ << 6U)) & MSBS};
     }
-    bit_mask match_empty_or_deleted() const {
+    bit_mask match_empty_or_deleted() const noexcept {
       return bit_mask{(ctrl_ & (~ctrl_ << 7U)) & MSBS};
     }
-    size_t count_leading_empty_or_deleted() const {
+    size_t count_leading_empty_or_deleted() const noexcept {
       return (trailing_zeros(((~ctrl_ & (ctrl_ >> 7U)) | GAPS) + 1U) + 7U) >>
              3U;
     }
@@ -148,33 +148,33 @@ struct hash_storage {
     using pointer = hash_storage::entry_t*;
     using difference_type = ptrdiff_t;
 
-    iterator() = default;
+    iterator() noexcept = default;
 
-    reference operator*() const { return *entry_; }
-    pointer operator->() const { return &operator*(); }
-    iterator& operator++() {
+    reference operator*() const noexcept { return *entry_; }
+    pointer operator->() const noexcept { return entry_; }
+    iterator& operator++() noexcept {
       ++ctrl_;
       ++entry_;
       skip_empty_or_deleted();
       return *this;
     }
-    iterator operator++(int) {
+    iterator operator++(int) noexcept {
       auto tmp = *this;
       ++*this;
       return tmp;
     }
 
-    friend bool operator==(const iterator& a, const iterator& b) {
+    friend bool operator==(const iterator& a, const iterator& b) noexcept {
       return a.ctrl_ == b.ctrl_;
     }
-    friend bool operator!=(const iterator& a, const iterator& b) {
+    friend bool operator!=(const iterator& a, const iterator& b) noexcept {
       return !(a == b);
     }
 
-    iterator(ctrl_t* ctrl) : ctrl_(ctrl) {}
-    iterator(ctrl_t* ctrl, T* entry) : ctrl_(ctrl), entry_(entry) {}
+    iterator(ctrl_t* ctrl) noexcept : ctrl_(ctrl) {}
+    iterator(ctrl_t* ctrl, T* entry) noexcept : ctrl_(ctrl), entry_(entry) {}
 
-    void skip_empty_or_deleted() {
+    void skip_empty_or_deleted() noexcept {
       while (is_empty_or_deleted(*ctrl_)) {
         auto const shift = group{ctrl_}.count_leading_empty_or_deleted();
         ctrl_ += shift;
@@ -193,54 +193,54 @@ struct hash_storage {
     using pointer = hash_storage::entry_t const*;
     using difference_type = ptrdiff_t;
 
-    const_iterator() = default;
-    const_iterator(iterator i) : inner_(std::move(i)) {}
+    const_iterator() noexcept = default;
+    const_iterator(iterator i) noexcept : inner_(std::move(i)) {}
 
-    reference operator*() const { return *inner_; }
-    pointer operator->() const { return inner_.operator->(); }
+    reference operator*() const noexcept { return *inner_; }
+    pointer operator->() const noexcept { return inner_.operator->(); }
 
-    const_iterator& operator++() {
+    const_iterator& operator++() noexcept {
       ++inner_;
       return *this;
     }
-    const_iterator operator++(int) { return inner_++; }
+    const_iterator operator++(int) noexcept { return inner_++; }
 
-    friend bool operator==(const const_iterator& a, const const_iterator& b) {
+    friend bool operator==(const const_iterator& a, const const_iterator& b) noexcept {
       return a.inner_ == b.inner_;
     }
-    friend bool operator!=(const const_iterator& a, const const_iterator& b) {
+    friend bool operator!=(const const_iterator& a, const const_iterator& b) noexcept {
       return !(a == b);
     }
 
-    const_iterator(ctrl_t const* ctrl, T const* entry)
+    const_iterator(ctrl_t const* ctrl, T const* entry) noexcept
         : inner_(const_cast<ctrl_t*>(ctrl), const_cast<T*>(entry)) {}
 
     iterator inner_;
   };
 
-  static inline ctrl_t* empty_group() {
+  static inline ctrl_t* empty_group() noexcept {
     alignas(16) static constexpr ctrl_t empty_group[] = {
         END,   EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
         EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY};
     return const_cast<ctrl_t*>(empty_group);
   }
 
-  static inline bool is_empty(ctrl_t const c) { return c == EMPTY; }
-  static inline bool is_full(ctrl_t const c) { return c >= 0; }
-  static inline bool is_deleted(ctrl_t const c) { return c == DELETED; }
-  static inline bool is_empty_or_deleted(ctrl_t const c) { return c < END; }
+  static inline bool is_empty(ctrl_t const c) noexcept { return c == EMPTY; }
+  static inline bool is_full(ctrl_t const c) noexcept { return c >= 0; }
+  static inline bool is_deleted(ctrl_t const c) noexcept { return c == DELETED; }
+  static inline bool is_empty_or_deleted(ctrl_t const c) noexcept { return c < END; }
 
-  static inline size_t normalize_capacity(size_type const n) {
+  static inline size_t normalize_capacity(size_type const n) noexcept {
     return n == 0U ? 1 : ~size_type{} >> leading_zeros(n);
   }
 
-  static inline size_type h1(size_type const hash) {
+  static inline size_type h1(size_type const hash) noexcept {
     return (hash >> 7) ^ 16777619;
   }
 
-  static inline h2_t h2(size_type const hash) { return hash & 0x7F; }
+  static inline h2_t h2(size_type const hash) noexcept { return hash & 0x7F; }
 
-  static inline size_type capacity_to_growth(size_type const capacity) {
+  static inline size_type capacity_to_growth(size_type const capacity) noexcept {
     return (capacity == 7) ? 6 : capacity - (capacity / 8);
   }
 
@@ -266,11 +266,10 @@ struct hash_storage {
   }
 
   hash_storage(hash_storage const& other) {
-    if (other.size() == 0U) {
-      return;
-    }
-    for (const auto& v : other) {
-      emplace(v);
+    if (other.size() != 0U) {
+      for (const auto& v : other) {
+        emplace(v);
+      }
     }
   }
 
@@ -303,8 +302,8 @@ struct hash_storage {
 
   ~hash_storage() { clear(); }
 
-  void set_empty_key(key_t const&) {}
-  void set_deleted_key(key_t const&) {}
+  void set_empty_key(key_t const&) noexcept {}
+  void set_deleted_key(key_t const&) noexcept {}
 
   // --- operator[]
   template <typename Key>
@@ -378,11 +377,11 @@ struct hash_storage {
     return find_impl(std::forward<Key>(key));
   }
 
-  const_iterator find(key_t const& key) const {
+  const_iterator find(key_t const& key) const noexcept {
     return const_cast<hash_storage*>(this)->find_impl(key);
   }
 
-  iterator find(key_t const& key) { return find_impl(key); }
+  iterator find(key_t const& key) noexcept { return find_impl(key); }
 
   template <class InputIt>
   void insert(InputIt first, InputIt last) {
@@ -409,7 +408,7 @@ struct hash_storage {
     return erase_impl(std::forward<Key>(key));
   }
 
-  void erase(iterator const it) {
+  void erase(iterator const it) noexcept {
     it.entry_->~T();
     erase_meta_only(it);
   }
@@ -426,35 +425,35 @@ struct hash_storage {
     return {iterator_at(res.first), res.second};
   }
 
-  iterator begin() {
+  iterator begin() noexcept {
     auto it = iterator_at(0);
     if (ctrl_ != nullptr) {
       it.skip_empty_or_deleted();
     }
     return it;
   }
-  iterator end() { return {ctrl_ + capacity_}; }
+  iterator end() noexcept { return {ctrl_ + capacity_}; }
 
-  const_iterator begin() const {
+  const_iterator begin() const noexcept {
     return const_cast<hash_storage*>(this)->begin();
   }
-  const_iterator end() const { return const_cast<hash_storage*>(this)->end(); }
-  const_iterator cbegin() const { return begin(); }
-  const_iterator cend() const { return end(); }
+  const_iterator end() const noexcept { return const_cast<hash_storage*>(this)->end(); }
+  const_iterator cbegin() const noexcept { return begin(); }
+  const_iterator cend() const noexcept { return end(); }
 
-  friend iterator begin(hash_storage& h) { return h.begin(); }
-  friend const_iterator begin(hash_storage const& h) { return h.begin(); }
-  friend const_iterator cbegin(hash_storage const& h) { return h.begin(); }
-  friend iterator end(hash_storage& h) { return h.end(); }
-  friend const_iterator end(hash_storage const& h) { return h.end(); }
-  friend const_iterator cend(hash_storage const& h) { return h.end(); }
+  friend iterator begin(hash_storage& h) noexcept { return h.begin(); }
+  friend const_iterator begin(hash_storage const& h) noexcept { return h.begin(); }
+  friend const_iterator cbegin(hash_storage const& h) noexcept { return h.begin(); }
+  friend iterator end(hash_storage& h) noexcept { return h.end(); }
+  friend const_iterator end(hash_storage const& h) noexcept { return h.end(); }
+  friend const_iterator cend(hash_storage const& h) noexcept { return h.end(); }
 
-  bool empty() const { return size() == 0U; }
-  size_type size() const { return size_; }
-  size_type capacity() const { return capacity_; }
-  size_type max_size() const { return std::numeric_limits<size_t>::max(); }
+  bool empty() const noexcept { return size() == 0U; }
+  size_type size() const noexcept { return size_; }
+  size_type capacity() const noexcept { return capacity_; }
+  size_type max_size() const noexcept { return std::numeric_limits<size_t>::max(); }
 
-  bool is_free(int index) {
+  bool is_free(int index) const noexcept {
     auto const index_before = (index - WIDTH) & capacity_;
 
     auto const empty_after = group{ctrl_ + index}.match_empty();
@@ -465,7 +464,7 @@ struct hash_storage {
                WIDTH;
   }
 
-  inline bool was_never_full(size_t const index) {
+  bool was_never_full(size_t const index) const noexcept {
     auto const index_before = (index - WIDTH) & capacity_;
 
     auto const empty_after = group{ctrl_ + index}.match_empty();
@@ -476,7 +475,7 @@ struct hash_storage {
                WIDTH;
   }
 
-  void erase_meta_only(const_iterator it) {
+  void erase_meta_only(const_iterator it) noexcept {
     --size_;
     auto const index = static_cast<size_t>(it.inner_.ctrl_ - ctrl_);
     auto const wnf = was_never_full(index);
@@ -522,10 +521,10 @@ struct hash_storage {
     return {prepare_insert(hash), true};
   }
 
-  find_info find_first_non_full(size_type const hash) const {
+  find_info find_first_non_full(size_type const hash) const noexcept {
     for (auto seq = probe_seq{h1(hash), capacity_}; true; seq.next()) {
-      if (auto const mask = group{ctrl_ + seq.offset_}.match_empty_or_deleted();
-          mask) {
+      auto const mask = group{ctrl_ + seq.offset_}.match_empty_or_deleted();
+      if (mask) {
         return {seq.offset(*mask), seq.index_};
       }
     }
@@ -543,7 +542,7 @@ struct hash_storage {
     return target.offset_;
   }
 
-  void set_ctrl(size_type const i, h2_t const c) {
+  void set_ctrl(size_type const i, h2_t const c) noexcept {
     ctrl_[i] = static_cast<ctrl_t>(c);
     ctrl_[((i - WIDTH) & capacity_) + 1 + ((WIDTH - 1) & capacity_)] =
         static_cast<ctrl_t>(c);
@@ -557,16 +556,16 @@ struct hash_storage {
     }
   }
 
-  void reset_growth_left() {
+  void reset_growth_left() noexcept {
     growth_left_ = capacity_to_growth(capacity_) - size_;
   }
 
-  void reset_ctrl() {
+  void reset_ctrl() noexcept {
     std::memset(ctrl_, EMPTY, static_cast<size_t>(capacity_ + WIDTH + 1U));
     ctrl_[capacity_] = END;
   }
 
-  void initialize_entries() {
+  void initialize_entries() noexcept {
     self_allocated_ = true;
     auto const size = static_cast<size_type>(
         capacity_ * sizeof(T) + (capacity_ + 1 + WIDTH) * sizeof(ctrl_t));
@@ -608,12 +607,12 @@ struct hash_storage {
 
   void rehash() { resize(capacity_); }
 
-  iterator iterator_at(size_type const i) { return {ctrl_ + i, entries_ + i}; }
-  const_iterator iterator_at(size_type const i) const {
+  iterator iterator_at(size_type const i) noexcept { return {ctrl_ + i, entries_ + i}; }
+  const_iterator iterator_at(size_type const i) const noexcept {
     return {ctrl_ + i, entries_ + i};
   }
 
-  bool operator==(hash_storage const& b) const {
+  bool operator==(hash_storage const& b) const noexcept {
     if (size() != b.size()) {
       return false;
     }

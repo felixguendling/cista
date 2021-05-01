@@ -35,7 +35,7 @@ struct basic_unique_ptr {
     return *this;
   }
 
-  basic_unique_ptr(std::nullptr_t) {}
+  basic_unique_ptr(std::nullptr_t) noexcept {}
   basic_unique_ptr& operator=(std::nullptr_t) {
     reset();
     return *this;
@@ -51,26 +51,26 @@ struct basic_unique_ptr {
     }
   }
 
-  explicit operator bool() const { return el_ != nullptr; }
+  explicit operator bool() const noexcept { return el_ != nullptr; }
 
-  friend bool operator==(basic_unique_ptr const& a, std::nullptr_t) {
+  friend bool operator==(basic_unique_ptr const& a, std::nullptr_t) noexcept {
     return a.el_ == nullptr;
   }
-  friend bool operator==(std::nullptr_t, basic_unique_ptr const& a) {
+  friend bool operator==(std::nullptr_t, basic_unique_ptr const& a) noexcept {
     return a.el_ == nullptr;
   }
-  friend bool operator!=(basic_unique_ptr const& a, std::nullptr_t) {
+  friend bool operator!=(basic_unique_ptr const& a, std::nullptr_t) noexcept {
     return a.el_ != nullptr;
   }
-  friend bool operator!=(std::nullptr_t, basic_unique_ptr const& a) {
+  friend bool operator!=(std::nullptr_t, basic_unique_ptr const& a) noexcept {
     return a.el_ != nullptr;
   }
 
-  T* get() const { return el_; }
-  T* operator->() { return el_; }
-  T& operator*() { return *el_; }
-  T const& operator*() const { return *el_; }
-  T const* operator->() const { return el_; }
+  T* get() const noexcept { return el_; }
+  T* operator->() noexcept { return el_; }
+  T& operator*() noexcept { return *el_; }
+  T const& operator*() const noexcept { return *el_; }
+  T const* operator->() const noexcept { return el_; }
 
   Ptr el_{nullptr};
   bool self_allocated_{false};

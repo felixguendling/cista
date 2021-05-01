@@ -104,20 +104,20 @@ struct mmap {
     }
   }
 
-  size_t size() const { return used_size_; }
+  size_t size() const noexcept { return used_size_; }
 
-  inline uint8_t* data() { return static_cast<unsigned char*>(addr_); }
-  inline uint8_t const* data() const {
+  inline uint8_t* data() noexcept { return static_cast<unsigned char*>(addr_); }
+  inline uint8_t const* data() const noexcept {
     return static_cast<unsigned char const*>(addr_);
   }
 
-  inline uint8_t* begin() { return data(); }
-  inline uint8_t* end() { return data() + used_size_; }
-  inline uint8_t const* begin() const { return data(); }
-  inline uint8_t const* end() const { return data() + used_size_; }
+  inline uint8_t* begin() noexcept { return data(); }
+  inline uint8_t* end() noexcept { return data() + used_size_; }
+  inline uint8_t const* begin() const noexcept { return data(); }
+  inline uint8_t const* end() const noexcept { return data() + used_size_; }
 
-  unsigned char& operator[](size_t i) { return *(data() + i); }
-  unsigned char const& operator[](size_t i) const { return *(data() + i); }
+  unsigned char& operator[](size_t i) noexcept { return data()[i]; }
+  unsigned char const& operator[](size_t i) const noexcept { return data()[i]; }
 
 private:
   void unmap() {

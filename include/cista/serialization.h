@@ -36,7 +36,7 @@ struct pending_offset {
 };
 
 struct vector_range {
-  bool contains(void const* begin, void const* ptr) const {
+  bool contains(void const* begin, void const* ptr) const noexcept {
     auto const ptr_int = reinterpret_cast<uintptr_t>(ptr);
     auto const from = reinterpret_cast<uintptr_t>(begin);
     auto const to =
@@ -44,7 +44,7 @@ struct vector_range {
     return ptr_int >= from && ptr_int < to;
   }
 
-  offset_t offset_of(void const* begin, void const* ptr) const {
+  offset_t offset_of(void const* begin, void const* ptr) const noexcept {
     return start_ + reinterpret_cast<intptr_t>(ptr) -
            reinterpret_cast<intptr_t>(begin);
   }
@@ -60,7 +60,7 @@ struct serialization_context {
   explicit serialization_context(Target& t) : t_{t} {}
 
   static bool compare(std::pair<void const*, vector_range> const& a,
-                      std::pair<void const*, vector_range> const& b) {
+                      std::pair<void const*, vector_range> const& b) noexcept {
     return a.first < b.first;
   }
 
@@ -119,7 +119,9 @@ struct serialization_context {
     }
   }
 
-  uint64_t checksum(offset_t const from) const { return t_.checksum(from); }
+  uint64_t checksum(offset_t const from) const noexcept {
+    return t_.checksum(from);
+  }
 
   cista::raw::hash_map<void const*, offset_t> offsets_;
   std::map<void const*, vector_range> vector_ranges_;
@@ -337,7 +339,7 @@ void serialize(Ctx& c, tuple<T...> const* origin,
       *origin);
 }
 
-constexpr offset_t integrity_start(mode const m) {
+constexpr offset_t integrity_start(mode const m) noexcept {
   offset_t start = 0;
   if (is_mode_enabled(m, mode::WITH_VERSION)) {
     start += sizeof(uint64_t);
@@ -345,7 +347,7 @@ constexpr offset_t integrity_start(mode const m) {
   return start;
 }
 
-constexpr offset_t data_start(mode const m) {
+constexpr offset_t data_start(mode const m) noexcept {
   auto start = integrity_start(m);
   if (is_mode_enabled(m, mode::WITH_INTEGRITY)) {
     start += sizeof(uint64_t);
@@ -459,7 +461,7 @@ struct deserialization_context {
   }
 
   template <typename T>
-  constexpr static size_t type_size() {
+  constexpr static size_t type_size() noexcept {
     using Type = decay_t<T>;
     if constexpr (std::is_same_v<Type, void>) {
       return 0;
