@@ -11,13 +11,22 @@ on:
 
 jobs:
   formatting:
-    # ==== FORMAT CHECK ====
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
 
+      - name: Install clang-format
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 12
+          rm llvm.sh
+          sudo apt-get install -y --no-install-recommends clang-format-12
+
       - name: Format files
-        run: find include test -type f -a \( -name "*.cc" -o -name "*.h" \) -print0 | xargs -0 clang-format-9 -i
+        run: find include test -type f -a \( -name "*.cc" -o -name "*.h" \) -print0 | xargs -0  clang-format-12 -i
 
       - name: Check for differences
         run: |
