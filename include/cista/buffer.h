@@ -8,9 +8,9 @@
 namespace cista {
 
 struct buffer final {
-  buffer() : buf_(nullptr), size_(0) {}
+  buffer() noexcept : buf_(nullptr), size_(0) {}
 
-  explicit buffer(std::size_t size) : buf_(malloc(size)), size_(size) {
+  explicit buffer(std::size_t size) : buf_(std::malloc(size)), size_(size) {
     verify(buf_ != nullptr, "buffer initialization failed");
   }
 
@@ -43,21 +43,23 @@ struct buffer final {
     return *this;
   }
 
-  inline std::size_t size() const { return size_; }
+  inline std::size_t size() const noexcept { return size_; }
 
-  inline unsigned char* data() { return static_cast<unsigned char*>(buf_); }
-  inline unsigned char const* data() const {
+  inline unsigned char* data() noexcept {
+    return static_cast<unsigned char*>(buf_);
+  }
+  inline unsigned char const* data() const noexcept {
     return static_cast<unsigned char const*>(buf_);
   }
 
-  inline unsigned char* begin() { return data(); }
-  inline unsigned char* end() { return data() + size_; }
+  inline unsigned char* begin() noexcept { return data(); }
+  inline unsigned char* end() noexcept { return data() + size_; }
 
-  inline unsigned char const* begin() const { return data(); }
-  inline unsigned char const* end() const { return data() + size_; }
+  inline unsigned char const* begin() const noexcept { return data(); }
+  inline unsigned char const* end() const noexcept { return data() + size_; }
 
-  unsigned char& operator[](size_t i) { return *(data() + i); }
-  unsigned char const& operator[](size_t i) const { return *(data() + i); }
+  unsigned char& operator[](size_t i) noexcept { return data()[i]; }
+  unsigned char const& operator[](size_t i) const noexcept { return data()[i]; }
 
   void* buf_;
   std::size_t size_;

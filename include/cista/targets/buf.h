@@ -22,10 +22,10 @@ struct buf {
   buf() = default;
   explicit buf(Buf&& buf) : buf_{std::forward<Buf>(buf)} {}
 
-  uint8_t* addr(offset_t const offset) { return (&buf_[0]) + offset; }
-  uint8_t* base() { return &buf_[0]; }
+  uint8_t* addr(offset_t const offset) noexcept { return (&buf_[0]) + offset; }
+  uint8_t* base() noexcept { return &buf_[0]; }
 
-  uint64_t checksum(offset_t const start = 0) const {
+  uint64_t checksum(offset_t const start = 0) const noexcept {
     return hash(std::string_view{
         reinterpret_cast<char const*>(&buf_[static_cast<size_t>(start)]),
         buf_.size() - static_cast<size_t>(start)});
@@ -63,15 +63,15 @@ struct buf {
     return start;
   }
 
-  unsigned char& operator[](size_t i) { return buf_[i]; }
-  unsigned char const& operator[](size_t i) const { return buf_[i]; }
-  size_t size() const { return buf_.size(); }
+  unsigned char& operator[](size_t i) noexcept { return buf_[i]; }
+  unsigned char const& operator[](size_t i) const noexcept { return buf_[i]; }
+  size_t size() const noexcept { return buf_.size(); }
   void reset() { buf_.resize(0U); }
 
   Buf buf_;
 };
 
 template <typename Buf>
-buf(Buf &&)->buf<Buf>;
+buf(Buf &&) -> buf<Buf>;
 
 }  // namespace cista

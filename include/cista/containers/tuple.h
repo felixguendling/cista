@@ -24,7 +24,7 @@ struct tuple<Head> {
 };
 
 template <typename Head, typename... Tail>
-tuple(Head&& first, Tail&&... tail)->tuple<Head, Tail...>;
+tuple(Head&& first, Tail&&... tail) -> tuple<Head, Tail...>;
 
 template <typename Tuple>
 struct is_tuple : std::false_type {};

@@ -12,14 +12,14 @@ namespace cista {
 
 struct get_first {
   template <typename T>
-  auto&& operator()(T&& t) {
+  auto&& operator()(T&& t) noexcept {
     return t.first;
   }
 };
 
 struct get_second {
   template <typename T>
-  auto&& operator()(T&& t) {
+  auto&& operator()(T&& t) noexcept {
     return t.second;
   }
 };

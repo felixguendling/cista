@@ -19,12 +19,12 @@ using ptr = cista::offset_ptr<T>;
 }  // namespace offset
 
 template <typename T>
-T* ptr_cast(raw::ptr<T> const p) {
+T* ptr_cast(raw::ptr<T> const p) noexcept {
   return p;
 }
 
 template <typename T>
-T* ptr_cast(offset::ptr<T> const p) {
+T* ptr_cast(offset::ptr<T> const p) noexcept {
   return p.get();
 }
 

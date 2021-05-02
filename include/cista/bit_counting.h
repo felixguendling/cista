@@ -15,7 +15,7 @@
 namespace cista {
 
 template <typename T>
-constexpr unsigned trailing_zeros(T t) {
+constexpr unsigned trailing_zeros(T t) noexcept {
   static_assert(sizeof(T) == 8 || sizeof(T) == 4, "not supported");
 
   if (t == 0) {
@@ -50,7 +50,7 @@ constexpr unsigned trailing_zeros(T t) {
 }
 
 template <typename T>
-constexpr unsigned leading_zeros(T t) {
+constexpr unsigned leading_zeros(T t) noexcept {
   static_assert(sizeof(T) == 8 || sizeof(T) == 4, "not supported");
 
   if (t == 0) {

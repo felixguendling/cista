@@ -24,7 +24,7 @@ struct bytes_to_integer_type<Size, std::enable_if_t<Size == 2>> {
 };
 
 template <typename... T>
-constexpr std::size_t bytes() {
+constexpr std::size_t bytes() noexcept {
   if (sizeof...(T) > std::numeric_limits<uint8_t>::max()) {
     return 2;
   } else {
@@ -38,7 +38,7 @@ using variant_index_t = typename bytes_to_integer_type<bytes<T...>()>::type;
 constexpr auto const TYPE_NOT_FOUND = std::numeric_limits<std::size_t>::max();
 
 template <typename Arg, typename... T>
-constexpr std::size_t index_of_type() {
+constexpr std::size_t index_of_type() noexcept {
   constexpr std::array<bool, sizeof...(T)> matches = {
       {std::is_same<std::decay_t<Arg>, std::decay_t<T>>::value...}};
   for (std::size_t i = 0; i < sizeof...(T); ++i) {
@@ -126,42 +126,42 @@ struct variant {
 
   ~variant() { destruct(); }
 
-  friend bool operator==(variant const& a, variant const& b) {
+  friend bool operator==(variant const& a, variant const& b) noexcept {
     return a.idx_ == b.idx_
                ? apply([](auto&& u, auto&& v) -> bool { return u == v; },
                        a.idx_, a, b)
                : false;
   }
 
-  friend bool operator!=(variant const& a, variant const& b) {
+  friend bool operator!=(variant const& a, variant const& b) noexcept {
     return a.idx_ == b.idx_
                ? apply([](auto&& u, auto&& v) -> bool { return u != v; },
                        a.idx_, a, b)
                : true;
   }
 
-  friend bool operator<(variant const& a, variant const& b) {
+  friend bool operator<(variant const& a, variant const& b) noexcept {
     return a.idx_ == b.idx_
                ? apply([](auto&& u, auto&& v) -> bool { return u < v; }, a.idx_,
                        a, b)
                : a.idx_ < b.idx_;
   }
 
-  friend bool operator>(variant const& a, variant const& b) {
+  friend bool operator>(variant const& a, variant const& b) noexcept {
     return a.idx_ == b.idx_
                ? apply([](auto&& u, auto&& v) -> bool { return u > v; }, a.idx_,
                        a, b)
                : a.idx_ > b.idx_;
   }
 
-  friend bool operator<=(variant const& a, variant const& b) {
+  friend bool operator<=(variant const& a, variant const& b) noexcept {
     return a.idx_ == b.idx_
                ? apply([](auto&& u, auto&& v) -> bool { return u <= v; },
                        a.idx_, a, b)
                : a.idx_ <= b.idx_;
   }
 
-  friend bool operator>=(variant const& a, variant const& b) {
+  friend bool operator>=(variant const& a, variant const& b) noexcept {
     return a.idx_ == b.idx_
                ? apply([](auto&& u, auto&& v) -> bool { return u >= v; },
                        a.idx_, a, b)
@@ -186,7 +186,7 @@ struct variant {
         std::forward<CtorArgs>(ctor_args)...});
   }
 
-  constexpr std::size_t index() const { return idx_; }
+  constexpr std::size_t index() const noexcept { return idx_; }
 
   void swap(variant& o) {
     if (idx_ == o.idx_) {
@@ -325,16 +325,16 @@ struct variant {
   }
 
   template <typename AsType>
-  AsType& as() {
+  AsType& as() noexcept {
     return *reinterpret_cast<AsType*>(&storage_);
   }
 
   template <typename AsType>
-  AsType const& as() const {
+  AsType const& as() const noexcept {
     return *reinterpret_cast<AsType const*>(&storage_);
   }
 
-  hash_t hash() const {
+  hash_t hash() const noexcept {
     return apply([&](auto&& val) {
       auto const idx = index();
       auto h = BASE_HASH;
@@ -349,34 +349,35 @@ struct variant {
 };
 
 template <typename T, typename... Ts>
-bool holds_alternative(variant<Ts...> const& v) {
+bool holds_alternative(variant<Ts...> const& v) noexcept {
   return v.idx_ == index_of_type<std::decay_t<T>, Ts...>();
 }
 
 template <std::size_t I, typename... Ts>
 constexpr cista::type_at_index_t<I, Ts...> const& get(
-    cista::variant<Ts...> const& v) {
+    cista::variant<Ts...> const& v) noexcept {
   return v.template as<cista::type_at_index_t<I, Ts...>>();
 }
 
 template <std::size_t I, typename... Ts>
-constexpr cista::type_at_index_t<I, Ts...>& get(cista::variant<Ts...>& v) {
+constexpr cista::type_at_index_t<I, Ts...>& get(
+    cista::variant<Ts...>& v) noexcept {
   return v.template as<cista::type_at_index_t<I, Ts...>>();
 }
 
 template <class T, class... Ts>
-constexpr T const& get(cista::variant<Ts...> const& v) {
+constexpr T const& get(cista::variant<Ts...> const& v) noexcept {
   static_assert(cista::index_of_type<T, Ts...>() != cista::TYPE_NOT_FOUND);
   return v.template as<T>();
 }
 template <class T, class... Ts>
-constexpr T& get(cista::variant<Ts...>& v) {
+constexpr T& get(cista::variant<Ts...>& v) noexcept {
   static_assert(cista::index_of_type<T, Ts...>() != cista::TYPE_NOT_FOUND);
   return v.template as<T>();
 }
 
 template <class T, class... Ts>
-constexpr std::add_pointer_t<T> get_if(cista::variant<Ts...>& v) {
+constexpr std::add_pointer_t<T> get_if(cista::variant<Ts...>& v) noexcept {
   static_assert(cista::index_of_type<T, Ts...>() != cista::TYPE_NOT_FOUND);
   return v.idx_ == &cista::index_of_type<T, Ts...> ? v.template as<T>()
                                                    : nullptr;
@@ -384,7 +385,7 @@ constexpr std::add_pointer_t<T> get_if(cista::variant<Ts...>& v) {
 
 template <std::size_t I, typename... Ts>
 constexpr std::add_pointer_t<cista::type_at_index_t<I, Ts...> const> get_if(
-    cista::variant<Ts...> const& v) {
+    cista::variant<Ts...> const& v) noexcept {
   static_assert(I < sizeof...(Ts));
   return v.idx_ == I ? &v.template as<cista::type_at_index_t<I, Ts...>>()
                      : nullptr;
@@ -392,14 +393,15 @@ constexpr std::add_pointer_t<cista::type_at_index_t<I, Ts...> const> get_if(
 
 template <std::size_t I, typename... Ts>
 constexpr std::add_pointer_t<cista::type_at_index_t<I, Ts...>> get_if(
-    cista::variant<Ts...>& v) {
+    cista::variant<Ts...>& v) noexcept {
   static_assert(I < sizeof...(Ts));
   return v.idx_ == I ? &v.template as<cista::type_at_index_t<I, Ts...>>()
                      : nullptr;
 }
 
 template <class T, class... Ts>
-constexpr std::add_pointer_t<T const> get_if(cista::variant<Ts...> const& v) {
+constexpr std::add_pointer_t<T const> get_if(
+    cista::variant<Ts...> const& v) noexcept {
   static_assert(cista::index_of_type<T, Ts...>() != cista::TYPE_NOT_FOUND);
   return v.idx_ == cista::index_of_type<T, Ts...> ? &v.template as<T>()
                                                   : nullptr;

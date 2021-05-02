@@ -74,7 +74,7 @@ constexpr bool is_ptr_same = is_pointer_v<A>&& is_pointer_v<B>;
 template <typename T>
 struct hashing {
   template <typename A, typename B>
-  static constexpr bool is_hash_equivalent() {
+  static constexpr bool is_hash_equivalent() noexcept {
     using DecayA = decay_t<A>;
     using DecayB = decay_t<B>;
     return is_hash_equivalent_v<DecayA, DecayB> ||
@@ -84,7 +84,7 @@ struct hashing {
   }
 
   template <typename T1>
-  static constexpr hashing<T1> create() {
+  static constexpr hashing<T1> create() noexcept {
     static_assert(is_hash_equivalent<T, T1>(), "Incompatible types");
     return hashing<T1>{};
   }

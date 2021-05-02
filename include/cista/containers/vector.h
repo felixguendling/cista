@@ -24,7 +24,7 @@ struct basic_vector {
   using iterator = T*;
   using const_iterator = T const*;
 
-  basic_vector() = default;
+  basic_vector() noexcept = default;
   explicit basic_vector(TemplateSizeType size) { resize(size); }
   basic_vector(std::initializer_list<T> init) { set(init.begin(), init.end()); }
 
@@ -85,12 +85,12 @@ struct basic_vector {
     self_allocated_ = 0;
   }
 
-  T const* data() const { return begin(); }
-  T* data() { return begin(); }
-  T const* begin() const { return el_; }
-  T const* end() const { return el_ + used_size_; }  // NOLINT
-  T* begin() { return el_; }
-  T* end() { return el_ + used_size_; }  // NOLINT
+  T const* data() const noexcept { return begin(); }
+  T* data() noexcept { return begin(); }
+  T const* begin() const noexcept { return el_; }
+  T const* end() const noexcept { return el_ + used_size_; }  // NOLINT
+  T* begin() noexcept { return el_; }
+  T* end() noexcept { return el_ + used_size_; }  // NOLINT
 
   std::reverse_iterator<T const*> rbegin() const {
     return std::reverse_iterator<T*>(el_ + size());  // NOLINT
@@ -103,17 +103,17 @@ struct basic_vector {
   }
   std::reverse_iterator<T*> rend() { return std::reverse_iterator<T*>(el_); }
 
-  friend T const* begin(basic_vector const& a) { return a.begin(); }
-  friend T const* end(basic_vector const& a) { return a.end(); }
+  friend T const* begin(basic_vector const& a) noexcept { return a.begin(); }
+  friend T const* end(basic_vector const& a) noexcept { return a.end(); }
 
-  friend T* begin(basic_vector& a) { return a.begin(); }
-  friend T* end(basic_vector& a) { return a.end(); }
+  friend T* begin(basic_vector& a) noexcept { return a.begin(); }
+  friend T* end(basic_vector& a) noexcept { return a.end(); }
 
-  inline T const& operator[](size_t index) const {
+  inline T const& operator[](size_t index) const noexcept {
     assert(el_ != nullptr && index < used_size_);
     return el_[index];
   }
-  inline T& operator[](size_t index) {
+  inline T& operator[](size_t index) noexcept {
     assert(el_ != nullptr && index < used_size_);
     return el_[index];
   }
@@ -121,23 +121,22 @@ struct basic_vector {
   inline T& at(size_t index) {
     if (index >= used_size_) {
       throw std::out_of_range{"vector::at(): invalid index"};
-    } else {
-      return (*this)[index];
     }
+    return (*this)[index];
   }
 
   inline T const& at(size_t index) const {
     return const_cast<basic_vector*>(this)->at(index);
   }
 
-  T const& back() const { return el_[used_size_ - 1]; }
-  T& back() { return el_[used_size_ - 1]; }
+  T const& back() const noexcept { return el_[used_size_ - 1]; }
+  T& back() noexcept { return el_[used_size_ - 1]; }
 
-  T& front() { return el_[0]; }
-  T const& front() const { return el_[0]; }
+  T& front() noexcept { return el_[0]; }
+  T const& front() const noexcept { return el_[0]; }
 
-  inline TemplateSizeType size() const { return used_size_; }
-  inline bool empty() const { return size() == 0; }
+  inline TemplateSizeType size() const noexcept { return used_size_; }
+  inline bool empty() const noexcept { return size() == 0; }
 
   template <typename It>
   void set(It begin_it, It end_it) {
@@ -326,24 +325,30 @@ struct basic_vector {
     return end();
   }
 
-  bool contains(T const* el) const { return el >= begin() && el < end(); }
+  bool contains(T const* el) const noexcept {
+    return el >= begin() && el < end();
+  }
 
-  friend bool operator==(basic_vector const& a, basic_vector const& b) {
+  friend bool operator==(basic_vector const& a,
+                         basic_vector const& b) noexcept {
     return std::equal(a.begin(), a.end(), b.begin(), b.end());
   }
-  friend bool operator!=(basic_vector const& a, basic_vector const& b) {
+  friend bool operator!=(basic_vector const& a,
+                         basic_vector const& b) noexcept {
     return !(a == b);
   }
   friend bool operator<(basic_vector const& a, basic_vector const& b) {
     return std::lexicographical_compare(a.begin(), a.end(), b.begin(), b.end());
   }
-  friend bool operator>(basic_vector const& a, basic_vector const& b) {
+  friend bool operator>(basic_vector const& a, basic_vector const& b) noexcept {
     return b < a;
   }
-  friend bool operator<=(basic_vector const& a, basic_vector const& b) {
+  friend bool operator<=(basic_vector const& a,
+                         basic_vector const& b) noexcept {
     return !(a > b);
   }
-  friend bool operator>=(basic_vector const& a, basic_vector const& b) {
+  friend bool operator>=(basic_vector const& a,
+                         basic_vector const& b) noexcept {
     return !(a < b);
   }
 

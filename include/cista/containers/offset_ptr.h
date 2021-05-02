@@ -8,22 +8,22 @@ namespace cista {
 
 template <typename T, typename Enable = void>
 struct offset_ptr {
-  offset_ptr() = default;
-  offset_ptr(std::nullptr_t) : offset_{NULLPTR_OFFSET} {}
-  offset_ptr(T const* p) : offset_{ptr_to_offset(p)} {}
+  offset_ptr() noexcept = default;
+  offset_ptr(std::nullptr_t) noexcept : offset_{NULLPTR_OFFSET} {}
+  offset_ptr(T const* p) noexcept : offset_{ptr_to_offset(p)} {}
 
-  offset_ptr& operator=(T const* p) {
+  offset_ptr& operator=(T const* p) noexcept {
     offset_ = ptr_to_offset(p);
     return *this;
   }
-  offset_ptr& operator=(std::nullptr_t) {
+  offset_ptr& operator=(std::nullptr_t) noexcept {
     offset_ = NULLPTR_OFFSET;
     return *this;
   }
 
-  offset_ptr(offset_ptr const& o) : offset_{ptr_to_offset(o.get())} {}
+  offset_ptr(offset_ptr const& o) noexcept : offset_{ptr_to_offset(o.get())} {}
   offset_ptr(offset_ptr&& o) noexcept : offset_{ptr_to_offset(o.get())} {}
-  offset_ptr& operator=(offset_ptr const& o) {
+  offset_ptr& operator=(offset_ptr const& o) noexcept {
     offset_ = ptr_to_offset(o.get());
     return *this;
   }
@@ -32,24 +32,24 @@ struct offset_ptr {
     return *this;
   }
 
-  ~offset_ptr() = default;
+  ~offset_ptr() noexcept = default;
 
-  offset_t ptr_to_offset(T const* p) const {
+  offset_t ptr_to_offset(T const* p) const noexcept {
     return p == nullptr
                ? NULLPTR_OFFSET
                : static_cast<offset_t>(reinterpret_cast<intptr_t>(p) -
                                        reinterpret_cast<intptr_t>(this));
   }
 
-  explicit operator bool() const { return offset_ != NULLPTR_OFFSET; }
-  explicit operator void*() const { return get(); }
-  explicit operator void const*() const { return get(); }
-  operator T*() const { return get(); }
-  T& operator*() const { return *get(); }
-  T* operator->() const { return get(); }
-  T& operator[](size_t const i) const { return *(get() + i); }
+  explicit operator bool() const noexcept { return offset_ != NULLPTR_OFFSET; }
+  explicit operator void*() const noexcept { return get(); }
+  explicit operator void const *() const noexcept { return get(); }
+  operator T*() const noexcept { return get(); }
+  T& operator*() const noexcept { return *get(); }
+  T* operator->() const noexcept { return get(); }
+  T& operator[](size_t const i) const noexcept { return get()[i]; }
 
-  T* get() const {
+  T* get() const noexcept {
     auto const ptr =
         offset_ == NULLPTR_OFFSET
             ? nullptr
@@ -58,68 +58,68 @@ struct offset_ptr {
   }
 
   template <typename Int>
-  T* operator+(Int i) const {
+  T* operator+(Int i) const noexcept {
     return get() + i;
   }
 
   template <typename Int>
-  T* operator-(Int i) const {
+  T* operator-(Int i) const noexcept {
     return get() - i;
   }
 
-  offset_ptr& operator++() {
+  offset_ptr& operator++() noexcept {
     offset_ = ptr_to_offset(get() + 1);
     return *this;
   }
 
-  offset_ptr& operator--() {
+  offset_ptr& operator--() noexcept {
     offset_ = ptr_to_offset(get() - 1);
     return *this;
   }
 
-  offset_ptr operator++(int) const { return offset_ptr{get() + 1}; }
-  offset_ptr operator--(int) const { return offset_ptr{get() - 1}; }
+  offset_ptr operator++(int) const noexcept { return offset_ptr{get() + 1}; }
+  offset_ptr operator--(int) const noexcept { return offset_ptr{get() - 1}; }
 
   offset_t offset_{NULLPTR_OFFSET};
 };
 
 template <typename T>
 struct offset_ptr<T, std::enable_if_t<std::is_same_v<void, T>>> {
-  offset_ptr() = default;
-  offset_ptr(std::nullptr_t) : offset_{NULLPTR_OFFSET} {}
-  offset_ptr(T const* p) : offset_{ptr_to_offset(p)} {}
+  offset_ptr() noexcept = default;
+  offset_ptr(std::nullptr_t) noexcept : offset_{NULLPTR_OFFSET} {}
+  offset_ptr(T const* p) noexcept : offset_{ptr_to_offset(p)} {}
 
-  offset_ptr& operator=(T const* p) {
+  offset_ptr& operator=(T const* p) noexcept {
     offset_ = ptr_to_offset(p);
     return *this;
   }
-  offset_ptr& operator=(std::nullptr_t) {
+  offset_ptr& operator=(std::nullptr_t) noexcept {
     offset_ = NULLPTR_OFFSET;
     return *this;
   }
 
-  offset_ptr(offset_ptr const& o) : offset_{ptr_to_offset(o.get())} {}
-  offset_ptr(offset_ptr&& o) : offset_{ptr_to_offset(o.get())} {}
-  offset_ptr& operator=(offset_ptr const& o) {
+  offset_ptr(offset_ptr const& o) noexcept : offset_{ptr_to_offset(o.get())} {}
+  offset_ptr(offset_ptr&& o) noexcept : offset_{ptr_to_offset(o.get())} {}
+  offset_ptr& operator=(offset_ptr const& o) noexcept {
     offset_ = ptr_to_offset(o.get());
     return *this;
   }
-  offset_ptr& operator=(offset_ptr&& o) {
+  offset_ptr& operator=(offset_ptr&& o) noexcept {
     offset_ = ptr_to_offset(o.get());
     return *this;
   }
 
-  offset_t ptr_to_offset(T const* p) const {
+  offset_t ptr_to_offset(T const* p) const noexcept {
     return p == nullptr
                ? NULLPTR_OFFSET
                : static_cast<offset_t>(reinterpret_cast<intptr_t>(p) -
                                        reinterpret_cast<intptr_t>(this));
   }
 
-  operator bool() const { return offset_ != NULLPTR_OFFSET; }
-  explicit operator void*() const { return get(); }
-  explicit operator void const*() const { return get(); }
-  T* get() const {
+  operator bool() const noexcept { return offset_ != NULLPTR_OFFSET; }
+  explicit operator void*() const noexcept { return get(); }
+  explicit operator void const *() const noexcept { return get(); }
+  T* get() const noexcept {
     auto const ptr =
         offset_ == NULLPTR_OFFSET
             ? nullptr
@@ -127,16 +127,16 @@ struct offset_ptr<T, std::enable_if_t<std::is_same_v<void, T>>> {
     return ptr;
   }
 
-  friend bool operator==(std::nullptr_t, offset_ptr const& o) {
+  friend bool operator==(std::nullptr_t, offset_ptr const& o) noexcept {
     return o.offset_ == NULLPTR_OFFSET;
   }
-  friend bool operator==(offset_ptr const& o, std::nullptr_t) {
+  friend bool operator==(offset_ptr const& o, std::nullptr_t) noexcept {
     return o.offset_ == NULLPTR_OFFSET;
   }
-  friend bool operator!=(std::nullptr_t, offset_ptr const& o) {
+  friend bool operator!=(std::nullptr_t, offset_ptr const& o) noexcept {
     return o.offset_ != NULLPTR_OFFSET;
   }
-  friend bool operator!=(offset_ptr const& o, std::nullptr_t) {
+  friend bool operator!=(offset_ptr const& o, std::nullptr_t) noexcept {
     return o.offset_ != NULLPTR_OFFSET;
   }
 
@@ -157,17 +157,17 @@ constexpr bool is_pointer_v = is_pointer_helper<std::remove_cv_t<T>>::value;
 
 template <class T>
 struct remove_pointer_helper {
-  typedef T type;
+  using type = T;
 };
 
 template <class T>
 struct remove_pointer_helper<T*> {
-  typedef T type;
+  using type = T;
 };
 
 template <class T>
 struct remove_pointer_helper<offset_ptr<T>> {
-  typedef T type;
+  using type = T;
 };
 
 template <class T>

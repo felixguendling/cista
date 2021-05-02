@@ -9,26 +9,26 @@ namespace cista {
 
 template <typename T, std::size_t N = 16>
 struct aligned_allocator {
-  typedef T value_type;
-  typedef std::size_t size_type;
-  typedef std::ptrdiff_t difference_type;
+  using value_type = T;
+  using size_type = std::size_t;
+  using difference_type = std::ptrdiff_t;
 
-  typedef T* pointer;
-  typedef const T* const_pointer;
+  using pointer = T*;
+  using const_pointer = const T*;
 
-  typedef T& reference;
-  typedef const T& const_reference;
+  using reference = T&;
+  using const_reference = const T&;
 
-  inline aligned_allocator() noexcept {}
+  aligned_allocator() noexcept = default;
 
   template <typename T2>
   inline aligned_allocator(const aligned_allocator<T2, N>&) noexcept {}
 
-  inline ~aligned_allocator() noexcept {}
+  inline ~aligned_allocator() noexcept = default;
 
-  inline pointer adress(reference r) { return &r; }
+  inline pointer adress(reference r) noexcept { return &r; }
 
-  inline const_pointer adress(const_reference r) const { return &r; }
+  inline const_pointer adress(const_reference r) const noexcept { return &r; }
 
   inline pointer allocate(size_type n) {
     auto const ptr =
@@ -53,11 +53,15 @@ struct aligned_allocator {
 
   template <typename T2>
   struct rebind {
-    typedef aligned_allocator<T2, N> other;
+    using other = aligned_allocator<T2, N>;
   };
 
-  bool operator!=(aligned_allocator<T, N> const&) const { return false; }
-  bool operator==(aligned_allocator<T, N> const&) const { return true; }
+  bool operator!=(aligned_allocator<T, N> const&) const noexcept {
+    return false;
+  }
+  bool operator==(aligned_allocator<T, N> const&) const noexcept {
+    return true;
+  }
 };
 
 }  // namespace cista
