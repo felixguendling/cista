@@ -125,7 +125,8 @@ inline hash_t hash(std::string_view s, hash_t h = BASE_HASH) noexcept {
 }
 
 template <size_t N>
-constexpr hash_t hash(const char (&str)[N], hash_t const h = BASE_HASH) noexcept {
+constexpr hash_t hash(const char (&str)[N],
+                      hash_t const h = BASE_HASH) noexcept {
   return hash(std::string_view{str, N - 1}, h);
 }
 
@@ -141,4 +142,3 @@ constexpr uint64_t hash(T const& buf, hash_t const h = BASE_HASH) noexcept {
 #endif
 
 }  // namespace cista
-

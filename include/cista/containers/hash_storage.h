@@ -70,7 +70,9 @@ struct hash_storage {
   struct probe_seq {
     probe_seq(size_type hash, size_type mask)
         : mask_{mask}, offset_{hash & mask_} {}
-    size_type offset(size_type const i) const noexcept { return (offset_ + i) & mask_; }
+    size_type offset(size_type const i) const noexcept {
+      return (offset_ + i) & mask_;
+    }
     void next() noexcept {
       index_ += WIDTH;
       offset_ += index_;
@@ -205,10 +207,12 @@ struct hash_storage {
     }
     const_iterator operator++(int) noexcept { return inner_++; }
 
-    friend bool operator==(const const_iterator& a, const const_iterator& b) noexcept {
+    friend bool operator==(const const_iterator& a,
+                           const const_iterator& b) noexcept {
       return a.inner_ == b.inner_;
     }
-    friend bool operator!=(const const_iterator& a, const const_iterator& b) noexcept {
+    friend bool operator!=(const const_iterator& a,
+                           const const_iterator& b) noexcept {
       return !(a == b);
     }
 
@@ -227,8 +231,12 @@ struct hash_storage {
 
   static inline bool is_empty(ctrl_t const c) noexcept { return c == EMPTY; }
   static inline bool is_full(ctrl_t const c) noexcept { return c >= 0; }
-  static inline bool is_deleted(ctrl_t const c) noexcept { return c == DELETED; }
-  static inline bool is_empty_or_deleted(ctrl_t const c) noexcept { return c < END; }
+  static inline bool is_deleted(ctrl_t const c) noexcept {
+    return c == DELETED;
+  }
+  static inline bool is_empty_or_deleted(ctrl_t const c) noexcept {
+    return c < END;
+  }
 
   static inline size_t normalize_capacity(size_type const n) noexcept {
     return n == 0U ? 1 : ~size_type{} >> leading_zeros(n);
@@ -240,7 +248,8 @@ struct hash_storage {
 
   static inline h2_t h2(size_type const hash) noexcept { return hash & 0x7F; }
 
-  static inline size_type capacity_to_growth(size_type const capacity) noexcept {
+  static inline size_type capacity_to_growth(
+      size_type const capacity) noexcept {
     return (capacity == 7) ? 6 : capacity - (capacity / 8);
   }
 
@@ -437,13 +446,19 @@ struct hash_storage {
   const_iterator begin() const noexcept {
     return const_cast<hash_storage*>(this)->begin();
   }
-  const_iterator end() const noexcept { return const_cast<hash_storage*>(this)->end(); }
+  const_iterator end() const noexcept {
+    return const_cast<hash_storage*>(this)->end();
+  }
   const_iterator cbegin() const noexcept { return begin(); }
   const_iterator cend() const noexcept { return end(); }
 
   friend iterator begin(hash_storage& h) noexcept { return h.begin(); }
-  friend const_iterator begin(hash_storage const& h) noexcept { return h.begin(); }
-  friend const_iterator cbegin(hash_storage const& h) noexcept { return h.begin(); }
+  friend const_iterator begin(hash_storage const& h) noexcept {
+    return h.begin();
+  }
+  friend const_iterator cbegin(hash_storage const& h) noexcept {
+    return h.begin();
+  }
   friend iterator end(hash_storage& h) noexcept { return h.end(); }
   friend const_iterator end(hash_storage const& h) noexcept { return h.end(); }
   friend const_iterator cend(hash_storage const& h) noexcept { return h.end(); }
@@ -451,7 +466,9 @@ struct hash_storage {
   bool empty() const noexcept { return size() == 0U; }
   size_type size() const noexcept { return size_; }
   size_type capacity() const noexcept { return capacity_; }
-  size_type max_size() const noexcept { return std::numeric_limits<size_t>::max(); }
+  size_type max_size() const noexcept {
+    return std::numeric_limits<size_t>::max();
+  }
 
   bool is_free(int index) const noexcept {
     auto const index_before = (index - WIDTH) & capacity_;
@@ -607,7 +624,9 @@ struct hash_storage {
 
   void rehash() { resize(capacity_); }
 
-  iterator iterator_at(size_type const i) noexcept { return {ctrl_ + i, entries_ + i}; }
+  iterator iterator_at(size_type const i) noexcept {
+    return {ctrl_ + i, entries_ + i};
+  }
   const_iterator iterator_at(size_type const i) const noexcept {
     return {ctrl_ + i, entries_ + i};
   }

@@ -10,7 +10,9 @@ template <typename T, std::size_t Size>
 struct array {
   constexpr size_t size() const noexcept { return Size; }
 
-  constexpr T const& operator[](size_t index) const noexcept { return el_[index]; }
+  constexpr T const& operator[](size_t index) const noexcept {
+    return el_[index];
+  }
   constexpr T& operator[](size_t index) noexcept { return el_[index]; }
   constexpr T& at(size_t index) {
     if (index >= Size) {
@@ -67,4 +69,3 @@ using cista::array;
 }  // namespace offset
 
 }  // namespace cista
-

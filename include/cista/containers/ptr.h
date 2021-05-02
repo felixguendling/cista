@@ -29,4 +29,3 @@ T* ptr_cast(offset::ptr<T> const p) noexcept {
 }
 
 }  // namespace cista
-
