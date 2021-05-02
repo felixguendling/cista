@@ -72,6 +72,6 @@ struct buf {
 };
 
 template <typename Buf>
-buf(Buf &&) -> buf<Buf>;
+buf(Buf&&) -> buf<Buf>;
 
 }  // namespace cista
