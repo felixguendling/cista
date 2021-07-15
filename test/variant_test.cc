@@ -220,3 +220,12 @@ TEST_CASE("variant serialization") {
   CHECK(one->second.find(property{data::string{"hello"}}) != end(one->second));
   CHECK(two->second.find(property{std::int64_t{456}}) != end(two->second));
 }
+
+TEST_CASE("variant get_if") {
+  namespace CISTA = cista::offset;
+  using Variant = CISTA::variant<bool, std::int64_t, std::string>;
+  Variant test{std::string{"hello test test test test"}};
+  auto const str = cista::get_if<std::string>(test);
+  REQUIRE(str != nullptr);
+  CHECK(*str == "hello test test test test");
+}
