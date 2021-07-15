@@ -321,9 +321,8 @@ void serialize(Ctx& c, variant<T...> const* origin, offset_t const pos) {
   using Type = decay_t<decltype(*origin)>;
   c.write(pos + cista_member_offset(Type, idx_),
           convert_endian<Ctx::MODE>(origin->idx_));
-  origin->apply([&](auto&& t) {
-    serialize(c, &t, pos + cista_member_offset(Type, storage_));
-  });
+  auto const offset = cista_member_offset(Type, storage_);
+  origin->apply([&](auto&& t) { serialize(c, &t, pos + offset); });
 }
 
 template <typename Ctx, typename... T>
