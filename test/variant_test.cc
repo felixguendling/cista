@@ -223,9 +223,21 @@ TEST_CASE("variant serialization") {
 
 TEST_CASE("variant get_if") {
   namespace CISTA = cista::offset;
-  using Variant = CISTA::variant<bool, std::int64_t, std::string>;
-  Variant test{std::string{"hello test test test test"}};
-  auto const str = cista::get_if<std::string>(test);
+  struct Test;
+
+  using Variant =
+      CISTA::variant<bool, std::int64_t, std::uint64_t, double, CISTA::string,
+                     CISTA::unique_ptr<int>, CISTA::unique_ptr<Test>>;
+
+  struct Test : public CISTA::vector<Variant> {};
+
+  Variant test{true};
+  auto const result = cista::get_if<bool>(test);
+  REQUIRE(result != nullptr);
+  CHECK(*result == true);
+
+  test = CISTA::string{"hello test test test test"};
+  auto const str = cista::get_if<CISTA::string>(test);
   REQUIRE(str != nullptr);
   CHECK(*str == "hello test test test test");
 }
