@@ -159,8 +159,10 @@ struct basic_vector {
 
   void set(basic_vector const& arr) {
     if constexpr (std::is_trivially_copyable_v<T>) {
-      reserve(arr.used_size_);
-      std::memcpy(data(), arr.data(), arr.used_size_ * sizeof(T));
+      if (arr.used_size_ != 0) {
+        reserve(arr.used_size_);
+        std::memcpy(data(), arr.data(), arr.used_size_ * sizeof(T));
+      }
       used_size_ = arr.used_size_;
     } else {
       set(std::begin(arr), std::end(arr));
