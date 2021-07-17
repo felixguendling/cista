@@ -44,7 +44,7 @@ struct basic_vector {
     arr.allocated_size_ = 0;
   }
 
-  basic_vector(basic_vector const& arr) { set(std::begin(arr), std::end(arr)); }
+  basic_vector(basic_vector const& arr) { set(arr); }
 
   basic_vector& operator=(basic_vector&& arr) noexcept {
     deallocate();
@@ -63,7 +63,9 @@ struct basic_vector {
   }
 
   basic_vector& operator=(basic_vector const& arr) {
-    set(std::begin(arr), std::end(arr));
+    if (&arr != this) {
+      set(arr);
+    }
     return *this;
   }
 
@@ -153,6 +155,18 @@ struct basic_vector {
     }
 
     used_size_ = static_cast<TemplateSizeType>(range_size);
+  }
+
+  void set(basic_vector const& arr) {
+    if constexpr (std::is_trivially_copyable_v<T>) {
+      if (arr.used_size_ != 0) {
+        reserve(arr.used_size_);
+        std::memcpy(data(), arr.data(), arr.used_size_ * sizeof(T));
+      }
+      used_size_ = arr.used_size_;
+    } else {
+      set(std::begin(arr), std::end(arr));
+    }
   }
 
   friend std::ostream& operator<<(std::ostream& out, basic_vector const& v) {
