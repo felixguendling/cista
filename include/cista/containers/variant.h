@@ -403,8 +403,8 @@ template <class T, class... Ts>
 constexpr std::add_pointer_t<T const> get_if(
     cista::variant<Ts...> const& v) noexcept {
   static_assert(cista::index_of_type<T, Ts...>() != cista::TYPE_NOT_FOUND);
-  return v.idx_ == cista::index_of_type<T, Ts...> ? &v.template as<T>()
-                                                  : nullptr;
+  return v.idx_ == cista::index_of_type<T, Ts...>() ? &v.template as<T>()
+                                                    : nullptr;
 }
 
 template <class T>

@@ -231,13 +231,13 @@ TEST_CASE("variant get_if") {
 
   struct Test : public CISTA::vector<Variant> {};
 
-  Variant test{true};
-  auto const result = cista::get_if<bool>(test);
+  auto t1 = Variant{true};
+  auto const result = cista::get_if<bool>(t1);
   REQUIRE(result != nullptr);
   CHECK(*result == true);
 
-  test = CISTA::string{"hello test test test test"};
-  auto const str = cista::get_if<CISTA::string>(test);
+  auto const t2 = Variant{CISTA::string{"hello test test test test"}};
+  auto const str = cista::get_if<CISTA::string>(t2);
   REQUIRE(str != nullptr);
   CHECK(*str == "hello test test test test");
 }
