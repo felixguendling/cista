@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.8)
 
 if (NOT DEFINED PROJECT_NAME AND CISTA_HASH STREQUAL "FNV1A")
   set(CISTA_INSTALL ON)
