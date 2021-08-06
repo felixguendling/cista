@@ -473,8 +473,10 @@ struct deserialization_context {
   template <typename T>
   void check_ptr(offset_ptr<T> const& el,
                  size_t const size = type_size<T>()) const {
-    checked_addition(el.offset_, reinterpret_cast<intptr_t>(&el));
-    check_ptr(el.get(), size);
+    if (el != nullptr) {
+      checked_addition(el.offset_, reinterpret_cast<offset_t>(&el));
+      check_ptr(el.get(), size);
+    }
   }
 
   template <typename T>
