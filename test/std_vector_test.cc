@@ -1,5 +1,7 @@
 #include <vector>
 
+#if false
+
 #include "doctest.h"
 
 #ifdef SINGLE_HEADER
@@ -92,3 +94,5 @@ TEST_CASE("vector test") {
   }
   serialized.~vector();
 }
+
+#endif

@@ -37,8 +37,8 @@ struct offset_ptr {
   offset_t ptr_to_offset(T const* p) const noexcept {
     return p == nullptr
                ? NULLPTR_OFFSET
-               : static_cast<offset_t>(reinterpret_cast<intptr_t>(p) -
-                                       reinterpret_cast<intptr_t>(this));
+               : static_cast<offset_t>(reinterpret_cast<offset_t>(p) -
+                                       reinterpret_cast<offset_t>(this));
   }
 
   explicit operator bool() const noexcept { return offset_ != NULLPTR_OFFSET; }

@@ -6,7 +6,7 @@
 #include "cista/serialization.h"
 #endif
 
-namespace data = cista::raw;
+namespace data = cista::offset;
 
 TEST_CASE("pointer serialization") {
   struct serialize_me {

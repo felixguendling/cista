@@ -129,11 +129,11 @@ struct basic_vector {
     return const_cast<basic_vector*>(this)->at(index);
   }
 
-  T const& back() const noexcept { return el_[used_size_ - 1]; }
-  T& back() noexcept { return el_[used_size_ - 1]; }
+  T const& back() const noexcept { return ptr_cast(el_)[used_size_ - 1]; }
+  T& back() noexcept { return ptr_cast(el_)[used_size_ - 1]; }
 
-  T& front() noexcept { return el_[0]; }
-  T const& front() const noexcept { return el_[0]; }
+  T& front() noexcept { return ptr_cast(el_)[0]; }
+  T const& front() const noexcept { return ptr_cast(el_)[0]; }
 
   inline TemplateSizeType size() const noexcept { return used_size_; }
   inline bool empty() const noexcept { return size() == 0; }
