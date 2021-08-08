@@ -80,7 +80,7 @@ struct offset_ptr {
   offset_ptr operator++(int) const noexcept { return offset_ptr{get() + 1}; }
   offset_ptr operator--(int) const noexcept { return offset_ptr{get() - 1}; }
 
-  offset_t offset_{NULLPTR_OFFSET};
+  volatile offset_t offset_{NULLPTR_OFFSET};
 };
 
 template <typename T>
