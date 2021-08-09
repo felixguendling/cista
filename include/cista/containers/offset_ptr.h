@@ -14,7 +14,7 @@ namespace cista {
 
 #if __cpp_lib_bit_cast
 inline offset_t to_offset(void const* ptr) {
-  return std::bitcast<offset_t>(ptr);
+  return std::bit_cast<offset_t>(ptr);
 }
 #else
 inline offset_t to_offset(void const* ptr) {
