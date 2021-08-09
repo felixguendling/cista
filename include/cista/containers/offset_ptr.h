@@ -6,6 +6,10 @@
 
 namespace cista {
 
+__attribute__((noinline)) inline offset_t to_offset(void const* ptr) {
+  return reinterpret_cast<intptr_t>(ptr);
+}
+
 template <typename T, typename Enable = void>
 struct offset_ptr {
   offset_ptr() noexcept = default;
@@ -35,10 +39,8 @@ struct offset_ptr {
   ~offset_ptr() noexcept = default;
 
   offset_t ptr_to_offset(T const* p) const noexcept {
-    return p == nullptr
-               ? NULLPTR_OFFSET
-               : static_cast<offset_t>(reinterpret_cast<offset_t>(p) -
-                                       reinterpret_cast<offset_t>(this));
+    return p == nullptr ? NULLPTR_OFFSET
+                        : static_cast<offset_t>(to_offset(p) - to_offset(this));
   }
 
   explicit operator bool() const noexcept { return offset_ != NULLPTR_OFFSET; }
@@ -80,7 +82,7 @@ struct offset_ptr {
   offset_ptr operator++(int) const noexcept { return offset_ptr{get() + 1}; }
   offset_ptr operator--(int) const noexcept { return offset_ptr{get() - 1}; }
 
-  volatile offset_t offset_{NULLPTR_OFFSET};
+  offset_t offset_{NULLPTR_OFFSET};
 };
 
 template <typename T>
@@ -110,10 +112,8 @@ struct offset_ptr<T, std::enable_if_t<std::is_same_v<void, T>>> {
   }
 
   offset_t ptr_to_offset(T const* p) const noexcept {
-    return p == nullptr
-               ? NULLPTR_OFFSET
-               : static_cast<offset_t>(reinterpret_cast<intptr_t>(p) -
-                                       reinterpret_cast<intptr_t>(this));
+    return p == nullptr ? NULLPTR_OFFSET
+                        : static_cast<offset_t>(to_offset(p) - to_offset(this));
   }
 
   operator bool() const noexcept { return offset_ != NULLPTR_OFFSET; }
