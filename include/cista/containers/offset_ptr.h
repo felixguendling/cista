@@ -1,5 +1,10 @@
 #pragma once
 
+#ifdef __has_include
+#if __has_include(<bit>)
+#include <bit>
+#endif
+#endif
 #include <cstring>
 #include <type_traits>
 
@@ -7,11 +12,17 @@
 
 namespace cista {
 
+#if __cpp_lib_bit_cast
+inline offset_t to_offset(void const* ptr) {
+  return std::bitcast<offset_t>(ptr);
+}
+#else
 inline offset_t to_offset(void const* ptr) {
   offset_t r;
   std::memcpy(&r, &ptr, sizeof(ptr));
   return r;
 }
+#endif
 
 template <typename T, typename Enable = void>
 struct offset_ptr {
