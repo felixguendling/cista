@@ -1,13 +1,16 @@
 #pragma once
 
+#include <cstring>
 #include <type_traits>
 
 #include "cista/offset_t.h"
 
 namespace cista {
 
-__attribute__((noinline)) inline offset_t to_offset(void const* ptr) {
-  return reinterpret_cast<intptr_t>(ptr);
+inline offset_t to_offset(void const* ptr) {
+  offset_t r;
+  std::memcpy(&r, &ptr, sizeof(ptr));
+  return r;
 }
 
 template <typename T, typename Enable = void>
