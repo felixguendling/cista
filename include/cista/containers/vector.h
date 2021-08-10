@@ -158,6 +158,9 @@ struct basic_vector {
   }
 
   void set(basic_vector const& arr) {
+#if false
+// disbled for unrelated reasons for now
+// but: this code should be good!
     if constexpr (std::is_trivially_copyable_v<T>) {
       if (arr.used_size_ != 0) {
         reserve(arr.used_size_);
@@ -165,8 +168,11 @@ struct basic_vector {
       }
       used_size_ = arr.used_size_;
     } else {
-      set(std::begin(arr), std::end(arr));
+#endif
+    set(std::begin(arr), std::end(arr));
+#if false
     }
+#endif
   }
 
   friend std::ostream& operator<<(std::ostream& out, basic_vector const& v) {
