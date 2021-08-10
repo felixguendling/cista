@@ -1,10 +1,28 @@
 #pragma once
 
+#ifdef __has_include
+#if __has_include(<bit>)
+#include <bit>
+#endif
+#endif
+#include <cstring>
 #include <type_traits>
 
 #include "cista/offset_t.h"
 
 namespace cista {
+
+#if __cpp_lib_bit_cast
+inline offset_t to_offset(void const* ptr) {
+  return std::bit_cast<offset_t>(ptr);
+}
+#else
+inline offset_t to_offset(void const* ptr) {
+  offset_t r;
+  std::memcpy(&r, &ptr, sizeof(ptr));
+  return r;
+}
+#endif
 
 template <typename T, typename Enable = void>
 struct offset_ptr {
@@ -35,10 +53,8 @@ struct offset_ptr {
   ~offset_ptr() noexcept = default;
 
   offset_t ptr_to_offset(T const* p) const noexcept {
-    return p == nullptr
-               ? NULLPTR_OFFSET
-               : static_cast<offset_t>(reinterpret_cast<intptr_t>(p) -
-                                       reinterpret_cast<intptr_t>(this));
+    return p == nullptr ? NULLPTR_OFFSET
+                        : static_cast<offset_t>(to_offset(p) - to_offset(this));
   }
 
   explicit operator bool() const noexcept { return offset_ != NULLPTR_OFFSET; }
@@ -110,10 +126,8 @@ struct offset_ptr<T, std::enable_if_t<std::is_same_v<void, T>>> {
   }
 
   offset_t ptr_to_offset(T const* p) const noexcept {
-    return p == nullptr
-               ? NULLPTR_OFFSET
-               : static_cast<offset_t>(reinterpret_cast<intptr_t>(p) -
-                                       reinterpret_cast<intptr_t>(this));
+    return p == nullptr ? NULLPTR_OFFSET
+                        : static_cast<offset_t>(to_offset(p) - to_offset(this));
   }
 
   operator bool() const noexcept { return offset_ != NULLPTR_OFFSET; }
