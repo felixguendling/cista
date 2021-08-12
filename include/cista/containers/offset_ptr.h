@@ -1,6 +1,6 @@
 #pragma once
 
-#if __has_include && __cplusplus >= 202002L
+#if defined(__has_include) && __cplusplus >= 202002L
 #if __has_include(<bit>)
 #include <bit>
 #endif
