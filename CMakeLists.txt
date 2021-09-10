@@ -52,14 +52,6 @@ target_include_directories(cista SYSTEM INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_compile_features(cista INTERFACE cxx_std_17)
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND
-   ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64" AND
-   NOT "${CMAKE_CXX_FLAGS}" MATCHES "fsanitize")
-  message(STATUS "Linking cista with mimalloc")
-  target_link_libraries(cista INTERFACE mimalloc-static)
-else()
-  message(STATUS "Linking cista w/o mimalloc")
-endif()
 
 if (${CISTA_GENERATE_TO_TUPLE})
   add_subdirectory(tools/to_tuple_generator EXCLUDE_FROM_ALL)
