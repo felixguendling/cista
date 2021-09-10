@@ -52,6 +52,7 @@ target_include_directories(cista SYSTEM INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_compile_features(cista INTERFACE cxx_std_17)
+target_link_libraries(cista INTERFACE mimalloc-static)
 
 if (${CISTA_GENERATE_TO_TUPLE})
   add_subdirectory(tools/to_tuple_generator EXCLUDE_FROM_ALL)

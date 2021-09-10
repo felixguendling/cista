@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "cista/next_power_of_2.h"
+#include "mimalloc.h"
 
 namespace cista {
 
@@ -14,19 +15,9 @@ T to_next_multiple(T const n, T const multiple) noexcept {
 
 }  // namespace cista
 
-#if defined(_MSC_VER)
-#define CISTA_ALIGNED_ALLOC(alignment, size) \
-  (_aligned_malloc((size), cista::next_power_of_two((alignment))))
-#define CISTA_ALIGNED_FREE(ptr) (_aligned_free((ptr)))
-#elif defined(_LIBCPP_HAS_C11_FEATURES) || defined(_GLIBCXX_HAVE_ALIGNED_ALLOC)
-#include <memory>
-#define CISTA_ALIGNED_ALLOC(alignment, size) \
-  (std::aligned_alloc(                       \
-      cista::next_power_of_two((alignment)), \
-      cista::to_next_multiple((size), cista::next_power_of_two((alignment)))))
-#define CISTA_ALIGNED_FREE(ptr) std::free((ptr))
-#else
-#include <cstdlib>
-#define CISTA_ALIGNED_ALLOC(alignment, size) (std::malloc((size)))
-#define CISTA_ALIGNED_FREE(ptr) (std::free((ptr)))
-#endif
+#define CISTA_ALIGNED_ALLOC(alignment, size)                                  \
+  (mi_malloc_aligned(                                                         \
+      cista::to_next_multiple((size), cista::next_power_of_two((alignment))), \
+      cista::next_power_of_two((alignment))))
+#define CISTA_ALIGNED_FREE(alignment, ptr) \
+  (mi_free_aligned((ptr), cista::next_power_of_two((alignment))))

@@ -39,7 +39,7 @@ struct aligned_allocator {
     return ptr;
   }
 
-  inline void deallocate(pointer p, size_type) { CISTA_ALIGNED_FREE(p); }
+  inline void deallocate(pointer p, size_type) { CISTA_ALIGNED_FREE(N, p); }
 
   inline void construct(pointer p, const value_type& wert) {
     new (p) value_type(wert);

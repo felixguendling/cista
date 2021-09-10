@@ -47,6 +47,7 @@ struct hash_storage {
   using group_t = uint64_t;
   using h2_t = uint8_t;
   static constexpr size_type const WIDTH = 8U;
+  static constexpr size_type const ALIGNMENT = alignof(T);
 
   template <typename Key>
   hash_t compute_hash(Key const& k) {
@@ -512,7 +513,7 @@ struct hash_storage {
     }
 
     if (self_allocated_) {
-      CISTA_ALIGNED_FREE(entries_);
+      CISTA_ALIGNED_FREE(ALIGNMENT, entries_);
     }
     entries_ = nullptr;
     ctrl_ = empty_group();
@@ -587,7 +588,10 @@ struct hash_storage {
     auto const size = static_cast<size_type>(
         capacity_ * sizeof(T) + (capacity_ + 1 + WIDTH) * sizeof(ctrl_t));
     entries_ = reinterpret_cast<T*>(
-        CISTA_ALIGNED_ALLOC(sizeof(T), static_cast<size_t>(size)));
+        CISTA_ALIGNED_ALLOC(ALIGNMENT, static_cast<size_t>(size)));
+    if (entries_ == nullptr) {
+      throw std::bad_alloc{};
+    }
 #if defined(CISTA_ZERO_OUT)
     std::memset(entries_, 0, size);
 #endif
@@ -618,7 +622,7 @@ struct hash_storage {
     }
 
     if (old_capacity != 0U && old_self_allocated) {
-      CISTA_ALIGNED_FREE(old_entries);
+      CISTA_ALIGNED_FREE(ALIGNMENT, old_entries);
     }
   }
 
