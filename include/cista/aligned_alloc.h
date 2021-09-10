@@ -7,8 +7,8 @@
 
 namespace cista {
 
-template <typename T>
-T to_next_multiple(T const n, T const multiple) noexcept {
+template <typename T1, typename T2>
+T1 to_next_multiple(T1 const n, T2 const multiple) noexcept {
   auto const r = n % multiple;
   return r == 0 ? n : n + multiple - r;
 }
