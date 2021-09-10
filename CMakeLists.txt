@@ -53,7 +53,8 @@ target_include_directories(cista SYSTEM INTERFACE
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_compile_features(cista INTERFACE cxx_std_17)
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND
-   ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
+   ${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64" AND
+   NOT ${CMAKE_CXX_FLAGS} MATCHES "fsanitize")
   target_link_libraries(cista INTERFACE mimalloc-static)
 endif()
 
