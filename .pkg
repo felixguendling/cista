@@ -1,4 +1,0 @@
-[mimalloc]
-  url=git@github.com:motis-project/mimalloc.git
-  branch=master
-  commit=076f815cece59e0a0ee08237c8fbba75465452b6
