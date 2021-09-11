@@ -583,7 +583,7 @@ struct hash_storage {
     ctrl_[capacity_] = END;
   }
 
-  void initialize_entries() noexcept {
+  void initialize_entries() {
     self_allocated_ = true;
     auto const size = static_cast<size_type>(
         capacity_ * sizeof(T) + (capacity_ + 1 + WIDTH) * sizeof(ctrl_t));
