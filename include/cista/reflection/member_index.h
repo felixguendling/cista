@@ -2,6 +2,7 @@
 
 #include "cista/reflection/for_each_field.h"
 
+#include <limits>
 #include <type_traits>
 
 namespace cista {
