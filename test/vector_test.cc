@@ -262,3 +262,38 @@ TEST_CASE("complex_type_insert") {
   REQUIRE(u.size() == v.size());
   REQUIRE(u.size() == 2048);
 }
+
+TEST_CASE("erase then serialize") {
+  using cista::raw::vector;
+
+  std::vector<uint8_t> buf;
+  {
+    auto v = vector<int>{3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 9};
+    v.erase(std::remove_if(begin(v), end(v), [](auto&& i) { return i > 5; }),
+            end(v));
+
+    buf = cista::serialize(v);
+  }
+
+  auto deserialized = cista::deserialize<vector<int>>(buf);
+
+  CHECK(*deserialized == vector<int>{3, 1, 4, 1, 5, 2, 5, 3, 5});
+}
+
+TEST_CASE("erase until empty then serialize") {
+  using cista::raw::vector;
+
+  std::vector<uint8_t> buf;
+
+  {
+    auto v = vector<int>{3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 9};
+    v.erase(std::remove_if(begin(v), end(v), [](auto&& i) { return i != 10; }),
+            end(v));
+
+    buf = cista::serialize(v);
+  }
+
+  auto deserialized = cista::deserialize<vector<int>>(buf);
+
+  CHECK(*deserialized == vector<int>{});
+}
