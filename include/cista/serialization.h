@@ -164,7 +164,7 @@ void serialize(Ctx& c,
   using Type = basic_vector<T, Ptr, Indexed, TemplateSizeType>;
 
   auto const size = serialized_size<T>() * origin->used_size_;
-  auto const start = origin->el_ == nullptr
+  auto const start = origin->empty()
                          ? NULLPTR_OFFSET
                          : c.write(static_cast<T const*>(origin->el_), size,
                                    std::alignment_of_v<T>);
