@@ -71,6 +71,7 @@ add_subdirectory(tools/uniter EXCLUDE_FROM_ALL)
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/cista.h
   COMMAND uniter
+    ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/mmap.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/serialization.h
