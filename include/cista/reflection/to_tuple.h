@@ -47,7 +47,7 @@ auto to_ptrs(T&& t) {
 }
 
 }  // namespace detail
- 
+
 template <typename T>
 inline constexpr auto to_tuple_works_v = detail::has_cista_members_v<T> ||
                                          (std::is_aggregate_v<T> &&

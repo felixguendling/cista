@@ -54,7 +54,7 @@ TEST_CASE("cista_members printable") {
 
 struct parent {
   parent() = default;
-  explicit parent(double u) : u_{0} {}
+  explicit parent(double u) : u_{u} {}
   auto cista_members() noexcept { return std::tie(u_, v_, w_); }
   double u_{1}, v_{2}, w_{3};
 };
