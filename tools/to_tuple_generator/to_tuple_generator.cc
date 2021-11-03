@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
 namespace cista {
 
 template <typename T>
-constexpr auto to_tuple_works_v =
+inline constexpr auto to_tuple_works_v =
     std::is_aggregate_v<T> &&
 #if !defined(_MSC_VER) || defined(NDEBUG)
    std::is_standard_layout_v < T>&&
