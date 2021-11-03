@@ -43,8 +43,6 @@ constexpr inline auto add_const(T&& t) {
 
 template <typename... Ts, std::size_t... I>
 auto to_ptrs_helper(std::tuple<Ts...>&& t, std::index_sequence<I...>) {
-  // std::add_pointer_t<std::remove_reference_t<std::tuple_element_t<I,
-  // std::decay_t<decltype(t)>>>>{}
   return std::make_tuple(&std::get<I>(t)...);
 }
 
