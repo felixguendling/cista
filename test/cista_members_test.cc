@@ -63,7 +63,7 @@ struct serialize_me : public parent {
   auto cista_members() noexcept { return std::tie(u_, v_, w_, a_, j_); }
   int a_{0};
   struct inner : public parent {
-    auto cista_members() noexcept { return std::tie(b_, c_, d_); }
+    auto cista_members() noexcept { return std::tie(u_, v_, w_, b_, c_, d_); }
     int b_{0};
     int c_{0};
     cista::raw::string d_;
