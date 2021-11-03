@@ -60,7 +60,7 @@ struct parent {
 };
 struct serialize_me : public parent {
   static int s_;
-  auto cista_members() noexcept { return std::tie(a_, j_); }
+  auto cista_members() noexcept { return std::tie(u_, v_, w_, a_, j_); }
   int a_{0};
   struct inner : public parent {
     auto cista_members() noexcept { return std::tie(b_, c_, d_); }
