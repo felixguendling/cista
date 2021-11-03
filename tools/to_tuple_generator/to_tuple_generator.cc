@@ -27,6 +27,7 @@ int main(int argc, char** argv) {
   std::cout << R"(
 #pragma once
 
+#include <functional>
 #include <tuple>
 
 #include "cista/reflection/arity.h"
@@ -41,7 +42,66 @@ constexpr auto to_tuple_works_v =
 #endif
     !std::is_polymorphic_v<T>;
 
+namespace detail {
+
+template<typename T, typename = void>
+struct has_cista_members : std::false_type {};
+
+template<typename T>
+struct has_cista_members<
+  T,
+  std::void_t<decltype(std::declval<std::decay_t<T>>().cista_members())>>
+  : std::true_type {};
+
 template <typename T>
+inline constexpr auto const has_cista_members_v = has_cista_members<T>::value;
+
+template <typename... Ts, std::size_t... I>
+constexpr inline auto add_const_helper(std::tuple<Ts...>&& t,
+                                       std::index_sequence<I...>) {
+  return std::make_tuple(std::cref(std::get<I>(t))...);
+}
+
+template <typename T>
+constexpr inline auto add_const(T&& t) {
+  return add_const_helper(
+      std::forward<T>(t),
+      std::make_index_sequence<std::tuple_size_v<std::decay_t<decltype(t)>>>());
+}
+
+template <typename... Ts, std::size_t... I>
+auto to_ptrs_helper(std::tuple<Ts...>&& t, std::index_sequence<I...>) {
+    // std::add_pointer_t<std::remove_reference_t<std::tuple_element_t<I, std::decay_t<decltype(t)>>>>{}
+  return std::make_tuple(&std::get<I>(t)...);
+}
+
+template <typename T>
+auto to_ptrs(T&& t) {
+  return to_ptrs_helper(
+      std::forward<T>(t),
+      std::make_index_sequence<std::tuple_size_v<std::decay_t<T>>>());
+}
+
+}  // namespace detail
+
+template <typename T,
+          std::enable_if_t<detail::has_cista_members_v<T> && std::is_const_v<T>,
+                           void*> = nullptr>
+constexpr inline auto to_tuple(T& t) {
+  return detail::add_const(
+      const_cast<std::add_lvalue_reference_t<std::remove_const_t<T>>>(t)
+          .cista_members());
+}
+
+template <typename T,
+          std::enable_if_t<detail::has_cista_members_v<T> && !std::is_const_v<T>,
+                           void*> = nullptr>
+constexpr inline auto to_tuple(T&& t) {
+  return t.cista_members();
+}
+
+template <typename T,
+          std::enable_if_t<!detail::has_cista_members_v<T>, void*> = nullptr>
 inline auto to_tuple(T& t) {
   constexpr auto const a = arity<T>();
   static_assert(a <= )"
@@ -64,26 +124,9 @@ inline auto to_tuple(T& t) {
 
   std::cout << R"(
 template <typename T>
-inline auto to_ptr_tuple(T& t) {
-  constexpr auto const a = arity<T>();
-  static_assert(a <= )"
-            << max_members << R"(, "Max. supported members: )" << max_members
-            << R"(");)"
-            << R"(
-  if constexpr (a == 0) {
-    return std::make_tuple();
-  })";
-  for (auto i = 1U; i <= max_members; ++i) {
-    std::cout << R"( else if constexpr (a == )" << i << R"() {
-    auto& [)" << var_list(i, false)
-              << R"(] = t;
-    return std::make_tuple()"
-              << var_list(i, true) << R"();
-  })";
-  }
-  std::cout << "\n}";
-  std::cout << R"(
-
+inline auto to_ptr_tuple(T&& t) {
+  return detail::to_ptrs(to_tuple(std::forward<T>(t)));
+}
 }  // namespace cista
 )";
 }

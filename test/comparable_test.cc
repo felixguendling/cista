@@ -8,7 +8,7 @@
 #include "cista/reflection/comparable.h"
 #endif
 
-struct a {
+struct comparable_a {
   CISTA_COMPARABLE()
   int i_ = 1;
   int j_ = 2;
@@ -17,7 +17,7 @@ struct a {
 };
 
 TEST_CASE("comparable") {
-  a inst1, inst2;
+  comparable_a inst1, inst2;
 
   CHECK(inst1 == inst2);
   CHECK(!(inst1 != inst2));
