@@ -52,7 +52,12 @@ TEST_CASE("cista_members printable") {
   CHECK(ss.str() == "{1, 2, 3}");
 }
 
-struct parent {};
+struct parent {
+  parent() = default;
+  explicit parent(double u) : u_{0} {}
+  auto cista_members() noexcept { return std::tie(u_, v_, w_); }
+  double u_{1}, v_{2}, w_{3};
+};
 struct serialize_me : public parent {
   static int s_;
   auto cista_members() noexcept { return std::tie(a_, j_); }
@@ -66,7 +71,6 @@ struct serialize_me : public parent {
 };
 
 TEST_CASE("cista_members serialization") {
-
   cista::byte_buf buf;
 
   {

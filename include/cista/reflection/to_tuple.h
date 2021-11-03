@@ -8,13 +8,6 @@
 
 namespace cista {
 
-template <typename T>
-inline constexpr auto to_tuple_works_v = std::is_aggregate_v<T>&&
-#if !defined(_MSC_VER) || defined(NDEBUG)
-                                             std::is_standard_layout_v<T> &&
-#endif
-                                         !std::is_polymorphic_v<T>;
-
 namespace detail {
 
 template <typename T, typename = void>
@@ -54,6 +47,14 @@ auto to_ptrs(T&& t) {
 }
 
 }  // namespace detail
+ 
+template <typename T>
+inline constexpr auto to_tuple_works_v = detail::has_cista_members_v<T> ||
+                                         (std::is_aggregate_v<T> &&
+#if !defined(_MSC_VER) || defined(NDEBUG)
+                                          std::is_standard_layout_v<T> &&
+#endif
+                                          !std::is_polymorphic_v<T>);
 
 template <typename T,
           std::enable_if_t<detail::has_cista_members_v<T> && std::is_const_v<T>,
