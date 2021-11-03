@@ -72,7 +72,7 @@ template <typename T, std::enable_if_t<detail::has_cista_members_v<T> &&
 constexpr inline auto to_tuple(T&& t) {
   return t.cista_members();
 }
- 
+
 template <typename T,
           std::enable_if_t<!detail::has_cista_members_v<T>, void*> = nullptr>
 inline auto to_tuple(T& t) {
