@@ -14,6 +14,9 @@ class OffsetPointer:
     def add(self, offset):
         return self.as_raw_ptr() + offset
 
+    def __add__(self, o):
+        return self.add(o)
+
     def dereference(self):
         return self.as_raw_ptr().dereference()
 
