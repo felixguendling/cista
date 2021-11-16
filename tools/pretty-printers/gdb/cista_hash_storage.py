@@ -81,7 +81,7 @@ class CistaHashStorageWorker_size(gdb.xmethod.XMethodWorker):
         return None
 
     def get_result_type(self):
-        return gdb.lookup_type('int')
+        return gdb.lookup_type('unsigned long int')
 
     def __call__(self, this):
         hash_storage = CistaHashStorage(this.dereference())

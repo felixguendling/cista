@@ -47,7 +47,7 @@ def my_pp_func(val):
 
 class CistaVectorWorker_at(gdb.xmethod.XMethodWorker):
     def get_arg_types(self):
-        return gdb.lookup_type('int')
+        return gdb.lookup_type('unsigned long int')
 
     def get_result_type(self, obj):
         return obj.type.strip_typedefs().template_argument(0)
@@ -68,7 +68,7 @@ class CistaVector_at(gdb.xmethod.XMethod):
 
 class CistaVectorWorker_operator_brackets(gdb.xmethod.XMethodWorker):
     def get_arg_types(self):
-        return gdb.lookup_type('int')
+        return gdb.lookup_type('unsigned long int')
 
     def get_result_type(self, obj):
         return obj.type.strip_typedefs().template_argument(0)
