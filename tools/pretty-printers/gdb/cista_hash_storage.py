@@ -66,13 +66,37 @@ class CistaHashStorageWorker_operator_brackets(gdb.xmethod.XMethodWorker):
         hash_storage = CistaHashStorage(this.dereference())
         return hash_storage[key]
 
+class CistaHashStorageWorker_operator_brackets_char_ptr(gdb.xmethod.XMethodWorker):
+    def __init__(self, class_type):
+        self.class_type = class_type
+
+    def get_arg_types(self):
+        return gdb.lookup_type('const char* const')
+
+    def get_result_type(self, obj):
+        return obj.type.strip_typedefs().template_argument(1)
+
+    def __call__(self, this, key):
+        hash_storage = CistaHashStorage(this.dereference())
+        key = key.cast(gdb.lookup_type("const char* const"))
+        return hash_storage[str(key).split()[1]]
+
 class CistaHashStorage_operator_brackets(gdb.xmethod.XMethod):
     def __init__(self):
         gdb.xmethod.XMethod.__init__(self, 'operator[]')
 
     def get_worker(self, method_name, class_type):
+        worker = []
         if method_name == 'operator[]':
-            return CistaHashStorageWorker_operator_brackets(class_type)
+            worker.append(CistaHashStorageWorker_operator_brackets(class_type))
+
+        temp_arg = class_type.template_argument(0).name
+        is_string = temp_arg.startswith("std::__cxx11::basic_string") \
+                    or temp_arg.startswith("cista::basic_string")
+        if method_name == 'operator[]' and is_string:
+            worker.append(CistaHashStorageWorker_operator_brackets_char_ptr(class_type))
+
+        return worker
 
 ### XMethod cista::vector::size
 
@@ -93,7 +117,7 @@ class CistaHashStorage_size(gdb.xmethod.XMethod):
 
     def get_worker(self, method_name, _):
         if method_name == 'size':
-            return CistaHashStorageWorker_size()
+            return [CistaHashStorageWorker_size()]
 
 class CistaHashStorageMatcher(gdb.xmethod.XMethodMatcher):
     def __init__(self):
@@ -110,7 +134,7 @@ class CistaHashStorageMatcher(gdb.xmethod.XMethodMatcher):
             if method.enabled:
                 worker = method.get_worker(method_name, class_type.template_argument(0))
                 if worker:
-                    workers.append(worker)
+                    workers.extend(worker)
 
         return workers
 
