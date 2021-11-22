@@ -19,7 +19,7 @@ template <std::size_t Size>
 struct bitset {
   CISTA_COMPARABLE()
 
-  using block_t = std::uint8_t;
+  using block_t = std::uint64_t;
   static constexpr auto const bits_per_block = sizeof(block_t) * 8;
   static constexpr auto const num_blocks =
       Size / bits_per_block + (Size % bits_per_block == 0 ? 0 : 1);
@@ -36,7 +36,7 @@ struct bitset {
   }
 
   constexpr void set(std::size_t const i, bool const val = true) noexcept {
-    //    assert((i / bits_per_block) < num_blocks);
+    assert((i / bits_per_block) < num_blocks);
     auto& block = blocks_[i / bits_per_block];
     auto const bit = i % bits_per_block;
     if (val) {
