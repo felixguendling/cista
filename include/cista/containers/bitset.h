@@ -61,6 +61,15 @@ struct bitset {
 
   std::size_t size() const noexcept { return Size; }
 
+  std::string to_string() const {
+    auto s = std::string{};
+    s.resize(Size);
+    for (auto i = 0U; i != Size; ++i) {
+      s[i] = test(Size - i - 1) ? '1' : '0';
+    }
+    return s;
+  }
+
   cista::array<block_t, num_blocks> blocks_{};
 };
 
