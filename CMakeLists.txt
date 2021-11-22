@@ -119,6 +119,11 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   foreach(fuzz-file ${fuzz-files})
     get_filename_component(test-name ${fuzz-file} NAME_WE)
 
+    add_executable(cista-fuzz-${test-name}-main EXCLUDE_FROM_ALL ${fuzz-file})
+    target_link_libraries(cista-fuzz-${test-name}-main cista -fsanitize=address,undefined)
+    target_compile_options(cista-fuzz-${test-name}-main PRIVATE -g -O0)
+    target_compile_definitions(cista-fuzz-${test-name}-main PRIVATE MAIN)
+
     add_executable(cista-fuzz-${test-name} EXCLUDE_FROM_ALL ${fuzz-file})
     target_link_libraries(cista-fuzz-${test-name} cista -fsanitize=address,undefined,fuzzer)
     target_compile_options(cista-fuzz-${test-name} PRIVATE -g -O0 -fsanitize=address,fuzzer)
