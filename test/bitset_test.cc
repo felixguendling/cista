@@ -26,6 +26,7 @@ TEST_CASE("bitset") {
     CHECK(std_bits.test(size - i - 1U) == (i % 3U == 0U));
     CHECK(cista_bits.test(size - i - 1U) == (i % 3U == 0U));
   }
+  CHECK(std_bits.to_string() == cista_bits.to_string());
 
   for (auto i = 0U; i != size; ++i) {
     cista_bits.set(i, i % 5 == 0);
@@ -38,6 +39,7 @@ TEST_CASE("bitset") {
     CHECK(std_bits[i] == (i % 5 == 0U));
     CHECK(cista_bits[i] == (i % 5 == 0U));
   }
+  CHECK(std_bits.to_string() == cista_bits.to_string());
 }
 
 TEST_CASE("serialize") {
