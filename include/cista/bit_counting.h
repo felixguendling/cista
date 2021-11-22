@@ -89,4 +89,12 @@ constexpr unsigned leading_zeros(T t) noexcept {
   }
 }
 
+inline std::size_t popcount(std::uint64_t const b) {
+#if defined(_MSC_VER) || defined(__INTEL_COMPILER)
+  return static_cast<std::size_t>(_mm_popcnt_u64(b));
+#else
+  return static_cast<std::size_t>(__builtin_popcountll(b));
+#endif
+}
+
 }  // namespace cista

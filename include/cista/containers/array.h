@@ -57,6 +57,39 @@ struct array {
   constexpr T* data() noexcept { return el_; }
   constexpr T const* data() const noexcept { return el_; }
 
+  friend bool operator==(array const& a, array const& b) noexcept {
+    for (auto i = 0U; i != Size; ++i) {
+      if (a[i] != b[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  friend bool operator!=(array const& a, array const& b) noexcept {
+    for (auto i = 0U; i != Size; ++i) {
+      if (a[i] != b[i]) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  friend bool operator<(array const& a, array const& b) noexcept {
+    using std::begin;
+    using std::end;
+    return std::lexicographical_compare(begin(a), begin(b), end(a));
+  }
+  friend bool operator>(array const& a, array const& b) noexcept {
+    return b < a;
+  }
+  friend bool operator<=(array const& a, array const& b) noexcept {
+    return !(a > b);
+  }
+  friend bool operator>=(array const& a, array const& b) noexcept {
+    return !(a < b);
+  }
+
   T el_[Size];
 };
 
