@@ -2,10 +2,12 @@
 
 #include <cassert>
 #include <cinttypes>
+#include <iosfwd>
 #include <limits>
 #include <numeric>
 #include <string_view>
 #include <tuple>
+#include <type_traits>
 
 #include "cista/bit_counting.h"
 #include "cista/containers/array.h"
@@ -19,7 +21,8 @@ struct bitset {
 
   using block_t = std::uint64_t;
   static constexpr auto const bits_per_block = sizeof(block_t) * 8;
-  static constexpr auto const num_blocks = Size / sizeof(block_t);
+  static constexpr auto const num_blocks =
+      Size / bits_per_block + (Size % bits_per_block == 0 ? 0 : 1);
 
   constexpr bitset() noexcept = default;
   constexpr bitset(std::string_view s) noexcept { set(s); }
@@ -68,6 +71,150 @@ struct bitset {
       s[i] = test(Size - i - 1) ? '1' : '0';
     }
     return s;
+  }
+
+  bitset& operator&=(bitset const& o) noexcept {
+    for (auto i = 0U; i < num_blocks; ++i) {
+      blocks_[i] &= o.blocks_[i];
+    }
+    return *this;
+  }
+
+  bitset& operator|=(bitset const& o) noexcept {
+    for (auto i = 0U; i < num_blocks; ++i) {
+      blocks_[i] |= o.blocks_[i];
+    }
+    return *this;
+  }
+
+  bitset& operator^=(bitset const& o) noexcept {
+    for (auto i = 0U; i < num_blocks; ++i) {
+      blocks_[i] ^= o.blocks_[i];
+    }
+    return *this;
+  }
+
+  bitset operator~() const noexcept {
+    auto copy = *this;
+    for (auto& b : copy.blocks_) {
+      b = ~b;
+    }
+    return copy;
+  }
+
+  friend bitset operator&(bitset const& lhs, bitset const& rhs) noexcept {
+    auto copy = lhs;
+    copy &= rhs;
+    return copy;
+  }
+
+  friend bitset operator|(bitset const& lhs, bitset const& rhs) noexcept {
+    auto copy = lhs;
+    copy |= rhs;
+    return copy;
+  }
+
+  friend bitset operator^(bitset const& lhs, bitset const& rhs) noexcept {
+    auto copy = lhs;
+    copy ^= rhs;
+    return copy;
+  }
+
+  bitset& operator>>=(std::size_t const shift) noexcept {
+    if (shift >= Size) {
+      reset();
+      return *this;
+    }
+
+    if constexpr ((Size % bits_per_block) != 0) {
+      blocks_[num_blocks - 1] &= ~((~block_t{0}) << (Size % bits_per_block));
+    }
+
+    if constexpr (num_blocks == 1U) {
+      blocks_[0] >>= shift;
+      return *this;
+    } else {
+      if (shift == 0U) {
+        return *this;
+      }
+
+      auto const shift_blocks = shift / bits_per_block;
+      auto const shift_bits = shift % bits_per_block;
+      auto const border = num_blocks - shift_blocks - 1U;
+
+      if (shift_bits == 0U) {
+        for (auto i = std::size_t{0U}; i <= border; ++i) {
+          blocks_[i] = blocks_[i + shift_blocks];
+        }
+      } else {
+        for (auto i = std::size_t{0U}; i < border; ++i) {
+          blocks_[i] =
+              (blocks_[i + shift_blocks] >> shift_bits) |
+              (blocks_[i + shift_blocks + 1] << (bits_per_block - shift_bits));
+        }
+        blocks_[border] = (blocks_[num_blocks - 1] >> shift_bits);
+      }
+
+      for (auto i = border + 1; i != num_blocks; ++i) {
+        blocks_[i] = 0U;
+      }
+
+      return *this;
+    }
+  }
+
+  bitset& operator<<=(std::size_t const shift) noexcept {
+    if (shift >= Size) {
+      reset();
+      return *this;
+    }
+
+    if constexpr (num_blocks == 1U) {
+      blocks_[0] <<= shift;
+      return *this;
+    } else {
+      if (shift == 0U) {
+        return *this;
+      }
+
+      auto const shift_blocks = shift / bits_per_block;
+      auto const shift_bits = shift % bits_per_block;
+
+      if (shift_bits == 0U) {
+        for (auto i = std::size_t{num_blocks - 1}; i >= shift_blocks; --i) {
+          blocks_[i] = blocks_[i - shift_blocks];
+        }
+      } else {
+        for (auto i = std::size_t{num_blocks - 1}; i != shift_blocks; --i) {
+          blocks_[i] =
+              (blocks_[i - shift_blocks] << shift_bits) |
+              (blocks_[i - shift_blocks - 1] >> (bits_per_block - shift_bits));
+        }
+        blocks_[shift_blocks] = blocks_[0] << shift_bits;
+      }
+
+      for (auto i = 0U; i != shift_blocks; ++i) {
+        blocks_[i] = 0U;
+      }
+
+      return *this;
+    }
+  }
+
+  bitset operator>>(std::size_t const i) const noexcept {
+    auto copy = *this;
+    copy >>= i;
+    return copy;
+  }
+
+  bitset operator<<(std::size_t const i) const noexcept {
+    auto copy = *this;
+    copy <<= i;
+    return copy;
+  }
+
+  friend std::ostream& operator<<(std::ostream& out, bitset const& b) {
+    return out << b.to_string();
   }
 
   cista::array<block_t, num_blocks> blocks_{};
