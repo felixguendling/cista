@@ -126,16 +126,16 @@ struct bitset {
       return *this;
     }
 
+    if constexpr ((Size % bits_per_block) != 0) {
+      blocks_[num_blocks - 1] &= ~((~block_t{0}) << (Size % bits_per_block));
+    }
+
     if constexpr (num_blocks == 1U) {
       blocks_[0] >>= shift;
       return *this;
     } else {
       if (shift == 0U) {
         return *this;
-      }
-
-      if constexpr (Size % bits_per_block != 0) {
-        blocks_[num_blocks - 1] &= ~((~block_t{0}) << (Size % bits_per_block));
       }
 
       auto const shift_blocks = shift / bits_per_block;
