@@ -5,6 +5,7 @@
 #include <iosfwd>
 #include <limits>
 #include <numeric>
+#include <string>
 #include <string_view>
 #include <tuple>
 #include <type_traits>
