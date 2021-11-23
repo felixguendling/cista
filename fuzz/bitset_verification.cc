@@ -223,8 +223,8 @@ int main(int argc, char const** argv) {
 extern "C" int LLVMFuzzerTestOneInput(uint8_t const* data, size_t size) {
 #endif
   auto test_sets =
-      std::make_tuple(test_set<22>{} /*, test_set<77>{}, test_set<222>{},
-                      test_set<64>{}, test_set<128>{}, test_set<192>{} */);
+      std::make_tuple(test_set<22>{}, test_set<77>{}, test_set<222>{},
+                      test_set<64>{}, test_set<128>{}, test_set<192>{});
 
   auto const end = data + size;
 
