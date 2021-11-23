@@ -18,9 +18,7 @@ namespace cista {
 
 template <std::size_t Size>
 struct bitset {
-  CISTA_COMPARABLE()
-
-  using block_t = std::uint64_t;
+  using block_t = std::uint8_t;
   static constexpr auto const bits_per_block = sizeof(block_t) * 8;
   static constexpr auto const num_blocks =
       Size / bits_per_block + (Size % bits_per_block == 0 ? 0 : 1);
@@ -92,6 +90,38 @@ struct bitset {
       s[i] = test(Size - i - 1) ? '1' : '0';
     }
     return s;
+  }
+
+  friend bool operator==(bitset const& a, bitset const& b) noexcept {
+    for (auto i = std::size_t{0U}; i != num_blocks - 1; ++i) {
+      if (a.blocks_[i] != b.blocks_[i]) {
+        return false;
+      }
+    }
+    return a.sanitized_last_block() == b.sanitized_last_block();
+  }
+  friend bool operator<(bitset const& a, bitset const& b) {
+    if (a.sanitized_last_block() < b.sanitized_last_block()) {
+      return true;
+    }
+
+    for (int i = num_blocks - 2; i != -1; --i) {
+      if (a.blocks_[i] < b.blocks_[i]) {
+        return true;
+      }
+    }
+  }
+  friend bool operator!=(bitset const& a, bitset const& b) noexcept {
+    return !(a == b);
+  }
+  friend bool operator>(bitset const& a, bitset const& b) noexcept {
+    return b < a;
+  }
+  friend bool operator<=(bitset const& a, bitset const& b) noexcept {
+    return !(a > b);
+  }
+  friend bool operator>=(bitset const& a, bitset const& b) noexcept {
+    return !(a < b);
   }
 
   bitset& operator&=(bitset const& o) noexcept {

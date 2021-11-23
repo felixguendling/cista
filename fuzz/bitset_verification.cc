@@ -9,6 +9,34 @@ enum op { SHIFT_LEFT, SHIFT_RIGHT, XOR, OR, AND, NEGATE, NUM_OPS };
 char const* op_strings[] = {"SHIFT_LEFT", "SHIFT_RIGHT", "XOR",    "OR",
                             "AND",        "NEGATE",      "NUM_OPS"};
 
+template <std::size_t BitSetSize>
+bool operator<(std::bitset<BitSetSize> const& x,
+               std::bitset<BitSetSize> const& y) {
+  for (size_t i = BitSetSize - 1; i != 0; --i) {
+    if (x[i] ^ y[i]) return y[i];
+  }
+  if (x[0] ^ y[0]) return y[0];
+  return false;
+}
+
+template <std::size_t BitSetSize>
+bool operator>(std::bitset<BitSetSize> const& x,
+               std::bitset<BitSetSize> const& y) {
+  return y < x;
+}
+
+template <std::size_t BitSetSize>
+bool operator<=(std::bitset<BitSetSize> const& x,
+                std::bitset<BitSetSize> const& y) {
+  return !(x > y);
+}
+
+template <std::size_t BitSetSize>
+bool operator>=(std::bitset<BitSetSize> const& x,
+                std::bitset<BitSetSize> const& y) {
+  return !(x < y);
+}
+
 template <std::size_t Size>
 struct test_set {
   template <typename Fn>
@@ -79,29 +107,75 @@ struct test_set {
                 << "         uut2: " << uut2 << "\n";
     };
 
+    if ((ref1 < ref2) != (uut1 < uut2)) {
+      std::cerr << "uut1 < uut2 => " << (uut1 < uut2) << "\n"
+                << "ref1 < ref2 => " << (ref1 < ref2) << "\n";
+      print("fail on <");
+      abort();
+    }
+
+    /*
+    if ((ref1 <= ref2) != (uut1 <= uut2)) {
+      std::cerr << "uut1 <= uut2 => " << (uut1 <= uut2) << "\n"
+                << "ref1 <= ref2 => " << (ref1 <= ref2) << "\n";
+      print("fail on <=");
+      abort();
+    }
+
+    if ((ref1 > ref2) != (uut1 > uut2)) {
+      std::cerr << "uut1 > uut2 => " << (uut1 > uut2) << "\n"
+                << "ref1 > ref2 => " << (ref1 > ref2) << "\n";
+      print("fail on >");
+      abort();
+    }
+
+    if ((ref1 >= ref2) != (uut1 >= uut2)) {
+      std::cerr << "uut1 >= uut2 => " << (uut1 >= uut2) << "\n"
+                << "ref1 >= ref2 => " << (ref1 >= ref2) << "\n";
+      print("fail on >=");
+      abort();
+    }
+    */
+
+    //    if ((ref1 == ref2) != (uut1 == uut2)) {
+    //      std::cerr << "uut1 == uut2 => " << (uut1 == uut2) << "\n"
+    //                << "ref1 == ref2 => " << (ref1 == ref2) << "\n";
+    //      print("fail on ==");
+    //      abort();
+    //    }
+
+    /*
+    if ((ref1 != ref2) != (uut1 != uut2)) {
+      std::cerr << "uut1 != uut2 => " << (uut1 != uut2) << "\n"
+                << "ref1 != ref2 => " << (ref1 != ref2) << "\n";
+      print("fail on !=");
+      abort();
+    }
+    */
+
     if (uut1.any() != ref1.any()) {
-      std::cout << "uut1.any() => " << uut1.any() << "\n"
+      std::cerr << "uut1.any() => " << uut1.any() << "\n"
                 << "ref1.any() => " << ref1.any() << "\n";
       print("fail on any 1");
       abort();
     }
 
     if (uut2.any() != ref2.any()) {
-      std::cout << "uut2.any() => " << uut2.any() << "\n"
+      std::cerr << "uut2.any() => " << uut2.any() << "\n"
                 << "ref2.any() => " << ref2.any() << "\n";
       print("fail on any 2");
       abort();
     }
 
     if (uut1.none() != ref1.none()) {
-      std::cout << "uut1.none() => " << uut1.none() << "\n"
+      std::cerr << "uut1.none() => " << uut1.none() << "\n"
                 << "ref1.none() => " << ref1.none() << "\n";
       print("fail on none 1");
       abort();
     }
 
     if (uut2.none() != ref2.none()) {
-      std::cout << "uut2.none() => " << uut2.none() << "\n"
+      std::cerr << "uut2.none() => " << uut2.none() << "\n"
                 << "ref2.none() => " << ref2.none() << "\n";
       print("fail on none 2");
       abort();
@@ -149,8 +223,8 @@ int main(int argc, char const** argv) {
 extern "C" int LLVMFuzzerTestOneInput(uint8_t const* data, size_t size) {
 #endif
   auto test_sets =
-      std::make_tuple(test_set<22>{}, test_set<77>{}, test_set<222>{},
-                      test_set<64>{}, test_set<128>{}, test_set<192>{});
+      std::make_tuple(test_set<22>{} /*, test_set<77>{}, test_set<222>{},
+                      test_set<64>{}, test_set<128>{}, test_set<192>{} */);
 
   auto const end = data + size;
 
