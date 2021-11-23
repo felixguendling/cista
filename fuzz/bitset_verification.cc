@@ -114,7 +114,6 @@ struct test_set {
       abort();
     }
 
-    /*
     if ((ref1 <= ref2) != (uut1 <= uut2)) {
       std::cerr << "uut1 <= uut2 => " << (uut1 <= uut2) << "\n"
                 << "ref1 <= ref2 => " << (ref1 <= ref2) << "\n";
@@ -135,23 +134,20 @@ struct test_set {
       print("fail on >=");
       abort();
     }
-    */
 
-    //    if ((ref1 == ref2) != (uut1 == uut2)) {
-    //      std::cerr << "uut1 == uut2 => " << (uut1 == uut2) << "\n"
-    //                << "ref1 == ref2 => " << (ref1 == ref2) << "\n";
-    //      print("fail on ==");
-    //      abort();
-    //    }
+    if ((ref1 == ref2) != (uut1 == uut2)) {
+      std::cerr << "uut1 == uut2 => " << (uut1 == uut2) << "\n"
+                << "ref1 == ref2 => " << (ref1 == ref2) << "\n";
+      print("fail on ==");
+      abort();
+    }
 
-    /*
     if ((ref1 != ref2) != (uut1 != uut2)) {
       std::cerr << "uut1 != uut2 => " << (uut1 != uut2) << "\n"
                 << "ref1 != ref2 => " << (ref1 != ref2) << "\n";
       print("fail on !=");
       abort();
     }
-    */
 
     if (uut1.any() != ref1.any()) {
       std::cerr << "uut1.any() => " << uut1.any() << "\n"
