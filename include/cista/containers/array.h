@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cinttypes>
+#include <algorithm>
 #include <iterator>
 #include <stdexcept>
 
@@ -78,7 +79,7 @@ struct array {
   friend bool operator<(array const& a, array const& b) noexcept {
     using std::begin;
     using std::end;
-    return std::lexicographical_compare(begin(a), begin(b), end(a));
+    return std::lexicographical_compare(begin(a), end(a), begin(b), end(b));
   }
   friend bool operator>(array const& a, array const& b) noexcept {
     return b < a;
