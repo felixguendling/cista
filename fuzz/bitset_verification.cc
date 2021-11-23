@@ -63,6 +63,8 @@ struct test_set {
         uut1 = ~uut1;
         uut2 = ~uut2;
         break;
+
+      default: abort();
     }
 
     auto const print = [&](std::string_view msg) {
