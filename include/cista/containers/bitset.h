@@ -64,6 +64,26 @@ struct bitset {
 
   std::size_t size() const noexcept { return Size; }
 
+  bool any() const noexcept {
+    for (auto i = std::size_t{0U}; i != num_blocks - 1; ++i) {
+      if (blocks_[i] != 0U) {
+        return true;
+      }
+    }
+    return sanitized_last_block() != 0U;
+  }
+
+  bool none() const noexcept { return !any(); }
+
+  block_t sanitized_last_block() const noexcept {
+    if constexpr ((Size % bits_per_block) != 0) {
+      return blocks_[num_blocks - 1] &
+             ~((~block_t{0}) << (Size % bits_per_block));
+    } else {
+      return blocks_[num_blocks - 1];
+    }
+  }
+
   std::string to_string() const {
     auto s = std::string{};
     s.resize(Size);
@@ -127,7 +147,7 @@ struct bitset {
     }
 
     if constexpr ((Size % bits_per_block) != 0) {
-      blocks_[num_blocks - 1] &= ~((~block_t{0}) << (Size % bits_per_block));
+      blocks_[num_blocks - 1] = sanitized_last_block();
     }
 
     if constexpr (num_blocks == 1U) {

@@ -63,10 +63,12 @@ struct test_set {
         uut1 = ~uut1;
         uut2 = ~uut2;
         break;
+
+      default: abort();
     }
 
-    if (uut1.to_string() != ref1.to_string()) {
-      std::cerr << "fail on 1: OP=" << op_strings[o] << " NUM=" << num << "\n"
+    auto const print = [&](std::string_view msg) {
+      std::cerr << msg << ": OP=" << op_strings[o] << " NUM=" << num << "\n"
                 << "  ref1_before: " << ref1_before << "\n"
                 << "  uut1_before: " << uut1_before << "\n"
                 << "  ref2_before: " << ref2_before << "\n"
@@ -75,19 +77,43 @@ struct test_set {
                 << "         uut1: " << uut1 << "\n"
                 << "         ref2: " << ref2 << "\n"
                 << "         uut2: " << uut2 << "\n";
+    };
+
+    if (uut1.any() != ref1.any()) {
+      std::cout << "uut1.any() => " << uut1.any() << "\n"
+                << "ref1.any() => " << ref1.any() << "\n";
+      print("fail on any 1");
+      abort();
+    }
+
+    if (uut2.any() != ref2.any()) {
+      std::cout << "uut2.any() => " << uut2.any() << "\n"
+                << "ref2.any() => " << ref2.any() << "\n";
+      print("fail on any 2");
+      abort();
+    }
+
+    if (uut1.none() != ref1.none()) {
+      std::cout << "uut1.none() => " << uut1.none() << "\n"
+                << "ref1.none() => " << ref1.none() << "\n";
+      print("fail on none 1");
+      abort();
+    }
+
+    if (uut2.none() != ref2.none()) {
+      std::cout << "uut2.none() => " << uut2.none() << "\n"
+                << "ref2.none() => " << ref2.none() << "\n";
+      print("fail on none 2");
+      abort();
+    }
+
+    if (uut1.to_string() != ref1.to_string()) {
+      print("fail on 1");
       abort();
     }
 
     if (uut2.to_string() != ref2.to_string()) {
-      std::cerr << "fail on 2: OP=" << op_strings[o] << " NUM=" << num << "\n"
-                << "  ref1_before: " << ref1_before << "\n"
-                << "  uut1_before: " << uut1_before << "\n"
-                << "  ref2_before: " << ref2_before << "\n"
-                << "  uut2_before: " << uut2_before << "\n"
-                << "         ref1: " << ref1 << "\n"
-                << "         uut1: " << uut1 << "\n"
-                << "         ref2: " << ref2 << "\n"
-                << "         uut2: " << uut2 << "\n";
+      print("fail on 2");
       abort();
     }
   }
