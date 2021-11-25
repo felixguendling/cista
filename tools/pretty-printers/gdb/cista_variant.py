@@ -20,7 +20,7 @@ class CistaVariantPrinter:
 
 def my_pp_func(val):
     regex = re.compile("cista::variant")
-    if regex.match(str(val.type.strip_typedefs())):
+    if regex.match(str(val.type.strip_typedefs().unqualified())):
         return CistaVariantPrinter(val)
 
 gdb.pretty_printers.append(my_pp_func)
