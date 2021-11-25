@@ -21,4 +21,4 @@ class OffsetPointer:
         return self.as_raw_ptr().dereference()
 
 def is_offset_ptr(type):
-    return str(type.strip_typedefs()).startswith("cista::offset_ptr")
+    return str(type.strip_typedefs().unqualified()).startswith("cista::offset_ptr")

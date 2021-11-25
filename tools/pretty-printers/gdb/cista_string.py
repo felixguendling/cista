@@ -29,7 +29,7 @@ class CistaStringPrinter:
 
 def my_pp_func(val):
     regex = re.compile("cista::basic_string")
-    if regex.match(str(val.type.strip_typedefs())):
+    if regex.match(str(val.type.strip_typedefs().unqualified())):
         return CistaStringPrinter(val)
 
 gdb.pretty_printers.append(my_pp_func)

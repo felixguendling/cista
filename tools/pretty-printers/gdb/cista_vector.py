@@ -2,7 +2,7 @@ import re
 import gdb.xmethod
 
 def is_cista_vector(gdb_type):
-    return str(gdb_type.strip_typedefs()).startswith("cista::basic_vector")
+    return str(gdb_type.strip_typedefs().unqualified()).startswith("cista::basic_vector")
 
 def is_raw_vector(gdb_type):
     return not str(gdb_type.strip_typedefs().template_argument(1)).startswith("cista::offset_ptr")

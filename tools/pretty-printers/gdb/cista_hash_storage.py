@@ -2,7 +2,7 @@ import re
 import gdb.xmethod
 
 def is_cista_hash_storage(gdb_type):
-    type_str = str(gdb_type.strip_typedefs())
+    type_str = str(gdb_type.strip_typedefs().unqualified())
     return type_str.startswith("cista::hash_storage") and not type_str.endswith("::ctrl_t")
 
 class CistaHashStorage:

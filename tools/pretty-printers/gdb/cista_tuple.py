@@ -22,7 +22,7 @@ class CistaTuplePrinter:
 
 def my_pp_func(val):
     regex = re.compile("cista::tuple")
-    if regex.match(str(val.type.strip_typedefs())):
+    if regex.match(str(val.type.strip_typedefs().unqualified())):
         return CistaTuplePrinter(val)
 
 gdb.pretty_printers.append(my_pp_func)
