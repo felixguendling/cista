@@ -30,7 +30,7 @@ struct bitset {
 
   constexpr void set(std::string_view s) noexcept {
     for (auto i = std::size_t{0U}; i != std::min(Size, s.size()); ++i) {
-      set(Size - i - 1, s[i] != '0');
+      set(i, s[s.size() - i - 1] != '0');
     }
   }
 
