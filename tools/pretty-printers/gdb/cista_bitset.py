@@ -13,42 +13,17 @@ class CistaBitsetPrinter(object):
         if self.n_words == 1:
             self.values = [int(self.val["blocks_"])]
         else:
-            self.values = [int(self.val["blocks_"][index])
+            self.values = [int(self.val["blocks_"]["el_"][index])
                            for index in range(self.n_words)]
 
     def to_string(self):
         s = ""
         for word_index in range(self.n_words):
-            current = self.values[word_index]
-            index = -1
-            while current:
-                index += 1
-                will_yield = current % 2
-                current /= 2
-                if will_yield:
-                    s += '1'
-                else:
-                    s += '0'
+            s += format(self.values[word_index], '064b')
         return s
 
     def str(self):
         return self.to_string()
-
-    def _byte_it(self, value):
-        index = -1
-        while value:
-            index += 1
-            will_yield = value % 2
-            value /= 2
-            if will_yield:
-                yield index
-
-    def children(self):
-        for word_index in range(self.n_words):
-            current = self.values[word_index]
-            if current:
-                for n in self._byte_it(current):
-                    yield ("[%d]" % (word_index * self.bits_per_word + n)), 1
 
 
 def cista_bitset(val):
