@@ -1,8 +1,6 @@
 import re
 
 
-# Based on
-# libcxx/trunk/utils/gdb/libcxx/printers.py
 class CistaBitsetPrinter(object):
     """Print a cista::bitset."""
 
