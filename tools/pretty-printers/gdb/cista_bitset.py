@@ -26,7 +26,7 @@ class CistaBitsetPrinter(object):
 
 def cista_bitset(val):
     regex = re.compile("cista::bitset")
-    if regex.match(str(val.type.strip_typedefs())):
+    if regex.match(str(val.type.strip_typedefs().unqualified())):
         return CistaBitsetPrinter(val)
 
 
