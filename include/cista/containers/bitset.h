@@ -50,8 +50,11 @@ struct bitset {
   bool operator[](std::size_t i) const noexcept { return test(i); }
 
   std::size_t count() const noexcept {
-    return std::accumulate(begin(blocks_), end(blocks_),
-                           [](auto const& b) { return popcount(b); });
+    auto sum = std::size_t{0U};
+    for (auto i = std::size_t{0U}; i != num_blocks - 1; ++i) {
+      sum += popcount(blocks_[i]);
+    }
+    return sum + popcount(sanitized_last_block());
   }
 
   constexpr bool test(std::size_t const i) const noexcept {
