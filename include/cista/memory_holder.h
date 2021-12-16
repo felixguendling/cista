@@ -8,6 +8,6 @@
 
 namespace cista {
 
-using memory_holder = std::variant<buf<mmap>, buffer>;
+using memory_holder = std::variant<buf<mmap>, buffer, byte_buf>;
 
 }  // namespace cista
