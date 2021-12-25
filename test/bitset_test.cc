@@ -46,18 +46,21 @@ TEST_CASE("bitset") {
   auto const mod_5_cista = cista_bits;
 
   CHECK((~mod_3_std).to_string() == (~mod_3_cista).to_string());
+  CHECK((~mod_3_std).count() == (~mod_3_cista).count());
 
   auto mod_15_cista = mod_5_cista;
   mod_15_cista &= mod_3_cista;
   auto mod_15_std = mod_5_std;
   mod_15_std &= mod_3_std;
   CHECK(mod_15_cista.to_string() == mod_15_std.to_string());
+  CHECK(mod_15_cista.count() == mod_15_std.count());
 
   auto mod_3_or_5_cista = mod_5_cista;
   mod_3_or_5_cista |= mod_3_cista;
   auto mod_3_or_5_std = mod_5_std;
   mod_3_or_5_std |= mod_3_std;
   CHECK(mod_3_or_5_cista.to_string() == mod_3_or_5_std.to_string());
+  CHECK(mod_3_or_5_cista.count() == mod_3_or_5_std.count());
 
   auto x = mod_3_or_5_cista;
   mod_3_or_5_cista ^= mod_15_cista;
@@ -68,10 +71,12 @@ TEST_CASE("bitset") {
   mod_3_or_5_cista >>= 67U;
   mod_3_or_5_std >>= 67U;
   CHECK(mod_3_or_5_cista.to_string() == mod_3_or_5_std.to_string());
+  CHECK(mod_3_or_5_cista.count() == mod_3_or_5_std.count());
 
   mod_3_or_5_cista <<= 67U;
   mod_3_or_5_std <<= 67U;
   CHECK(mod_3_or_5_cista.to_string() == mod_3_or_5_std.to_string());
+  CHECK(mod_3_or_5_cista.count() == mod_3_or_5_std.count());
 }
 
 TEST_CASE("shift right") {
@@ -83,6 +88,7 @@ TEST_CASE("shift right") {
   a >>= 48;
   b >>= 48;
   CHECK(a.to_string() == b.to_string());
+  CHECK(a.count() == b.count());
 }
 
 TEST_CASE("serialize") {

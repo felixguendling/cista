@@ -15,7 +15,8 @@ jobs:
 
     strategy:
       matrix:
-        mode: [Debug, Release]
+        mode: [ Debug, Release ]
+        arch: [ amd64, x86 ]
 
     env:
       CXX: cl.exe
@@ -31,7 +32,7 @@ jobs:
           $devShell = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -find **\Microsoft.VisualStudio.DevShell.dll
           $installPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationpath
           Import-Module $devShell
-          Enter-VsDevShell -VsInstallPath $installPath -SkipAutomaticLocation -DevCmdArguments "-arch=amd64"
+          Enter-VsDevShell -VsInstallPath $installPath -SkipAutomaticLocation -DevCmdArguments "-arch=${{ matrix.arch }}"
           cmake -GNinja -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.mode }}
           cmake --build build --target cista-test cista-test-single-header
 
