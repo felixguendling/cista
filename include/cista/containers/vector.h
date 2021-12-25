@@ -340,7 +340,8 @@ struct basic_vector {
       for (auto it = new_end; it != end(); ++it) {
         it->~T();
       }
-      used_size_ -= std::distance(new_end, end());
+      used_size_ -=
+          static_cast<TemplateSizeType>(std::distance(new_end, end()));
     }
     return end();
   }

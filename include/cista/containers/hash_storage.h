@@ -47,7 +47,7 @@ struct hash_storage {
   using group_t = uint64_t;
   using h2_t = uint8_t;
   static constexpr size_type const WIDTH = 8U;
-  static constexpr size_type const ALIGNMENT = alignof(T);
+  static constexpr size_t const ALIGNMENT = alignof(T);
 
   template <typename Key>
   hash_t compute_hash(Key const& k) {
