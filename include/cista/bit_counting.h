@@ -90,7 +90,12 @@ constexpr unsigned leading_zeros(T t) noexcept {
 }
 
 inline std::size_t popcount(std::uint64_t const b) {
-#if defined(_MSC_VER) || defined(__INTEL_COMPILER)
+#if defined(_MSC_VER) && defined(_M_X64)
+  return __popcnt64(b);
+#elif defined(_MSC_VER)
+  return static_cast<std::size_t>(__popcnt(static_cast<uint32_t>(b)) +
+                                  __popcnt(static_cast<uint32_t>(b >> 32)));
+#elif defined(__INTEL_COMPILER)
   return static_cast<std::size_t>(_mm_popcnt_u64(b));
 #else
   return static_cast<std::size_t>(__builtin_popcountll(b));
