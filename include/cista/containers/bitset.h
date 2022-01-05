@@ -58,7 +58,9 @@ struct bitset {
   }
 
   constexpr bool test(std::size_t const i) const noexcept {
-    assert((i / bits_per_block) < num_blocks);
+    if (i >= Size) {
+      return false;
+    }
     auto const block = blocks_[i / bits_per_block];
     auto const bit = (i % bits_per_block);
     return (block & (block_t{1U} << bit)) != 0U;
