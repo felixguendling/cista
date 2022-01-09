@@ -306,6 +306,11 @@ void serialize(Ctx& c,
   }
 }
 
+template <typename Ctx, size_t Size>
+void serialize(Ctx& c, bitset<Size> const* origin, offset_t const pos) {
+  serialize(c, &origin->blocks_, pos);
+}
+
 template <typename Ctx, typename T, size_t Size>
 void serialize(Ctx& c, array<T, Size> const* origin, offset_t const pos) {
   auto const size =
@@ -818,6 +823,12 @@ void recurse(Ctx&, hash_storage<T, Ptr, GetKey, GetValue, Hash, Eq>* el,
   for (auto& m : *el) {
     fn(&m);
   }
+}
+
+// --- BITSET<SIZE> ---
+template <typename Ctx, size_t Size, typename Fn>
+void recurse(Ctx&, bitset<Size>* el, Fn&& fn) {
+  fn(&el->blocks_);
 }
 
 // --- ARRAY<T> ---
