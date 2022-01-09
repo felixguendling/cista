@@ -70,12 +70,12 @@ struct variant {
   using index_t = variant_index_t<T...>;
   static constexpr auto NO_VALUE = std::numeric_limits<index_t>::max();
 
-  variant() : idx_{NO_VALUE} {}
+  constexpr variant() : idx_{NO_VALUE} {}
 
   template <typename Arg,
             typename = std::enable_if_t<
                 index_of_type<std::decay_t<Arg>, T...>() != TYPE_NOT_FOUND>>
-  explicit variant(Arg&& arg)
+  constexpr explicit variant(Arg&& arg)
       : idx_{static_cast<index_t>(index_of_type<Arg, T...>())} {
 #if defined(CISTA_ZERO_OUT)
     std::memset(&storage_, 0, sizeof(storage_));
@@ -124,7 +124,11 @@ struct variant {
     }
   }
 
-  ~variant() { destruct(); }
+  constexpr ~variant() { destruct(); }
+
+  bool valid() const { return index() != NO_VALUE; }
+
+  operator bool() const { return valid(); }
 
   friend bool operator==(variant const& a, variant const& b) noexcept {
     return a.idx_ == b.idx_
@@ -203,7 +207,7 @@ struct variant {
     }
   }
 
-  void destruct() {
+  constexpr void destruct() {
     if (idx_ != NO_VALUE) {
       apply([](auto&& el) {
         using el_type = std::decay_t<decltype(el)>;
@@ -344,8 +348,8 @@ struct variant {
     });
   }
 
-  index_t idx_;
-  std::aligned_union_t<0, T...> storage_;
+  index_t idx_{NO_VALUE};
+  std::aligned_union_t<0, T...> storage_{};
 };
 
 template <typename T, typename... Ts>
