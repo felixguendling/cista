@@ -186,9 +186,11 @@ std::enable_if_t<is_tuple_v<decay_t<Tuple>>, bool> operator>=(Tuple&& a,
 namespace std {
 
 template <typename... Pack>
-struct tuple_size<cista::tuple<Pack...>> : cista::tuple_size<cista::tuple<Pack...>> {};
+struct tuple_size<cista::tuple<Pack...>>
+    : cista::tuple_size<cista::tuple<Pack...>> {};
 
 template <std::size_t I, typename... Pack>
-struct tuple_element<I, cista::tuple<Pack...>> : cista::tuple_element<I, cista::tuple<Pack...>> {};
+struct tuple_element<I, cista::tuple<Pack...>>
+    : cista::tuple_element<I, cista::tuple<Pack...>> {};
 
 } // namespace std
