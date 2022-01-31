@@ -44,7 +44,7 @@ Head& get(tuple<Head, Tail...>& t) {
 template <size_t I, typename Head, typename... Tail,
           std::enable_if_t<I != 0U, int> = 0>
 auto& get(tuple<Head, Tail...>& t) {
-  return get<I - 1U, Tail...>(t);
+  return get<I - 1U, Tail...>(static_cast<tuple<Tail...>&>(t));
 }
 
 template <size_t I, typename Head, typename... Tail,
@@ -56,7 +56,7 @@ Head const& get(tuple<Head, Tail...> const& t) {
 template <size_t I, typename Head, typename... Tail,
           std::enable_if_t<I != 0U, int> = 0>
 auto const& get(tuple<Head, Tail...> const& t) {
-  return get<I - 1U, Tail...>(t);
+  return get<I - 1U, Tail...>(static_cast<tuple<Tail...> const&>(t));
 }
 
 template <size_t I, typename Head, typename... Tail,
@@ -68,7 +68,7 @@ Head&& get(tuple<Head, Tail...>&& t) {
 template <size_t I, typename Head, typename... Tail,
           std::enable_if_t<I != 0U, int> = 0>
 auto&& get(tuple<Head, Tail...>&& t) {
-  return get<I - 1U, Tail...>(t);
+  return get<I - 1U, Tail...>(static_cast<tuple<Tail...>&&>(t));
 }
 
 template <typename T>

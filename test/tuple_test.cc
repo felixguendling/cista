@@ -21,6 +21,23 @@ TEST_CASE("tuple get") {
   CHECK(cista::get<2>(t) == '\0');
 }
 
+TEST_CASE("tuple get with same types") {
+  auto t = cista::tuple{1, 42, 1336, 11};
+
+  cista::get<2>(t) += 1;
+
+  CHECK(cista::get<0>(t) == 1);
+  CHECK(cista::get<1>(t) == 42);
+  CHECK(cista::get<2>(t) == 1337);
+  CHECK(cista::get<3>(t) == 11);
+  CHECK(cista::tuple_size_v<decltype(t)> == 4U);
+  cista::apply([](auto&... f) { ((f = {}), ...); }, t);
+  CHECK(cista::get<0>(t) == 0);
+  CHECK(cista::get<1>(t) == 0);
+  CHECK(cista::get<2>(t) == 0);
+  CHECK(cista::get<3>(t) == 0);
+}
+
 TEST_CASE("tuple comparison") {
   auto a = cista::tuple{2, 'a'};
   auto b = cista::tuple{1, 'b'};
