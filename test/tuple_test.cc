@@ -38,6 +38,16 @@ TEST_CASE("tuple get with same types") {
   CHECK(cista::get<3>(t) == 0);
 }
 
+TEST_CASE("tuple get with same type") {
+  auto t = cista::tuple{1, 42, 1336, 11};
+  auto& [t0, t1, t2, t3] = t;
+  t2 += 1;
+  CHECK(t0 == 1);
+  CHECK(t1 == 42);
+  CHECK(t2 == 1337);
+  CHECK(t3 == 11);
+}
+
 TEST_CASE("tuple comparison") {
   auto a = cista::tuple{2, 'a'};
   auto b = cista::tuple{1, 'b'};
