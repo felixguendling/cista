@@ -93,6 +93,9 @@ struct tuple_element<0, tuple<Head, Tail...>> {
   using type = Head;
 };
 
+template <std::size_t I, typename... Ts>
+using tuple_element_t = typename tuple_element<I, Ts...>::type;
+
 template <typename F, typename Tuple, std::size_t... I>
 constexpr decltype(auto) apply_impl(std::index_sequence<I...>, F&& f,
                                     Tuple&& t) {
@@ -184,7 +187,6 @@ std::enable_if_t<is_tuple_v<decay_t<Tuple>>, bool> operator>=(Tuple&& a,
 }  // namespace cista
 
 namespace std {
-
 template <typename... Pack>
 struct tuple_size<cista::tuple<Pack...>>
     : cista::tuple_size<cista::tuple<Pack...>> {};
@@ -193,4 +195,4 @@ template <std::size_t I, typename... Pack>
 struct tuple_element<I, cista::tuple<Pack...>>
     : cista::tuple_element<I, cista::tuple<Pack...>> {};
 
-} // namespace std
+}  // namespace std
