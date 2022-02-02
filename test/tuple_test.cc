@@ -38,7 +38,7 @@ TEST_CASE("tuple get with same types") {
   CHECK(cista::get<3>(t) == 0);
 }
 
-TEST_CASE("tuple get with same type") {
+TEST_CASE("tuple2 structured bindings") {
   auto t = cista::tuple{1, 42, 1336, 11};
   auto& [t0, t1, t2, t3] = t;
   t2 += 1;
