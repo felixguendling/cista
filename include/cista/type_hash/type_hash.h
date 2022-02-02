@@ -95,6 +95,14 @@ hash_t type_hash(tuple<T...> const&, hash_t h,
   return h;
 }
 
+template <typename... T>
+hash_t type_hash(tuple2<T...> const&, hash_t h,
+                 std::map<hash_t, unsigned>& done) {
+  h = hash_combine(h, hash("tuple"));
+  ((h = type_hash(T{}, h, done)), ...);
+  return h;
+}
+
 template <typename Ptr>
 hash_t type_hash(generic_string<Ptr> const&, hash_t h,
                  std::map<hash_t, unsigned>&) {
