@@ -61,9 +61,9 @@ template <size_t I, typename... Ts>
 using type_at_position_t = typename type_at_position<I, Ts...>::type;
 
 template <typename T, typename... Ts>
-constexpr std::size_t get_offset(std::size_t current_idx,
+constexpr std::size_t get_offset(std::size_t const current_idx,
                                  std::size_t current_offset = 0) {
-  if (auto misalign = current_offset % alignof(T); misalign != 0) {
+  if (auto const misalign = current_offset % alignof(T); misalign != 0) {
     current_offset += (alignof(T) - misalign) % alignof(T);
   }
 
@@ -86,13 +86,13 @@ constexpr std::size_t get_size() {
 }
 
 template <std::size_t I, typename T, typename... Ts>
-constexpr typename std::enable_if_t<I == 0, T>&& get_arg(T&& arg, Ts&&...) {
+constexpr std::enable_if_t<I == 0, T>&& get_arg(T&& arg, Ts&&...) {
   return std::forward<T>(arg);
 }
 
 template <std::size_t I, typename T, typename... Ts>
-constexpr typename std::enable_if_t<I != 0, type_at_position_t<I, T, Ts...>>&&
-get_arg(T&& arg, Ts&&... args) {
+constexpr std::enable_if_t<I != 0, type_at_position_t<I, T, Ts...>>&& get_arg(
+    T&&, Ts&&... args) {
   return get_arg<I - 1>(std::forward<Ts>(args)...);
 }
 
