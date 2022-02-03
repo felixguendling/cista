@@ -8,20 +8,6 @@ template <typename... Ts>
 struct tuple2;
 
 template <typename... Ts>
-struct size_of : std::integral_constant<std::size_t, (0 + ... + sizeof(Ts))> {};
-
-template <typename... Ts>
-constexpr inline auto size_of_v = size_of<Ts...>::value;
-
-template <typename... Ts>
-struct size_of<std::tuple<Ts...>> : size_of<Ts...> {};
-
-template <std::size_t I, typename T, typename... Ts>
-struct size_of_until
-    : std::integral_constant<std::size_t,
-                             sizeof(T) + size_of_until<I - 1, Ts...>::value> {};
-
-template <typename... Ts>
 struct max_align_of;
 
 template <typename T, typename... Ts>
@@ -34,7 +20,36 @@ template <>
 struct max_align_of<> : std::integral_constant<std::size_t, 0> {};
 
 template <typename... Ts>
-constexpr auto max_align_of_v = max_align_of<Ts...>::value;
+constexpr static auto max_align_of_v = max_align_of<Ts...>::value;
+
+constexpr std::size_t get_alignment_padding(std::size_t const size,
+                                            std::size_t const max_align) {
+  return (max_align - (size % max_align)) % max_align;
+}
+
+template <typename T>
+constexpr auto get_size_in_tuple(std::size_t const max_align) {
+  return sizeof(T) + get_alignment_padding(sizeof(T), max_align);
+}
+
+template <typename... Ts>
+constexpr auto get_total_size() {
+  constexpr auto max_align = max_align_of_v<Ts...>;
+  return (0 + ... + get_size_in_tuple<Ts>(max_align));
+}
+
+template <std::size_t I, std::size_t Align, typename T, typename... Ts>
+struct size_of_until
+    : std::integral_constant<std::size_t,
+                             get_size_in_tuple<T>(Align) +
+                                 size_of_until<I - 1, Align, Ts...>::value> {};
+
+template <std::size_t Align, typename T, typename... Ts>
+struct size_of_until<0, Align, T, Ts...>
+    : std::integral_constant<std::size_t, 0> {};
+
+template <std::size_t I, std::size_t Align, typename... Ts>
+constexpr auto size_of_until_v = size_of_until<I, Align, Ts...>::value;
 
 template <typename... Ts>
 struct max_size_of;
@@ -50,26 +65,6 @@ struct max_size_of<> : std::integral_constant<std::size_t, 0> {};
 
 template <typename... Ts>
 constexpr auto max_size_of_v = max_size_of<Ts...>::value;
-
-template <typename T, typename... Ts>
-struct size_of_until<0, T, Ts...> : std::integral_constant<std::size_t, 0> {};
-
-template <typename... Ts>
-struct size_of_until<0, std::tuple<Ts...>>
-    : std::integral_constant<std::size_t, 0> {};
-
-template <std::size_t I, typename... Ts>
-struct size_of_until<I, std::tuple<Ts...>> : size_of_until<I, Ts...> {};
-
-template <typename... Ts>
-struct size_of_until<0, tuple2<Ts...>>
-    : std::integral_constant<std::size_t, 0> {};
-
-template <std::size_t I, typename... Ts>
-struct size_of_until<I, tuple2<Ts...>> : size_of_until<I, Ts...> {};
-
-template <std::size_t I, typename... Ts>
-constexpr inline auto size_of_until_v = size_of_until<I, Ts...>::value;
 
 template <std::size_t I, typename T>
 struct type_at_position;
@@ -149,8 +144,18 @@ struct tuple2 {
     ((get<Is>(*this).~decay_t<decltype(get<Is>(*this))>()), ...);
   }
 
+  template <std::size_t I>
+  constexpr auto get_ptr() {
+    return &mem_[size_of_until_v<I, max_align_of_v<Ts...>, Ts...>];
+  }
+
+  template <std::size_t I>
+  constexpr auto get_ptr() const {
+    return &mem_[size_of_until_v<I, max_align_of_v<Ts...>, Ts...>];
+  }
+
   std::aligned_storage<max_size_of_v<Ts...>, max_align_of_v<Ts...>>
-      mem_[sizeof...(Ts) * max_size_of_v<Ts...>];
+      mem_[get_total_size<Ts...>()];
 };
 
 template <typename Head, typename... Tail>
@@ -159,29 +164,27 @@ tuple2(Head&& first, Tail&&... tail) -> tuple2<Head, Tail...>;
 template <size_t I, typename... Ts>
 auto& get(tuple2<Ts...>& t) {
   using return_t = type_at_position_t<I, tuple2<Ts...>>;
-  return *std::launder(
-      reinterpret_cast<return_t*>(&t.mem_[I * max_size_of_v<Ts...>]));
+  return *std::launder(reinterpret_cast<return_t*>(t.template get_ptr<I>()));
 }
 
 template <size_t I, typename... Ts>
 auto const& get(tuple2<Ts...> const& t) {
   using return_t = type_at_position_t<I, tuple2<Ts...>>;
   return *std::launder(
-      reinterpret_cast<return_t const*>(&t.mem_[I * max_size_of_v<Ts...>]));
+      reinterpret_cast<return_t const*>(t.template get_ptr<I>()));
 }
 
 template <size_t I, typename... Ts>
 auto&& get(tuple2<Ts...>&& t) {
   using return_t = type_at_position_t<I, tuple2<Ts...>>;
-  return *std::launder(
-      reinterpret_cast<return_t*>(&t.mem_[I * max_size_of_v<Ts...>]));
+  return *std::launder(reinterpret_cast<return_t*>(t.template get_ptr<I>()));
 }
 
 template <size_t I, typename... Ts>
 auto const&& get(tuple2<Ts...> const&& t) {
   using return_t = type_at_position_t<I, tuple2<Ts...>>;
   return *std::launder(
-      reinterpret_cast<return_t const*>(&t.mem_[I * max_size_of_v<Ts...>]));
+      reinterpret_cast<return_t const*>(t.template get_ptr<I>()));
 }
 
 template <typename... Ts>

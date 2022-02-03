@@ -11,7 +11,6 @@
 namespace data = cista::offset;
 
 TEST_SUITE("tuple2") {
-
   TEST_CASE("tuple2 get") {
     auto t = cista::tuple2{1, .1, 'a'};
 
@@ -83,18 +82,11 @@ TEST_SUITE("tuple2") {
                         3, cista::tuple2<uint32_t, uint64_t, float, double>>>);
   }
 
-  TEST_CASE("size_of") {  // NOLINT
-    static_assert(cista::size_of_v<uint32_t> == 4);
-    static_assert(cista::size_of_v<uint32_t, uint32_t> == 8);
-
-    static_assert(sizeof(cista::tuple2<int, int>) == 8);
-    static_assert(sizeof(cista::tuple2<uint32_t, uint32_t>) == 8);
-    static_assert(sizeof(cista::tuple2<uint32_t, uint64_t>) == 16);
-  }
-
   TEST_CASE("size_of_until") {  // NOLINT
-    static_assert(cista::size_of_until_v<0, int, int> == 0);
-    static_assert(cista::size_of_until_v<1, int, int> == 4);
+    static_assert(cista::size_of_until_v<0, 4, int, int> == 0);
+    static_assert(cista::size_of_until_v<1, 4, int, int> == 4);
+    static_assert(cista::size_of_until_v<0, 4, uint32_t, uint32_t> == 0);
+    static_assert(cista::size_of_until_v<1, 8, uint32_t, uint64_t> == 8);
   }
 
   TEST_CASE("tuple2 - simple get") {  // NOLINT
@@ -269,5 +261,13 @@ TEST_SUITE("tuple2") {
                           data::string{"this is a very very very long string"},
                           data::string{"6"}}});
     CHECK(std::get<1>(serialized) == 55);
+  }
+
+  TEST_CASE("size check") {
+    using pixbuf = std::array<uint32_t, 1920 * 1080>;
+    enum class error_code { success, fail };
+
+    static_assert(sizeof(std::tuple<pixbuf, error_code>) ==
+                  sizeof(cista::tuple2<pixbuf, error_code>));
   }
 }
