@@ -82,13 +82,6 @@ TEST_SUITE("tuple2") {
                         3, cista::tuple2<uint32_t, uint64_t, float, double>>>);
   }
 
-  TEST_CASE("size_of_until") {  // NOLINT
-    static_assert(cista::size_of_until_v<0, 4, int, int> == 0);
-    static_assert(cista::size_of_until_v<1, 4, int, int> == 4);
-    static_assert(cista::size_of_until_v<0, 4, uint32_t, uint32_t> == 0);
-    static_assert(cista::size_of_until_v<1, 8, uint32_t, uint64_t> == 8);
-  }
-
   TEST_CASE("tuple2 - simple get") {  // NOLINT
     cista::tuple2<uint32_t, uint64_t, float, double> t = {42, 1082342034, 0.42F,
                                                           0.001337};
@@ -109,15 +102,6 @@ TEST_SUITE("tuple2") {
     CHECK(cista::get<1>(t2) == std::numeric_limits<uint64_t>::max());
     CHECK(cista::get<2>(t2) == std::numeric_limits<float>::max());
     CHECK(cista::get<3>(t2) == std::numeric_limits<double>::max());
-  }
-
-  TEST_CASE("tuple2 - container get") {  // NOLINT
-    cista::tuple2<data::vector<float>> t = {{0.1F, 0.2F, 10.11F}};
-
-    auto& vec = cista::get<0>(t);
-    CHECK(vec.front() == 0.1F);
-    CHECK(vec[1] == 0.2F);
-    CHECK(vec.back() == 10.11F);
   }
 
   TEST_CASE("tuple2 - container get with preceding type") {  // NOLINT
@@ -263,11 +247,22 @@ TEST_SUITE("tuple2") {
     CHECK(std::get<1>(serialized) == 55);
   }
 
+  template <typename... Ts>
+  void check_size() {
+    static_assert(sizeof(std::tuple<Ts...>) == sizeof(cista::tuple2<Ts...>));
+  }
+
   TEST_CASE("size check") {
     using pixbuf = std::array<uint32_t, 1920 * 1080>;
     enum class error_code { success, fail };
 
-    static_assert(sizeof(std::tuple<pixbuf, error_code>) ==
-                  sizeof(cista::tuple2<pixbuf, error_code>));
+    check_size<pixbuf, error_code>();
+    check_size<uint16_t, uint32_t, uint64_t>();
+    check_size<uint32_t, uint64_t, uint16_t>();
+    check_size<uint16_t, uint32_t, uint16_t, uint64_t>();
+    check_size<uint16_t, uint32_t, uint16_t, uint16_t, uint64_t>();
+    check_size<uint16_t, uint32_t, uint8_t, uint8_t, uint8_t, uint64_t>();
+    check_size<uint64_t, uint32_t, float, uint8_t, uint8_t, bool, double,
+               uint64_t, uint8_t>();
   }
 }

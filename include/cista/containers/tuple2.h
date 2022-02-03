@@ -22,35 +22,6 @@ struct max_align_of<> : std::integral_constant<std::size_t, 0> {};
 template <typename... Ts>
 constexpr static auto max_align_of_v = max_align_of<Ts...>::value;
 
-constexpr std::size_t get_alignment_padding(std::size_t const size,
-                                            std::size_t const max_align) {
-  return (max_align - (size % max_align)) % max_align;
-}
-
-template <typename T>
-constexpr auto get_size_in_tuple(std::size_t const max_align) {
-  return sizeof(T) + get_alignment_padding(sizeof(T), max_align);
-}
-
-template <typename... Ts>
-constexpr auto get_total_size() {
-  constexpr auto max_align = max_align_of_v<Ts...>;
-  return (0 + ... + get_size_in_tuple<Ts>(max_align));
-}
-
-template <std::size_t I, std::size_t Align, typename T, typename... Ts>
-struct size_of_until
-    : std::integral_constant<std::size_t,
-                             get_size_in_tuple<T>(Align) +
-                                 size_of_until<I - 1, Align, Ts...>::value> {};
-
-template <std::size_t Align, typename T, typename... Ts>
-struct size_of_until<0, Align, T, Ts...>
-    : std::integral_constant<std::size_t, 0> {};
-
-template <std::size_t I, std::size_t Align, typename... Ts>
-constexpr auto size_of_until_v = size_of_until<I, Align, Ts...>::value;
-
 template <typename... Ts>
 struct max_size_of;
 
@@ -81,10 +52,33 @@ struct type_at_position<0, tuple2<T, Ts...>> {
 template <size_t I, typename... Ts>
 using type_at_position_t = typename type_at_position<I, Ts...>::type;
 
+template <typename T, typename... Ts>
+constexpr std::size_t get_offset(std::size_t current_idx,
+                                 std::size_t current_offset = 0) {
+  if (auto misalign = current_offset % alignof(T); misalign != 0) {
+    current_offset += (alignof(T) - misalign) % alignof(T);
+  }
+
+  if (current_idx == 0) {
+    return current_offset;
+  }
+
+  current_offset += sizeof(T);
+
+  if constexpr (sizeof...(Ts) == 0) {
+    return current_idx == 1 ? current_offset + sizeof(T) : current_offset;
+  } else {
+    return get_offset<Ts...>(current_idx - 1, current_offset);
+  }
+}
+
 template <typename... Ts>
-// TODO(julian) align this struct itself?
-// struct alignas(max_align_of_v<Ts...>) tuple2 {
-struct tuple2 {
+constexpr std::size_t get_size() {
+  return get_offset<Ts...>(sizeof...(Ts) + 1);
+}
+
+template <typename... Ts>
+struct alignas(max_align_of_v<Ts...>) tuple2 {
   template <std::size_t... Is>
   using seq_t = const std::integer_sequence<std::size_t, Is...>;
   static constexpr auto Indices = std::make_index_sequence<sizeof...(Ts)>{};
@@ -146,16 +140,16 @@ struct tuple2 {
 
   template <std::size_t I>
   constexpr auto get_ptr() {
-    return &mem_[size_of_until_v<I, max_align_of_v<Ts...>, Ts...>];
+    return &mem_[get_offset<Ts...>(I)];
   }
 
   template <std::size_t I>
   constexpr auto get_ptr() const {
-    return &mem_[size_of_until_v<I, max_align_of_v<Ts...>, Ts...>];
+    return &mem_[get_offset<Ts...>(I)];
   }
 
   std::aligned_storage<max_size_of_v<Ts...>, max_align_of_v<Ts...>>
-      mem_[get_total_size<Ts...>()];
+      mem_[get_size<Ts...>()];
 };
 
 template <typename Head, typename... Tail>
