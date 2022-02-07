@@ -20,7 +20,7 @@ template <>
 struct max_align_of<> : std::integral_constant<std::size_t, 0> {};
 
 template <typename... Ts>
-constexpr static auto max_align_of_v = max_align_of<Ts...>::value;
+constexpr auto max_align_of_v = max_align_of<Ts...>::value;
 
 template <typename... Ts>
 struct max_size_of;
@@ -134,20 +134,14 @@ struct alignas(max_align_of_v<Ts...>) tuple2 {
      ...);
   }
 
-  template <typename Tuple, std::size_t... Is>
-  constexpr void set_array(Tuple&& t, seq_t<Is...>) {
-    ((get<Is>(*this) = std::move(std::get<Is>(t))), ...);
-  }
-
   template <std::size_t... Is>
   constexpr void default_construct(seq_t<Is...>) {
-    ((new (&get<Is>(*this)) type_at_position_t<Is, tuple2<Ts...>>{}), ...);
+    ((new (&get<Is>(*this)) type_at_position_t<Is, Ts...>{}), ...);
   }
 
   template <typename From, std::size_t... Is>
   constexpr void copy_construct(From const& from, seq_t<Is...>) {
-    (new (&get<Is>(*this)) type_at_position_t<Is, tuple2<Ts...>>(get<Is>(from)),
-     ...);
+    (new (&get<Is>(*this)) type_at_position_t<Is, Ts...>(get<Is>(from)), ...);
   }
 
   template <typename From, std::size_t... Is>
@@ -158,7 +152,7 @@ struct alignas(max_align_of_v<Ts...>) tuple2 {
   template <typename From, std::size_t... Is>
   constexpr void move_construct(From&& from, seq_t<Is...>) {
     (new (&get<Is>(*this))
-         type_at_position_t<Is, tuple2<Ts...>>(std::move(get<Is>(from))),
+         type_at_position_t<Is, Ts...>(std::move(get<Is>(from))),
      ...);
   }
 
@@ -169,7 +163,7 @@ struct alignas(max_align_of_v<Ts...>) tuple2 {
 
   template <std::size_t... Is>
   constexpr void destruct(seq_t<Is...>) {
-    ((get<Is>(*this).~decay_t<decltype(get<Is>(*this))>()), ...);
+    ((get<Is>(*this).~type_at_position_t<Is, Ts...>()), ...);
   }
 
   template <std::size_t I>
