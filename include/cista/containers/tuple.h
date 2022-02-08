@@ -178,6 +178,9 @@ struct tuple {
   std::aligned_storage_t<get_total_size<Ts...>(), max_align_of<Ts...>()> mem_;
 };
 
+template <typename Head, typename... Tail>
+tuple(Head&& first, Tail&&... tail) -> tuple<Head, Tail...>;
+
 template <typename Tuple>
 struct is_tuple : std::false_type {};
 
