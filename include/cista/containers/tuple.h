@@ -162,6 +162,7 @@ struct tuple {
 
   template <typename T>
   constexpr void destruct(T& t) {
+    static_assert(!std::is_array_v<T>);
     t.~T();
   }
 
