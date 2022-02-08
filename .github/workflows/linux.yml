@@ -56,13 +56,13 @@ jobs:
             cc: clang-13
             mode: Debug
             fuzz: true
-          - key: Clang 13 Sanitizer
-            cxx: clang++-13
-            cc: clang-13
+          - key: GCC 9 Sanitizer
+            cxx: g++-9
+            cc: gcc-9
             mode: Debug
             cflags: -fsanitize=address,undefined -fno-omit-frame-pointer
-            cxxflags: -fsanitize=address,undefined -fno-omit-frame-pointer -stdlib=libc++
-            ldflags: -lc++abi
+            cxxflags: -fsanitize=address,undefined -fno-omit-frame-pointer
+
     env:
       UBSAN_OPTIONS: halt_on_error=1:abort_on_error=1
     steps:
