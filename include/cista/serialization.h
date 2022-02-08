@@ -791,27 +791,28 @@ void check_state(Ctx const& c,
             "hash storage: ctrl bytes must be empty or deleted or full");
 
   using st_t = typename Type::size_type;
-  auto [empty, full, deleted, growth] = std::accumulate(
-      ptr_cast(el->ctrl_), ptr_cast(el->ctrl_) + el->capacity_,
-      std::tuple{st_t{0U}, st_t{0U}, st_t{0U}, st_t{0}},
-      [&](std::tuple<st_t, st_t, st_t, st_t> const acc,
-          typename Type::ctrl_t const& ctrl) {
-        auto const [empty, full, deleted, growth_left] = acc;
-        return std::tuple{
-            Type::is_empty(ctrl) ? empty + 1 : empty,
-            Type::is_full(ctrl) ? full + 1 : full,
-            Type::is_deleted(ctrl) ? deleted + 1 : deleted,
-            (Type::is_empty(ctrl) &&
-                     el->was_never_full(static_cast<st_t>(&ctrl - el->ctrl_))
-                 ? growth_left + 1
-                 : growth_left)};
-      });
+  auto [total_empty, total_full, total_deleted, total_growth_left] =
+      std::accumulate(
+          ptr_cast(el->ctrl_), ptr_cast(el->ctrl_) + el->capacity_,
+          std::tuple{st_t{0U}, st_t{0U}, st_t{0U}, st_t{0}},
+          [&](std::tuple<st_t, st_t, st_t, st_t> const acc,
+              typename Type::ctrl_t const& ctrl) {
+            auto const [empty, full, deleted, growth_left] = acc;
+            return std::tuple{
+                Type::is_empty(ctrl) ? empty + 1 : empty,
+                Type::is_full(ctrl) ? full + 1 : full,
+                Type::is_deleted(ctrl) ? deleted + 1 : deleted,
+                (Type::is_empty(ctrl) && el->was_never_full(static_cast<st_t>(
+                                             &ctrl - el->ctrl_))
+                     ? growth_left + 1
+                     : growth_left)};
+          });
 
-  c.require(el->size_ == full, "hash storage: size");
-  c.require(empty + full + deleted == el->capacity_,
+  c.require(el->size_ == total_full, "hash storage: size");
+  c.require(total_empty + total_full + total_deleted == el->capacity_,
             "hash storage: empty + full + deleted = capacity");
   c.require(std::min(Type::capacity_to_growth(el->capacity_) - el->size_,
-                     growth) <= el->growth_left_,
+                     total_growth_left) <= el->growth_left_,
             "hash storage: growth left");
 }
 

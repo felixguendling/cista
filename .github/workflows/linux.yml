@@ -45,24 +45,25 @@ jobs:
             cxx: g++-9
             cc: gcc-9
             mode: Debug
-          - name: Clang 9 Release
-            cxx: clang++-9
-            cc: clang-9
+            valgrind: true
+          - name: Clang 13 Release
+            cxx: clang++-13
+            cc: clang-13
             mode: Release
             cxxflags: -stdlib=libc++
             ldflags: -lc++abi
-          - name: Clang 9 Debug
-            cxx: clang++-9
-            cc: clang-9
+          - name: Clang 13 Debug
+            cxx: clang++-13
+            cc: clang-13
             mode: Debug
             fuzz: true
-          - key: Clang 9 Sanitizer
-            cxx: clang++-9
-            cc: clang-9
+          - key: GCC 9 Sanitizer
+            cxx: g++-9
+            cc: gcc-9
             mode: Debug
             cflags: -fsanitize=address,undefined -fno-omit-frame-pointer
-            cxxflags: -fsanitize=address,undefined -fno-omit-frame-pointer -stdlib=libc++
-            ldflags: -lc++abi
+            cxxflags: -fsanitize=address,undefined -fno-omit-frame-pointer
+
     env:
       UBSAN_OPTIONS: halt_on_error=1:abort_on_error=1
     steps:
@@ -71,12 +72,16 @@ jobs:
 
       # ==== INSTALL ====
       - name: Install
-        if: matrix.config.cc == 'clang-9'
+        if: matrix.config.cc == 'clang-13'
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libc++-9-dev libc++abi-9-dev libfuzzer-9-dev
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 13 || sudo ./llvm.sh 13 workaround
+          rm llvm.sh
+          sudo apt-get install -y --no-install-recommends libc++-13-dev libc++abi-13-dev clang-tidy-13 libunwind-13-dev llvm-13
 
       # ==== BUILD ====
       - name: CMake
@@ -102,17 +107,17 @@ jobs:
 
       # ==== VALGRIND ====
       - name: Install Valgrind
-        if: matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-9'
+        if: matrix.config.valgrind
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
-           sudo apt-get update
-           sudo apt-get install -y --no-install-recommends valgrind
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends valgrind
       - name: Run Single Header Tests Valgrind
-        if: matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-9'
+        if: matrix.config.valgrind
         run: valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full ./build/cista-test
       - name: Run Single Header Tests Tests Valgrind
-        if: matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-9'
+        if: matrix.config.valgrind
         run: valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full ./build/cista-test-single-header
 
       # ==== FUZZ ====
