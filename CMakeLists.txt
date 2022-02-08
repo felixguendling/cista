@@ -23,10 +23,10 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
      -Wno-undef
      -Wno-undefined-reinterpret-cast
      -Wno-float-conversion
-     -Wno-return-std-move-in-c++11
      -Wno-gnu-zero-variadic-macro-arguments
      -Wno-unknown-pragmas
      -Wno-documentation-unknown-command
+     -Wno-reserved-identifier
      -Werror
   )
 endif()
