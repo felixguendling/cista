@@ -249,7 +249,7 @@ TEST_SUITE("tuple") {
 
   template <typename... Ts>
   void check_size() {
-    static_assert(sizeof(std::tuple<Ts...>) == sizeof(cista::tuple<Ts...>));
+    CHECK(sizeof(std::tuple<Ts...>) == sizeof(cista::tuple<Ts...>));
   }
 
   TEST_CASE("size check") {
