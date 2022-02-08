@@ -343,19 +343,6 @@ void serialize(Ctx& c, tuple<T...> const* origin,
       *origin);
 }
 
-template <typename Ctx, typename... T>
-void serialize(Ctx& c, tuple2<T...> const* origin,
-               cista::offset_t const offset) {
-  apply(
-      [&](auto&&... args) {
-        (serialize(c, &args,
-                   offset + (reinterpret_cast<intptr_t>(&args) -
-                             reinterpret_cast<intptr_t>(origin))),
-         ...);
-      },
-      *origin);
-}
-
 constexpr offset_t integrity_start(mode const m) noexcept {
   offset_t start = 0;
   if (is_mode_enabled(m, mode::WITH_VERSION)) {

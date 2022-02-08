@@ -6,7 +6,6 @@
 #include "cista/containers/hash_set.h"
 #include "cista/containers/string.h"
 #include "cista/containers/tuple.h"
-#include "cista/containers/tuple2.h"
 #include "cista/containers/unique_ptr.h"
 #include "cista/containers/variant.h"
 #include "cista/containers/vector.h"
