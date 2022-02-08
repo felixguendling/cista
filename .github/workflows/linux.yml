@@ -45,6 +45,7 @@ jobs:
             cxx: g++-9
             cc: gcc-9
             mode: Debug
+            valgrind: true
           - name: Clang 13 Release
             cxx: clang++-13
             cc: clang-13
@@ -106,17 +107,17 @@ jobs:
 
       # ==== VALGRIND ====
       - name: Install Valgrind
-        if: matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-9'
+        if: matrix.config.valgrind
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends valgrind
       - name: Run Single Header Tests Valgrind
-        if: matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-9'
+        if: matrix.config.valgrind
         run: valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full ./build/cista-test
       - name: Run Single Header Tests Tests Valgrind
-        if: matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-9'
+        if: matrix.config.valgrind
         run: valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full ./build/cista-test-single-header
 
       # ==== FUZZ ====
