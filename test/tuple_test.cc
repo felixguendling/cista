@@ -247,6 +247,7 @@ TEST_SUITE("tuple") {
     CHECK(std::get<1>(serialized) == 55);
   }
 
+#ifndef _WIN32
   template <typename... Ts>
   void check_size() {
     CHECK(sizeof(std::tuple<Ts...>) == sizeof(cista::tuple<Ts...>));
@@ -265,4 +266,5 @@ TEST_SUITE("tuple") {
     check_size<uint64_t, uint32_t, float, uint8_t, uint8_t, bool, double,
                uint64_t, uint8_t>();
   }
+#endif
 }
