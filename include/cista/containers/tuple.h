@@ -160,9 +160,14 @@ struct tuple {
     ((get<Is>(*this) = std::move(get<Is>(from))), ...);
   }
 
+  template <typename T>
+  constexpr void destruct(T& t) {
+    t.~T();
+  }
+
   template <std::size_t... Is>
   constexpr void destruct(seq_t<Is...>) {
-    ((get<Is>(*this).~tuple_element_t<Is, Ts...>()), ...);
+    (destruct(get<Is>(*this)), ...);
   }
 
   template <std::size_t I>
