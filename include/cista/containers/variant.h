@@ -123,8 +123,12 @@ struct variant {
       return *this;
     }
   }
-
-  constexpr ~variant() { destruct(); }
+#if __cplusplus > 201703L
+  constexpr
+#endif
+      ~variant() {
+    destruct();
+  }
 
   bool valid() const { return index() != NO_VALUE; }
 
