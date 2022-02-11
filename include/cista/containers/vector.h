@@ -142,10 +142,12 @@ struct basic_vector {
 
   template <typename It>
   void set(It begin_it, It end_it) {
-    auto range_size =
-        static_cast<TemplateSizeType>(std::distance(begin_it, end_it));
-    assert(range_size <= std::numeric_limits<TemplateSizeType>::max() &&
-           "size type overflow");
+    auto const range_size = std::distance(begin_it, end_it);
+    if (range_size < 0 ||
+        range_size > std::numeric_limits<TemplateSizeType>::max()) {
+      throw std::runtime_error{"cista::vector::set: invalid range"};
+    }
+
     reserve(static_cast<TemplateSizeType>(range_size));
 
     auto copy_source = begin_it;
