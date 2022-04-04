@@ -26,6 +26,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
      -Wno-gnu-zero-variadic-macro-arguments
      -Wno-unknown-pragmas
      -Wno-documentation-unknown-command
+     -Wno-reserved-identifier
      -Werror
   )
 endif()
