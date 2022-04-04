@@ -59,7 +59,7 @@ struct offset_ptr {
 
   explicit operator bool() const noexcept { return offset_ != NULLPTR_OFFSET; }
   explicit operator void*() const noexcept { return get(); }
-  explicit operator void const *() const noexcept { return get(); }
+  explicit operator void const*() const noexcept { return get(); }
   operator T*() const noexcept { return get(); }
   T& operator*() const noexcept { return *get(); }
   T* operator->() const noexcept { return get(); }
@@ -132,7 +132,7 @@ struct offset_ptr<T, std::enable_if_t<std::is_same_v<void, T>>> {
 
   operator bool() const noexcept { return offset_ != NULLPTR_OFFSET; }
   explicit operator void*() const noexcept { return get(); }
-  explicit operator void const *() const noexcept { return get(); }
+  explicit operator void const*() const noexcept { return get(); }
   T* get() const noexcept {
     auto const ptr =
         offset_ == NULLPTR_OFFSET

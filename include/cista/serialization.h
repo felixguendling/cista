@@ -7,6 +7,7 @@
 #include <set>
 #include <vector>
 
+#include "cista/aligned_alloc.h"
 #include "cista/containers.h"
 #include "cista/decay.h"
 #include "cista/endian/conversion.h"
@@ -447,7 +448,7 @@ struct deserialization_context {
 
   template <typename T>
   void convert_endian(T& el) const {
-    if (endian_conversion_necessary<MODE>()) {
+    if constexpr (endian_conversion_necessary<MODE>()) {
       el = ::cista::convert_endian<MODE>(el);
     }
   }
@@ -922,6 +923,29 @@ T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr) {
 template <typename T, mode const Mode = mode::NONE, typename Container>
 T* unchecked_deserialize(Container& c) {
   return unchecked_deserialize<T, Mode>(&c[0], &c[0] + c.size());
+}
+
+template <typename T, mode const Mode = mode::NONE>
+T copy_from_potentially_unaligned(std::string_view buf) {
+  struct aligned {
+    explicit aligned(std::string_view buf)
+        : mem_{static_cast<std::uint8_t*>(
+              CISTA_ALIGNED_ALLOC(sizeof(max_align_t), buf.size()))} {
+      verify(mem_ != nullptr, "failed to allocate aligned memory");
+      std::memcpy(mem_, buf.data(), buf.size());
+    }
+    ~aligned() { CISTA_ALIGNED_FREE(sizeof(max_align_t), mem_); }
+    std::uint8_t* mem_;
+  };
+
+  auto const is_already_aligned =
+      (reinterpret_cast<std::uintptr_t>(buf.data()) % sizeof(max_align_t)) == 0;
+  if (is_already_aligned) {
+    return *deserialize<T, Mode>(buf);
+  } else {
+    auto copy = aligned{buf};
+    return *deserialize<T, Mode>(copy.mem_, copy.mem_ + buf.size());
+  }
 }
 
 namespace raw {
