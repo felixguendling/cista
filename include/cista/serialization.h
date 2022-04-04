@@ -939,7 +939,7 @@ T copy_from_potentially_unaligned(std::string_view buf) {
   };
 
   auto const is_already_aligned =
-      (reinterpret_cast<std::intptr_t>(buf.data()) % sizeof(max_align_t)) == 0;
+      (reinterpret_cast<std::uintptr_t>(buf.data()) % sizeof(max_align_t)) == 0;
   if (is_already_aligned) {
     return *deserialize<T, Mode>(buf);
   } else {
