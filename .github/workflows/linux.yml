@@ -21,12 +21,12 @@ jobs:
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
-          sudo ./llvm.sh 12
+          sudo ./llvm.sh 14
           rm llvm.sh
-          sudo apt-get install -y --no-install-recommends clang-format-12
+          sudo apt-get install -y --no-install-recommends clang-format-14
 
       - name: Format files
-        run: find include test -type f -a \( -name "*.cc" -o -name "*.h" \) -print0 | xargs -0  clang-format-12 -i
+        run: find include test -type f -a \( -name "*.cc" -o -name "*.h" \) -print0 | xargs -0  clang-format-14 -i
 
       - name: Check for differences
         run: |
@@ -46,15 +46,15 @@ jobs:
             cc: gcc-9
             mode: Debug
             valgrind: true
-          - name: Clang 13 Release
-            cxx: clang++-13
-            cc: clang-13
+          - name: Clang 14 Release
+            cxx: clang++-14
+            cc: clang-14
             mode: Release
             cxxflags: -stdlib=libc++
             ldflags: -lc++abi
-          - name: Clang 13 Debug
-            cxx: clang++-13
-            cc: clang-13
+          - name: Clang 14 Debug
+            cxx: clang++-14
+            cc: clang-14
             mode: Debug
             fuzz: true
           - key: GCC 9 Sanitizer
@@ -72,16 +72,16 @@ jobs:
 
       # ==== INSTALL ====
       - name: Install
-        if: matrix.config.cc == 'clang-13'
+        if: matrix.config.cc == 'clang-14'
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
           sudo apt-get update
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
-          sudo ./llvm.sh 13 || sudo ./llvm.sh 13 workaround
+          sudo ./llvm.sh 14 || sudo ./llvm.sh 14 workaround
           rm llvm.sh
-          sudo apt-get install -y --no-install-recommends libc++-13-dev libc++abi-13-dev clang-tidy-13 libunwind-13-dev llvm-13
+          sudo apt-get install -y --no-install-recommends libc++-14-dev libc++abi-14-dev clang-tidy-14 libunwind-14-dev llvm-14
 
       # ==== BUILD ====
       - name: CMake
