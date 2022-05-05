@@ -37,6 +37,9 @@ option(CISTA_GENERATE_TO_TUPLE "generate include/cista/reflection/to_tuple.h" OF
 set(CISTA_HASH "FNV1A" CACHE STRING "Options: FNV1A XXH3 WYHASH WYHASH_FASTEST")
 
 add_library(cista INTERFACE)
+if (MSVC)
+  target_compile_options(cista INTERFACE /Zc:__cplusplus)
+endif()
 if (CISTA_HASH STREQUAL "XXH3")
   add_subdirectory(tools/xxh3)
   target_link_libraries(cista INTERFACE xxh3)
