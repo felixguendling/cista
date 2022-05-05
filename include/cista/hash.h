@@ -116,10 +116,10 @@ constexpr hash_t hash_combine(hash_t h, Args... val) noexcept {
   return h;
 }
 
-inline hash_t hash(std::string_view s, hash_t h = BASE_HASH) noexcept {
-  auto const ptr = reinterpret_cast<uint8_t const*>(s.data());
+constexpr hash_t hash(std::string_view s, hash_t h = BASE_HASH) noexcept {
+  auto const ptr = s.data();
   for (auto i = size_t{0ULL}; i < s.size(); ++i) {
-    h = hash_combine(h, ptr[i]);
+    h = hash_combine(h, static_cast<uint8_t>(ptr[i]));
   }
   return h;
 }
