@@ -40,7 +40,7 @@ struct hash_storage {
   using entry_t = T;
   using difference_type = ptrdiff_t;
   using size_type = hash_t;
-  using key_t =
+  using key_type =
       decay_t<decltype(std::declval<GetKey>().operator()(std::declval<T>()))>;
   using mapped_type =
       decay_t<decltype(std::declval<GetValue>().operator()(std::declval<T>()))>;
@@ -51,7 +51,7 @@ struct hash_storage {
 
   template <typename Key>
   hash_t compute_hash(Key const& k) {
-    if constexpr (std::is_same_v<decay_t<Key>, key_t>) {
+    if constexpr (std::is_same_v<decay_t<Key>, key_type>) {
       return static_cast<size_type>(Hash{}(k));
     } else {
       return static_cast<size_type>(Hash::template create<Key>()(k));
@@ -312,15 +312,15 @@ struct hash_storage {
 
   ~hash_storage() { clear(); }
 
-  void set_empty_key(key_t const&) noexcept {}
-  void set_deleted_key(key_t const&) noexcept {}
+  void set_empty_key(key_type const&) noexcept {}
+  void set_deleted_key(key_type const&) noexcept {}
 
   // --- operator[]
   template <typename Key>
   mapped_type& bracket_operator_impl(Key&& key) {
     auto const res = find_or_prepare_insert(std::forward<Key>(key));
     if (res.second) {
-      new (entries_ + res.first) T{static_cast<key_t>(key), mapped_type{}};
+      new (entries_ + res.first) T{static_cast<key_type>(key), mapped_type{}};
     }
     return GetValue{}(entries_[res.first]);
   }
@@ -330,7 +330,7 @@ struct hash_storage {
     return bracket_operator_impl(std::forward<Key>(key));
   }
 
-  mapped_type& operator[](key_t const& key) {
+  mapped_type& operator[](key_type const& key) {
     return bracket_operator_impl(key);
   }
 
@@ -344,9 +344,9 @@ struct hash_storage {
     }
   }
 
-  mapped_type& at(key_t const& key) { return at_impl(key); }
+  mapped_type& at(key_type const& key) { return at_impl(key); }
 
-  mapped_type const& at(key_t const& key) const {
+  mapped_type const& at(key_type const& key) const {
     return const_cast<hash_storage*>(this)->at(key);
   }
 
@@ -387,11 +387,11 @@ struct hash_storage {
     return find_impl(std::forward<Key>(key));
   }
 
-  const_iterator find(key_t const& key) const noexcept {
+  const_iterator find(key_type const& key) const noexcept {
     return const_cast<hash_storage*>(this)->find_impl(key);
   }
 
-  iterator find(key_t const& key) noexcept { return find_impl(key); }
+  iterator find(key_type const& key) noexcept { return find_impl(key); }
 
   template <class InputIt>
   void insert(InputIt first, InputIt last) {
@@ -411,7 +411,7 @@ struct hash_storage {
     return 1;
   }
 
-  size_t erase(key_t const& k) { return erase_impl(k); }
+  size_t erase(key_type const& k) { return erase_impl(k); }
 
   template <typename Key>
   size_t erase(Key&& key) {
