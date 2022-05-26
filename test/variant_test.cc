@@ -213,8 +213,8 @@ TEST_CASE("variant serialization") {
 
   // Check.
   CHECK(positions->size() == 2);
-  auto const one = positions->find(pos_map::key_t{{1, 2}, {3, 4}});
-  auto const two = positions->find(pos_map::key_t{{5, 6}, {7, 8}});
+  auto const one = positions->find(pos_map::key_type{{1, 2}, {3, 4}});
+  auto const two = positions->find(pos_map::key_type{{5, 6}, {7, 8}});
   CHECK(one != positions->end());
   CHECK(two != positions->end());
   CHECK(one->second.find(property{data::string{"hello"}}) != end(one->second));
