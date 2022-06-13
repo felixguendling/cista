@@ -2,6 +2,7 @@
 
 #include "cista/containers/array.h"
 #include "cista/containers/bitset.h"
+#include "cista/containers/fws_multimap.h"
 #include "cista/containers/hash_map.h"
 #include "cista/containers/hash_set.h"
 #include "cista/containers/string.h"

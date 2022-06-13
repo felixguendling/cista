@@ -16,7 +16,7 @@
 
 namespace cista {
 
-template <typename T, typename Ptr = T*, bool IndexPointers = false,
+template <typename T, typename Ptr, bool IndexPointers = false,
           typename TemplateSizeType = uint32_t>
 struct basic_vector {
   using size_type = TemplateSizeType;
@@ -39,9 +39,9 @@ struct basic_vector {
         allocated_size_(arr.allocated_size_),
         self_allocated_(arr.self_allocated_) {
     arr.el_ = nullptr;
-    arr.used_size_ = 0;
+    arr.used_size_ = TemplateSizeType{0U};
     arr.self_allocated_ = false;
-    arr.allocated_size_ = 0;
+    arr.allocated_size_ = TemplateSizeType{0U};
   }
 
   basic_vector(basic_vector const& arr) { set(arr); }
@@ -55,9 +55,9 @@ struct basic_vector {
     allocated_size_ = arr.allocated_size_;
 
     arr.el_ = nullptr;
-    arr.used_size_ = 0;
+    arr.used_size_ = TemplateSizeType{0U};
     arr.self_allocated_ = false;
-    arr.allocated_size_ = 0;
+    arr.allocated_size_ = TemplateSizeType{0U};
 
     return *this;
   }
@@ -82,9 +82,9 @@ struct basic_vector {
 
     std::free(el_);  // NOLINT
     el_ = nullptr;
-    used_size_ = 0;
-    allocated_size_ = 0;
-    self_allocated_ = 0;
+    used_size_ = TemplateSizeType{0U};
+    allocated_size_ = TemplateSizeType{0U};
+    self_allocated_ = false;
   }
 
   T const* data() const noexcept { return begin(); }
@@ -111,23 +111,23 @@ struct basic_vector {
   friend T* begin(basic_vector& a) noexcept { return a.begin(); }
   friend T* end(basic_vector& a) noexcept { return a.end(); }
 
-  inline T const& operator[](size_t index) const noexcept {
+  inline T const& operator[](TemplateSizeType const index) const noexcept {
     assert(el_ != nullptr && index < used_size_);
     return el_[index];
   }
-  inline T& operator[](size_t index) noexcept {
+  inline T& operator[](TemplateSizeType const index) noexcept {
     assert(el_ != nullptr && index < used_size_);
     return el_[index];
   }
 
-  inline T& at(size_t index) {
+  inline T& at(TemplateSizeType const index) {
     if (index >= used_size_) {
       throw std::out_of_range{"vector::at(): invalid index"};
     }
     return (*this)[index];
   }
 
-  inline T const& at(size_t index) const {
+  inline T const& at(TemplateSizeType const index) const {
     return const_cast<basic_vector*>(this)->at(index);
   }
 
@@ -161,7 +161,7 @@ struct basic_vector {
 
   void set(basic_vector const& arr) {
     if constexpr (std::is_trivially_copyable_v<T>) {
-      if (arr.used_size_ != 0) {
+      if (arr.used_size_ != TemplateSizeType{0U}) {
         reserve(arr.used_size_);
         std::memcpy(data(), arr.data(), arr.used_size_ * sizeof(T));
       }
@@ -265,7 +265,7 @@ struct basic_vector {
     return *ptr;
   }
 
-  void resize(size_type size, T init = T{}) {
+  void resize(TemplateSizeType const size, T init = T{}) {
     reserve(size);
     for (auto i = used_size_; i < size; ++i) {
       new (el_ + i) T{init};
@@ -408,7 +408,6 @@ struct basic_vector {
     std::copy(std::begin(c), std::end(c), std::back_inserter(v));           \
     return v;                                                               \
   }                                                                         \
-                                                                            \
   template <typename It, typename UnaryOperation>                           \
   inline auto to_indexed_vec(It s, It e, UnaryOperation&& op)               \
       ->indexed_vector<decay_t<decltype(op(*s))>> {                         \
@@ -447,6 +446,9 @@ using vector = basic_vector<T, ptr<T>>;
 template <typename T>
 using indexed_vector = basic_vector<T, ptr<T>, true>;
 
+template <typename Key, typename Value>
+using vector_map = basic_vector<Value, ptr<Value>, false, Key>;
+
 CISTA_TO_VEC
 
 }  // namespace raw
@@ -458,6 +460,9 @@ using vector = basic_vector<T, ptr<T>>;
 
 template <typename T>
 using indexed_vector = basic_vector<T, ptr<T>, true>;
+
+template <typename Key, typename Value>
+using vector_map = basic_vector<Value, ptr<Value>, false, Key>;
 
 CISTA_TO_VEC
 
