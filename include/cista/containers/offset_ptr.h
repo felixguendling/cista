@@ -5,6 +5,7 @@
 #include <bit>
 #endif
 #endif
+#include <cista/strong.h>
 #include <cstring>
 #include <type_traits>
 
@@ -81,6 +82,16 @@ struct offset_ptr {
   template <typename Int>
   T* operator-(Int i) const noexcept {
     return get() - i;
+  }
+
+  template <typename X, typename Tag>
+  constexpr T* operator+(strong<X, Tag> const& s) {
+    return get() + s.v_;
+  }
+
+  template <typename X, typename Tag>
+  constexpr T* operator-(strong<X, Tag> const& s) {
+    return get() - s.v_;
   }
 
   offset_ptr& operator++() noexcept {

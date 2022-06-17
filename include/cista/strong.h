@@ -9,28 +9,22 @@ template <typename T, typename Tag>
 struct strong {
   using value_t = T;
 
-  strong() = default;
+  constexpr strong() = default;
 
-  explicit strong(T const& v) : v_{v} {}
-  explicit strong(T&& v) : v_{std::move(v)} {}
+  explicit constexpr strong(T const& v) noexcept(
+      std::is_nothrow_copy_constructible_v<T>)
+      : v_{v} {}
+  explicit constexpr strong(T&& v) noexcept(
+      std::is_nothrow_move_constructible_v<T>)
+      : v_{std::move(v)} {}
 
-  strong(strong&& o) noexcept(std::is_nothrow_move_constructible_v<T>) =
-      default;
-  strong& operator=(strong&& o) noexcept(
+  constexpr strong(strong&& o) noexcept(
+      std::is_nothrow_move_constructible_v<T>) = default;
+  constexpr strong& operator=(strong&& o) noexcept(
       std::is_nothrow_move_constructible_v<T>) = default;
 
-  strong(const strong& o) = default;
-  strong& operator=(strong const& o) = default;
-
-  template <typename X>
-  friend constexpr X operator+(X const& t, strong const& s) {
-    return t + s.v_;
-  }
-
-  template <typename X>
-  friend constexpr X operator-(X const& t, strong const& s) {
-    return t - s.v_;
-  }
+  constexpr strong(strong const& o) = default;
+  constexpr strong& operator=(strong const& o) = default;
 
   constexpr strong& operator++() {
     ++v_;
@@ -54,6 +48,25 @@ struct strong {
     return cpy;
   }
 
+  constexpr strong operator+(strong const& s) const {
+    return strong{v_ + s.v_};
+  }
+  constexpr strong operator-(strong const& s) const {
+    return strong{v_ + s.v_};
+  }
+  constexpr strong operator+(value_t const& i) const { return strong{v_ + i}; }
+  constexpr strong operator-(value_t const& i) const { return strong{v_ + i}; }
+
+  constexpr strong& operator+=(value_t const& i) const {
+    v_ += i;
+    return *this;
+  }
+
+  constexpr strong& operator-=(value_t const& i) const {
+    v_ -= i;
+    return *this;
+  }
+
   constexpr bool operator==(strong const& o) const { return v_ == o.v_; }
   constexpr bool operator!=(strong const& o) const { return v_ != o.v_; }
   constexpr bool operator<=(strong const& o) const { return v_ <= o.v_; }
@@ -74,7 +87,6 @@ struct strong {
     return o << t.v_;
   }
 
-private:
   T v_;
 };
 
@@ -86,5 +98,15 @@ struct is_strong<strong<T, Tag>> : std::true_type {};
 
 template <typename T>
 inline constexpr auto const is_strong_v = is_strong<T>::value;
+
+template <typename T, typename Tag>
+typename strong<T, Tag>::value_t to_idx(strong<T, Tag> const& s) {
+  return s.v_;
+}
+
+template <typename T>
+T to_idx(T const& t) {
+  return t;
+}
 
 }  // namespace cista
