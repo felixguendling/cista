@@ -351,11 +351,6 @@ TEST_CASE("mutable_fws_multimap_test, clear_3") {
 }
 
 template <typename T>
-unsigned get_order_bmi1(T const size) {
-  return cista::trailing_zeros(size);
-}
-
-template <typename T>
 T get_order_loop(T const size) {
   for (auto order = T{0U}, value = T{1}; order < static_cast<T>(sizeof(T) * 8);
        ++order, value = value << 1) {
@@ -378,19 +373,5 @@ TEST_CASE("mutable_fws_multimap_test, get_order_loop") {
 
   for (std::uint64_t i = 0ULL; i < 64; ++i) {
     CHECK(get_order_loop(1ULL << i) == i);
-  }
-}
-
-TEST_CASE("mutable_fws_multimap_test, get_order_bmi1") {
-  for (std::uint16_t i = 0U; i < 16; ++i) {
-    CHECK(get_order_bmi1(static_cast<std::uint16_t>(1U) << i) == i);
-  }
-
-  for (std::uint32_t i = 0U; i < 32; ++i) {
-    CHECK(get_order_bmi1(1U << i) == i);
-  }
-
-  for (std::uint64_t i = 0ULL; i < 64; ++i) {
-    CHECK(get_order_bmi1(1ULL << i) == i);
   }
 }

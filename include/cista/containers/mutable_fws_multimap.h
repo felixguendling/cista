@@ -324,7 +324,7 @@ struct dynamic_fws_multimap_base {
     difference_type operator-(bucket_iterator const& rhs) const {
       return static_cast<difference_type>(index_) -
              static_cast<difference_type>(rhs.index_);
-    };
+    }
 
     value_type operator[](difference_type n) const {
       return multimap_.at(index_ + n);
@@ -550,7 +550,8 @@ protected:
     }
   }
 
-  void move_entries(size_type const map_index, size_type const old_data_index,
+  void move_entries(size_type const /* map_index */,
+                    size_type const old_data_index,
                     size_type const new_data_index, size_type const count) {
     if (count == 0) {
       return;
