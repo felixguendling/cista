@@ -5,11 +5,11 @@
 #include <bit>
 #endif
 #endif
-#include <cista/strong.h>
 #include <cstring>
 #include <type_traits>
 
 #include "cista/offset_t.h"
+#include "cista/strong.h"
 
 namespace cista {
 
