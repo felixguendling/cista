@@ -38,7 +38,6 @@ struct dynamic_fws_multimap_base {
   struct bucket {
     friend dynamic_fws_multimap_base;
 
-    using value_type = value_type;
     using iterator = typename DataVec::iterator;
     using const_iterator = typename DataVec::const_iterator;
 
