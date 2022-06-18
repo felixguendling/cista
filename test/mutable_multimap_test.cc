@@ -1,8 +1,12 @@
 #include "doctest.h"
 
+#ifdef SINGLE_HEADER
+#include "cista.h"
+#else
 #include "cista/containers/mutable_fws_multimap.h"
 #include "cista/reflection/comparable.h"
 #include "cista/verify.h"
+#endif
 
 template <typename K, typename V>
 using mutable_fws_multimap = cista::offset::mutable_fws_multimap<K, V>;
