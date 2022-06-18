@@ -32,16 +32,10 @@ extern "C" int LLVMFuzzerTestOneInput(uint8_t const* data, size_t size) {
     std::memcpy(&value, data + sizeof(key), sizeof(value));
 
     if (insert) {
-      printf("insert STD\n");
       ref.emplace(key, value);
-
-      printf("insert CISTA\n");
       uut.emplace(key, value);
     } else {
-      printf("erase STD\n");
       ref.erase(key);
-
-      printf("erase CISTA\n");
       uut.erase(key);
     }
   }
