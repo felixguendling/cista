@@ -52,18 +52,39 @@ struct strong {
     return strong{v_ + s.v_};
   }
   constexpr strong operator-(strong const& s) const {
-    return strong{v_ + s.v_};
+    return strong{v_ - s.v_};
   }
-  constexpr strong operator+(value_t const& i) const { return strong{v_ + i}; }
-  constexpr strong operator-(value_t const& i) const { return strong{v_ + i}; }
+  constexpr strong operator*(strong const& s) const {
+    return strong{v_ * s.v_};
+  }
+  constexpr strong operator/(strong const& s) const {
+    return strong{v_ / s.v_};
+  }
+  constexpr strong operator+(T const& i) const { return strong{v_ + i}; }
+  constexpr strong operator-(T const& i) const { return strong{v_ - i}; }
+  constexpr strong operator*(T const& i) const { return strong{v_ * i}; }
+  constexpr strong operator/(T const& i) const { return strong{v_ / i}; }
 
-  constexpr strong& operator+=(value_t const& i) const {
+  constexpr strong& operator+=(T const& i) const {
     v_ += i;
     return *this;
   }
-
-  constexpr strong& operator-=(value_t const& i) const {
+  constexpr strong& operator-=(T const& i) const {
     v_ -= i;
+    return *this;
+  }
+
+  constexpr strong operator>>(T const& i) const { return strong{v_ >> i}; }
+  constexpr strong operator<<(T const& i) const { return strong{v_ << i}; }
+  constexpr strong operator>>(strong const& o) const { return v_ >> o.v_; }
+  constexpr strong operator<<(strong const& o) const { return v_ << o.v_; }
+
+  constexpr strong& operator|=(strong const& o) {
+    v_ |= o.v_;
+    return *this;
+  }
+  constexpr strong& operator&=(strong const& o) {
+    v_ &= o.v_;
     return *this;
   }
 
@@ -110,3 +131,20 @@ T to_idx(T const& t) {
 }
 
 }  // namespace cista
+
+#include <limits>
+
+namespace std {
+
+template <typename T, typename Tag>
+class numeric_limits<cista::strong<T, Tag>> {
+public:
+  static constexpr cista::strong<T, Tag> min() noexcept {
+    return cista::strong<T, Tag>{std::numeric_limits<T>::min()};
+  }
+  static constexpr cista::strong<T, Tag> max() noexcept {
+    return cista::strong<T, Tag>{std::numeric_limits<T>::max()};
+  }
+};
+
+}  // namespace std
