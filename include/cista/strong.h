@@ -121,7 +121,7 @@ template <typename T>
 inline constexpr auto const is_strong_v = is_strong<T>::value;
 
 template <typename T, typename Tag>
-typename strong<T, Tag>::value_t to_idx(strong<T, Tag> const& s) {
+constexpr typename strong<T, Tag>::value_t to_idx(strong<T, Tag> const& s) {
   return s.v_;
 }
 
@@ -145,6 +145,7 @@ public:
   static constexpr cista::strong<T, Tag> max() noexcept {
     return cista::strong<T, Tag>{std::numeric_limits<T>::max()};
   }
+  static constexpr bool is_integer = std::is_integral_v<T>;
 };
 
 }  // namespace std
