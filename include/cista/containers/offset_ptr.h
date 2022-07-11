@@ -9,6 +9,7 @@
 #include <type_traits>
 
 #include "cista/offset_t.h"
+#include "cista/strong.h"
 
 namespace cista {
 
@@ -81,6 +82,16 @@ struct offset_ptr {
   template <typename Int>
   T* operator-(Int i) const noexcept {
     return get() - i;
+  }
+
+  template <typename X, typename Tag>
+  constexpr T* operator+(strong<X, Tag> const& s) {
+    return get() + s.v_;
+  }
+
+  template <typename X, typename Tag>
+  constexpr T* operator-(strong<X, Tag> const& s) {
+    return get() - s.v_;
   }
 
   offset_ptr& operator++() noexcept {

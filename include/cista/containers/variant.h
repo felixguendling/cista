@@ -123,7 +123,7 @@ struct variant {
       return *this;
     }
   }
-#if __cplusplus >= 202002L
+#if _MSVC_LANG >= 202002L || __cplusplus >= 202002L
   constexpr
 #endif
       ~variant() {

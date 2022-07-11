@@ -4,7 +4,6 @@
 #include <cinttypes>
 #include <cstdlib>
 #include <cstring>
-
 #include <algorithm>
 #include <ostream>
 #include <type_traits>
@@ -13,6 +12,7 @@
 #include "cista/containers/ptr.h"
 #include "cista/is_iterable.h"
 #include "cista/next_power_of_2.h"
+#include "cista/strong.h"
 
 namespace cista {
 
@@ -113,11 +113,11 @@ struct basic_vector {
 
   inline T const& operator[](TemplateSizeType const index) const noexcept {
     assert(el_ != nullptr && index < used_size_);
-    return el_[index];
+    return el_[to_idx(index)];
   }
   inline T& operator[](TemplateSizeType const index) noexcept {
     assert(el_ != nullptr && index < used_size_);
-    return el_[index];
+    return el_[to_idx(index)];
   }
 
   inline T& at(TemplateSizeType const index) {
@@ -288,8 +288,8 @@ struct basic_vector {
     }
 
     auto next_size = next_power_of_two(new_size);
-    auto num_bytes = sizeof(T) * next_size;
-    auto mem_buf = static_cast<T*>(std::malloc(num_bytes));  // NOLINT
+    auto num_bytes = static_cast<size_t>(to_idx(next_size)) * sizeof(T);
+    auto mem_buf = static_cast<T*>(std::malloc(to_idx(num_bytes)));  // NOLINT
     if (mem_buf == nullptr) {
       throw std::bad_alloc();
     }
