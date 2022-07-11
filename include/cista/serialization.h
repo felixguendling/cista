@@ -16,6 +16,7 @@
 #include "cista/offset_t.h"
 #include "cista/reflection/for_each_field.h"
 #include "cista/serialized_size.h"
+#include "cista/strong.h"
 #include "cista/targets/buf.h"
 #include "cista/targets/file.h"
 #include "cista/type_hash/type_hash.h"
@@ -342,6 +343,12 @@ void serialize(Ctx& c, tuple<T...> const* origin,
          ...);
       },
       *origin);
+}
+
+template <typename Ctx, typename T, typename Tag>
+void serialize(Ctx& c, strong<T, Tag> const* origin,
+               cista::offset_t const offset) {
+  serialize(c, &origin->v_, offset);
 }
 
 constexpr offset_t integrity_start(mode const m) noexcept {

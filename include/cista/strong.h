@@ -87,4 +87,33 @@ struct is_strong<strong<T, Tag>> : std::true_type {};
 template <typename T>
 inline constexpr auto const is_strong_v = is_strong<T>::value;
 
+template <typename T, typename Tag>
+constexpr typename strong<T, Tag>::value_t to_idx(strong<T, Tag> const& s) {
+  return s.v_;
+}
+
+template <typename T>
+T to_idx(T const& t) {
+  return t;
+}
+
 }  // namespace cista
+
+
+#include <limits>
+
+namespace std {
+
+template <typename T, typename Tag>
+class numeric_limits<cista::strong<T, Tag>> {
+public:
+  static constexpr cista::strong<T, Tag> min() noexcept {
+    return cista::strong<T, Tag>{std::numeric_limits<T>::min()};
+  }
+  static constexpr cista::strong<T, Tag> max() noexcept {
+    return cista::strong<T, Tag>{std::numeric_limits<T>::max()};
+  }
+  static constexpr bool is_integer() noexcept { return std::is_integral_v<T>; }
+};
+
+}  // namespace std
