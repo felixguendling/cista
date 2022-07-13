@@ -145,7 +145,7 @@ public:
   static constexpr cista::strong<T, Tag> max() noexcept {
     return cista::strong<T, Tag>{std::numeric_limits<T>::max()};
   }
-  static constexpr bool is_integer() noexcept { return std::is_integral_v<T>; }
+  static constexpr bool is_integer = std::is_integral_v<T>;
 };
 
 }  // namespace std
