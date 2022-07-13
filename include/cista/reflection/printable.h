@@ -30,10 +30,12 @@ inline std::ostream& operator<<(std::ostream& out, std::vector<T> const& v) {
 }
 #endif
 
-#define CISTA_PRINTABLE(class_name)                                         \
+#define CISTA_PRINTABLE(class_name, ...)                                    \
   friend std::ostream& operator<<(std::ostream& out, class_name const& o) { \
+    char const* names[] = {__VA_ARGS__};                                    \
     bool first = true;                                                      \
     out << "{";                                                             \
+    size_t i = 0;                                                           \
     ::cista::for_each_field(o, [&](auto&& f) {                              \
       using Type = ::cista::decay_t<decltype(f)>;                           \
       if (!first) {                                                         \
@@ -41,11 +43,15 @@ inline std::ostream& operator<<(std::ostream& out, std::vector<T> const& v) {
       } else {                                                              \
         first = false;                                                      \
       }                                                                     \
+      if (i < (sizeof(names) / sizeof(char const*))) {                      \
+        out << names[i] << '=';                                             \
+      }                                                                     \
       if constexpr (std::is_enum_v<Type>) {                                 \
         out << static_cast<std::underlying_type_t<Type>>(f);                \
       } else {                                                              \
         out << f;                                                           \
       }                                                                     \
+      ++i;                                                                  \
     });                                                                     \
     return out << "}";                                                      \
   }
