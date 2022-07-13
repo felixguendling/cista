@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <ostream>
 
 #ifndef CISTA_PRINTABLE_NO_VEC
@@ -30,10 +31,17 @@ inline std::ostream& operator<<(std::ostream& out, std::vector<T> const& v) {
 }
 #endif
 
-#define CISTA_PRINTABLE(class_name)                                         \
+template <typename... T>
+constexpr std::array<char const*, sizeof...(T)> to_str_array(T... args) {
+  return {args...};
+}
+
+#define CISTA_PRINTABLE(class_name, ...)                                    \
   friend std::ostream& operator<<(std::ostream& out, class_name const& o) { \
+    constexpr auto const names = to_str_array(__VA_ARGS__);                 \
     bool first = true;                                                      \
     out << "{";                                                             \
+    size_t i = 0;                                                           \
     ::cista::for_each_field(o, [&](auto&& f) {                              \
       using Type = ::cista::decay_t<decltype(f)>;                           \
       if (!first) {                                                         \
@@ -41,11 +49,15 @@ inline std::ostream& operator<<(std::ostream& out, std::vector<T> const& v) {
       } else {                                                              \
         first = false;                                                      \
       }                                                                     \
+      if (i < names.size()) {                                               \
+        out << names[i] << '=';                                             \
+      }                                                                     \
       if constexpr (std::is_enum_v<Type>) {                                 \
         out << static_cast<std::underlying_type_t<Type>>(f);                \
       } else {                                                              \
         out << f;                                                           \
       }                                                                     \
+      ++i;                                                                  \
     });                                                                     \
     return out << "}";                                                      \
   }

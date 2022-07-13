@@ -45,11 +45,22 @@ struct a : public x {
   auto cista_members() noexcept { return std::tie(a_, b_, c_); }
   int a_{1}, b_{2}, c_{3};
 };
+struct b : public x {
+  CISTA_PRINTABLE(b, "a", "b", "c")
+  auto cista_members() noexcept { return std::tie(a_, b_, c_); }
+  int a_{1}, b_{2}, c_{3};
+};
 
 TEST_CASE("cista_members printable") {
   std::stringstream ss;
   ss << a{};
   CHECK(ss.str() == "{1, 2, 3}");
+}
+
+TEST_CASE("cista_members printable names") {
+  std::stringstream ss;
+  ss << b{};
+  CHECK(ss.str() == "{a=1, b=2, c=3}");
 }
 
 struct parent {
