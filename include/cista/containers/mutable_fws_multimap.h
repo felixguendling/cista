@@ -50,7 +50,9 @@ struct dynamic_fws_multimap_base {
     size_type capacity() const { return get_index().capacity_; }
     [[nodiscard]] bool empty() const { return size() == 0; }
 
-    iterator begin() { return mutable_mm().data_.begin() + get_index().begin_; }
+    iterator begin() {
+      return mutable_mm().data_.begin() + to_idx(get_index().begin_);
+    }
 
     const_iterator begin() const {
       return multimap_.data_.begin() + to_idx(get_index().begin_);
