@@ -559,8 +559,7 @@ protected:
     auto old_data = &data_[old_data_index];
     auto new_data = &data_[new_data_index];
     if constexpr (std::is_trivially_copyable_v<value_type>) {
-      std::memcpy(new_data, old_data,
-                  static_cast<std::size_t>(count) * sizeof(value_type));
+      std::memcpy(new_data, old_data, to_idx(count) * sizeof(value_type));
     } else {
       for (auto i = static_cast<size_type>(0); i < count;
            ++i, ++old_data, ++new_data) {
