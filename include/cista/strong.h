@@ -1,5 +1,6 @@
 #pragma once
 
+#include <limits>
 #include <ostream>
 #include <type_traits>
 
@@ -25,6 +26,10 @@ struct strong {
 
   constexpr strong(strong const& o) = default;
   constexpr strong& operator=(strong const& o) = default;
+
+  static constexpr strong invalid() {
+    return strong{std::numeric_limits<T>::max()};
+  }
 
   constexpr strong& operator++() {
     ++v_;
