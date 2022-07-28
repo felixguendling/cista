@@ -346,6 +346,11 @@ struct basic_vector {
     return el >= begin() && el < end();
   }
 
+  size_t index_of(T const* el) const noexcept {
+    assert(contains(el));
+    return std::distance(begin(), el);
+  }
+
   friend bool operator==(basic_vector const& a,
                          basic_vector const& b) noexcept {
     return std::equal(a.begin(), a.end(), b.begin(), b.end());
