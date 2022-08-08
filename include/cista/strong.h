@@ -70,11 +70,11 @@ struct strong {
   constexpr strong operator*(T const& i) const { return strong{v_ * i}; }
   constexpr strong operator/(T const& i) const { return strong{v_ / i}; }
 
-  constexpr strong& operator+=(T const& i) const {
+  constexpr strong& operator+=(T const& i) {
     v_ += i;
     return *this;
   }
-  constexpr strong& operator-=(T const& i) const {
+  constexpr strong& operator-=(T const& i) {
     v_ -= i;
     return *this;
   }

@@ -48,7 +48,7 @@ struct dynamic_fws_multimap_base {
     size_type index() const { return index_; }
     size_type size() const { return get_index().size_; }
     size_type capacity() const { return get_index().capacity_; }
-    [[nodiscard]] bool empty() const { return size() == 0; }
+    bool empty() const { return size() == 0; }
 
     iterator begin() {
       return mutable_mm().data_.begin() + to_idx(get_index().begin_);
@@ -424,7 +424,7 @@ struct dynamic_fws_multimap_base {
   size_type index_size() const { return index_.size(); }
   size_type data_size() const { return data_.size(); }
   size_type element_count() const { return element_count_; }
-  [[nodiscard]] bool empty() const { return index_size() == 0; }
+  bool empty() const { return index_size() == 0; }
 
   std::size_t allocated_size() const {
     auto size = index_.allocated_size_ * sizeof(index_type) +

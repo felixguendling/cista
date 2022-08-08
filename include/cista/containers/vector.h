@@ -90,18 +90,18 @@ struct basic_vector {
   T const* data() const noexcept { return begin(); }
   T* data() noexcept { return begin(); }
   T const* begin() const noexcept { return el_; }
-  T const* end() const noexcept { return el_ + used_size_; }  // NOLINT
+  T const* end() const noexcept { return el_ + to_idx(used_size_); }  // NOLINT
   T* begin() noexcept { return el_; }
-  T* end() noexcept { return el_ + used_size_; }  // NOLINT
+  T* end() noexcept { return el_ + to_idx(used_size_); }  // NOLINT
 
   std::reverse_iterator<T const*> rbegin() const {
-    return std::reverse_iterator<T*>(el_ + size());  // NOLINT
+    return std::reverse_iterator<T*>(el_ + to_idx(size()));  // NOLINT
   }
   std::reverse_iterator<T const*> rend() const {
     return std::reverse_iterator<T*>(el_);
   }
   std::reverse_iterator<T*> rbegin() {
-    return std::reverse_iterator<T*>(el_ + size());  // NOLINT
+    return std::reverse_iterator<T*>(el_ + to_idx(size()));  // NOLINT
   }
   std::reverse_iterator<T*> rend() { return std::reverse_iterator<T*>(el_); }
 
