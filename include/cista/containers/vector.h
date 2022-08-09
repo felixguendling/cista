@@ -25,7 +25,9 @@ struct basic_vector {
   using const_iterator = T const*;
 
   basic_vector() noexcept = default;
-  explicit basic_vector(TemplateSizeType size) { resize(size); }
+  explicit basic_vector(TemplateSizeType size, T init = T{}) {
+    resize(size, std::move(init));
+  }
   basic_vector(std::initializer_list<T> init) { set(init.begin(), init.end()); }
 
   template <typename It>
