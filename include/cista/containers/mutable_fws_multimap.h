@@ -46,7 +46,7 @@ struct dynamic_fws_multimap_base {
     bucket(bucket<false> const& b) : multimap_{b.multimap_}, index_{b.index_} {}
 
     size_type index() const { return index_; }
-    size_type size() const { return get_index().size_; }
+    size_t size() const { return to_idx(get_index().size_); }
     size_type capacity() const { return get_index().capacity_; }
     bool empty() const { return size() == 0; }
 

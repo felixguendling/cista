@@ -77,8 +77,8 @@ struct vecvec {
     const_iterator end() const {
       return map_->data_.begin() + bucket_end_idx();
     }
-    friend iterator begin(bucket const& b) { return b.begin(); }
-    friend iterator end(bucket const& b) { return b.end(); }
+    friend const_iterator begin(const_bucket const& b) { return b.begin(); }
+    friend const_iterator end(const_bucket const& b) { return b.end(); }
 
   private:
     size_t bucket_begin_idx() const { return to_idx(map_->bucket_starts_[i_]); }
