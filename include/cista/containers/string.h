@@ -37,6 +37,14 @@ struct generic_string {
   generic_string(std::string_view s, non_owning_t) : generic_string() {
     set_non_owning(s);
   }
+  generic_string(char const* s, msize_t const len, owning_t)
+      : generic_string() {
+    set_owning(s, len);
+  }
+  generic_string(char const* s, msize_t const len, non_owning_t)
+      : generic_string() {
+    set_non_owning(s, len);
+  }
   generic_string(std::string const& s, owning_t) : generic_string() {
     set_owning(s);
   }
@@ -346,17 +354,20 @@ struct basic_string : public generic_string<Ptr> {
   basic_string(std::string_view s) : base{s, base::owning} {}
   basic_string(std::string const& s) : base{s, base::owning} {}
   basic_string(char const* s) : base{s, base::owning} {}
+  basic_string(char const* s, typename base::msize_t const len)
+      : base{s, len, base::owning} {}
 
   basic_string(basic_string const& o) : base{} {
     base::set_owning(o.data(), o.size());
   }
-  basic_string(basic_string&& o) : base{} {
-    base::set_owning(o.data(), o.size());
-  }
+
+  basic_string(basic_string&& o) : base{} { base::move_from(std::move(o)); }
+
   basic_string& operator=(basic_string const& o) {
     base::set_owning(o.data(), o.size());
     return *this;
   }
+
   basic_string& operator=(basic_string&& o) {
     base::move_from(std::move(o));
     return *this;
@@ -388,9 +399,11 @@ struct basic_string_view : public generic_string<Ptr> {
     return out << s.view();
   }
 
-  basic_string_view(std::string_view s) : base{s, base::owning} {}
-  basic_string_view(std::string const& s) : base{s, base::owning} {}
-  basic_string_view(char const* s) : base{s, base::owning} {}
+  basic_string_view(std::string_view s) : base{s, base::non_owning} {}
+  basic_string_view(std::string const& s) : base{s, base::non_owning} {}
+  basic_string_view(char const* s) : base{s, base::non_owning} {}
+  basic_string_view(char const* s, typename base::msize_t const len)
+      : base{s, len, base::non_owning} {}
 
   basic_string_view(basic_string_view const& o) : base{} {
     base::set_non_owning(o.data(), o.size());
