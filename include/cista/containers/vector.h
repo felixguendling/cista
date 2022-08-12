@@ -140,7 +140,7 @@ struct basic_vector {
   T const& front() const noexcept { return ptr_cast(el_)[0]; }
 
   inline TemplateSizeType size() const noexcept { return used_size_; }
-  inline bool empty() const noexcept { return size() == 0; }
+  inline bool empty() const noexcept { return size() == TemplateSizeType{0}; }
 
   template <typename It>
   void set(It begin_it, It end_it) {
@@ -253,14 +253,14 @@ struct basic_vector {
   }
 
   void push_back(T const& el) {
-    reserve(used_size_ + 1);
+    reserve(used_size_ + TemplateSizeType{1});
     new (el_ + used_size_) T(el);
     ++used_size_;
   }
 
   template <typename... Args>
   T& emplace_back(Args&&... el) {
-    reserve(used_size_ + 1);
+    reserve(used_size_ + TemplateSizeType{1});
     new (el_ + used_size_) T{std::forward<Args>(el)...};
     T* ptr = el_ + used_size_;
     ++used_size_;
