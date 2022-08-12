@@ -260,7 +260,8 @@ struct basic_vector {
 
   template <typename... Args>
   T& emplace_back(Args&&... el) {
-    reserve(used_size_ + TemplateSizeType{1});
+    reserve(static_cast<TemplateSizeType>(used_size_ +
+                                          static_cast<TemplateSizeType>(1)));
     new (el_ + used_size_) T{std::forward<Args>(el)...};
     T* ptr = el_ + used_size_;
     ++used_size_;

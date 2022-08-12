@@ -54,21 +54,29 @@ struct strong {
   }
 
   constexpr strong operator+(strong const& s) const {
-    return strong{v_ + s.v_};
+    return strong{static_cast<value_t>(v_ + s.v_)};
   }
   constexpr strong operator-(strong const& s) const {
-    return strong{v_ - s.v_};
+    return strong{static_cast<value_t>(v_ - s.v_)};
   }
   constexpr strong operator*(strong const& s) const {
-    return strong{v_ * s.v_};
+    return strong{static_cast<value_t>(v_ * s.v_)};
   }
   constexpr strong operator/(strong const& s) const {
-    return strong{v_ / s.v_};
+    return strong{static_cast<value_t>(v_ / s.v_)};
   }
-  constexpr strong operator+(T const& i) const { return strong{v_ + i}; }
-  constexpr strong operator-(T const& i) const { return strong{v_ - i}; }
-  constexpr strong operator*(T const& i) const { return strong{v_ * i}; }
-  constexpr strong operator/(T const& i) const { return strong{v_ / i}; }
+  constexpr strong operator+(T const& i) const {
+    return strong{static_cast<value_t>(v_ + i)};
+  }
+  constexpr strong operator-(T const& i) const {
+    return strong{static_cast<value_t>(v_ - i)};
+  }
+  constexpr strong operator*(T const& i) const {
+    return strong{static_cast<value_t>(v_ * i)};
+  }
+  constexpr strong operator/(T const& i) const {
+    return strong{static_cast<value_t>(v_ / i)};
+  }
 
   constexpr strong& operator+=(T const& i) {
     v_ += i;
@@ -79,8 +87,12 @@ struct strong {
     return *this;
   }
 
-  constexpr strong operator>>(T const& i) const { return strong{v_ >> i}; }
-  constexpr strong operator<<(T const& i) const { return strong{v_ << i}; }
+  constexpr strong operator>>(T const& i) const {
+    return strong{static_cast<value_t>(v_ >> i)};
+  }
+  constexpr strong operator<<(T const& i) const {
+    return strong{static_cast<value_t>(v_ << i)};
+  }
   constexpr strong operator>>(strong const& o) const { return v_ >> o.v_; }
   constexpr strong operator<<(strong const& o) const { return v_ << o.v_; }
 
