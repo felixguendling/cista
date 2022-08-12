@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "cista/containers/vector.h"
+#include "cista/verify.h"
 
 namespace cista {
 
@@ -99,14 +100,12 @@ struct vecvec {
   value_type operator[](index_value_type const i) { return {this, i}; }
 
   const_value_type at(index_value_type const i) const {
-    utl::verify(to_idx(i) < bucket_starts_.size(),
-                "vecvec::at: index out of range");
+    verify(to_idx(i) < bucket_starts_.size(), "vecvec::at: index out of range");
     return {this, i};
   }
 
   value_type at(index_value_type const i) {
-    utl::verify(to_idx(i) < bucket_starts_.size(),
-                "vecvec::at: index out of range");
+    verify(to_idx(i) < bucket_starts_.size(), "vecvec::at: index out of range");
     return {this, i};
   }
 
