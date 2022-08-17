@@ -75,7 +75,7 @@ inline matrix<T> make_matrix(std::uint32_t const n_rows,
                              T const& init = T{}) {
   auto v = vector<T>{};
   v.resize(n_rows * n_columns, init);
-  return matrix<vector<T>>{n_rows, n_columns, std::move(v)};
+  return {n_rows, n_columns, std::move(v)};
 }
 
 }  // namespace offset
@@ -91,7 +91,7 @@ inline matrix<T> make_matrix(std::uint32_t const n_rows,
                              T const& init = T{}) {
   auto v = vector<T>{};
   v.resize(n_rows * n_columns, init);
-  return matrix<vector<T>>{n_rows, n_columns, std::move(v)};
+  return {n_rows, n_columns, std::move(v)};
 }
 
 }  // namespace raw

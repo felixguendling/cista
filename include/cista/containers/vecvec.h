@@ -21,7 +21,7 @@ struct vecvec {
 
     value_type& operator[](size_t const i) {
       assert(is_inside_bucket(i));
-      return map_->data_[map_->bucket_starts_[i_] + i];
+      return map_->data_[to_idx(map_->bucket_starts_[i_] + i)];
     }
 
     value_type const& at(size_t const i) const {
@@ -37,8 +37,16 @@ struct vecvec {
     size_t size() const { return bucket_end_idx() - bucket_begin_idx(); }
     iterator begin() { return map_->data_.begin() + bucket_begin_idx(); }
     iterator end() { return map_->data_.begin() + bucket_end_idx(); }
+    const_iterator begin() const {
+      return map_->data_.begin() + bucket_begin_idx();
+    }
+    const_iterator end() const {
+      return map_->data_.begin() + bucket_end_idx();
+    }
     friend iterator begin(bucket const& b) { return b.begin(); }
     friend iterator end(bucket const& b) { return b.end(); }
+    friend iterator begin(bucket& b) { return b.begin(); }
+    friend iterator end(bucket& b) { return b.end(); }
 
   private:
     size_t bucket_begin_idx() const { return to_idx(map_->bucket_starts_[i_]); }
@@ -98,6 +106,9 @@ struct vecvec {
   using const_value_type = const_bucket;
 
   value_type operator[](index_value_type const i) { return {this, i}; }
+  const_value_type operator[](index_value_type const i) const {
+    return {this, i};
+  }
 
   const_value_type at(index_value_type const i) const {
     verify(to_idx(i) < bucket_starts_.size(), "vecvec::at: index out of range");
