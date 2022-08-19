@@ -22,5 +22,5 @@ TEST_CASE("insert begin test") {
 
   d.emplace_back({{1.0, 1.0}, {2.0, 2.0}});
   CHECK(d.size() == 1);
-  CHECK(d[0].size() == 2);
+  CHECK(d[key{0}].size() == 2);
 }
