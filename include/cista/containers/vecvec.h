@@ -120,7 +120,9 @@ struct vecvec {
     return {this, i};
   }
 
-  size_t size() const { return empty() ? 0U : bucket_starts_.size() - 1; }
+  base_t<index_value_type> size() const {
+    return empty() ? 0U : bucket_starts_.size() - 1;
+  }
   bool empty() const { return data_.empty(); }
 
   void emplace_back(DataVec&& bucket) {

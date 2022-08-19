@@ -19,7 +19,7 @@ namespace cista {
 template <typename T, typename Ptr, bool IndexPointers = false,
           typename TemplateSizeType = uint32_t>
 struct basic_vector {
-  using size_type = TemplateSizeType;
+  using size_type = base_t<TemplateSizeType>;
   using value_type = T;
   using iterator = T*;
   using const_iterator = T const*;
@@ -141,7 +141,9 @@ struct basic_vector {
   T& front() noexcept { return ptr_cast(el_)[0]; }
   T const& front() const noexcept { return ptr_cast(el_)[0]; }
 
-  inline TemplateSizeType size() const noexcept { return used_size_; }
+  inline base_t<TemplateSizeType> size() const noexcept {
+    return to_idx(used_size_);
+  }
   inline bool empty() const noexcept { return size() == TemplateSizeType{0}; }
 
   template <typename It>

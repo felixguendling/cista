@@ -22,8 +22,9 @@ template <typename T, typename SizeType, template <typename> typename Vec,
           std::size_t Log2MaxEntriesPerBucket = 20>
 struct dynamic_fws_multimap_base {
   using value_type = T;
-  using size_type = SizeType;
-  using DataVec = Vec<value_type>;
+  using size_type = base_t<SizeType>;
+  using access_t = SizeType;
+  using data_vec_t = Vec<value_type>;
   static constexpr auto const MAX_ENTRIES_PER_BUCKET =
       static_cast<size_type>(1ULL << Log2MaxEntriesPerBucket);
 
@@ -38,36 +39,32 @@ struct dynamic_fws_multimap_base {
   struct bucket {
     friend dynamic_fws_multimap_base;
 
-    using iterator = typename DataVec::iterator;
-    using const_iterator = typename DataVec::const_iterator;
+    using iterator = typename data_vec_t::iterator;
+    using const_iterator = typename data_vec_t::const_iterator;
 
     template <bool IsConst = Const, typename = std::enable_if_t<IsConst>>
     // NOLINTNEXTLINE(google-explicit-constructor, hicpp-explicit-conversions)
     bucket(bucket<false> const& b) : multimap_{b.multimap_}, index_{b.index_} {}
 
     size_type index() const { return index_; }
-    size_t size() const { return to_idx(get_index().size_); }
+    size_t size() const { return get_index().size_; }
     size_type capacity() const { return get_index().capacity_; }
     bool empty() const { return size() == 0; }
 
-    iterator begin() {
-      return mutable_mm().data_.begin() + to_idx(get_index().begin_);
-    }
+    iterator begin() { return mutable_mm().data_.begin() + get_index().begin_; }
 
     const_iterator begin() const {
-      return multimap_.data_.begin() + to_idx(get_index().begin_);
+      return multimap_.data_.begin() + get_index().begin_;
     }
 
     iterator end() {
       auto const& index = get_index();
-      return std::next(mutable_mm().data_.begin(),
-                       to_idx(index.begin_ + index.size_));
+      return std::next(mutable_mm().data_.begin(), index.begin_ + index.size_);
     }
 
     const_iterator end() const {
       auto const& index = get_index();
-      return std::next(multimap_.data_.begin(),
-                       to_idx(index.begin_ + index.size_));
+      return std::next(multimap_.data_.begin(), index.begin_ + index.size_);
     }
 
     const_iterator cbegin() const { return begin(); }
@@ -78,19 +75,19 @@ struct dynamic_fws_multimap_base {
     friend iterator end(bucket& b) { return b.end(); }
     friend const_iterator end(bucket const& b) { return b.end(); }
 
-    value_type& operator[](size_type index) {
+    value_type& operator[](access_t index) {
       return mutable_mm().data_[data_index(index)];
     }
 
-    value_type const& operator[](size_type index) const {
+    value_type const& operator[](access_t index) const {
       return multimap_.data_[data_index(index)];
     }
 
-    value_type& at(size_type index) {
+    value_type& at(access_t index) {
       return mutable_mm().data_[get_and_check_data_index(index)];
     }
 
-    value_type const& at(size_type index) const {
+    value_type const& at(access_t index) const {
       return multimap_.data_[get_and_check_data_index(index)];
     }
 
@@ -370,41 +367,41 @@ struct dynamic_fws_multimap_base {
   using iterator = bucket_iterator<false>;
   using const_iterator = bucket_iterator<true>;
 
-  mutable_bucket operator[](size_type index) {
+  mutable_bucket operator[](access_t index) {
     if (index >= index_.size()) {
-      index_.resize(index + 1);
+      index_.resize(to_idx(index) + 1);
     }
-    return {*this, index};
+    return {*this, to_idx(index)};
   }
 
-  const_bucket operator[](size_type index) const {
+  const_bucket operator[](access_t index) const {
     assert(index < index_.size());
-    return {*this, index};
+    return {*this, to_idx(index)};
   }
 
-  mutable_bucket at(size_type index) {
+  mutable_bucket at(access_t index) {
     if (index >= index_.size()) {
       throw std::out_of_range{"dynamic_fws_multimap::at() out of range"};
     } else {
-      return {*this, index};
+      return {*this, to_idx(index)};
     }
   }
 
-  const_bucket at(size_type index) const {
+  const_bucket at(access_t index) const {
     if (index >= index_.size()) {
       throw std::out_of_range{"dynamic_fws_multimap::at() out of range"};
     } else {
-      return {*this, index};
+      return {*this, to_idx(index)};
     }
   }
 
   mutable_bucket front() { return (*this)[0]; }
   const_bucket front() const { return (*this)[0]; }
 
-  mutable_bucket back() { return (*this)[index_size() - 1]; }
-  const_bucket back() const { return (*this)[index_size() - 1]; }
+  mutable_bucket back() { return (*this)[size() - 1]; }
+  const_bucket back() const { return (*this)[size() - 1]; }
 
-  mutable_bucket emplace_back() { return (*this)[index_size()]; }
+  mutable_bucket emplace_back() { return (*this)[access_t{size()}]; }
 
   mutable_bucket get_or_create(size_type const index) {
     verify(index != std::numeric_limits<size_type>::max(),
@@ -421,10 +418,10 @@ struct dynamic_fws_multimap_base {
     }
   }
 
-  size_type index_size() const { return index_.size(); }
+  base_t<SizeType> size() const { return index_.size(); }
   size_type data_size() const { return data_.size(); }
   size_type element_count() const { return element_count_; }
-  bool empty() const { return index_size() == 0; }
+  bool empty() const { return size() == 0; }
 
   std::size_t allocated_size() const {
     auto size = index_.allocated_size_ * sizeof(index_type) +
@@ -460,8 +457,8 @@ struct dynamic_fws_multimap_base {
     return m.end();
   }
 
-  DataVec& data() { return data_; }
-  DataVec const& data() const { return data_; }
+  data_vec_t& data() { return data_; }
+  data_vec_t const& data() const { return data_; }
 
   void reserve(size_type index, size_type data) {
     index_.reserve(index);
@@ -591,7 +588,7 @@ protected:
   }
 
   IndexVec index_;
-  DataVec data_;
+  data_vec_t data_;
   array<IndexVec, Log2MaxEntriesPerBucket + 1> free_buckets_;
   size_type element_count_{};
 };
@@ -601,7 +598,7 @@ namespace offset {
 template <typename K, typename V, std::size_t LogMaxBucketSize = 20>
 struct mutable_multimap_helper {
   template <typename T>
-  using vec = vector_map<K, T>;
+  using vec = vector<T>;
   using type = dynamic_fws_multimap_base<V, K, vec, LogMaxBucketSize>;
 };
 
@@ -616,7 +613,7 @@ namespace raw {
 template <typename K, typename V, std::size_t LogMaxBucketSize = 20>
 struct mutable_multimap_helper {
   template <typename T>
-  using vec = vector_map<K, T>;
+  using vec = vector<T>;
   using type = dynamic_fws_multimap_base<V, K, vec, LogMaxBucketSize>;
 };
 

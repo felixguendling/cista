@@ -19,6 +19,11 @@ struct strong {
       std::is_nothrow_move_constructible_v<T>)
       : v_{std::move(v)} {}
 
+  template <typename X>
+    requires std::is_integral_v<std::decay_t<X>> &&
+             std::is_integral_v<std::decay_t<T>>
+  explicit constexpr strong(X&& x) : v_{std::forward<X>(x)} {}
+
   constexpr strong(strong&& o) noexcept(
       std::is_nothrow_move_constructible_v<T>) = default;
   constexpr strong& operator=(strong&& o) noexcept(
@@ -141,6 +146,19 @@ template <typename T, typename Tag>
 constexpr typename strong<T, Tag>::value_t to_idx(strong<T, Tag> const& s) {
   return s.v_;
 }
+
+template <typename T>
+struct base_type {
+  using type = T;
+};
+
+template <typename T, typename Tag>
+struct base_type<strong<T, Tag>> {
+  using type = T;
+};
+
+template <typename T>
+using base_t = typename base_type<T>::type;
 
 template <typename T>
 T to_idx(T const& t) {
