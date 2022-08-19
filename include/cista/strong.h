@@ -22,7 +22,7 @@ struct strong {
   template <typename X>
     requires std::is_integral_v<std::decay_t<X>> &&
              std::is_integral_v<std::decay_t<T>>
-  explicit constexpr strong(X&& x) : v_{std::forward<X>(x)} {}
+  explicit constexpr strong(X&& x) : v_{static_cast<T>(x)} {}
 
   constexpr strong(strong&& o) noexcept(
       std::is_nothrow_move_constructible_v<T>) = default;

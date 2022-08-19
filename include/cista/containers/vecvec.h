@@ -127,7 +127,7 @@ struct vecvec {
 
   void emplace_back(DataVec&& bucket) {
     if (bucket_starts_.empty()) {
-      bucket_starts_.emplace_back(index_value_type{0});
+      bucket_starts_.emplace_back(index_value_type{0U});
     }
     bucket_starts_.emplace_back(data_.size() + bucket.size());
     data_.insert(end(data_),  //
