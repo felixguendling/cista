@@ -297,3 +297,29 @@ TEST_CASE("erase until empty then serialize") {
 
   CHECK(*deserialized == vector<int>{});
 }
+
+TEST_CASE("erase loop") {
+  using cista::raw::vector;
+
+  vector<int> uut{1, 2, 3};
+  std::vector<int> ref{1, 2, 3};
+
+  auto const verify_equality = [&]() {
+    REQUIRE(ref.size() == uut.size());
+    for (auto i = 0U; i != ref.size(); ++i) {
+      CHECK(ref[i] == uut[i]);
+    }
+  };
+
+  auto uut_it = uut.begin();
+  auto ref_it = ref.begin();
+  while (!ref.empty()) {
+    uut_it = uut.erase(uut_it);
+    ref_it = ref.erase(ref_it);
+    if (ref_it != end(ref)) {
+      REQUIRE(uut_it != end(uut));
+      CHECK(*ref_it == *uut_it);
+    }
+    verify_equality();
+  }
+}

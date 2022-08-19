@@ -131,8 +131,10 @@ struct basic_vector {
     return const_cast<basic_vector*>(this)->at(index);
   }
 
-  T const& back() const noexcept { return ptr_cast(el_)[used_size_ - 1]; }
-  T& back() noexcept { return ptr_cast(el_)[used_size_ - 1]; }
+  T const& back() const noexcept {
+    return ptr_cast(el_)[to_idx(used_size_) - 1];
+  }
+  T& back() noexcept { return ptr_cast(el_)[to_idx(used_size_) - 1]; }
 
   T& front() noexcept { return ptr_cast(el_)[0]; }
   T const& front() const noexcept { return ptr_cast(el_)[0]; }
@@ -185,19 +187,15 @@ struct basic_vector {
   }
 
   template <typename Arg>
-  void insert(T* it, Arg&& el) {
-    auto const pos = it - begin();
+  T* insert(T* it, Arg&& el) {
+    auto const old_offset = std::distance(begin(), it);
+    auto const old_size = used_size_;
 
     reserve(used_size_ + 1);
-    it = begin() + pos;
-
-    for (auto move_it = end() - 1, pred = end(); pred != it; --move_it) {
-      *pred = std::move(*move_it);
-      pred = move_it;
-    }
-
-    new (it) T{std::forward<Arg>(el)};
+    new (el_ + used_size_) T{std::forward<Arg&&>(el)};
     ++used_size_;
+
+    return std::rotate(begin() + old_offset, begin() + old_size, end());
   }
 
   template <class InputIt>
@@ -320,6 +318,7 @@ struct basic_vector {
   }
 
   T* erase(T* pos) {
+    auto const r = pos;
     T* last = end() - 1;
     while (pos < last) {
       std::swap(*pos, *(pos + 1));
@@ -327,7 +326,7 @@ struct basic_vector {
     }
     pos->~T();
     --used_size_;
-    return end();
+    return r;
   }
 
   T* erase(T* first, T* last) {
