@@ -74,7 +74,7 @@ struct vecvec {
       return *(begin() + i);
     }
 
-    value_type& operator[](size_t const i) {
+    value_type const& operator[](size_t const i) const {
       assert(is_inside_bucket(i));
       return map_->data_[map_->bucket_starts_[i_] + i];
     }
