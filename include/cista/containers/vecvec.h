@@ -7,8 +7,10 @@
 
 namespace cista {
 
-template <typename DataVec, typename IndexVec>
+template <typename Key, typename DataVec, typename IndexVec>
 struct vecvec {
+  static_assert(std::is_same_v<typename IndexVec::value_type, base_t<Key>>);
+
   using data_value_type = typename DataVec::value_type;
   using index_value_type = typename IndexVec::value_type;
 
@@ -17,7 +19,7 @@ struct vecvec {
     using iterator = typename DataVec::iterator;
     using const_iterator = typename DataVec::iterator;
 
-    bucket(vecvec* map, index_value_type const i) : map_{map}, i_{to_idx(i)} {}
+    bucket(vecvec* map, Key const i) : map_{map}, i_{to_idx(i)} {}
 
     value_type& operator[](size_t const i) {
       assert(is_inside_bucket(i));
@@ -34,7 +36,9 @@ struct vecvec {
       return *(begin() + i);
     }
 
-    size_t size() const { return bucket_end_idx() - bucket_begin_idx(); }
+    index_value_type size() const {
+      return bucket_end_idx() - bucket_begin_idx();
+    }
     iterator begin() { return map_->data_.begin() + bucket_begin_idx(); }
     iterator end() { return map_->data_.begin() + bucket_end_idx(); }
     const_iterator begin() const {
@@ -49,16 +53,18 @@ struct vecvec {
     friend iterator end(bucket& b) { return b.end(); }
 
   private:
-    size_t bucket_begin_idx() const { return to_idx(map_->bucket_starts_[i_]); }
-    size_t bucket_end_idx() const {
+    index_value_type bucket_begin_idx() const {
+      return to_idx(map_->bucket_starts_[i_]);
+    }
+    index_value_type bucket_end_idx() const {
       return to_idx(map_->bucket_starts_[i_ + 1]);
     }
-    bool is_inside_bucket(size_t const i) {
+    bool is_inside_bucket(index_value_type const i) {
       return bucket_begin_idx() + i < bucket_end_idx();
     }
 
-    size_t const i_;
     vecvec* map_;
+    index_value_type const i_;
   };
 
   struct const_bucket final {
@@ -66,8 +72,7 @@ struct vecvec {
     using iterator = typename DataVec::iterator;
     using const_iterator = typename DataVec::const_iterator;
 
-    const_bucket(vecvec const* map, index_value_type const i)
-        : map_{map}, i_{to_idx(i)} {}
+    const_bucket(vecvec const* map, Key const i) : map_{map}, i_{to_idx(i)} {}
 
     value_type const& at(size_t const i) const {
       verify(i < size(), "bucket::at: index out of range");
@@ -94,7 +99,7 @@ struct vecvec {
     size_t bucket_end_idx() const {
       return to_idx(map_->bucket_starts_[i_ + 1]);
     }
-    bool is_inside_bucket(size_t const i) {
+    bool is_inside_bucket(size_t const i) const {
       return bucket_begin_idx() + i < bucket_end_idx();
     }
 
@@ -105,22 +110,20 @@ struct vecvec {
   using value_type = bucket;
   using const_value_type = const_bucket;
 
-  value_type operator[](index_value_type const i) { return {this, i}; }
-  const_value_type operator[](index_value_type const i) const {
-    return {this, i};
-  }
+  value_type operator[](Key const i) { return {this, i}; }
+  const_value_type operator[](Key const i) const { return {this, i}; }
 
-  const_value_type at(index_value_type const i) const {
+  const_value_type at(Key const i) const {
     verify(to_idx(i) < bucket_starts_.size(), "vecvec::at: index out of range");
     return {this, i};
   }
 
-  value_type at(index_value_type const i) {
+  value_type at(Key const i) {
     verify(to_idx(i) < bucket_starts_.size(), "vecvec::at: index out of range");
     return {this, i};
   }
 
-  base_t<index_value_type> size() const {
+  index_value_type size() const {
     return empty() ? 0U : bucket_starts_.size() - 1;
   }
   bool empty() const { return data_.empty(); }
@@ -142,14 +145,14 @@ struct vecvec {
 namespace offset {
 
 template <typename K, typename V>
-using vecvec = vecvec<vector<V>, vector<K>>;
+using vecvec = vecvec<K, vector<V>, vector<base_t<K>>>;
 
 }  // namespace offset
 
 namespace raw {
 
 template <typename K, typename V>
-using vecvec = vecvec<vector<V>, vector<K>>;
+using vecvec = vecvec<K, vector<V>, vector<base_t<K>>>;
 
 }  // namespace raw
 

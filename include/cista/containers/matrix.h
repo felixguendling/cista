@@ -10,11 +10,11 @@ struct base_matrix {
   using size_type = typename Vector::size_type;
 
   struct row {
-    row(base_matrix& matrix, int row_index)
+    row(base_matrix& matrix, size_type const row_index)
         : matrix_(matrix), row_index_(row_index) {}
 
-    value_type& operator[](int column_index) {
-      auto const pos = matrix_.column_count_ * row_index_ + column_index;
+    value_type& operator[](size_type const column_index) {
+      auto const pos = matrix_.n_columns_ * row_index_ + column_index;
       return matrix_.entries_[pos];
     }
 
@@ -23,11 +23,11 @@ struct base_matrix {
   };
 
   struct const_row {
-    const_row(base_matrix const& matrix, int row_index)
+    const_row(base_matrix const& matrix, size_type const row_index)
         : matrix_(matrix), row_index_(row_index) {}
 
-    value_type const& operator[](int column_index) const {
-      auto const pos = matrix_.column_count_ * row_index_ + column_index;
+    value_type const& operator[](size_type const column_index) const {
+      auto const pos = matrix_.n_columns_ * row_index_ + column_index;
       return matrix_.entries_[pos];
     }
 
