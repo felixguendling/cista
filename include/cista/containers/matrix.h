@@ -53,6 +53,8 @@ struct base_matrix {
   }
 
   void resize(size_type const n_rows, size_t const n_columns) {
+    n_rows_ = n_rows;
+    n_columns_ = n_columns;
     entries_.resize(n_rows * n_columns);
   }
 
