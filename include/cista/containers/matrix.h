@@ -10,35 +10,43 @@ struct base_matrix {
   using size_type = typename Vector::size_type;
 
   struct row {
-    row(base_matrix& matrix, size_type const row_index)
-        : matrix_(matrix), row_index_(row_index) {}
+    row(base_matrix& matrix, size_type const i) : matrix_(matrix), i_(i) {}
 
-    value_type& operator[](size_type const column_index) {
-      auto const pos = matrix_.n_columns_ * row_index_ + column_index;
+    value_type& operator[](size_type const j) {
+      assert(j < matrix_.n_columns_);
+      auto const pos = matrix_.n_columns_ * i_ + j;
       return matrix_.entries_[pos];
     }
 
     base_matrix& matrix_;
-    size_type row_index_;
+    size_type i_;
   };
 
   struct const_row {
-    const_row(base_matrix const& matrix, size_type const row_index)
-        : matrix_(matrix), row_index_(row_index) {}
+    const_row(base_matrix const& matrix, size_type const i)
+        : matrix_(matrix), i_(i) {}
 
-    value_type const& operator[](size_type const column_index) const {
-      auto const pos = matrix_.n_columns_ * row_index_ + column_index;
+    value_type const& operator[](size_type const j) const {
+      assert(j < matrix_.n_columns_);
+      auto const pos = matrix_.n_columns_ * i_ + j;
       return matrix_.entries_[pos];
     }
 
     base_matrix const& matrix_;
-    size_type row_index_;
+    size_type i_;
   };
 
-  row operator[](size_type i) { return {*this, i}; }
-  const_row operator[](size_type i) const { return {*this, i}; }
+  row operator[](size_type i) {
+    assert(i < n_rows_);
+    return {*this, i};
+  }
+  const_row operator[](size_type i) const {
+    assert(i < n_rows_);
+    return {*this, i};
+  }
 
   value_type& operator()(size_type const i, size_type const j) {
+    assert(i < n_rows_ && j < n_columns_);
     return entries_[n_columns_ * i + j];
   }
 

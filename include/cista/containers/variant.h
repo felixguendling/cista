@@ -222,12 +222,18 @@ struct variant {
 
   template <typename F>
   auto apply(F&& f) -> decltype(f(std::declval<type_at_index_t<0U, T...>>())) {
+    if (idx_ == NO_VALUE) {
+      return;
+    }
     return apply(std::forward<F>(f), idx_, *this);
   }
 
   template <typename F>
   auto apply(F&& f) const
       -> decltype(f(std::declval<type_at_index_t<0U, T...>>())) {
+    if (idx_ == NO_VALUE) {
+      return;
+    }
     return apply(std::forward<F>(f), idx_, *this);
   }
 
