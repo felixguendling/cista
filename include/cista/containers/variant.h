@@ -223,7 +223,7 @@ struct variant {
   template <typename F>
   auto apply(F&& f) -> decltype(f(std::declval<type_at_index_t<0U, T...>>())) {
     if (idx_ == NO_VALUE) {
-      return;
+      throw std::runtime_error{"variant::apply: no value"};
     }
     return apply(std::forward<F>(f), idx_, *this);
   }
@@ -232,7 +232,7 @@ struct variant {
   auto apply(F&& f) const
       -> decltype(f(std::declval<type_at_index_t<0U, T...>>())) {
     if (idx_ == NO_VALUE) {
-      return;
+      throw std::runtime_error{"variant::apply: no value"};
     }
     return apply(std::forward<F>(f), idx_, *this);
   }
