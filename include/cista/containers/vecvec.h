@@ -21,6 +21,18 @@ struct vecvec {
 
     bucket(vecvec* map, Key const i) : map_{map}, i_{to_idx(i)} {}
 
+    value_type& front() {
+      assert(!empty());
+      return operator[](0);
+    }
+
+    value_type& back() {
+      assert(!empty());
+      return operator[](size() - 1U);
+    }
+
+    bool empty() const { return begin() == end(); }
+
     value_type& operator[](size_t const i) {
       assert(is_inside_bucket(i));
       return map_->data_[to_idx(map_->bucket_starts_[i_] + i)];
@@ -73,6 +85,18 @@ struct vecvec {
     using const_iterator = typename DataVec::const_iterator;
 
     const_bucket(vecvec const* map, Key const i) : map_{map}, i_{to_idx(i)} {}
+
+    value_type const& front() const {
+      assert(!empty());
+      return operator[](0);
+    }
+
+    value_type const& back() const {
+      assert(!empty());
+      return operator[](size() - 1U);
+    }
+
+    bool empty() const { return begin() == end(); }
 
     value_type const& at(size_t const i) const {
       verify(i < size(), "bucket::at: index out of range");
