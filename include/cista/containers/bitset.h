@@ -23,7 +23,7 @@ struct bitset {
   static constexpr auto const num_blocks =
       Size / bits_per_block + (Size % bits_per_block == 0 ? 0 : 1);
 
-  constexpr bitset() noexcept = default;
+  constexpr bitset() noexcept {}
   constexpr bitset(std::string_view s) noexcept { set(s); }
   static constexpr bitset max() {
     bitset b;
