@@ -218,6 +218,11 @@ struct basic_vector {
 
   template <class FwdIt>
   T* insert(T* pos, FwdIt first, FwdIt last, std::forward_iterator_tag) {
+    if (empty()) {
+      set(first, last);
+      return begin();
+    }
+
     auto const pos_idx = pos - begin();
     auto const new_count =
         static_cast<TemplateSizeType>(std::distance(first, last));
