@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <type_traits>
 
 #include "cista/containers/vector.h"
 #include "cista/verify.h"
@@ -20,6 +21,11 @@ struct vecvec {
     using const_iterator = typename DataVec::iterator;
 
     bucket(vecvec* map, Key const i) : map_{map}, i_{to_idx(i)} {}
+
+    std::string_view str() const {
+      static_assert(std::is_same_v<std::decay_t<value_type>, char>);
+      return std::string_view{begin(), size()};
+    }
 
     value_type& front() {
       assert(!empty());
@@ -85,6 +91,12 @@ struct vecvec {
     using const_iterator = typename DataVec::const_iterator;
 
     const_bucket(vecvec const* map, Key const i) : map_{map}, i_{to_idx(i)} {}
+
+    std::enable_if_t<std::is_same_v<std::decay_t<data_value_type>, char>,
+                     std::string_view>
+    str() const {
+      return std::string_view{begin(), end()};
+    }
 
     value_type const& front() const {
       assert(!empty());
@@ -160,6 +172,25 @@ struct vecvec {
     data_.insert(end(data_),  //
                  std::make_move_iterator(begin(bucket)),
                  std::make_move_iterator(end(bucket)));
+  }
+
+  template <typename String,
+            typename = std::enable_if_t<
+                std::is_convertible_v<data_value_type, char const> &&
+                std::is_convertible_v<decltype(String{}.data()), char const*> &&
+                std::is_convertible_v<decltype(String{}.size()), size_t>>>
+  void emplace_back(String const& s) {
+    if (bucket_starts_.empty()) {
+      bucket_starts_.emplace_back(index_value_type{0U});
+    }
+    bucket_starts_.emplace_back(data_.size() + s.size());
+    data_.insert(end(data_), s.data(), s.data() + s.size());
+  }
+
+  template <typename T = data_value_type,
+            typename = std::enable_if_t<std::is_convertible_v<T, char const>>>
+  void emplace_back(char const* s) {
+    return emplace_back(std::string_view{s});
   }
 
   DataVec data_;

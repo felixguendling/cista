@@ -9,7 +9,7 @@
 #include "cista/containers/vecvec.h"
 #endif
 
-TEST_CASE("insert begin test") {
+TEST_CASE("vecvec insert begin test") {
   using key = cista::strong<unsigned, struct x_>;
   struct value {
     double lat_, lng_;
@@ -23,4 +23,13 @@ TEST_CASE("insert begin test") {
   d.emplace_back({{1.0, 1.0}, {2.0, 2.0}});
   CHECK(d.size() == 1);
   CHECK(d[key{0}].size() == 2);
+}
+
+TEST_CASE("vecvec string test") {
+  using key = cista::strong<unsigned, struct x_>;
+  using data = cista::raw::vecvec<key, char>;
+
+  data d;
+  d.emplace_back("hello");
+  CHECK(d[key{0U}].str() == "hello");
 }

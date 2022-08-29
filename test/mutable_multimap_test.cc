@@ -86,17 +86,17 @@ TEST_CASE("mutable_fws_multimap_test, int_1") {
   mutable_fws_multimap<unsigned, int> mm;
 
   REQUIRE(0 == mm.element_count());
-  REQUIRE(0 == mm.index_size());
+  REQUIRE(0 == mm.size());
 
   mm[0].push_back(42);
   REQUIRE(1 == mm.element_count());
-  REQUIRE(1 == mm.index_size());
+  REQUIRE(1 == mm.size());
   CHECK(ElementsAreArray(mm[0], {42}));
   CHECK(1 == mm[0].size());
 
   mm[1].push_back(4);
   REQUIRE(2 == mm.element_count());
-  REQUIRE(2 == mm.index_size());
+  REQUIRE(2 == mm.size());
   CHECK(ElementsAreArray(mm[0], {42}));
   CHECK(1 == mm[0].size());
   CHECK(ElementsAreArray(mm[1], {4}));
@@ -104,7 +104,7 @@ TEST_CASE("mutable_fws_multimap_test, int_1") {
 
   mm[1].push_back(8);
   REQUIRE(3 == mm.element_count());
-  REQUIRE(2 == mm.index_size());
+  REQUIRE(2 == mm.size());
   CHECK(ElementsAreArray(mm[0], {42}));
   CHECK(1 == mm[0].size());
   CHECK(ElementsAreArray(mm[1], {4, 8}));
@@ -112,7 +112,7 @@ TEST_CASE("mutable_fws_multimap_test, int_1") {
 
   mm[1].emplace_back(15);
   REQUIRE(4 == mm.element_count());
-  REQUIRE(2 == mm.index_size());
+  REQUIRE(2 == mm.size());
   CHECK(ElementsAreArray(mm[0], {42}));
   CHECK(1 == mm[0].size());
   CHECK(ElementsAreArray(mm[1], {4, 8, 15}));
@@ -120,7 +120,7 @@ TEST_CASE("mutable_fws_multimap_test, int_1") {
 
   mm[1].push_back(16);
   REQUIRE(5 == mm.element_count());
-  REQUIRE(2 == mm.index_size());
+  REQUIRE(2 == mm.size());
   CHECK(ElementsAreArray(mm[0], {42}));
   CHECK(1 == mm[0].size());
   CHECK(ElementsAreArray(mm[1], {4, 8, 15, 16}));
@@ -128,7 +128,7 @@ TEST_CASE("mutable_fws_multimap_test, int_1") {
 
   mm[0].push_back(23);
   REQUIRE(6 == mm.element_count());
-  REQUIRE(2 == mm.index_size());
+  REQUIRE(2 == mm.size());
   CHECK(ElementsAreArray(mm[0], {42, 23}));
   CHECK(2 == mm[0].size());
   CHECK(ElementsAreArray(mm[1], {4, 8, 15, 16}));
@@ -144,7 +144,7 @@ TEST_CASE("mutable_fws_multimap_test, graph_1") {
   mm[3].emplace_back(3U, 0U, 50U);
   mm[2].emplace_back(2U, 3U, 5U);
 
-  REQUIRE(4 == mm.index_size());
+  REQUIRE(4 == mm.size());
   CHECK(5 == mm.element_count());
 
   CHECK(ElementsAreArray(mm[0], {test_edge{0U, 1U, 10U}}));
@@ -157,7 +157,7 @@ TEST_CASE("mutable_fws_multimap_test, graph_1") {
 TEST_CASE("mutable_fws_multimap_test, int_2") {
   auto const mm = build_test_map_1();
 
-  REQUIRE(3 == mm.index_size());
+  REQUIRE(3 == mm.size());
   CHECK(12 == mm.element_count());
   CHECK(ElementsAreArray(mm[0], {4, 8}));
   CHECK(ElementsAreArray(mm[1], {15, 16, 23, 42}));
@@ -174,7 +174,7 @@ TEST_CASE("mutable_fws_multimap_test, int_insert_1") {
 
   mm[1].insert(std::next(mm[1].begin(), 2), 20);
 
-  REQUIRE(3 == mm.index_size());
+  REQUIRE(3 == mm.size());
   CHECK(13 == mm.element_count());
   CHECK(ElementsAreArray(mm[0], {4, 8}));
   CHECK(ElementsAreArray(mm[1], {15, 16, 20, 23, 42}));
@@ -187,7 +187,7 @@ TEST_CASE("mutable_fws_multimap_test, int_insert_2") {
   auto const val = 20;
   mm[1].insert(std::next(mm[1].begin(), 2), val);
 
-  REQUIRE(3 == mm.index_size());
+  REQUIRE(3 == mm.size());
   CHECK(13 == mm.element_count());
   CHECK(ElementsAreArray(mm[0], {4, 8}));
   CHECK(ElementsAreArray(mm[1], {15, 16, 20, 23, 42}));
@@ -199,7 +199,7 @@ TEST_CASE("mutable_fws_multimap_test, int_erase_1") {
 
   utl::erase(mm[1], 16);
 
-  REQUIRE(3 == mm.index_size());
+  REQUIRE(3 == mm.size());
   CHECK(11 == mm.element_count());
   CHECK(ElementsAreArray(mm[0], {4, 8}));
   CHECK(ElementsAreArray(mm[1], {15, 23, 42}));
@@ -207,7 +207,7 @@ TEST_CASE("mutable_fws_multimap_test, int_erase_1") {
 
   utl::erase(mm[2], 100);
 
-  REQUIRE(3 == mm.index_size());
+  REQUIRE(3 == mm.size());
   CHECK(10 == mm.element_count());
   CHECK(ElementsAreArray(mm[0], {4, 8}));
   CHECK(ElementsAreArray(mm[1], {15, 23, 42}));
@@ -215,7 +215,7 @@ TEST_CASE("mutable_fws_multimap_test, int_erase_1") {
 
   utl::erase(mm[2], 400);
 
-  REQUIRE(3 == mm.index_size());
+  REQUIRE(3 == mm.size());
   CHECK(9 == mm.element_count());
   CHECK(ElementsAreArray(mm[0], {4, 8}));
   CHECK(ElementsAreArray(mm[1], {15, 23, 42}));
@@ -223,7 +223,7 @@ TEST_CASE("mutable_fws_multimap_test, int_erase_1") {
 
   utl::erase(mm[2], 250);
 
-  REQUIRE(3 == mm.index_size());
+  REQUIRE(3 == mm.size());
   CHECK(8 == mm.element_count());
   CHECK(ElementsAreArray(mm[0], {4, 8}));
   CHECK(ElementsAreArray(mm[1], {15, 23, 42}));
@@ -231,7 +231,7 @@ TEST_CASE("mutable_fws_multimap_test, int_erase_1") {
 
   utl::erase(mm[1], 404);
 
-  REQUIRE(3 == mm.index_size());
+  REQUIRE(3 == mm.size());
   CHECK(8 == mm.element_count());
   CHECK(ElementsAreArray(mm[0], {4, 8}));
   CHECK(ElementsAreArray(mm[1], {15, 23, 42}));
@@ -243,7 +243,7 @@ TEST_CASE("mutable_fws_multimap_test, int_erase_2") {
 
   utl::erase_if(mm[2], [](int e) { return e % 100 == 0; });
 
-  REQUIRE(3 == mm.index_size());
+  REQUIRE(3 == mm.size());
   CHECK(8 == mm.element_count());
   CHECK(ElementsAreArray(mm[0], {4, 8}));
   CHECK(ElementsAreArray(mm[1], {15, 16, 23, 42}));
@@ -255,7 +255,7 @@ TEST_CASE("mutable_fws_multimap_test, int_resize_1") {
 
   mm[0].resize(4);
 
-  REQUIRE(3 == mm.index_size());
+  REQUIRE(3 == mm.size());
   CHECK(14 == mm.element_count());
   CHECK(ElementsAreArray(mm[0], {4, 8, 0, 0}));
   CHECK(ElementsAreArray(mm[1], {15, 16, 23, 42}));
@@ -263,7 +263,7 @@ TEST_CASE("mutable_fws_multimap_test, int_resize_1") {
 
   mm[1].resize(3);
 
-  REQUIRE(3 == mm.index_size());
+  REQUIRE(3 == mm.size());
   CHECK(13 == mm.element_count());
   CHECK(ElementsAreArray(mm[0], {4, 8, 0, 0}));
   CHECK(ElementsAreArray(mm[1], {15, 16, 23}));
@@ -271,7 +271,7 @@ TEST_CASE("mutable_fws_multimap_test, int_resize_1") {
 
   mm[1].resize(6, 123);
 
-  REQUIRE(3 == mm.index_size());
+  REQUIRE(3 == mm.size());
   CHECK(16 == mm.element_count());
   CHECK(ElementsAreArray(mm[0], {4, 8, 0, 0}));
   CHECK(ElementsAreArray(mm[1], {15, 16, 23, 123, 123, 123}));
@@ -283,7 +283,7 @@ TEST_CASE("mutable_fws_multimap_test, pop_back_1") {
 
   mm[2].pop_back();
 
-  REQUIRE(3 == mm.index_size());
+  REQUIRE(3 == mm.size());
   CHECK(11 == mm.element_count());
   CHECK(ElementsAreArray(mm[0], {4, 8}));
   CHECK(ElementsAreArray(mm[1], {15, 16, 23, 42}));
@@ -291,7 +291,7 @@ TEST_CASE("mutable_fws_multimap_test, pop_back_1") {
 
   mm[1].pop_back();
 
-  REQUIRE(3 == mm.index_size());
+  REQUIRE(3 == mm.size());
   CHECK(10 == mm.element_count());
   CHECK(ElementsAreArray(mm[0], {4, 8}));
   CHECK(ElementsAreArray(mm[1], {15, 16, 23}));
@@ -299,7 +299,7 @@ TEST_CASE("mutable_fws_multimap_test, pop_back_1") {
 
   mm[0].pop_back();
 
-  REQUIRE(3 == mm.index_size());
+  REQUIRE(3 == mm.size());
   CHECK(9 == mm.element_count());
   CHECK(ElementsAreArray(mm[0], {4}));
   CHECK(ElementsAreArray(mm[1], {15, 16, 23}));
@@ -307,7 +307,7 @@ TEST_CASE("mutable_fws_multimap_test, pop_back_1") {
 
   mm[0].pop_back();
 
-  REQUIRE(3 == mm.index_size());
+  REQUIRE(3 == mm.size());
   CHECK(8 == mm.element_count());
   CHECK(mm[0].empty());
   CHECK(ElementsAreArray(mm[1], {15, 16, 23}));
@@ -319,7 +319,7 @@ TEST_CASE("mutable_fws_multimap_test, clear_1") {
 
   mm[0].clear();
 
-  REQUIRE(3 == mm.index_size());
+  REQUIRE(3 == mm.size());
   CHECK(10 == mm.element_count());
   CHECK(mm[0].empty());
   CHECK(ElementsAreArray(mm[1], {15, 16, 23, 42}));
@@ -331,7 +331,7 @@ TEST_CASE("mutable_fws_multimap_test, clear_2") {
 
   mm[1].clear();
 
-  REQUIRE(3 == mm.index_size());
+  REQUIRE(3 == mm.size());
   CHECK(8 == mm.element_count());
   CHECK(ElementsAreArray(mm[0], {4, 8}));
   CHECK(mm[1].empty());
@@ -343,7 +343,7 @@ TEST_CASE("mutable_fws_multimap_test, clear_3") {
 
   mm[2].clear();
 
-  REQUIRE(3 == mm.index_size());
+  REQUIRE(3 == mm.size());
   CHECK(6 == mm.element_count());
   CHECK(ElementsAreArray(mm[0], {4, 8}));
   CHECK(ElementsAreArray(mm[1], {15, 16, 23, 42}));
