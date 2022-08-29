@@ -164,7 +164,10 @@ struct vecvec {
   }
   bool empty() const { return data_.empty(); }
 
-  void emplace_back(DataVec&& bucket) {
+  template <typename Container,
+            typename = std::enable_if_t<std::is_convertible_v<
+                typename Container::value_type, data_value_type>>>
+  void emplace_back(Container&& bucket) {
     if (bucket_starts_.empty()) {
       bucket_starts_.emplace_back(index_value_type{0U});
     }

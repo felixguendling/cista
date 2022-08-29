@@ -75,33 +75,33 @@ struct dynamic_fws_multimap_base {
     friend iterator end(bucket& b) { return b.end(); }
     friend const_iterator end(bucket const& b) { return b.end(); }
 
-    value_type& operator[](access_t index) {
+    value_type& operator[](size_type index) {
       return mutable_mm().data_[data_index(to_idx(index))];
     }
 
-    value_type const& operator[](access_t index) const {
+    value_type const& operator[](size_type index) const {
       return multimap_.data_[data_index(to_idx(index))];
     }
 
-    value_type& at(access_t index) {
+    value_type& at(size_type index) {
       return mutable_mm().data_[get_and_check_data_index(index)];
     }
 
-    value_type const& at(access_t index) const {
+    value_type const& at(size_type index) const {
       return multimap_.data_[get_and_check_data_index(index)];
     }
 
-    value_type& front() { return (*this)[access_t{0U}]; }
-    value_type const& front() const { return (*this)[access_t{0U}]; }
+    value_type& front() { return (*this)[0U]; }
+    value_type const& front() const { return (*this)[0U]; }
 
     value_type& back() {
       assert(!empty());
-      return (*this)[access_t{size() - 1}];
+      return (*this)[size() - 1];
     }
 
     value_type const& back() const {
       assert(!empty());
-      return (*this)[access_t{size() - 1}];
+      return (*this)[size() - 1];
     }
 
     size_type data_index(size_type index) const {
