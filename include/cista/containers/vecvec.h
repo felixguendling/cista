@@ -166,28 +166,16 @@ struct vecvec {
 
   template <typename Container,
             typename = std::enable_if_t<std::is_convertible_v<
-                typename Container::value_type, data_value_type>>>
+                typename std::decay_t<Container>::value_type, data_value_type>>>
   void emplace_back(Container&& bucket) {
     if (bucket_starts_.empty()) {
       bucket_starts_.emplace_back(index_value_type{0U});
     }
-    bucket_starts_.emplace_back(data_.size() + bucket.size());
+    bucket_starts_.emplace_back(
+        static_cast<index_value_type>(data_.size() + bucket.size()));
     data_.insert(end(data_),  //
                  std::make_move_iterator(begin(bucket)),
                  std::make_move_iterator(end(bucket)));
-  }
-
-  template <typename String,
-            typename = std::enable_if_t<
-                std::is_convertible_v<data_value_type, char const> &&
-                std::is_convertible_v<decltype(String{}.data()), char const*> &&
-                std::is_convertible_v<decltype(String{}.size()), size_t>>>
-  void emplace_back(String const& s) {
-    if (bucket_starts_.empty()) {
-      bucket_starts_.emplace_back(index_value_type{0U});
-    }
-    bucket_starts_.emplace_back(data_.size() + s.size());
-    data_.insert(end(data_), s.data(), s.data() + s.size());
   }
 
   template <typename T = data_value_type,

@@ -15,6 +15,7 @@ namespace cista {
 template <typename Ptr = char const*>
 struct generic_string {
   using msize_t = uint32_t;
+  using value_type = char;
 
   static msize_t mstrlen(char const* s) noexcept {
     return static_cast<msize_t>(std::strlen(s));
@@ -62,6 +63,11 @@ struct generic_string {
   char* end() noexcept { return data() + size(); }
   char const* begin() const noexcept { return data(); }
   char const* end() const noexcept { return data() + size(); }
+
+  friend char const* begin(generic_string const& s) { return s.begin(); }
+  friend char* begin(generic_string& s) { return s.begin(); }
+  friend char const* end(generic_string const& s) { return s.end(); }
+  friend char* end(generic_string& s) { return s.end(); }
 
   bool is_short() const noexcept { return s_.is_short_; }
 
