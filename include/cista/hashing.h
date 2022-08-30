@@ -162,9 +162,9 @@ struct hashing<char const*> {
 };
 
 template <typename... Args>
-hash_t build_hash(Args... args) {
+hash_t build_hash(Args&&... args) {
   hash_t h = BASE_HASH;
-  ((h = hashing<decltype(args)>{}(args, h)), ...);
+  ((h = hashing<decltype(args)>{}(std::forward<Args&&...>(args), h)), ...);
   return h;
 }
 
