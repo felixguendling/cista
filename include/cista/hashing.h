@@ -69,7 +69,7 @@ constexpr bool is_string_like_v =
     std::is_same_v<std::remove_cv_t<T>, std::string_view>;
 
 template <typename A, typename B>
-constexpr bool is_ptr_same = is_pointer_v<A>&& is_pointer_v<B>;
+constexpr bool is_ptr_same = is_pointer_v<A> && is_pointer_v<B>;
 
 template <typename T>
 struct hashing {
@@ -89,7 +89,8 @@ struct hashing {
     return hashing<T1>{};
   }
 
-  constexpr hash_t operator()(T const& el, hash_t const seed = BASE_HASH) {
+  constexpr hash_t operator()(T const& el,
+                              hash_t const seed = BASE_HASH) const {
     using Type = decay_t<T>;
     if constexpr (has_hash_v<Type>) {
       return hash_combine(el.hash(), seed);
