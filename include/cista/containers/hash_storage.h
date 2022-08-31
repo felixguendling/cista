@@ -2,9 +2,9 @@
 
 #include <cinttypes>
 #include <cstring>
-
 #include <functional>
 #include <iterator>
+#include <optional>
 #include <stdexcept>
 #include <type_traits>
 
@@ -332,6 +332,25 @@ struct hash_storage {
 
   mapped_type& operator[](key_type const& key) {
     return bracket_operator_impl(key);
+  }
+
+  // --- get()
+  template <typename Key>
+  std::optional<mapped_type> get_impl(Key&& key) {
+    if (auto it = find(std::forward<Key>(key)); it != end()) {
+      return GetValue{}(*it);
+    } else {
+      return std::nullopt;
+    }
+  }
+
+  std::optional<mapped_type> get(key_type const& key) const {
+    return const_cast<hash_storage*>(this)->get(key);
+  }
+
+  template <typename Key>
+  std::optional<mapped_type> get(Key&& key) const {
+    return const_cast<hash_storage*>(this)->get(std::forward<Key>(key));
   }
 
   // --- at()
