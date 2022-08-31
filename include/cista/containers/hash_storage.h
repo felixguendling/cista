@@ -344,13 +344,9 @@ struct hash_storage {
     }
   }
 
-  std::optional<mapped_type> get(key_type const& key) const {
-    return const_cast<hash_storage*>(this)->get(key);
-  }
-
   template <typename Key>
   std::optional<mapped_type> get(Key&& key) const {
-    return const_cast<hash_storage*>(this)->get(std::forward<Key>(key));
+    return const_cast<hash_storage*>(this)->get_impl(std::forward<Key>(key));
   }
 
   // --- at()
