@@ -22,8 +22,9 @@ struct vecvec {
 
     bucket(vecvec* map, Key const i) : map_{map}, i_{to_idx(i)} {}
 
-    std::string_view str() const {
-      static_assert(std::is_same_v<std::decay_t<value_type>, char>);
+    template <typename T = std::decay_t<data_value_type>,
+              typename = std::enable_if_t<std::is_same_v<T, char>>>
+    std::string_view view() const {
       return std::string_view{begin(), size()};
     }
 
@@ -93,8 +94,8 @@ struct vecvec {
     const_bucket(vecvec const* map, Key const i) : map_{map}, i_{to_idx(i)} {}
 
     template <typename T = std::decay_t<data_value_type>,
-              std::enable_if_t<std::is_same_v<T, char>>>
-    std::string_view str() const {
+              typename = std::enable_if_t<std::is_same_v<T, char>>>
+    std::string_view view() const {
       return std::string_view{begin(), end()};
     }
 
