@@ -96,7 +96,7 @@ struct vecvec {
     template <typename T = std::decay_t<data_value_type>,
               typename = std::enable_if_t<std::is_same_v<T, char>>>
     std::string_view view() const {
-      return std::string_view{begin(), end()};
+      return std::string_view{begin(), size()};
     }
 
     value_type const& front() const {
