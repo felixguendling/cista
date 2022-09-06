@@ -1,7 +1,7 @@
 #pragma once
 
+#include <chrono>
 #include <cstdint>
-
 #include <functional>
 #include <string>
 #include <string_view>
@@ -72,6 +72,9 @@ template <typename A, typename B>
 constexpr bool is_ptr_same = is_pointer_v<A> && is_pointer_v<B>;
 
 template <typename T>
+struct hashing;
+
+template <typename T>
 struct hashing {
   template <typename A, typename B>
   static constexpr bool is_hash_equivalent() noexcept {
@@ -116,9 +119,11 @@ struct hashing {
       return std::hash<Type>()(el);
     } else if constexpr (to_tuple_works_v<Type>) {
       auto h = seed;
-      for_each_field(el, [&h](auto&& f) { h = hashing<decltype(f)>{}(f, h); });
+      for_each_field(el, [&h](auto&& f) {
+        h = hashing<std::decay_t<decltype(f)>>{}(f, h);
+      });
       return h;
-    } else if (is_strong_v<Type>) {
+    } else if constexpr (is_strong_v<Type>) {
       return hashing<typename Type::value_t>{}(el.v_, seed);
     } else {
       static_assert(has_hash_v<Type> || std::is_scalar_v<Type> ||
@@ -126,6 +131,14 @@ struct hashing {
                         to_tuple_works_v<Type> || is_strong_v<Type>,
                     "Implement hash");
     }
+  }
+};
+
+template <typename Rep, typename Period>
+struct hashing<std::chrono::duration<Rep, Period>> {
+  hash_t operator()(std::chrono::duration<Rep, Period> const& el,
+                    hash_t const seed = BASE_HASH) {
+    return hashing<Rep>{}(el.count(), seed);
   }
 };
 
