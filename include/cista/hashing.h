@@ -112,7 +112,7 @@ struct hashing {
     } else if constexpr (is_iterable_v<Type>) {
       auto h = seed;
       for (auto const& v : el) {
-        h = hashing<decltype(v)>()(v, h);
+        h = hashing<std::decay_t<decltype(v)>>()(v, h);
       }
       return h;
     } else if constexpr (has_std_hash_v<Type>) {
