@@ -51,6 +51,11 @@ struct dynamic_fws_multimap_base {
     size_type capacity() const { return get_index().capacity_; }
     bool empty() const { return size() == 0; }
 
+    template <bool IsConst = Const, typename = std::enable_if_t<!IsConst>>
+    operator bucket<true>() {
+      return bucket{multimap_, index_};
+    }
+
     iterator begin() { return mutable_mm().data_.begin() + get_index().begin_; }
 
     const_iterator begin() const {
@@ -264,20 +269,17 @@ struct dynamic_fws_multimap_base {
     bucket_iterator(bucket_iterator<false> const& it)
         : multimap_{it.multimap_}, index_{it.index_} {}
 
-    value_type operator*() const { return multimap_.at(index_); }
-
-    template <bool IsConst = Const, typename = std::enable_if_t<!IsConst>>
-    value_type operator*() {
+    value_type operator*() const {
       return const_cast<dynamic_fws_multimap_base&>(multimap_)  // NOLINT
-          .at(index_);
+          .at(access_t{index_});
     }
 
-    value_type operator->() const { return multimap_.at(index_); }
+    value_type operator->() const { return multimap_.at(access_t{index_}); }
 
     template <bool IsConst = Const, typename = std::enable_if_t<!IsConst>>
     value_type operator->() {
       return const_cast<dynamic_fws_multimap_base&>(multimap_)  // NOLINT
-          .at(index_);
+          .at(access_t{index_});
     }
 
     bucket_iterator& operator+=(difference_type n) {
@@ -326,13 +328,13 @@ struct dynamic_fws_multimap_base {
     }
 
     value_type operator[](difference_type n) const {
-      return multimap_.at(index_ + n);
+      return multimap_.at(access_t{index_ + n});
     }
 
     template <bool IsConst = Const, typename = std::enable_if_t<!IsConst>>
     value_type operator[](difference_type n) {
       return const_cast<dynamic_fws_multimap_base&>(multimap_)  // NOLINT
-          .at(index_ + n);
+          .at(access_t{index_ + n});
     }
 
     bool operator<(bucket_iterator const& rhs) const {
@@ -374,12 +376,12 @@ struct dynamic_fws_multimap_base {
     return {*this, to_idx(index)};
   }
 
-  const_bucket operator[](access_t index) const {
+  const_bucket operator[](access_t const index) const {
     assert(index < index_.size());
     return {*this, to_idx(index)};
   }
 
-  mutable_bucket at(access_t index) {
+  mutable_bucket at(access_t const index) {
     if (index >= index_.size()) {
       throw std::out_of_range{"dynamic_fws_multimap::at() out of range"};
     } else {
@@ -387,7 +389,7 @@ struct dynamic_fws_multimap_base {
     }
   }
 
-  const_bucket at(access_t index) const {
+  const_bucket at(access_t const index) const {
     if (index >= index_.size()) {
       throw std::out_of_range{"dynamic_fws_multimap::at() out of range"};
     } else {
@@ -463,6 +465,15 @@ struct dynamic_fws_multimap_base {
   void reserve(size_type index, size_type data) {
     index_.reserve(index);
     data_.reserve(data);
+  }
+
+  void clear() {
+    index_.clear();
+    data_.clear();
+    for (auto& e : free_buckets_) {
+      e.clear();
+    }
+    element_count_ = 0U;
   }
 
 protected:

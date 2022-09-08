@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cinttypes>
+#include <ostream>
+
 #include "cista/containers/vector.h"
 
 namespace cista {
@@ -35,6 +38,16 @@ struct base_matrix {
     base_matrix const& matrix_;
     size_type i_;
   };
+
+  friend std::ostream& operator<<(std::ostream& out, base_matrix const& m) {
+    for (auto i = 0U; i != m.n_rows_; ++i) {
+      for (auto j = 0U; j != m.n_columns_; ++j) {
+        out << static_cast<std::int64_t>(m[i][j]) << " ";
+      }
+      out << "\n";
+    }
+    return out;
+  }
 
   row operator[](size_type i) {
     assert(i < n_rows_);
