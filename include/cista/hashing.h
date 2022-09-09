@@ -140,6 +140,17 @@ struct hashing<std::pair<T1, T2>> {
   }
 };
 
+template <typename T1, typename T2>
+struct hashing<pair<T1, T2>> {
+  constexpr hash_t operator()(pair<T1, T2> const& el,
+                              hash_t const seed = BASE_HASH) {
+    std::size_t h = seed;
+    h = hashing<T1>{}(el.first, h);
+    h = hashing<T2>{}(el.second, h);
+    return h;
+  }
+};
+
 template <typename... Args>
 struct hashing<std::tuple<Args...>> {
   constexpr hash_t operator()(std::tuple<Args...> const& el,

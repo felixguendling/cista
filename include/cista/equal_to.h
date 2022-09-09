@@ -41,6 +41,9 @@ template <typename A, typename B>
 constexpr bool is_eq_comparable_v = is_eq_comparable<A, B>::value;
 
 template <typename T>
+struct equal_to;
+
+template <typename T>
 struct equal_to {
   template <typename T1>
   constexpr bool operator()(T const& a, T1 const& b) const {
@@ -64,6 +67,14 @@ struct equal_to {
                         to_tuple_works_v<Type>,
                     "Implement custom equality");
     }
+  }
+};
+
+template <typename A, typename B>
+struct equal_to<pair<A, B>> {
+  template <typename T1>
+  constexpr bool operator()(pair<A, B> const& a, T1 const& b) const {
+    return a.first == b.first && a.second == b.second;
   }
 };
 
