@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <type_traits>
 
+#include "cista/containers/pair.h"
 #include "cista/decay.h"
 #include "cista/is_iterable.h"
 #include "cista/reflection/to_tuple.h"

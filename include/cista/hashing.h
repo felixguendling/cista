@@ -9,6 +9,7 @@
 #include <type_traits>
 
 #include "cista/containers/offset_ptr.h"
+#include "cista/containers/pair.h"
 #include "cista/containers/string.h"
 #include "cista/decay.h"
 #include "cista/hash.h"
