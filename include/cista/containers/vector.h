@@ -84,8 +84,8 @@ struct basic_vector {
 
     std::free(el_);  // NOLINT
     el_ = nullptr;
-    used_size_ = TemplateSizeType{0U};
-    allocated_size_ = TemplateSizeType{0U};
+    used_size_ = 0U;
+    allocated_size_ = 0U;
     self_allocated_ = false;
   }
 
@@ -265,8 +265,7 @@ struct basic_vector {
 
   template <typename... Args>
   T& emplace_back(Args&&... el) {
-    reserve(static_cast<TemplateSizeType>(used_size_ +
-                                          static_cast<TemplateSizeType>(1)));
+    reserve(used_size_ + 1U);
     new (el_ + used_size_) T{std::forward<Args>(el)...};
     T* ptr = el_ + used_size_;
     ++used_size_;
@@ -288,7 +287,7 @@ struct basic_vector {
     }
   }
 
-  void reserve(TemplateSizeType new_size) {
+  void reserve(base_t<TemplateSizeType> new_size) {
     new_size = std::max(allocated_size_, new_size);
 
     if (allocated_size_ >= new_size) {
@@ -384,8 +383,8 @@ struct basic_vector {
   }
 
   Ptr el_{nullptr};
-  TemplateSizeType used_size_{0U};
-  TemplateSizeType allocated_size_{0U};
+  base_t<TemplateSizeType> used_size_{0U};
+  base_t<TemplateSizeType> allocated_size_{0U};
   bool self_allocated_{false};
   uint8_t __fill_0__{0U};
   uint16_t __fill_1__{0U};

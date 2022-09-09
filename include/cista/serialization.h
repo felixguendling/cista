@@ -218,6 +218,22 @@ void serialize(Ctx& c, generic_string<Ptr> const* origin, offset_t const pos) {
   c.write(pos + cista_member_offset(Type, h_.self_allocated_), false);
 }
 
+template <typename Ctx, typename T, typename SizeType,
+          template <typename> typename Vec, std::size_t Log2MaxEntriesPerBucket>
+void serialize(Ctx& c,
+               dynamic_fws_multimap_base<T, SizeType, Vec,
+                                         Log2MaxEntriesPerBucket> const* origin,
+               offset_t const pos) {
+  using Type =
+      dynamic_fws_multimap_base<T, SizeType, Vec, Log2MaxEntriesPerBucket>;
+  serialize(c, &origin->index_, pos + cista_member_offset(Type, index_));
+  serialize(c, &origin->data_, pos + cista_member_offset(Type, data_));
+  serialize(c, &origin->free_buckets_,
+            pos + cista_member_offset(Type, free_buckets_));
+  serialize(c, &origin->element_count_,
+            pos + cista_member_offset(Type, element_count_));
+}
+
 template <typename Ctx, typename Ptr>
 void serialize(Ctx& c, basic_string<Ptr> const* origin, offset_t const pos) {
   serialize(c, static_cast<generic_string<Ptr> const*>(origin), pos);
@@ -308,6 +324,20 @@ void serialize(Ctx& c,
   }
 }
 
+template <typename Ctx, typename Rep, typename Period>
+void serialize(Ctx& c, std::chrono::duration<Rep, Period> const* origin,
+               offset_t const pos) {
+  static_assert(sizeof(origin->count() == sizeof(*origin)));
+  c.write(pos, convert_endian<Ctx::MODE>(origin->count()));
+}
+
+template <typename Ctx, typename Clock, typename Dur>
+void serialize(Ctx& c, std::chrono::time_point<Clock, Dur> const* origin,
+               offset_t const pos) {
+  static_assert(sizeof(origin->time_since_epoch().count()) == sizeof(*origin));
+  c.write(pos, convert_endian<Ctx::MODE>(origin->time_since_epoch().count()));
+}
+
 template <typename Ctx, size_t Size>
 void serialize(Ctx& c, bitset<Size> const* origin, offset_t const pos) {
   serialize(c, &origin->blocks_, pos);
@@ -330,6 +360,15 @@ void serialize(Ctx& c, variant<T...> const* origin, offset_t const pos) {
           convert_endian<Ctx::MODE>(origin->idx_));
   auto const offset = cista_member_offset(Type, storage_);
   origin->apply([&](auto&& t) { serialize(c, &t, pos + offset); });
+}
+
+template <typename Ctx, typename T>
+void serialize(Ctx& c, optional<T> const* origin, offset_t const pos) {
+  using Type = decay_t<decltype(*origin)>;
+  auto const offset = cista_member_offset(Type, storage_);
+  if (origin->valid_) {
+    serialize(c, &origin->storage_[0], pos + offset);
+  }
 }
 
 template <typename Ctx, typename... T>
@@ -748,6 +787,20 @@ void recurse(Ctx&, basic_unique_ptr<T, Ptr>* el, Fn&& fn) {
   }
 }
 
+// --- MUTABLE_FWS_MULTIMAP<T> ---
+template <typename Ctx, typename T, typename SizeType,
+          template <typename> typename Vec, std::size_t Log2MaxEntriesPerBucket,
+          typename Fn>
+void recurse(
+    Ctx&,
+    dynamic_fws_multimap_base<T, SizeType, Vec, Log2MaxEntriesPerBucket>* el,
+    Fn&& fn) {
+  fn(&el->index_);
+  fn(&el->data_);
+  fn(&el->free_buckets_);
+  fn(&el->element_count_);
+}
+
 // --- HASH_STORAGE<T> ---
 template <typename Ctx, typename T, template <typename> typename Ptr,
           typename GetKey, typename GetValue, typename Hash, typename Eq>
@@ -864,10 +917,37 @@ void check_state(Ctx const& c, variant<T...>* el) {
   c.require(el->index() < sizeof...(T), "variant index");
 }
 
+// --- OPTIONAL<T> ---
+template <typename Ctx, typename T>
+void check_state(Ctx const& c, optional<T>* el) {
+  c.check_bool(el->valid_);
+}
+
+template <typename Ctx, typename Fn, typename T>
+void recurse(Ctx&, optional<T>* el, Fn&& fn) {
+  if (el->valid_) {
+    fn(&(*el));
+  }
+}
+
 // --- TUPLE<T...> ---
 template <typename Ctx, typename... T>
 void recurse(Ctx const& c, tuple<T...>* el) {
   apply([&](auto&&... args) { (deserialize(c, &args), ...); }, *el);
+}
+
+// --- TIMEPOINT ---
+template <typename Ctx, typename Clock, typename Dur>
+void convert_endian_and_ptr(Ctx const& c,
+                            std::chrono::time_point<Clock, Dur>* el) {
+  c.convert_endian(*reinterpret_cast<typename Dur::rep*>(el));
+}
+
+// --- DURATION ---
+template <typename Ctx, typename Rep, typename Period>
+void convert_endian_and_ptr(Ctx const& c,
+                            std::chrono::duration<Rep, Period>* el) {
+  c.convert_endian(*reinterpret_cast<Rep*>(el));
 }
 
 template <typename T, mode const Mode = mode::NONE>

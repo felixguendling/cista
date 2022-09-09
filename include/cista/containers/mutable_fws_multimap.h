@@ -476,7 +476,6 @@ struct dynamic_fws_multimap_base {
     element_count_ = 0U;
   }
 
-protected:
   size_type insert_new_entry(size_type const map_index) {
     assert(map_index < index_.size());
     auto& idx = index_[map_index];
