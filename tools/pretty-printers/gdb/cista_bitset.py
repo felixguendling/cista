@@ -8,11 +8,7 @@ class CistaBitsetPrinter(object):
         self.val = val
         self.n_words = int(self.val["num_blocks"])
         self.bits_per_word = int(self.val["bits_per_block"])
-        if self.n_words == 1:
-            self.values = [int(self.val["blocks_"])]
-        else:
-            self.values = [int(self.val["blocks_"]["el_"][index])
-                           for index in range(self.n_words)]
+        self.values = [int(self.val["blocks_"]["el_"][index]) for index in range(self.n_words)]
 
     def to_string(self):
         s = ""
