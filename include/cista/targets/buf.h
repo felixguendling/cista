@@ -2,8 +2,8 @@
 
 #include <cstdio>
 #include <cstring>
-
 #include <memory>
+#include <vector>
 
 #include "cista/chunk.h"
 #include "cista/hash.h"
