@@ -15,6 +15,26 @@ struct base_matrix {
   struct row {
     row(base_matrix& matrix, size_type const i) : matrix_(matrix), i_(i) {}
 
+    using iterator = typename Vector::iterator;
+    using const_iterator = typename Vector::const_iterator;
+
+    const_iterator begin() const {
+      return std::next(matrix_.entries_, matrix_.n_columns_ * i_);
+    }
+    const_iterator end() const {
+      return std::next(matrix_.entries_, matrix_.n_columns_ * (i_ + 1));
+    }
+    iterator begin() {
+      return std::next(matrix_.entries_, matrix_.n_columns_ * i_);
+    }
+    iterator end() {
+      return std::next(matrix_.entries_, matrix_.n_columns_ * (i_ + 1));
+    }
+    friend const_iterator begin(row const& r) { return r.begin(); }
+    friend const_iterator end(row const& r) { return r.end(); }
+    friend iterator begin(row& r) { return r.begin(); }
+    friend iterator end(row& r) { return r.end(); }
+
     value_type& operator[](size_type const j) {
       assert(j < matrix_.n_columns_);
       auto const pos = matrix_.n_columns_ * i_ + j;
@@ -28,6 +48,17 @@ struct base_matrix {
   struct const_row {
     const_row(base_matrix const& matrix, size_type const i)
         : matrix_(matrix), i_(i) {}
+
+    using iterator = typename Vector::const_iterator;
+
+    iterator begin() const {
+      return std::next(matrix_.entries_, matrix_.n_columns_ * i_);
+    }
+    iterator end() const {
+      return std::next(matrix_.entries_, matrix_.n_columns_ * (i_ + 1));
+    }
+    friend iterator begin(const_row const& r) { return r.begin(); }
+    friend iterator end(const_row const& r) { return r.end(); }
 
     value_type const& operator[](size_type const j) const {
       assert(j < matrix_.n_columns_);
