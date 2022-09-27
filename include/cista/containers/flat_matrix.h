@@ -71,7 +71,7 @@ inline flat_matrix<T> make_flat_matrix(std::uint32_t const column_count,
                                        T const& init = T{}) {
   auto v = vector<T>{};
   v.resize(column_count * column_count, init);
-  return flat_matrix<vector<T>>{column_count, std::move(v)};
+  return flat_matrix<T>{column_count, std::move(v)};
 }
 
 }  // namespace raw
