@@ -163,7 +163,7 @@ struct vecvec {
   index_value_type size() const {
     return empty() ? 0U : bucket_starts_.size() - 1;
   }
-  bool empty() const { return data_.empty(); }
+  bool empty() const { return bucket_starts_.empty(); }
 
   template <typename Container,
             typename = std::enable_if_t<std::is_convertible_v<
