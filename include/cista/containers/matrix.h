@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cinttypes>
+#include <iomanip>
 #include <ostream>
 
 #include "cista/containers/vector.h"
@@ -71,9 +72,19 @@ struct base_matrix {
   };
 
   friend std::ostream& operator<<(std::ostream& out, base_matrix const& m) {
+    out << "     ";
+    for (auto j = 0U; j != m.n_columns_; ++j) {
+      out << std::setw(2) << j << " ";
+    }
+    out << "\n";
     for (auto i = 0U; i != m.n_rows_; ++i) {
+      out << std::setw(3) << i << ": ";
       for (auto j = 0U; j != m.n_columns_; ++j) {
-        out << static_cast<std::int64_t>(m[i][j]) << " ";
+        if (m[i][j] == std::numeric_limits<value_type>::max()) {
+          out << "__ ";
+        } else {
+          out << std::setw(2) << static_cast<std::int64_t>(m[i][j]) << " ";
+        }
       }
       out << "\n";
     }
