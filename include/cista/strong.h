@@ -24,7 +24,8 @@ struct strong {
     requires std::is_integral_v<std::decay_t<X>> &&
              std::is_integral_v<std::decay_t<T>>
 #endif
-  explicit constexpr strong(X&& x) : v_{static_cast<T>(x)} {}
+  explicit constexpr strong(X&& x) : v_{static_cast<T>(x)} {
+  }
 
   constexpr strong(strong&& o) noexcept(
       std::is_nothrow_move_constructible_v<T>) = default;
@@ -145,7 +146,8 @@ template <typename T>
 inline constexpr auto const is_strong_v = is_strong<T>::value;
 
 template <typename T, typename Tag>
-constexpr typename strong<T, Tag>::value_t to_idx(strong<T, Tag> const& s) {
+inline constexpr typename strong<T, Tag>::value_t to_idx(
+    strong<T, Tag> const& s) {
   return s.v_;
 }
 

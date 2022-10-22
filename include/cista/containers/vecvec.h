@@ -50,6 +50,11 @@ struct vecvec {
       return map_->data_[to_idx(map_->bucket_starts_[i_] + i)];
     }
 
+    value_type const& operator[](std::size_t const i) const {
+      assert(is_inside_bucket(i));
+      return map_->data_[to_idx(map_->bucket_starts_[i_] + i)];
+    }
+
     value_type const& at(std::size_t const i) const {
       verify(i < size(), "bucket::at: index out of range");
       return *(begin() + i);
@@ -123,7 +128,7 @@ struct vecvec {
     index_value_type bucket_end_idx() const {
       return to_idx(map_->bucket_starts_[i_ + 1U]);
     }
-    bool is_inside_bucket(index_value_type const i) {
+    bool is_inside_bucket(std::size_t const i) const {
       return bucket_begin_idx() + i < bucket_end_idx();
     }
 

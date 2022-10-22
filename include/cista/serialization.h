@@ -926,7 +926,7 @@ void check_state(Ctx const& c, optional<T>* el) {
 template <typename Ctx, typename Fn, typename T>
 void recurse(Ctx&, optional<T>* el, Fn&& fn) {
   if (el->valid_) {
-    fn(&(*el));
+    fn(&(el->value()));
   }
 }
 
