@@ -232,19 +232,21 @@ TEST_SUITE("tuple") {
 
     auto const& serialized =
         *cista::unchecked_deserialize<serialize_me, MODE>(buf);
-    CHECK(std::get<0>(serialized).at(0) ==
-          cista::tuple{data::string{"hello"},
-                       data::hash_set<data::string>{
-                           data::string{"1"},
-                           data::string{"this is a very very very long string"},
-                           data::string{"3"}}});
-    CHECK(std::get<0>(serialized).at(1) ==
-          cista::tuple{data::string{"world"},
-                       data::hash_set<data::string>{
-                           data::string{"4"},
-                           data::string{"this is a very very very long string"},
-                           data::string{"6"}}});
-    CHECK(std::get<1>(serialized) == 55);
+    CHECK(
+        (std::get<0>(serialized).at(0) ==
+         cista::tuple{data::string{"hello"},
+                      data::hash_set<data::string>{
+                          data::string{"1"},
+                          data::string{"this is a very very very long string"},
+                          data::string{"3"}}}));
+    CHECK(
+        (std::get<0>(serialized).at(1) ==
+         cista::tuple{data::string{"world"},
+                      data::hash_set<data::string>{
+                          data::string{"4"},
+                          data::string{"this is a very very very long string"},
+                          data::string{"6"}}}));
+    CHECK((std::get<1>(serialized) == 55));
   }
 
 #ifndef _WIN32

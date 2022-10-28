@@ -113,7 +113,9 @@ add_custom_target(cista-coverage
 )
 add_dependencies(cista-coverage cista-test)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR
+    "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+  message(STATUS "Cista fuzzing enabled")
   set(cista-fuzz-targets "")
   file(GLOB_RECURSE fuzz-files fuzz/*.cc)
   foreach(fuzz-file ${fuzz-files})
@@ -147,6 +149,8 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 
   add_custom_target(cista-fuzz)
   add_dependencies(cista-fuzz ${cista-fuzz-targets})
+else()
+  message(STATUS "Cista fuzzing disabled (compiler=${CMAKE_CXX_COMPILER_ID})")
 endif()
 
 add_library(cista::cista ALIAS cista)

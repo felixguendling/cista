@@ -20,7 +20,8 @@ TEST_CASE("vecvec insert begin test") {
   CHECK(d.size() == 0U);
   CHECK(d.empty());
 
-  d.emplace_back({{1.0, 1.0}, {2.0, 2.0}});
+  d.emplace_back(
+      std::initializer_list<value>{value{1.0, 1.0}, value{2.0, 2.0}});
   CHECK(d.size() == 1);
   CHECK(d[key{0}].size() == 2);
 }
@@ -31,5 +32,5 @@ TEST_CASE("vecvec string test") {
 
   data d;
   d.emplace_back("hello");
-  CHECK(d[key{0U}].str() == "hello");
+  CHECK(d[key{0U}].view() == "hello");
 }
