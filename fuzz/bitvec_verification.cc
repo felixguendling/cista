@@ -10,8 +10,9 @@ enum op { RESIZE, SET, NUM_OPS };
 char const* op_strings[] = {"RESIZE", "SET", "NUM_OPS"};
 
 std::ostream& operator<<(std::ostream& out, std::vector<bool> const& v) {
-  for (auto const b : v) {
-    out << (b ? '1' : '0');
+  for (auto i = 0U; i != v.size(); ++i) {
+    auto const j = v.size() - i - 1U;
+    out << (v[j] ? '1' : '0');
   }
   return out;
 }
@@ -26,32 +27,18 @@ bool any(std::vector<bool> const& v) {
   return std::any_of(begin(v), end(v), [](bool const b) { return b; });
 }
 
-template <std::size_t BitSetSize>
-bool operator<(std::bitset<BitSetSize> const& x,
-               std::bitset<BitSetSize> const& y) {
-  for (size_t i = BitSetSize - 1; i != 0; --i) {
-    if (x[i] ^ y[i]) return y[i];
+template <typename T>
+bool lt(T const& x, T const& y) {
+  assert(x.size() == y.size());
+  for (size_t i = x.size() - 1; i != 0; --i) {
+    if (x[i] ^ y[i]) {
+      return y[i];
+    }
   }
-  if (x[0] ^ y[0]) return y[0];
+  if (x[0] ^ y[0]) {
+    return y[0];
+  }
   return false;
-}
-
-template <std::size_t BitSetSize>
-bool operator>(std::bitset<BitSetSize> const& x,
-               std::bitset<BitSetSize> const& y) {
-  return y < x;
-}
-
-template <std::size_t BitSetSize>
-bool operator<=(std::bitset<BitSetSize> const& x,
-                std::bitset<BitSetSize> const& y) {
-  return !(x > y);
-}
-
-template <std::size_t BitSetSize>
-bool operator>=(std::bitset<BitSetSize> const& x,
-                std::bitset<BitSetSize> const& y) {
-  return !(x < y);
 }
 
 struct test_set {
@@ -66,6 +53,24 @@ struct test_set {
       auto const val = gen();
       uut2.set(i, val);
       ref2[i] = val;
+    }
+
+    auto const print = [&](std::string_view msg) {
+      std::cerr << msg << ": INIT\n"
+                << "         ref1: " << ref1 << "\n"
+                << "         uut1: " << uut1 << "\n"
+                << "         ref2: " << ref2 << "\n"
+                << "         uut2: " << uut2 << "\n";
+    };
+
+    if (uut1.str() != to_string(ref1)) {
+      print("fail on init");
+      abort();
+    }
+
+    if (uut2.str() != to_string(ref2)) {
+      print("fail on 2");
+      abort();
     }
   }
 
@@ -83,12 +88,14 @@ struct test_set {
         uut2.resize(num);
         break;
 
-      case SET:
-        ref1[num] = value;
-        ref2[num] = value;
-        uut1.set(num, value);
-        uut2.set(num, value);
+      case SET: {
+        auto const index = std::min({ref1.size() - 1U, ref2.size() - 1U, num});
+        ref1[index] = value;
+        ref2[index] = value;
+        uut1.set(index, value);
+        uut2.set(index, value);
         break;
+      }
 
       default: abort();
     }
@@ -105,31 +112,10 @@ struct test_set {
                 << "         uut2: " << uut2 << "\n";
     };
 
-    if ((ref1 < ref2) != (uut1 < uut2)) {
+    if (lt(ref1, ref2) != lt(uut1, uut2)) {
       std::cerr << "uut1 < uut2 => " << (uut1 < uut2) << "\n"
                 << "ref1 < ref2 => " << (ref1 < ref2) << "\n";
       print("fail on <");
-      abort();
-    }
-
-    if ((ref1 <= ref2) != (uut1 <= uut2)) {
-      std::cerr << "uut1 <= uut2 => " << (uut1 <= uut2) << "\n"
-                << "ref1 <= ref2 => " << (ref1 <= ref2) << "\n";
-      print("fail on <=");
-      abort();
-    }
-
-    if ((ref1 > ref2) != (uut1 > uut2)) {
-      std::cerr << "uut1 > uut2 => " << (uut1 > uut2) << "\n"
-                << "ref1 > ref2 => " << (ref1 > ref2) << "\n";
-      print("fail on >");
-      abort();
-    }
-
-    if ((ref1 >= ref2) != (uut1 >= uut2)) {
-      std::cerr << "uut1 >= uut2 => " << (uut1 >= uut2) << "\n"
-                << "ref1 >= ref2 => " << (ref1 >= ref2) << "\n";
-      print("fail on >=");
       abort();
     }
 
@@ -175,12 +161,12 @@ struct test_set {
       abort();
     }
 
-    if (uut1.to_string() != to_string(ref1)) {
+    if (uut1.str() != to_string(ref1)) {
       print("fail on 1");
       abort();
     }
 
-    if (uut2.to_string() != to_string(ref2)) {
+    if (uut2.str() != to_string(ref2)) {
       print("fail on 2");
       abort();
     }

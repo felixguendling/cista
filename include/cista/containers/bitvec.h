@@ -24,7 +24,7 @@ struct bitvec {
   constexpr bitvec(std::string_view s) noexcept { set(s); }
   static constexpr bitvec max(std::size_t const size) {
     bitvec b;
-    b.resize(max);
+    b.resize(size);
     for (auto& b : b.blocks_) {
       b = std::numeric_limits<block_t>::max();
     }
@@ -40,11 +40,12 @@ struct bitvec {
   void resize(std::size_t const new_size) {
     if (new_size == size_) {
       return;
-    } else if (new_size < size_) {
-      size_ = new_size;
-      return;
     }
 
+    if (!empty() && (size_ % bits_per_block) != 0U) {
+      blocks_[blocks_.size() - 1] &=
+          ~((~block_t{0}) << (size_ % bits_per_block));
+    }
     blocks_.resize(num_blocks(new_size));
     size_ = new_size;
   }
@@ -86,14 +87,19 @@ struct bitvec {
     if (i >= size_) {
       return false;
     }
+    assert((i / bits_per_block) < blocks_.size());
     auto const block = blocks_[i / bits_per_block];
     auto const bit = (i % bits_per_block);
     return (block & (block_t{1U} << bit)) != 0U;
   }
 
   std::size_t size() const noexcept { return size_; }
+  bool empty() const noexcept { return size() == 0U; }
 
   bool any() const noexcept {
+    if (empty()) {
+      return false;
+    }
     for (auto i = std::size_t{0U}; i != blocks_.size() - 1; ++i) {
       if (blocks_[i] != 0U) {
         return true;
@@ -113,7 +119,7 @@ struct bitvec {
     }
   }
 
-  std::string to_string() const {
+  std::string str() const {
     auto s = std::string{};
     s.resize(size_);
     for (auto i = 0U; i != size_; ++i) {
@@ -124,6 +130,11 @@ struct bitvec {
 
   friend bool operator==(bitvec const& a, bitvec const& b) noexcept {
     assert(a.size() == b.size());
+
+    if (a.empty() && b.empty()) {
+      return true;
+    }
+
     for (auto i = std::size_t{0U}; i != a.blocks_.size() - 1; ++i) {
       if (a.blocks_[i] != b.blocks_[i]) {
         return false;
@@ -134,6 +145,9 @@ struct bitvec {
 
   friend bool operator<(bitvec const& a, bitvec const& b) {
     assert(a.size() == b.size());
+    if (a.empty() && b.empty()) {
+      return false;
+    }
 
     auto const a_last = a.sanitized_last_block();
     auto const b_last = b.sanitized_last_block();
@@ -158,15 +172,15 @@ struct bitvec {
   }
 
   friend bool operator>(bitvec const& a, bitvec const& b) noexcept {
-    return b < a;
+    return !(a.empty() && b.empty()) && b < a;
   }
 
   friend bool operator<=(bitvec const& a, bitvec const& b) noexcept {
-    return !(a > b);
+    return (a.empty() && b.empty()) || !(a > b);
   }
 
   friend bool operator>=(bitvec const& a, bitvec const& b) noexcept {
-    return !(a < b);
+    return (a.empty() && b.empty()) || !(a < b);
   }
 
   bitvec& operator&=(bitvec const& o) noexcept {
@@ -316,10 +330,10 @@ struct bitvec {
   }
 
   friend std::ostream& operator<<(std::ostream& out, bitvec const& b) {
-    return out << b.to_string();
+    return out << b.str();
   }
 
-  std::size_t size_;
+  std::size_t size_{0U};
   Vec blocks_;
 };
 
