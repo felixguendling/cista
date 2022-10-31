@@ -242,11 +242,11 @@ struct bitvec {
       return *this;
     }
 
-    if constexpr ((size_ % bits_per_block) != 0) {
+    if ((size_ % bits_per_block) != 0) {
       blocks_[blocks_.size() - 1] = sanitized_last_block();
     }
 
-    if constexpr (blocks_.size() == 1U) {
+    if (blocks_.size() == 1U) {
       blocks_[0] >>= shift;
       return *this;
     } else {
