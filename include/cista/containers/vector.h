@@ -38,10 +38,7 @@ struct basic_vector {
         used_size_(arr.used_size_),
         allocated_size_(arr.allocated_size_),
         self_allocated_(arr.self_allocated_) {
-    arr.el_ = nullptr;
-    arr.used_size_ = TemplateSizeType{0U};
-    arr.self_allocated_ = false;
-    arr.allocated_size_ = TemplateSizeType{0U};
+    arr.reset();
   }
 
   basic_vector(basic_vector const& arr) { set(arr); }
@@ -54,11 +51,7 @@ struct basic_vector {
     self_allocated_ = arr.self_allocated_;
     allocated_size_ = arr.allocated_size_;
 
-    arr.el_ = nullptr;
-    arr.used_size_ = TemplateSizeType{0U};
-    arr.self_allocated_ = false;
-    arr.allocated_size_ = TemplateSizeType{0U};
-
+    arr.reset();
     return *this;
   }
 
@@ -81,10 +74,7 @@ struct basic_vector {
     }
 
     std::free(el_);  // NOLINT
-    el_ = nullptr;
-    used_size_ = TemplateSizeType{0U};
-    allocated_size_ = TemplateSizeType{0U};
-    self_allocated_ = false;
+    reset();
   }
 
   T const* data() const noexcept { return begin(); }
@@ -132,15 +122,15 @@ struct basic_vector {
   }
 
   T const& back() const noexcept {
-    return ptr_cast(el_)[to_idx(used_size_) - 1];
+    return ptr_cast(el_)[to_idx(used_size_) - 1U];
   }
-  T& back() noexcept { return ptr_cast(el_)[to_idx(used_size_) - 1]; }
+  T& back() noexcept { return ptr_cast(el_)[to_idx(used_size_) - 1U]; }
 
-  T& front() noexcept { return ptr_cast(el_)[0]; }
-  T const& front() const noexcept { return ptr_cast(el_)[0]; }
+  T& front() noexcept { return ptr_cast(el_)[0U]; }
+  T const& front() const noexcept { return ptr_cast(el_)[0U]; }
 
   inline TemplateSizeType size() const noexcept { return used_size_; }
-  inline bool empty() const noexcept { return size() == 0; }
+  inline bool empty() const noexcept { return size() == 0U; }
 
   template <typename It>
   void set(It begin_it, It end_it) {
@@ -191,7 +181,7 @@ struct basic_vector {
     auto const old_offset = std::distance(begin(), it);
     auto const old_size = used_size_;
 
-    reserve(used_size_ + 1);
+    reserve(used_size_ + 1U);
     new (el_ + used_size_) T{std::forward<Arg&&>(el)};
     ++used_size_;
 
@@ -204,7 +194,7 @@ struct basic_vector {
     auto const old_size = used_size_;
 
     for (; !(first == last); ++first) {
-      reserve(used_size_ + 1);
+      reserve(used_size_ + 1U);
       new (el_ + used_size_) T{std::forward<decltype(*first)>(*first)};
       ++used_size_;
     }
@@ -249,7 +239,7 @@ struct basic_vector {
   }
 
   void push_back(T const& el) {
-    reserve(used_size_ + 1);
+    reserve(used_size_ + 1U);
     new (el_ + used_size_) T(el);
     ++used_size_;
   }
@@ -272,7 +262,7 @@ struct basic_vector {
   }
 
   void clear() {
-    used_size_ = 0;
+    used_size_ = 0U;
     for (auto& el : *this) {
       el.~T();
     }
@@ -292,7 +282,7 @@ struct basic_vector {
       throw std::bad_alloc();
     }
 
-    if (size() != 0) {
+    if (size() != 0U) {
       try {
         auto move_target = mem_buf;
         for (auto& el : *this) {
@@ -371,6 +361,13 @@ struct basic_vector {
   friend bool operator>=(basic_vector const& a,
                          basic_vector const& b) noexcept {
     return !(a < b);
+  }
+
+  void reset() noexcept {
+    el_ = nullptr;
+    used_size_ = 0U;
+    allocated_size_ = 0U;
+    self_allocated_ = false;
   }
 
   Ptr el_{nullptr};

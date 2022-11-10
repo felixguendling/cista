@@ -72,11 +72,11 @@ struct basic_unique_ptr {
   T const& operator*() const noexcept { return *el_; }
   T const* operator->() const noexcept { return el_; }
 
-  Ptr el_{nullptr};
-  bool self_allocated_{false};
-  uint8_t __fill_0__{0};
-  uint16_t __fill_1__{0};
-  uint32_t __fill_2__{0};
+  Ptr el_{};
+  bool self_allocated_{};
+  uint8_t __fill_0__{};
+  uint16_t __fill_1__{};
+  uint32_t __fill_2__{};
 };
 
 namespace raw {

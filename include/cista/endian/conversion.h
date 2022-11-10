@@ -19,7 +19,7 @@
 namespace cista {
 
 template <typename T>
-constexpr T endian_swap(T t) {
+constexpr T endian_swap(T const t) noexcept {
   static_assert(sizeof(T) == 1U || sizeof(T) == 2U || sizeof(T) == 4U ||
                 sizeof(T) == 8U);
 
@@ -50,7 +50,7 @@ constexpr T endian_swap(T t) {
 }
 
 template <mode Mode>
-constexpr bool endian_conversion_necessary() {
+constexpr bool endian_conversion_necessary() noexcept {
   if constexpr ((Mode & mode::SERIALIZE_BIG_ENDIAN) ==
                 mode::SERIALIZE_BIG_ENDIAN) {
 #if defined(CISTA_BIG_ENDIAN)
@@ -68,7 +68,7 @@ constexpr bool endian_conversion_necessary() {
 }
 
 template <mode Mode, typename T>
-constexpr T convert_endian(T t) {
+constexpr T convert_endian(T t) noexcept {
   if constexpr (endian_conversion_necessary<Mode>()) {
     return endian_swap(t);
   } else {

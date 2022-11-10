@@ -286,8 +286,8 @@ struct file {
     return static_cast<offset_t>(curr_offset);
   }
 
-  FILE* f_{nullptr};
-  std::size_t size_ = 0u;
+  FILE* f_{};
+  std::size_t size_{};
 };
 
 }  // namespace cista

@@ -7,7 +7,7 @@
 
 namespace cista {
 
-template <typename T, std::size_t N = 16>
+template <typename T, std::size_t N = 16U>
 struct aligned_allocator {
   using value_type = T;
   using size_type = std::size_t;
@@ -30,7 +30,7 @@ struct aligned_allocator {
 
   inline const_pointer adress(const_reference r) const noexcept { return &r; }
 
-  inline pointer allocate(size_type n) {
+  inline pointer allocate(size_type const n) {
     auto const ptr =
         static_cast<pointer>(CISTA_ALIGNED_ALLOC(N, n * sizeof(value_type)));
     if (ptr == nullptr) {

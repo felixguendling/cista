@@ -8,9 +8,10 @@
 namespace cista {
 
 struct buffer final {
-  buffer() noexcept : buf_(nullptr), size_(0) {}
+  constexpr buffer() noexcept = default;
 
-  explicit buffer(std::size_t size) : buf_(std::malloc(size)), size_(size) {
+  explicit buffer(std::size_t const size)
+      : buf_(std::malloc(size)), size_(size) {
     verify(buf_ != nullptr, "buffer initialization failed");
   }
 
@@ -30,39 +31,38 @@ struct buffer final {
   buffer(buffer const&) = delete;
   buffer& operator=(buffer const&) = delete;
 
-  buffer(buffer&& o) noexcept : buf_(o.buf_), size_(o.size_) {
-    o.buf_ = nullptr;
-    o.size_ = 0;
-  }
+  buffer(buffer&& o) noexcept : buf_(o.buf_), size_(o.size_) { o.reset(); }
 
   buffer& operator=(buffer&& o) noexcept {
     buf_ = o.buf_;
     size_ = o.size_;
-    o.buf_ = nullptr;
-    o.size_ = 0;
+    o.reset();
     return *this;
   }
 
   inline std::size_t size() const noexcept { return size_; }
 
-  inline unsigned char* data() noexcept {
-    return static_cast<unsigned char*>(buf_);
-  }
-  inline unsigned char const* data() const noexcept {
-    return static_cast<unsigned char const*>(buf_);
+  inline uint8_t* data() noexcept { return static_cast<uint8_t*>(buf_); }
+  inline uint8_t const* data() const noexcept {
+    return static_cast<uint8_t const*>(buf_);
   }
 
-  inline unsigned char* begin() noexcept { return data(); }
-  inline unsigned char* end() noexcept { return data() + size_; }
+  inline uint8_t* begin() noexcept { return data(); }
+  inline uint8_t* end() noexcept { return data() + size_; }
 
-  inline unsigned char const* begin() const noexcept { return data(); }
-  inline unsigned char const* end() const noexcept { return data() + size_; }
+  inline uint8_t const* begin() const noexcept { return data(); }
+  inline uint8_t const* end() const noexcept { return data() + size_; }
 
-  unsigned char& operator[](size_t i) noexcept { return data()[i]; }
-  unsigned char const& operator[](size_t i) const noexcept { return data()[i]; }
+  uint8_t& operator[](size_t const i) noexcept { return data()[i]; }
+  uint8_t const& operator[](size_t const i) const noexcept { return data()[i]; }
 
-  void* buf_;
-  std::size_t size_;
+  void reset() noexcept {
+    buf_ = nullptr;
+    size_ = 0U;
+  }
+
+  void* buf_{};
+  std::size_t size_{};
 };
 
 }  // namespace cista

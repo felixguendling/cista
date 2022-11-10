@@ -14,11 +14,11 @@
 namespace cista {
 
 #if __cpp_lib_bit_cast
-inline offset_t to_offset(void const* ptr) {
+inline offset_t to_offset(void const* ptr) noexcept {
   return std::bit_cast<offset_t>(ptr);
 }
 #else
-inline offset_t to_offset(void const* ptr) {
+inline offset_t to_offset(void const* ptr) noexcept {
   offset_t r;
   std::memcpy(&r, &ptr, sizeof(ptr));
   return r;
@@ -60,7 +60,7 @@ struct offset_ptr {
 
   explicit operator bool() const noexcept { return offset_ != NULLPTR_OFFSET; }
   explicit operator void*() const noexcept { return get(); }
-  explicit operator void const*() const noexcept { return get(); }
+  explicit operator void const *() const noexcept { return get(); }
   operator T*() const noexcept { return get(); }
   T& operator*() const noexcept { return *get(); }
   T* operator->() const noexcept { return get(); }
@@ -143,7 +143,7 @@ struct offset_ptr<T, std::enable_if_t<std::is_same_v<void, T>>> {
 
   operator bool() const noexcept { return offset_ != NULLPTR_OFFSET; }
   explicit operator void*() const noexcept { return get(); }
-  explicit operator void const*() const noexcept { return get(); }
+  explicit operator void const *() const noexcept { return get(); }
   T* get() const noexcept {
     auto const ptr =
         offset_ == NULLPTR_OFFSET
