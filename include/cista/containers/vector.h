@@ -365,8 +365,8 @@ struct basic_vector {
 
   void reset() noexcept {
     el_ = nullptr;
-    used_size_ = 0;
-    allocated_size_ = 0;
+    used_size_ = {};
+    allocated_size_ = {};
     self_allocated_ = false;
   }
 

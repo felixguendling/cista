@@ -546,9 +546,9 @@ protected:
     if (bucket.capacity_ != 0U) {
       auto const order = get_order(bucket.capacity_);
       assert(order <= Log2MaxEntriesPerBucket);
-      bucket.size_ = 0U;
+      bucket.size_ = {};
       free_buckets_[to_idx(order)].push_back(index_type{bucket});  // NOLINT
-      bucket.capacity_ = 0U;
+      bucket.capacity_ = {};
     }
   }
 
