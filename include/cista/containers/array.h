@@ -11,17 +11,17 @@ template <typename T, std::size_t Size>
 struct array {
   constexpr size_t size() const noexcept { return Size; }
 
-  constexpr T const& operator[](size_t index) const noexcept {
+  constexpr T const& operator[](size_t const index) const noexcept {
     return el_[index];
   }
-  constexpr T& operator[](size_t index) noexcept { return el_[index]; }
-  constexpr T& at(size_t index) {
+  constexpr T& operator[](size_t const index) noexcept { return el_[index]; }
+  constexpr T& at(size_t const index) {
     if (index >= Size) {
       throw std::out_of_range{"array index out of range"};
     }
     return el_[index];
   }
-  constexpr T const& at(size_t index) const {
+  constexpr T const& at(size_t const index) const {
     return const_cast<array*>(this)->at(index);
   }
 
@@ -59,7 +59,7 @@ struct array {
   constexpr T const* data() const noexcept { return el_; }
 
   friend bool operator==(array const& a, array const& b) noexcept {
-    for (auto i = 0U; i != Size; ++i) {
+    for (std::size_t i = 0U; i != Size; ++i) {
       if (a[i] != b[i]) {
         return false;
       }
@@ -68,7 +68,7 @@ struct array {
   }
 
   friend bool operator!=(array const& a, array const& b) noexcept {
-    for (auto i = 0U; i != Size; ++i) {
+    for (std::size_t i = 0U; i != Size; ++i) {
       if (a[i] != b[i]) {
         return true;
       }

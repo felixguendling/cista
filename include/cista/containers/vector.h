@@ -38,10 +38,7 @@ struct basic_vector {
         used_size_(arr.used_size_),
         allocated_size_(arr.allocated_size_),
         self_allocated_(arr.self_allocated_) {
-    arr.el_ = nullptr;
-    arr.used_size_ = TemplateSizeType{0U};
-    arr.self_allocated_ = false;
-    arr.allocated_size_ = TemplateSizeType{0U};
+    arr.reset();
   }
 
   basic_vector(basic_vector const& arr) { set(arr); }
@@ -54,11 +51,7 @@ struct basic_vector {
     self_allocated_ = arr.self_allocated_;
     allocated_size_ = arr.allocated_size_;
 
-    arr.el_ = nullptr;
-    arr.used_size_ = TemplateSizeType{0U};
-    arr.self_allocated_ = false;
-    arr.allocated_size_ = TemplateSizeType{0U};
-
+    arr.reset();
     return *this;
   }
 
@@ -81,10 +74,7 @@ struct basic_vector {
     }
 
     std::free(el_);  // NOLINT
-    el_ = nullptr;
-    used_size_ = TemplateSizeType{0U};
-    allocated_size_ = TemplateSizeType{0U};
-    self_allocated_ = false;
+    reset();
   }
 
   T const* data() const noexcept { return begin(); }
@@ -373,13 +363,20 @@ struct basic_vector {
     return !(a < b);
   }
 
-  Ptr el_{nullptr};
-  TemplateSizeType used_size_{0};
-  TemplateSizeType allocated_size_{0};
-  bool self_allocated_{false};
-  uint8_t __fill_0__{0};
-  uint16_t __fill_1__{0};
-  uint32_t __fill_2__{0};
+  void reset() noexcept {
+    el_ = nullptr;
+    used_size_ = 0;
+    allocated_size_ = 0;
+    self_allocated_ = false;
+  }
+
+  Ptr el_{};
+  TemplateSizeType used_size_{};
+  TemplateSizeType allocated_size_{};
+  bool self_allocated_{};
+  uint8_t __fill_0__{};
+  uint16_t __fill_1__{};
+  uint32_t __fill_2__{};
 };
 
 namespace raw {

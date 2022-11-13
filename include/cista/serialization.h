@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "cista/aligned_alloc.h"
-#include "cista/containers.h"
+#include "cista/containers/bitset.h"
 #include "cista/decay.h"
 #include "cista/endian/conversion.h"
 #include "cista/hash.h"
@@ -78,27 +78,30 @@ struct serialization_context {
 
   template <typename T>
   bool resolve_pointer(offset_ptr<T> const& ptr, offset_t const pos,
-                       bool add_pending = true) {
+                       bool const add_pending = true) {
     return resolve_pointer(ptr.get(), pos, add_pending);
   }
 
   template <typename Ptr>
-  bool resolve_pointer(Ptr ptr, offset_t const pos, bool add_pending = true) {
+  bool resolve_pointer(Ptr ptr, offset_t const pos,
+                       bool const add_pending = true) {
     if (std::is_same_v<decay_t<remove_pointer_t<Ptr>>, void> && add_pending) {
       write(pos, convert_endian<MODE>(NULLPTR_OFFSET));
       return true;
-    } else if (ptr == nullptr) {
+    }
+    if (ptr == nullptr) {
       write(pos, convert_endian<MODE>(NULLPTR_OFFSET));
       return true;
-    } else if (auto const it = offsets_.find(ptr_cast(ptr));
-               it != end(offsets_)) {
+    }
+    if (auto const it = offsets_.find(ptr_cast(ptr)); it != end(offsets_)) {
       write(pos, convert_endian<MODE>(it->second - pos));
       return true;
-    } else if (auto const offset = resolve_vector_range_ptr(ptr);
-               offset.has_value()) {
+    }
+    if (auto const offset = resolve_vector_range_ptr(ptr); offset.has_value()) {
       write(pos, convert_endian<MODE>(*offset - pos));
       return true;
-    } else if (add_pending) {
+    }
+    if (add_pending) {
       write(pos, convert_endian<MODE>(NULLPTR_OFFSET));
       pending_.emplace_back(pending_offset{ptr_cast(ptr), pos});
       return true;
@@ -110,24 +113,24 @@ struct serialization_context {
   std::optional<offset_t> resolve_vector_range_ptr(Ptr ptr) {
     if (vector_ranges_.empty()) {
       return std::nullopt;
-    } else if (auto const vec_it = vector_ranges_.upper_bound(ptr);
-               vec_it == begin(vector_ranges_)) {
-      return std::nullopt;
-    } else {
-      auto const pred = std::prev(vec_it);
-      return pred->second.contains(pred->first, ptr)
-                 ? std::make_optional(pred->second.offset_of(pred->first, ptr))
-                 : std::nullopt;
     }
+    auto const vec_it = vector_ranges_.upper_bound(ptr);
+    if (vec_it == begin(vector_ranges_)) {
+      return std::nullopt;
+    }
+    auto const pred = std::prev(vec_it);
+    return pred->second.contains(pred->first, ptr)
+               ? std::make_optional(pred->second.offset_of(pred->first, ptr))
+               : std::nullopt;
   }
 
   uint64_t checksum(offset_t const from) const noexcept {
     return t_.checksum(from);
   }
 
-  cista::raw::hash_map<void const*, offset_t> offsets_;
-  std::map<void const*, vector_range> vector_ranges_;
-  std::vector<pending_offset> pending_;
+  cista::raw::hash_map<void const*, offset_t> offsets_{};
+  std::map<void const*, vector_range> vector_ranges_{};
+  std::vector<pending_offset> pending_{};
   Target& t_;
 };
 
@@ -153,8 +156,8 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
   } else if constexpr (std::numeric_limits<Type>::is_integer) {
     c.write(pos, convert_endian<Ctx::MODE>(*origin));
   } else {
-    (void)origin;
-    (void)pos;
+    static_cast<void>(origin);
+    static_cast<void>(pos);
   }
 }
 
@@ -189,7 +192,7 @@ void serialize(Ctx& c,
   }
 
   if (origin->el_ != nullptr) {
-    auto i = 0u;
+    auto i = 0U;
     for (auto it = start; it != start + static_cast<offset_t>(size);
          it += serialized_size<T>()) {
       serialize(c, static_cast<T const*>(origin->el_ + i++), it);
@@ -317,7 +320,7 @@ template <typename Ctx, typename T, size_t Size>
 void serialize(Ctx& c, array<T, Size> const* origin, offset_t const pos) {
   auto const size =
       static_cast<offset_t>(serialized_size<T>() * origin->size());
-  auto i = 0u;
+  auto i = 0U;
   for (auto it = pos; it != pos + size; it += serialized_size<T>()) {
     serialize(c, origin->el_ + i++, it);
   }
@@ -476,7 +479,7 @@ struct deserialization_context {
   constexpr static size_t type_size() noexcept {
     using Type = decay_t<T>;
     if constexpr (std::is_same_v<Type, void>) {
-      return 0;
+      return 0U;
     } else {
       return sizeof(Type);
     }
@@ -509,8 +512,8 @@ struct deserialization_context {
            "size out of bounds");
 
     if constexpr (!std::is_same_v<T, void>) {
-      verify((pos &
-              static_cast<intptr_t>(std::alignment_of<decay_t<T>>() - 1)) == 0U,
+      verify((pos & static_cast<intptr_t>(std::alignment_of<decay_t<T>>() -
+                                          1U)) == 0U,
              "ptr alignment");
     }
   }
@@ -548,7 +551,7 @@ struct deep_check_context : public deserialization_context<Mode> {
 };
 
 template <typename T, mode const Mode = mode::NONE>
-void check(uint8_t const* from, uint8_t const* to) {
+void check(uint8_t const* const from, uint8_t const* const to) {
   verify(to - from > data_start(Mode), "invalid range");
 
   if constexpr ((Mode & mode::WITH_VERSION) == mode::WITH_VERSION) {
@@ -667,7 +670,7 @@ void check_state(Ctx const& c,
   c.check_bool(el->self_allocated_);
   c.require(!el->self_allocated_, "vec self-allocated");
   c.require(el->allocated_size_ == el->used_size_, "vec size mismatch");
-  c.require((el->size() == 0) == (el->el_ == nullptr), "vec size=0 <=> ptr=0");
+  c.require((el->size() == 0U) == (el->el_ == nullptr), "vec size=0 <=> ptr=0");
 }
 
 template <typename Ctx, typename T, typename Ptr, bool Indexed,
@@ -946,13 +949,13 @@ T copy_from_potentially_unaligned(std::string_view buf) {
   };
 
   auto const is_already_aligned =
-      (reinterpret_cast<std::uintptr_t>(buf.data()) % sizeof(max_align_t)) == 0;
+      (reinterpret_cast<std::uintptr_t>(buf.data()) % sizeof(max_align_t)) ==
+      0U;
   if (is_already_aligned) {
     return *deserialize<T, Mode>(buf);
-  } else {
-    auto copy = aligned{buf};
-    return *deserialize<T, Mode>(copy.mem_, copy.mem_ + buf.size());
   }
+  auto copy = aligned{buf};
+  return *deserialize<T, Mode>(copy.mem_, copy.mem_ + buf.size());
 }
 
 namespace raw {

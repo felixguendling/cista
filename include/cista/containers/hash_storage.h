@@ -12,9 +12,7 @@
 #include "cista/bit_counting.h"
 #include "cista/containers/ptr.h"
 #include "cista/decay.h"
-#include "cista/endian/conversion.h"
 #include "cista/hash.h"
-#include "cista/offset_t.h"
 
 namespace cista {
 
@@ -69,7 +67,7 @@ struct hash_storage {
   };
 
   struct probe_seq {
-    probe_seq(size_type hash, size_type mask)
+    constexpr probe_seq(size_type const hash, size_type const mask) noexcept
         : mask_{mask}, offset_{hash & mask_} {}
     size_type offset(size_type const i) const noexcept {
       return (offset_ + i) & mask_;
@@ -79,16 +77,16 @@ struct hash_storage {
       offset_ += index_;
       offset_ &= mask_;
     }
-    size_type mask_, offset_, index_{0U};
+    size_type mask_, offset_, index_{};
   };
 
   struct bit_mask {
     static constexpr auto const SHIFT = 3U;
 
-    explicit bit_mask(group_t mask) : mask_{mask} {}
+    constexpr explicit bit_mask(group_t const mask) noexcept : mask_{mask} {}
 
     bit_mask& operator++() noexcept {
-      mask_ &= (mask_ - 1);
+      mask_ &= (mask_ - 1U);
       return *this;
     }
 
@@ -151,7 +149,7 @@ struct hash_storage {
     using pointer = hash_storage::entry_t*;
     using difference_type = ptrdiff_t;
 
-    iterator() noexcept = default;
+    constexpr iterator() noexcept = default;
 
     reference operator*() const noexcept { return *entry_; }
     pointer operator->() const noexcept { return entry_; }
@@ -167,15 +165,16 @@ struct hash_storage {
       return tmp;
     }
 
-    friend bool operator==(const iterator& a, const iterator& b) noexcept {
+    friend bool operator==(iterator const& a, iterator const& b) noexcept {
       return a.ctrl_ == b.ctrl_;
     }
-    friend bool operator!=(const iterator& a, const iterator& b) noexcept {
+    friend bool operator!=(iterator const& a, iterator const& b) noexcept {
       return !(a == b);
     }
 
-    iterator(ctrl_t* ctrl) noexcept : ctrl_(ctrl) {}
-    iterator(ctrl_t* ctrl, T* entry) noexcept : ctrl_(ctrl), entry_(entry) {}
+    constexpr iterator(ctrl_t* const ctrl) noexcept : ctrl_(ctrl) {}
+    constexpr iterator(ctrl_t* const ctrl, T* const entry) noexcept
+        : ctrl_(ctrl), entry_(entry) {}
 
     void skip_empty_or_deleted() noexcept {
       while (is_empty_or_deleted(*ctrl_)) {
@@ -185,8 +184,8 @@ struct hash_storage {
       }
     }
 
-    ctrl_t* ctrl_ = nullptr;
-    T* entry_ = nullptr;
+    ctrl_t* ctrl_{};
+    T* entry_{};
   };
 
   struct const_iterator {
@@ -196,7 +195,7 @@ struct hash_storage {
     using pointer = hash_storage::entry_t const*;
     using difference_type = ptrdiff_t;
 
-    const_iterator() noexcept = default;
+    constexpr const_iterator() noexcept = default;
     const_iterator(iterator i) noexcept : inner_(std::move(i)) {}
 
     reference operator*() const noexcept { return *inner_; }
@@ -240,18 +239,18 @@ struct hash_storage {
   }
 
   static inline size_t normalize_capacity(size_type const n) noexcept {
-    return n == 0U ? 1 : ~size_type{} >> leading_zeros(n);
+    return n == 0U ? 1U : ~size_type{} >> leading_zeros(n);
   }
 
   static inline size_type h1(size_type const hash) noexcept {
-    return (hash >> 7) ^ 16777619;
+    return (hash >> 7U) ^ 16777619U;
   }
 
-  static inline h2_t h2(size_type const hash) noexcept { return hash & 0x7F; }
+  static inline h2_t h2(size_type const hash) noexcept { return hash & 0x7FU; }
 
   static inline size_type capacity_to_growth(
       size_type const capacity) noexcept {
-    return (capacity == 7) ? 6 : capacity - (capacity / 8);
+    return (capacity == 7U) ? 6U : capacity - (capacity / 8U);
   }
 
   hash_storage() = default;
@@ -267,12 +266,7 @@ struct hash_storage {
         capacity_{other.capacity_},
         growth_left_{other.growth_left_},
         self_allocated_{other.self_allocated_} {
-    other.entries_ = nullptr;
-    other.ctrl_ = empty_group();
-    other.size_ = 0U;
-    other.capacity_ = 0U;
-    other.growth_left_ = 0U;
-    other.self_allocated_ = false;
+    other.reset();
   }
 
   hash_storage(hash_storage const& other) {
@@ -290,12 +284,7 @@ struct hash_storage {
     capacity_ = other.capacity_;
     growth_left_ = other.growth_left_;
     self_allocated_ = other.self_allocated_;
-    other.entries_ = nullptr;
-    other.ctrl_ = empty_group();
-    other.size_ = 0U;
-    other.capacity_ = 0U;
-    other.growth_left_ = 0U;
-    other.self_allocated_ = false;
+    other.reset();
     return *this;
   }
 
@@ -337,11 +326,11 @@ struct hash_storage {
   // --- at()
   template <typename Key>
   mapped_type& at_impl(Key&& key) {
-    if (auto it = find(std::forward<Key>(key)); it != end()) {
-      return GetValue{}(*it);
-    } else {
+    auto const it = find(std::forward<Key>(key));
+    if (it == end()) {
       throw std::out_of_range{"hash_storage::at() key not found"};
     }
+    return GetValue{}(*it);
   }
 
   mapped_type& at(key_type const& key) { return at_impl(key); }
@@ -405,10 +394,10 @@ struct hash_storage {
   size_t erase_impl(Key&& key) {
     auto it = find(std::forward<Key>(key));
     if (it == end()) {
-      return 0;
+      return 0U;
     }
     erase(it);
-    return 1;
+    return 1U;
   }
 
   size_t erase(key_type const& k) { return erase_impl(k); }
@@ -436,7 +425,7 @@ struct hash_storage {
   }
 
   iterator begin() noexcept {
-    auto it = iterator_at(0);
+    auto it = iterator_at(0U);
     if (ctrl_ != nullptr) {
       it.skip_empty_or_deleted();
     }
@@ -506,7 +495,7 @@ struct hash_storage {
       return;
     }
 
-    for (auto i = size_t{0U}; i != capacity_; ++i) {
+    for (size_type i = 0U; i != capacity_; ++i) {
       if (is_full(ctrl_[i])) {
         entries_[i].~T();
       }
@@ -515,11 +504,8 @@ struct hash_storage {
     if (self_allocated_) {
       CISTA_ALIGNED_FREE(ALIGNMENT, entries_);
     }
-    entries_ = nullptr;
-    ctrl_ = empty_group();
-    size_ = 0U;
-    capacity_ = 0U;
-    growth_left_ = 0U;
+
+    partial_reset();
   }
 
   template <typename Key>
@@ -555,23 +541,19 @@ struct hash_storage {
       target = find_first_non_full(hash);
     }
     ++size_;
-    growth_left_ -= (is_empty(ctrl_[target.offset_]) ? 1 : 0);
+    growth_left_ -= (is_empty(ctrl_[target.offset_]) ? 1U : 0U);
     set_ctrl(target.offset_, h2(hash));
     return target.offset_;
   }
 
   void set_ctrl(size_type const i, h2_t const c) noexcept {
     ctrl_[i] = static_cast<ctrl_t>(c);
-    ctrl_[((i - WIDTH) & capacity_) + 1 + ((WIDTH - 1) & capacity_)] =
+    ctrl_[((i - WIDTH) & capacity_) + 1U + ((WIDTH - 1U) & capacity_)] =
         static_cast<ctrl_t>(c);
   }
 
   void rehash_and_grow_if_necessary() {
-    if (capacity_ == 0) {
-      resize(1);
-    } else {
-      resize(capacity_ * 2 + 1);
-    }
+    resize(capacity_ == 0U ? 1U : capacity_ * 2U + 1U);
   }
 
   void reset_growth_left() noexcept {
@@ -586,7 +568,7 @@ struct hash_storage {
   void initialize_entries() {
     self_allocated_ = true;
     auto const size = static_cast<size_type>(
-        capacity_ * sizeof(T) + (capacity_ + 1 + WIDTH) * sizeof(ctrl_t));
+        capacity_ * sizeof(T) + (capacity_ + 1U + WIDTH) * sizeof(ctrl_t));
     entries_ = reinterpret_cast<T*>(
         CISTA_ALIGNED_ALLOC(ALIGNMENT, static_cast<size_t>(size)));
     if (entries_ == nullptr) {
@@ -610,7 +592,7 @@ struct hash_storage {
     capacity_ = new_capacity;
     initialize_entries();
 
-    for (auto i = size_type{0U}; i != old_capacity; ++i) {
+    for (size_type i = 0U; i != old_capacity; ++i) {
       if (is_full(old_ctrl[i])) {
         auto const hash = compute_hash(GetKey()(old_entries[i]));
         auto const target = find_first_non_full(hash);
@@ -624,6 +606,19 @@ struct hash_storage {
     if (old_capacity != 0U && old_self_allocated) {
       CISTA_ALIGNED_FREE(ALIGNMENT, old_entries);
     }
+  }
+
+  void partial_reset() noexcept {
+    entries_ = nullptr;
+    ctrl_ = empty_group();
+    size_ = 0U;
+    capacity_ = 0U;
+    growth_left_ = 0U;
+  }
+
+  void reset() noexcept {
+    partial_reset();
+    self_allocated_ = false;
   }
 
   void rehash() { resize(capacity_); }
@@ -647,10 +642,10 @@ struct hash_storage {
     return true;
   }
 
-  Ptr<T> entries_{nullptr};
+  Ptr<T> entries_{};
   Ptr<ctrl_t> ctrl_{empty_group()};
-  size_type size_{0U}, capacity_{0U}, growth_left_{0U};
-  bool self_allocated_{false};
+  size_type size_{}, capacity_{}, growth_left_{};
+  bool self_allocated_{};
 };
 
 }  // namespace cista
