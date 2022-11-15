@@ -12,7 +12,6 @@
 
 namespace cista {
 
-constexpr auto const MAX_ALIGN = 16;
 using byte_buf = std::vector<uint8_t>;
 
 template <typename Buf = byte_buf>
