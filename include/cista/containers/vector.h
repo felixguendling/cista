@@ -38,10 +38,7 @@ struct basic_vector {
         used_size_(arr.used_size_),
         allocated_size_(arr.allocated_size_),
         self_allocated_(arr.self_allocated_) {
-    arr.el_ = nullptr;
-    arr.used_size_ = TemplateSizeType{0U};
-    arr.self_allocated_ = false;
-    arr.allocated_size_ = TemplateSizeType{0U};
+    arr.reset();
   }
 
   basic_vector(basic_vector const& arr) { set(arr); }
@@ -54,11 +51,7 @@ struct basic_vector {
     self_allocated_ = arr.self_allocated_;
     allocated_size_ = arr.allocated_size_;
 
-    arr.el_ = nullptr;
-    arr.used_size_ = TemplateSizeType{0U};
-    arr.self_allocated_ = false;
-    arr.allocated_size_ = TemplateSizeType{0U};
-
+    arr.reset();
     return *this;
   }
 
@@ -81,10 +74,7 @@ struct basic_vector {
     }
 
     std::free(el_);  // NOLINT
-    el_ = nullptr;
-    used_size_ = TemplateSizeType{0U};
-    allocated_size_ = TemplateSizeType{0U};
-    self_allocated_ = false;
+    reset();
   }
 
   T const* data() const noexcept { return begin(); }
@@ -371,6 +361,13 @@ struct basic_vector {
   friend bool operator>=(basic_vector const& a,
                          basic_vector const& b) noexcept {
     return !(a < b);
+  }
+
+  void reset() noexcept {
+    el_ = nullptr;
+    used_size_ = {};
+    allocated_size_ = {};
+    self_allocated_ = false;
   }
 
   Ptr el_{nullptr};
