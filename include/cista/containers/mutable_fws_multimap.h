@@ -196,8 +196,8 @@ struct dynamic_fws_multimap_base {
         pos = std::next(pos);
       }
       (*pos).~T();
-      get_index().size_--;
-      mutable_mm().element_count_--;
+      --get_index().size_;
+      --mutable_mm().element_count_;
       return end();
     }
 
@@ -238,8 +238,8 @@ struct dynamic_fws_multimap_base {
       reserve(index.size_ + 1);
       it = std::next(begin(), pos);
       std::move_backward(it, end(), std::next(end()));
-      index.size_++;
-      mutable_mm().element_count_++;
+      ++index.size_;
+      ++mutable_mm().element_count_;
       return *it;
     }
 
@@ -480,7 +480,7 @@ protected:
       grow_bucket(map_index, idx);
     }
     auto const data_index = idx.begin_ + idx.size_;
-    idx.size_++;
+    ++idx.size_;
     assert(idx.size_ <= idx.capacity_);
     return data_index;
   }
