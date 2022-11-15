@@ -88,18 +88,20 @@ struct serialization_context {
     if (std::is_same_v<decay_t<remove_pointer_t<Ptr>>, void> && add_pending) {
       write(pos, convert_endian<MODE>(NULLPTR_OFFSET));
       return true;
-    } else if (ptr == nullptr) {
+    }
+    if (ptr == nullptr) {
       write(pos, convert_endian<MODE>(NULLPTR_OFFSET));
       return true;
-    } else if (auto const it = offsets_.find(ptr_cast(ptr));
-               it != end(offsets_)) {
+    }
+    if (auto const it = offsets_.find(ptr_cast(ptr)); it != end(offsets_)) {
       write(pos, convert_endian<MODE>(it->second - pos));
       return true;
-    } else if (auto const offset = resolve_vector_range_ptr(ptr);
-               offset.has_value()) {
+    }
+    if (auto const offset = resolve_vector_range_ptr(ptr); offset.has_value()) {
       write(pos, convert_endian<MODE>(*offset - pos));
       return true;
-    } else if (add_pending) {
+    }
+    if (add_pending) {
       write(pos, convert_endian<MODE>(NULLPTR_OFFSET));
       pending_.emplace_back(pending_offset{ptr_cast(ptr), pos});
       return true;
@@ -111,15 +113,15 @@ struct serialization_context {
   std::optional<offset_t> resolve_vector_range_ptr(Ptr ptr) {
     if (vector_ranges_.empty()) {
       return std::nullopt;
-    } else if (auto const vec_it = vector_ranges_.upper_bound(ptr);
-               vec_it == begin(vector_ranges_)) {
-      return std::nullopt;
-    } else {
-      auto const pred = std::prev(vec_it);
-      return pred->second.contains(pred->first, ptr)
-                 ? std::make_optional(pred->second.offset_of(pred->first, ptr))
-                 : std::nullopt;
     }
+    auto const vec_it = vector_ranges_.upper_bound(ptr);
+    if (vec_it == begin(vector_ranges_)) {
+      return std::nullopt;
+    }
+    auto const pred = std::prev(vec_it);
+    return pred->second.contains(pred->first, ptr)
+               ? std::make_optional(pred->second.offset_of(pred->first, ptr))
+               : std::nullopt;
   }
 
   uint64_t checksum(offset_t const from) const noexcept {
@@ -950,10 +952,9 @@ T copy_from_potentially_unaligned(std::string_view buf) {
       (reinterpret_cast<std::uintptr_t>(buf.data()) % sizeof(max_align_t)) == 0;
   if (is_already_aligned) {
     return *deserialize<T, Mode>(buf);
-  } else {
-    auto copy = aligned{buf};
-    return *deserialize<T, Mode>(copy.mem_, copy.mem_ + buf.size());
   }
+  auto copy = aligned{buf};
+  return *deserialize<T, Mode>(copy.mem_, copy.mem_ + buf.size());
 }
 
 namespace raw {
