@@ -45,10 +45,10 @@ struct dynamic_fws_multimap_base {
     // NOLINTNEXTLINE(google-explicit-constructor, hicpp-explicit-conversions)
     bucket(bucket<false> const& b) : multimap_{b.multimap_}, index_{b.index_} {}
 
-    size_type index() const { return index_; }
+    size_type index() const noexcept { return index_; }
     size_type size() const { return get_index().size_; }
     size_type capacity() const { return get_index().capacity_; }
-    [[nodiscard]] bool empty() const { return size() == 0; }
+    [[nodiscard]] bool empty() const noexcept { return size() == 0U; }
 
     iterator begin() {
       return mutable_mm().data_.begin() + to_idx(get_index().begin_);
@@ -423,12 +423,12 @@ struct dynamic_fws_multimap_base {
     }
   }
 
-  size_type index_size() const { return index_.size(); }
-  size_type data_size() const { return data_.size(); }
-  size_type element_count() const { return element_count_; }
-  [[nodiscard]] bool empty() const { return index_size() == 0; }
+  size_type index_size() const noexcept { return index_.size(); }
+  size_type data_size() const noexcept { return data_.size(); }
+  size_type element_count() const noexcept { return element_count_; }
+  [[nodiscard]] bool empty() const noexcept { return index_size() == 0; }
 
-  std::size_t allocated_size() const {
+  std::size_t allocated_size() const noexcept {
     auto size = index_.allocated_size_ * sizeof(index_type) +
                 data_.allocated_size_ * sizeof(value_type);
     for (auto const& v : free_buckets_) {
@@ -437,11 +437,11 @@ struct dynamic_fws_multimap_base {
     return size;
   }
 
-  constexpr size_type max_entries_per_bucket() const {
+  constexpr size_type max_entries_per_bucket() const noexcept {
     return MAX_ENTRIES_PER_BUCKET;
   }
 
-  constexpr size_type max_entries_per_bucket_log2() const {
+  constexpr size_type max_entries_per_bucket_log2() const noexcept {
     return Log2MaxEntriesPerBucket;
   }
 
@@ -464,8 +464,8 @@ struct dynamic_fws_multimap_base {
     return m.end();
   }
 
-  DataVec& data() { return data_; }
-  DataVec const& data() const { return data_; }
+  DataVec& data() noexcept { return data_; }
+  DataVec const& data() const noexcept { return data_; }
 
   void reserve(size_type index, size_type data) {
     index_.reserve(index);

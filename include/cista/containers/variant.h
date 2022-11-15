@@ -70,7 +70,7 @@ struct variant {
   using index_t = variant_index_t<T...>;
   static constexpr auto NO_VALUE = std::numeric_limits<index_t>::max();
 
-  constexpr variant() : idx_{NO_VALUE} {}
+  constexpr variant() noexcept : idx_{NO_VALUE} {}
 
   template <typename Arg,
             typename = std::enable_if_t<
@@ -130,9 +130,9 @@ struct variant {
     destruct();
   }
 
-  constexpr bool valid() const { return index() != NO_VALUE; }
+  constexpr bool valid() const noexcept { return index() != NO_VALUE; }
 
-  constexpr operator bool() const { return valid(); }
+  constexpr operator bool() const noexcept { return valid(); }
 
   friend bool operator==(variant const& a, variant const& b) noexcept {
     return a.idx_ == b.idx_

@@ -43,8 +43,9 @@ hash_t type_hash(T const& el, hash_t h,
   } else {
     static_assert(to_tuple_works_v<Type>, "Please implement custom type hash.");
     h = hash_combine(h, hash("struct"));
-    for_each_field(el,
-                   [&](auto const& member) { h = type_hash(member, h, done); });
+    for_each_field(el, [&](auto const& member) noexcept {
+      h = type_hash(member, h, done);
+    });
     return h;
   }
 }
