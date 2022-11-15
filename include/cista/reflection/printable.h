@@ -40,8 +40,8 @@ constexpr std::array<char const*, sizeof...(T)> to_str_array(T... args) {
   friend std::ostream& operator<<(std::ostream& out, class_name const& o) { \
     constexpr auto const names = to_str_array(__VA_ARGS__);                 \
     bool first = true;                                                      \
-    out << "{";                                                             \
-    size_t i = 0;                                                           \
+    out << '{';                                                             \
+    size_t i = 0U;                                                          \
     ::cista::for_each_field(o, [&](auto&& f) {                              \
       using Type = ::cista::decay_t<decltype(f)>;                           \
       if (!first) {                                                         \
@@ -59,5 +59,5 @@ constexpr std::array<char const*, sizeof...(T)> to_str_array(T... args) {
       }                                                                     \
       ++i;                                                                  \
     });                                                                     \
-    return out << "}";                                                      \
+    return out << '}';                                                      \
   }
