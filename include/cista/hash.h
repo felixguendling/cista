@@ -64,7 +64,7 @@ constexpr hash_t hash(const char (&str)[N],
 }
 
 template <typename T>
-constexpr uint64_t hash(T const& buf, hash_t const h = BASE_HASH) {
+constexpr uint64_t hash(T const& buf, hash_t const h = BASE_HASH) noexcept {
   return buf.size() == 0 ? h
                          : wyhash::wyhash(&buf[0], buf.size(), h, wyhash::_wyp);
 }
