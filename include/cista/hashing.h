@@ -117,7 +117,7 @@ struct hashing {
       auto h = seed;
       for_each_field(el, [&h](auto&& f) { h = hashing<decltype(f)>{}(f, h); });
       return h;
-    } else if (is_strong_v<Type>) {
+    } else if constexpr (is_strong_v<Type>) {
       return hashing<typename Type::value_t>{}(el.v_);
     } else {
       static_assert(has_hash_v<Type> || std::is_scalar_v<Type> ||
