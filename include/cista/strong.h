@@ -107,7 +107,7 @@ struct strong {
   constexpr bool operator<(T const& o) const { return v_ < o; }
   constexpr bool operator>(T const& o) const { return v_ > o; }
 
-  explicit operator T const&() const& { return v_; }
+  explicit operator T const&() const& noexcept { return v_; }
 
   friend std::ostream& operator<<(std::ostream& o, strong const& t) {
     return o << t.v_;

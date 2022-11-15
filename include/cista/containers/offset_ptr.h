@@ -14,11 +14,11 @@
 namespace cista {
 
 #if __cpp_lib_bit_cast
-inline offset_t to_offset(void const* ptr) {
+inline offset_t to_offset(void const* ptr) noexcept {
   return std::bit_cast<offset_t>(ptr);
 }
 #else
-inline offset_t to_offset(void const* ptr) {
+inline offset_t to_offset(void const* ptr) noexcept {
   offset_t r;
   std::memcpy(&r, &ptr, sizeof(ptr));
   return r;

@@ -89,7 +89,7 @@ constexpr unsigned leading_zeros(T t) noexcept {
   }
 }
 
-inline std::size_t popcount(std::uint64_t const b) {
+inline std::size_t popcount(std::uint64_t const b) noexcept {
 #if defined(_MSC_VER) && defined(_M_X64)
   return __popcnt64(b);
 #elif defined(_MSC_VER)

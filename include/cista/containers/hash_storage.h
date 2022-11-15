@@ -69,7 +69,7 @@ struct hash_storage {
   };
 
   struct probe_seq {
-    constexpr probe_seq(size_type const hash, size_type const mask)
+    constexpr probe_seq(size_type const hash, size_type const mask) noexcept
         : mask_{mask}, offset_{hash & mask_} {}
     size_type offset(size_type const i) const noexcept {
       return (offset_ + i) & mask_;
@@ -85,7 +85,7 @@ struct hash_storage {
   struct bit_mask {
     static constexpr auto const SHIFT = 3U;
 
-    constexpr explicit bit_mask(group_t const mask) : mask_{mask} {}
+    constexpr explicit bit_mask(group_t const mask) noexcept : mask_{mask} {}
 
     bit_mask& operator++() noexcept {
       mask_ &= (mask_ - 1);
@@ -151,7 +151,7 @@ struct hash_storage {
     using pointer = hash_storage::entry_t*;
     using difference_type = ptrdiff_t;
 
-    constexpr iterator() = default;
+    constexpr iterator() noexcept = default;
 
     reference operator*() const noexcept { return *entry_; }
     pointer operator->() const noexcept { return entry_; }

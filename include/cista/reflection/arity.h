@@ -47,7 +47,7 @@ struct arity_impl<Aggregate, std::index_sequence<Indices...>,
 }  // namespace detail
 
 template <typename T>
-constexpr std::size_t arity() {
+constexpr std::size_t arity() noexcept {
   return detail::arity_impl<decay_t<T>>().size();
 }
 

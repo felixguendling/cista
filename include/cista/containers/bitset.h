@@ -106,7 +106,7 @@ struct bitset {
     return a.sanitized_last_block() == b.sanitized_last_block();
   }
 
-  friend bool operator<(bitset const& a, bitset const& b) {
+  friend bool operator<(bitset const& a, bitset const& b) noexcept {
     auto const a_last = a.sanitized_last_block();
     auto const b_last = b.sanitized_last_block();
     if (a_last < b_last) {
