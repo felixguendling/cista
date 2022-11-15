@@ -10,7 +10,8 @@ namespace cista {
 struct buffer final {
   buffer() noexcept : buf_(nullptr), size_(0) {}
 
-  explicit buffer(std::size_t size) : buf_(std::malloc(size)), size_(size) {
+  explicit buffer(std::size_t const size)
+      : buf_(std::malloc(size)), size_(size) {
     verify(buf_ != nullptr, "buffer initialization failed");
   }
 

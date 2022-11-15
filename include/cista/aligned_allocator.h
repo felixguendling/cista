@@ -26,11 +26,11 @@ struct aligned_allocator {
 
   inline ~aligned_allocator() noexcept = default;
 
-  inline pointer adress(reference r) noexcept { return &r; }
+  inline pointer adress(reference r) const noexcept { return &r; }
 
   inline const_pointer adress(const_reference r) const noexcept { return &r; }
 
-  inline pointer allocate(size_type n) {
+  inline pointer allocate(size_type const n) const {
     auto const ptr =
         static_cast<pointer>(CISTA_ALIGNED_ALLOC(N, n * sizeof(value_type)));
     if (ptr == nullptr) {
@@ -39,13 +39,15 @@ struct aligned_allocator {
     return ptr;
   }
 
-  inline void deallocate(pointer p, size_type) { CISTA_ALIGNED_FREE(N, p); }
+  inline void deallocate(pointer p, size_type) const {
+    CISTA_ALIGNED_FREE(N, p);
+  }
 
-  inline void construct(pointer p, const value_type& wert) {
+  inline void construct(pointer p, const value_type& wert) const {
     new (p) value_type(wert);
   }
 
-  inline void destroy(pointer p) { p->~value_type(); }
+  inline void destroy(pointer p) const { p->~value_type(); }
 
   inline size_type max_size() const noexcept {
     return size_type(-1) / sizeof(value_type);

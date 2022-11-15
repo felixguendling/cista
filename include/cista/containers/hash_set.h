@@ -11,7 +11,7 @@ namespace cista {
 
 struct identity {
   template <typename T>
-  decltype(auto) operator()(T&& t) {
+  decltype(auto) operator()(T&& t) const {
     return std::forward<T>(t);
   }
 };

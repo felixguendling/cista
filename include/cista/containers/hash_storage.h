@@ -69,7 +69,7 @@ struct hash_storage {
   };
 
   struct probe_seq {
-    probe_seq(size_type hash, size_type mask)
+    probe_seq(size_type const hash, size_type const mask)
         : mask_{mask}, offset_{hash & mask_} {}
     size_type offset(size_type const i) const noexcept {
       return (offset_ + i) & mask_;
@@ -85,7 +85,7 @@ struct hash_storage {
   struct bit_mask {
     static constexpr auto const SHIFT = 3U;
 
-    explicit bit_mask(group_t mask) : mask_{mask} {}
+    explicit bit_mask(group_t const mask) : mask_{mask} {}
 
     bit_mask& operator++() noexcept {
       mask_ &= (mask_ - 1);
@@ -167,15 +167,16 @@ struct hash_storage {
       return tmp;
     }
 
-    friend bool operator==(const iterator& a, const iterator& b) noexcept {
+    friend bool operator==(iterator const& a, iterator const& b) noexcept {
       return a.ctrl_ == b.ctrl_;
     }
-    friend bool operator!=(const iterator& a, const iterator& b) noexcept {
+    friend bool operator!=(iterator const& a, iterator const& b) noexcept {
       return !(a == b);
     }
 
-    iterator(ctrl_t* ctrl) noexcept : ctrl_(ctrl) {}
-    iterator(ctrl_t* ctrl, T* entry) noexcept : ctrl_(ctrl), entry_(entry) {}
+    iterator(ctrl_t* const ctrl) noexcept : ctrl_(ctrl) {}
+    iterator(ctrl_t* const ctrl, T* const entry) noexcept
+        : ctrl_(ctrl), entry_(entry) {}
 
     void skip_empty_or_deleted() noexcept {
       while (is_empty_or_deleted(*ctrl_)) {

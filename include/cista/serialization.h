@@ -78,12 +78,13 @@ struct serialization_context {
 
   template <typename T>
   bool resolve_pointer(offset_ptr<T> const& ptr, offset_t const pos,
-                       bool add_pending = true) {
+                       bool const add_pending = true) {
     return resolve_pointer(ptr.get(), pos, add_pending);
   }
 
   template <typename Ptr>
-  bool resolve_pointer(Ptr ptr, offset_t const pos, bool add_pending = true) {
+  bool resolve_pointer(Ptr ptr, offset_t const pos,
+                       bool const add_pending = true) {
     if (std::is_same_v<decay_t<remove_pointer_t<Ptr>>, void> && add_pending) {
       write(pos, convert_endian<MODE>(NULLPTR_OFFSET));
       return true;
@@ -548,7 +549,7 @@ struct deep_check_context : public deserialization_context<Mode> {
 };
 
 template <typename T, mode const Mode = mode::NONE>
-void check(uint8_t const* from, uint8_t const* to) {
+void check(uint8_t const* const from, uint8_t const* const to) {
   verify(to - from > data_start(Mode), "invalid range");
 
   if constexpr ((Mode & mode::WITH_VERSION) == mode::WITH_VERSION) {
