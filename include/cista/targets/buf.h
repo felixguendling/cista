@@ -37,7 +37,7 @@ struct buf {
   offset_t write(void const* ptr, std::size_t const num_bytes,
                  std::size_t alignment = 0) {
     auto start = static_cast<offset_t>(size());
-    if (alignment != 0 && alignment != 1 && buf_.size() != 0) {
+    if (alignment > 1U && buf_.size() != 0U) {
       auto unaligned_ptr = static_cast<void*>(addr(start));
       auto space = std::numeric_limits<std::size_t>::max();
       auto const aligned_ptr =
