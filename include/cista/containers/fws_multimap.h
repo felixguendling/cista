@@ -39,7 +39,7 @@ struct fws_multimap_entry {
     return data_[data_index(index)];
   }
 
-  index_t data_index(index_t index) const {
+  index_t data_index(index_t const index) const {
     assert(index_start + index < data_.size());
     return index_start + index;
   }
@@ -66,12 +66,12 @@ struct fws_multimap_iterator {
 
   value_type operator*() const { return {map_[index_]}; }
 
-  fws_multimap_iterator& operator+=(int n) {
+  fws_multimap_iterator& operator+=(int const n) {
     index_ += n;
     return *this;
   }
 
-  fws_multimap_iterator& operator-=(int n) {
+  fws_multimap_iterator& operator-=(int const n) {
     index_ -= n;
     return *this;
   }
@@ -86,11 +86,11 @@ struct fws_multimap_iterator {
     return *this;
   }
 
-  fws_multimap_iterator operator+(int n) const {
+  fws_multimap_iterator operator+(int const n) const {
     return {map_, index_ + static_cast<index_t>(n)};
   }
 
-  fws_multimap_iterator operator-(int n) const {
+  fws_multimap_iterator operator-(int const n) const {
     return {map_, index_ + static_cast<index_t>(n)};
   }
 
@@ -98,7 +98,7 @@ struct fws_multimap_iterator {
     return index_ - o.index_;
   }
 
-  value_type& operator[](int n) const { return {map_, index_ + n}; }
+  value_type& operator[](int const n) const { return {map_, index_ + n}; }
 
   bool operator<(fws_multimap_iterator const& o) const {
     return index_ < o.index_;

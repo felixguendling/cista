@@ -19,7 +19,7 @@
 namespace cista {
 
 template <typename T>
-constexpr T endian_swap(T t) {
+constexpr T endian_swap(T const t) noexcept {
   static_assert(sizeof(T) == 1U || sizeof(T) == 2U || sizeof(T) == 4U ||
                 sizeof(T) == 8U);
 

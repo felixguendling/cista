@@ -107,7 +107,7 @@ struct dynamic_fws_multimap_base {
       return (*this)[size() - 1];
     }
 
-    size_type data_index(size_type index) const {
+    size_type data_index(size_type const index) const {
       assert(index < get_index().size_);
       return get_index().begin_ + index;
     }
@@ -143,14 +143,15 @@ struct dynamic_fws_multimap_base {
     }
 
     template <bool IsConst = Const, typename = std::enable_if_t<!IsConst>>
-    void reserve(size_type new_size) {
+    void reserve(size_type const new_size) {
       if (new_size > capacity()) {
         mutable_mm().grow_bucket(index_, get_index(), new_size);
       }
     }
 
     template <bool IsConst = Const, typename = std::enable_if_t<!IsConst>>
-    void resize(size_type new_size, value_type init = value_type{}) {
+    void resize(size_type const new_size,
+                value_type const init = value_type{}) {
       auto const old_size = size();
       reserve(new_size);
       auto& index = get_index();
@@ -162,7 +163,7 @@ struct dynamic_fws_multimap_base {
         mutable_mm().element_count_ -= old_size - new_size;
       } else if (new_size > old_size) {
         for (auto i = old_size; i < new_size; ++i) {
-          data[index.begin_ + i] = value_type{init};
+          data[index.begin_ + i] = init;
         }
         mutable_mm().element_count_ += new_size - old_size;
       }
@@ -215,7 +216,7 @@ struct dynamic_fws_multimap_base {
     }
 
   protected:
-    bucket(dynamic_fws_multimap_base const& multimap, size_type index)
+    bucket(dynamic_fws_multimap_base const& multimap, size_type const index)
         : multimap_(multimap), index_(index) {}
 
     index_type& get_index() { return mutable_mm().index_[index_]; }
@@ -328,12 +329,12 @@ struct dynamic_fws_multimap_base {
              static_cast<difference_type>(rhs.index_);
     }
 
-    value_type operator[](difference_type n) const {
+    value_type operator[](difference_type const n) const {
       return multimap_.at(index_ + n);
     }
 
     template <bool IsConst = Const, typename = std::enable_if_t<!IsConst>>
-    value_type operator[](difference_type n) {
+    value_type operator[](difference_type const n) {
       return const_cast<dynamic_fws_multimap_base&>(multimap_)  // NOLINT
           .at(index_ + n);
     }
@@ -360,7 +361,8 @@ struct dynamic_fws_multimap_base {
     }
 
   protected:
-    bucket_iterator(dynamic_fws_multimap_base const& multimap, size_type index)
+    bucket_iterator(dynamic_fws_multimap_base const& multimap,
+                    size_type const index)
         : multimap_{multimap}, index_{index} {}
 
     dynamic_fws_multimap_base const& multimap_;
@@ -370,14 +372,14 @@ struct dynamic_fws_multimap_base {
   using iterator = bucket_iterator<false>;
   using const_iterator = bucket_iterator<true>;
 
-  mutable_bucket operator[](size_type index) {
+  mutable_bucket operator[](size_type const index) {
     if (index >= index_.size()) {
       index_.resize(index + 1);
     }
     return {*this, index};
   }
 
-  const_bucket operator[](size_type index) const {
+  const_bucket operator[](size_type const index) const {
     assert(index < index_.size());
     return {*this, index};
   }

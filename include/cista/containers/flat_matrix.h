@@ -10,7 +10,7 @@ struct base_flat_matrix {
   using size_type = typename VectorType::size_type;
 
   struct row {
-    row(base_flat_matrix& matrix, int row_index)
+    row(base_flat_matrix& matrix, int const row_index)
         : matrix_(matrix), row_index_(row_index) {}
 
     value_type& operator[](int column_index) {
@@ -23,10 +23,10 @@ struct base_flat_matrix {
   };
 
   struct const_row {
-    const_row(base_flat_matrix const& matrix, int row_index)
+    const_row(base_flat_matrix const& matrix, int const row_index)
         : matrix_(matrix), row_index_(row_index) {}
 
-    value_type const& operator[](int column_index) const {
+    value_type const& operator[](int const column_index) const {
       auto pos = matrix_.column_count_ * row_index_ + column_index;
       return matrix_.entries_[pos];
     }
@@ -35,8 +35,8 @@ struct base_flat_matrix {
     int row_index_;
   };
 
-  row operator[](int row_index) { return {*this, row_index}; }
-  const_row operator[](int row_index) const { return {*this, row_index}; }
+  row operator[](int const row_index) { return {*this, row_index}; }
+  const_row operator[](int const row_index) const { return {*this, row_index}; }
 
   value_type& operator()(int const row_index, int const column_index) {
     return entries_[column_count_ * row_index + column_index];

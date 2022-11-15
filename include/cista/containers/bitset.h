@@ -47,7 +47,7 @@ struct bitset {
 
   void reset() noexcept { blocks_ = {}; }
 
-  bool operator[](std::size_t i) const noexcept { return test(i); }
+  bool operator[](std::size_t const i) const noexcept { return test(i); }
 
   std::size_t count() const noexcept {
     auto sum = std::size_t{0U};
