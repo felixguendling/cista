@@ -12,9 +12,7 @@
 #include "cista/bit_counting.h"
 #include "cista/containers/ptr.h"
 #include "cista/decay.h"
-#include "cista/endian/conversion.h"
 #include "cista/hash.h"
-#include "cista/offset_t.h"
 
 namespace cista {
 
