@@ -31,16 +31,12 @@ struct buffer final {
   buffer(buffer const&) = delete;
   buffer& operator=(buffer const&) = delete;
 
-  buffer(buffer&& o) noexcept : buf_(o.buf_), size_(o.size_) {
-    o.buf_ = nullptr;
-    o.size_ = 0;
-  }
+  buffer(buffer&& o) noexcept : buf_(o.buf_), size_(o.size_) { o.reset(); }
 
   buffer& operator=(buffer&& o) noexcept {
     buf_ = o.buf_;
     size_ = o.size_;
-    o.buf_ = nullptr;
-    o.size_ = 0;
+    o.reset();
     return *this;
   }
 
@@ -61,6 +57,11 @@ struct buffer final {
 
   unsigned char& operator[](size_t i) noexcept { return data()[i]; }
   unsigned char const& operator[](size_t i) const noexcept { return data()[i]; }
+
+  void reset() noexcept {
+    buf_ = nullptr;
+    size_ = 0U;
+  }
 
   void* buf_;
   std::size_t size_;

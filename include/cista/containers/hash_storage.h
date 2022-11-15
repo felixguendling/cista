@@ -270,12 +270,7 @@ struct hash_storage {
         capacity_{other.capacity_},
         growth_left_{other.growth_left_},
         self_allocated_{other.self_allocated_} {
-    other.entries_ = nullptr;
-    other.ctrl_ = empty_group();
-    other.size_ = 0U;
-    other.capacity_ = 0U;
-    other.growth_left_ = 0U;
-    other.self_allocated_ = false;
+    other.reset();
   }
 
   hash_storage(hash_storage const& other) {
@@ -293,12 +288,7 @@ struct hash_storage {
     capacity_ = other.capacity_;
     growth_left_ = other.growth_left_;
     self_allocated_ = other.self_allocated_;
-    other.entries_ = nullptr;
-    other.ctrl_ = empty_group();
-    other.size_ = 0U;
-    other.capacity_ = 0U;
-    other.growth_left_ = 0U;
-    other.self_allocated_ = false;
+    other.reset();
     return *this;
   }
 
@@ -518,11 +508,8 @@ struct hash_storage {
     if (self_allocated_) {
       CISTA_ALIGNED_FREE(ALIGNMENT, entries_);
     }
-    entries_ = nullptr;
-    ctrl_ = empty_group();
-    size_ = 0U;
-    capacity_ = 0U;
-    growth_left_ = 0U;
+
+    partial_reset();
   }
 
   template <typename Key>
@@ -627,6 +614,19 @@ struct hash_storage {
     if (old_capacity != 0U && old_self_allocated) {
       CISTA_ALIGNED_FREE(ALIGNMENT, old_entries);
     }
+  }
+
+  void partial_reset() noexcept {
+    entries_ = nullptr;
+    ctrl_ = empty_group();
+    size_ = 0U;
+    capacity_ = 0U;
+    growth_left_ = 0U;
+  }
+
+  void reset() noexcept {
+    partial_reset();
+    self_allocated_ = false;
   }
 
   void rehash() { resize(capacity_); }
