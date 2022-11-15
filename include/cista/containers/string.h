@@ -8,7 +8,6 @@
 #include <string_view>
 
 #include "cista/containers/ptr.h"
-#include "cista/decay.h"
 
 namespace cista {
 
@@ -57,7 +56,7 @@ struct generic_string {
 
   bool is_short() const noexcept { return s_.is_short_; }
 
-  void reset() {
+  void reset() noexcept {
     if (!h_.is_short_ && h_.ptr_ != nullptr && h_.self_allocated_) {
       std::free(const_cast<char*>(data()));
     }
