@@ -130,9 +130,9 @@ struct variant {
     destruct();
   }
 
-  bool valid() const { return index() != NO_VALUE; }
+  constexpr bool valid() const { return index() != NO_VALUE; }
 
-  operator bool() const { return valid(); }
+  constexpr operator bool() const { return valid(); }
 
   friend bool operator==(variant const& a, variant const& b) noexcept {
     return a.idx_ == b.idx_

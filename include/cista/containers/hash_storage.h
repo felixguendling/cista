@@ -69,7 +69,7 @@ struct hash_storage {
   };
 
   struct probe_seq {
-    probe_seq(size_type const hash, size_type const mask)
+    constexpr probe_seq(size_type const hash, size_type const mask)
         : mask_{mask}, offset_{hash & mask_} {}
     size_type offset(size_type const i) const noexcept {
       return (offset_ + i) & mask_;
@@ -85,7 +85,7 @@ struct hash_storage {
   struct bit_mask {
     static constexpr auto const SHIFT = 3U;
 
-    explicit bit_mask(group_t const mask) : mask_{mask} {}
+    constexpr explicit bit_mask(group_t const mask) : mask_{mask} {}
 
     bit_mask& operator++() noexcept {
       mask_ &= (mask_ - 1);
@@ -151,7 +151,7 @@ struct hash_storage {
     using pointer = hash_storage::entry_t*;
     using difference_type = ptrdiff_t;
 
-    iterator() noexcept = default;
+    constexpr iterator() = default;
 
     reference operator*() const noexcept { return *entry_; }
     pointer operator->() const noexcept { return entry_; }
@@ -174,8 +174,8 @@ struct hash_storage {
       return !(a == b);
     }
 
-    iterator(ctrl_t* const ctrl) noexcept : ctrl_(ctrl) {}
-    iterator(ctrl_t* const ctrl, T* const entry) noexcept
+    constexpr iterator(ctrl_t* const ctrl) noexcept : ctrl_(ctrl) {}
+    constexpr iterator(ctrl_t* const ctrl, T* const entry) noexcept
         : ctrl_(ctrl), entry_(entry) {}
 
     void skip_empty_or_deleted() noexcept {
@@ -197,7 +197,7 @@ struct hash_storage {
     using pointer = hash_storage::entry_t const*;
     using difference_type = ptrdiff_t;
 
-    const_iterator() noexcept = default;
+    constexpr const_iterator() noexcept = default;
     const_iterator(iterator i) noexcept : inner_(std::move(i)) {}
 
     reference operator*() const noexcept { return *inner_; }
@@ -231,31 +231,33 @@ struct hash_storage {
     return const_cast<ctrl_t*>(empty_group);
   }
 
-  static inline bool is_empty(ctrl_t const c) noexcept { return c == EMPTY; }
-  static inline bool is_full(ctrl_t const c) noexcept { return c >= 0; }
-  static inline bool is_deleted(ctrl_t const c) noexcept {
+  static constexpr bool is_empty(ctrl_t const c) noexcept { return c == EMPTY; }
+  static constexpr bool is_full(ctrl_t const c) noexcept { return c >= 0; }
+  static constexpr bool is_deleted(ctrl_t const c) noexcept {
     return c == DELETED;
   }
-  static inline bool is_empty_or_deleted(ctrl_t const c) noexcept {
+  static constexpr bool is_empty_or_deleted(ctrl_t const c) noexcept {
     return c < END;
   }
 
-  static inline size_t normalize_capacity(size_type const n) noexcept {
+  static constexpr size_t normalize_capacity(size_type const n) noexcept {
     return n == 0U ? 1 : ~size_type{} >> leading_zeros(n);
   }
 
-  static inline size_type h1(size_type const hash) noexcept {
+  static constexpr size_type h1(size_type const hash) noexcept {
     return (hash >> 7) ^ 16777619;
   }
 
-  static inline h2_t h2(size_type const hash) noexcept { return hash & 0x7F; }
+  static constexpr h2_t h2(size_type const hash) noexcept {
+    return hash & 0x7F;
+  }
 
-  static inline size_type capacity_to_growth(
+  static constexpr size_type capacity_to_growth(
       size_type const capacity) noexcept {
     return (capacity == 7) ? 6 : capacity - (capacity / 8);
   }
 
-  hash_storage() = default;
+  constexpr hash_storage() = default;
 
   hash_storage(std::initializer_list<T> init) {
     insert(init.begin(), init.end());

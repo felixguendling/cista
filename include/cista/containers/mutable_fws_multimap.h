@@ -437,9 +437,11 @@ struct dynamic_fws_multimap_base {
     return size;
   }
 
-  size_type max_entries_per_bucket() const { return MAX_ENTRIES_PER_BUCKET; }
+  constexpr size_type max_entries_per_bucket() const {
+    return MAX_ENTRIES_PER_BUCKET;
+  }
 
-  size_type max_entries_per_bucket_log2() const {
+  constexpr size_type max_entries_per_bucket_log2() const {
     return Log2MaxEntriesPerBucket;
   }
 
