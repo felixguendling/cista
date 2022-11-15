@@ -78,19 +78,19 @@ struct dynamic_fws_multimap_base {
     friend iterator end(bucket& b) { return b.end(); }
     friend const_iterator end(bucket const& b) { return b.end(); }
 
-    value_type& operator[](size_type index) {
+    value_type& operator[](size_type const index) {
       return mutable_mm().data_[data_index(index)];
     }
 
-    value_type const& operator[](size_type index) const {
+    value_type const& operator[](size_type const index) const {
       return multimap_.data_[data_index(index)];
     }
 
-    value_type& at(size_type index) {
+    value_type& at(size_type const index) {
       return mutable_mm().data_[get_and_check_data_index(index)];
     }
 
-    value_type const& at(size_type index) const {
+    value_type const& at(size_type const index) const {
       return multimap_.data_[get_and_check_data_index(index)];
     }
 
@@ -384,7 +384,7 @@ struct dynamic_fws_multimap_base {
     return {*this, index};
   }
 
-  mutable_bucket at(size_type index) {
+  mutable_bucket at(size_type const index) {
     if (index >= index_.size()) {
       throw std::out_of_range{"dynamic_fws_multimap::at() out of range"};
     } else {
@@ -392,7 +392,7 @@ struct dynamic_fws_multimap_base {
     }
   }
 
-  const_bucket at(size_type index) const {
+  const_bucket at(size_type const index) const {
     if (index >= index_.size()) {
       throw std::out_of_range{"dynamic_fws_multimap::at() out of range"};
     } else {
