@@ -555,11 +555,7 @@ struct hash_storage {
   }
 
   void rehash_and_grow_if_necessary() {
-    if (capacity_ == 0) {
-      resize(1);
-    } else {
-      resize(capacity_ * 2 + 1);
-    }
+    resize(capacity_ == 0U ? 1U : capacity_ * 2U + 1U);
   }
 
   void reset_growth_left() noexcept {

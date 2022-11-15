@@ -25,11 +25,7 @@ struct bytes_to_integer_type<Size, std::enable_if_t<Size == 2>> {
 
 template <typename... T>
 constexpr std::size_t bytes() noexcept {
-  if (sizeof...(T) > std::numeric_limits<uint8_t>::max()) {
-    return 2;
-  } else {
-    return 1;
-  }
+  return (sizeof...(T) > std::numeric_limits<uint8_t>::max()) ? 2U : 1U;
 }
 
 template <typename... T>
@@ -345,8 +341,7 @@ struct variant {
   hash_t hash() const noexcept {
     return apply([&](auto&& val) {
       auto const idx = index();
-      auto h = BASE_HASH;
-      h = hashing<decltype(idx)>{}(idx, h);
+      auto h = hashing<decltype(idx)>{}(idx, BASE_HASH);
       h = hashing<decltype(val)>{}(val, h);
       return h;
     });
