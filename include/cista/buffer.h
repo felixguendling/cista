@@ -8,7 +8,7 @@
 namespace cista {
 
 struct buffer final {
-  buffer() noexcept : buf_(nullptr), size_(0) {}
+  constexpr buffer() noexcept : buf_(nullptr), size_(0) {}
 
   explicit buffer(std::size_t const size)
       : buf_(std::malloc(size)), size_(size) {
