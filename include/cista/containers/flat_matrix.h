@@ -49,6 +49,18 @@ struct base_flat_matrix {
   VectorType entries_;
 };
 
+namespace detail {
+
+template <typename V>
+auto make_flat_matrix(std::uint32_t const column_count,
+                      typename V::value_type const& init) {
+  V v{};
+  v.resize(column_count * column_count, init);
+  return base_flat_matrix<V>{column_count, std::move(v)};
+}
+
+}  // namespace detail
+
 namespace offset {
 
 template <typename T>
@@ -57,9 +69,7 @@ using flat_matrix = base_flat_matrix<vector<T>>;
 template <typename T>
 inline flat_matrix<T> make_flat_matrix(std::uint32_t const column_count,
                                        T const& init = T{}) {
-  auto v = vector<T>{};
-  v.resize(column_count * column_count, init);
-  return flat_matrix<T>{column_count, std::move(v)};
+  return detail::make_flat_matrix<vector<T>>(column_count, init);
 }
 
 }  // namespace offset
@@ -72,9 +82,7 @@ using flat_matrix = base_flat_matrix<vector<T>>;
 template <typename T>
 inline flat_matrix<T> make_flat_matrix(std::uint32_t const column_count,
                                        T const& init = T{}) {
-  auto v = vector<T>{};
-  v.resize(column_count * column_count, init);
-  return flat_matrix<T>{column_count, std::move(v)};
+  return detail::make_flat_matrix<vector<T>>(column_count, init);
 }
 
 }  // namespace raw
