@@ -12,7 +12,6 @@
 
 #include "cista/bit_counting.h"
 #include "cista/containers/array.h"
-#include "cista/reflection/comparable.h"
 
 namespace cista {
 

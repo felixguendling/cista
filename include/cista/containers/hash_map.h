@@ -4,7 +4,6 @@
 
 #include "cista/containers/hash_storage.h"
 #include "cista/containers/pair.h"
-#include "cista/containers/ptr.h"
 #include "cista/equal_to.h"
 #include "cista/hashing.h"
 
