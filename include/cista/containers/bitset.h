@@ -37,10 +37,11 @@ struct bitset {
     assert((i / bits_per_block) < num_blocks);
     auto& block = blocks_[i / bits_per_block];
     auto const bit = i % bits_per_block;
+    auto const mask = block_t{1U} << bit;
     if (val) {
-      block |= (block_t{1U} << bit);
+      block |= mask;
     } else {
-      block &= (~block_t{0U} ^ (block_t{1U} << bit));
+      block &= (~block_t{0U} ^ mask);
     }
   }
 
