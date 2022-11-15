@@ -28,7 +28,7 @@ struct bitset {
   auto cista_members() noexcept { return std::tie(blocks_); }
 
   constexpr void set(std::string_view s) noexcept {
-    for (auto i = std::size_t{0U}; i != std::min(Size, s.size()); ++i) {
+    for (std::size_t i = 0U; i != std::min(Size, s.size()); ++i) {
       set(i, s[s.size() - i - 1] != '0');
     }
   }
@@ -49,8 +49,8 @@ struct bitset {
   bool operator[](std::size_t const i) const noexcept { return test(i); }
 
   std::size_t count() const noexcept {
-    auto sum = std::size_t{0U};
-    for (auto i = std::size_t{0U}; i != num_blocks - 1; ++i) {
+    std::size_t sum = 0U;
+    for (std::size_t i = 0U; i != num_blocks - 1U; ++i) {
       sum += popcount(blocks_[i]);
     }
     return sum + popcount(sanitized_last_block());
@@ -68,7 +68,7 @@ struct bitset {
   std::size_t size() const noexcept { return Size; }
 
   bool any() const noexcept {
-    for (auto i = std::size_t{0U}; i != num_blocks - 1; ++i) {
+    for (std::size_t i = 0U; i != num_blocks - 1U; ++i) {
       if (blocks_[i] != 0U) {
         return true;
       }
@@ -97,7 +97,7 @@ struct bitset {
   }
 
   friend bool operator==(bitset const& a, bitset const& b) noexcept {
-    for (auto i = std::size_t{0U}; i != num_blocks - 1; ++i) {
+    for (std::size_t i = 0U; i != num_blocks - 1U; ++i) {
       if (a.blocks_[i] != b.blocks_[i]) {
         return false;
       }
@@ -210,11 +210,11 @@ struct bitset {
       auto const border = num_blocks - shift_blocks - 1U;
 
       if (shift_bits == 0U) {
-        for (auto i = std::size_t{0U}; i <= border; ++i) {
+        for (std::size_t i = 0U; i <= border; ++i) {
           blocks_[i] = blocks_[i + shift_blocks];
         }
       } else {
-        for (auto i = std::size_t{0U}; i < border; ++i) {
+        for (std::size_t i = 0U; i < border; ++i) {
           blocks_[i] =
               (blocks_[i + shift_blocks] >> shift_bits) |
               (blocks_[i + shift_blocks + 1] << (bits_per_block - shift_bits));

@@ -497,7 +497,7 @@ struct hash_storage {
       return;
     }
 
-    for (auto i = size_t{0U}; i != capacity_; ++i) {
+    for (size_type i = 0U; i != capacity_; ++i) {
       if (is_full(ctrl_[i])) {
         entries_[i].~T();
       }
@@ -598,7 +598,7 @@ struct hash_storage {
     capacity_ = new_capacity;
     initialize_entries();
 
-    for (auto i = size_type{0U}; i != old_capacity; ++i) {
+    for (size_type i = 0U; i != old_capacity; ++i) {
       if (is_full(old_ctrl[i])) {
         auto const hash = compute_hash(GetKey()(old_entries[i]));
         auto const target = find_first_non_full(hash);

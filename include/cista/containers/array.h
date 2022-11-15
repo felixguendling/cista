@@ -59,7 +59,7 @@ struct array {
   constexpr T const* data() const noexcept { return el_; }
 
   friend bool operator==(array const& a, array const& b) noexcept {
-    for (auto i = 0U; i != Size; ++i) {
+    for (std::size_t i = 0U; i != Size; ++i) {
       if (a[i] != b[i]) {
         return false;
       }
@@ -68,7 +68,7 @@ struct array {
   }
 
   friend bool operator!=(array const& a, array const& b) noexcept {
-    for (auto i = 0U; i != Size; ++i) {
+    for (std::size_t i = 0U; i != Size; ++i) {
       if (a[i] != b[i]) {
         return true;
       }
