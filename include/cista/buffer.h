@@ -42,21 +42,19 @@ struct buffer final {
 
   inline std::size_t size() const noexcept { return size_; }
 
-  inline unsigned char* data() noexcept {
-    return static_cast<unsigned char*>(buf_);
-  }
-  inline unsigned char const* data() const noexcept {
-    return static_cast<unsigned char const*>(buf_);
+  inline uint8_t* data() noexcept { return static_cast<uint8_t*>(buf_); }
+  inline uint8_t const* data() const noexcept {
+    return static_cast<uint8_t const*>(buf_);
   }
 
-  inline unsigned char* begin() noexcept { return data(); }
-  inline unsigned char* end() noexcept { return data() + size_; }
+  inline uint8_t* begin() noexcept { return data(); }
+  inline uint8_t* end() noexcept { return data() + size_; }
 
-  inline unsigned char const* begin() const noexcept { return data(); }
-  inline unsigned char const* end() const noexcept { return data() + size_; }
+  inline uint8_t const* begin() const noexcept { return data(); }
+  inline uint8_t const* end() const noexcept { return data() + size_; }
 
-  unsigned char& operator[](size_t i) noexcept { return data()[i]; }
-  unsigned char const& operator[](size_t i) const noexcept { return data()[i]; }
+  uint8_t& operator[](size_t const i) noexcept { return data()[i]; }
+  uint8_t const& operator[](size_t const i) const noexcept { return data()[i]; }
 
   void reset() noexcept {
     buf_ = nullptr;
