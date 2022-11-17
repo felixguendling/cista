@@ -74,16 +74,18 @@ struct generic_string {
 
   void set_owning(char const* str) { set_owning(str, mstrlen(str)); }
 
+  static constexpr msize_t len_limit = 15U;
+
   void set_owning(char const* str, msize_t const len) {
     reset();
-    if (str == nullptr || len == 0) {
+    if (str == nullptr || len == 0U) {
       return;
     }
-    s_.is_short_ = (len <= 15);
+    s_.is_short_ = (len <= len_limit);
     if (s_.is_short_) {
       std::memcpy(s_.s_, str, len);
-      for (auto i = len; i < 15; ++i) {
-        s_.s_[i] = '\0';
+      for (auto i = len; i < len_limit; ++i) {
+        s_.s_[i] = 0;
       }
     } else {
       h_.ptr_ = static_cast<char*>(std::malloc(len));
@@ -108,11 +110,11 @@ struct generic_string {
 
   void set_non_owning(char const* str, msize_t const len) {
     reset();
-    if (str == nullptr || len == 0) {
+    if (str == nullptr || len == 0U) {
       return;
     }
 
-    if (len <= 15) {
+    if (len <= len_limit) {
       return set_owning(str, len);
     }
 
@@ -303,8 +305,9 @@ struct generic_string {
 
   msize_t size() const noexcept {
     if (is_short()) {
-      auto const pos = static_cast<char const*>(std::memchr(s_.s_, '\0', 15));
-      return (pos != nullptr) ? static_cast<msize_t>(pos - s_.s_) : 15;
+      auto const pos =
+          static_cast<char const*>(std::memchr(s_.s_, 0, len_limit));
+      return (pos != nullptr) ? static_cast<msize_t>(pos - s_.s_) : len_limit;
     }
     return h_.size_;
   }
@@ -320,7 +323,7 @@ struct generic_string {
 
   struct stack {
     bool is_short_{true};
-    char s_[15]{0};
+    char s_[len_limit]{0};
   };
 
   union {
