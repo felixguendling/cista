@@ -58,7 +58,7 @@ struct generic_string {
 
   void reset() noexcept {
     if (!h_.is_short_ && h_.ptr_ != nullptr && h_.self_allocated_) {
-      std::free(const_cast<char*>(data()));
+      std::free(data());
     }
     std::memset(static_cast<void*>(this), 0, sizeof(*this));
     h_.ptr_ = nullptr;
@@ -94,7 +94,7 @@ struct generic_string {
       }
       h_.size_ = len;
       h_.self_allocated_ = true;
-      std::memcpy(const_cast<char*>(data()), str, len);
+      std::memcpy(data(), str, len);
     }
   }
 
