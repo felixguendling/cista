@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "cista/aligned_alloc.h"
-#include "cista/containers/bitset.h"
+#include "cista/containers.h"
 #include "cista/decay.h"
 #include "cista/endian/conversion.h"
 #include "cista/hash.h"
