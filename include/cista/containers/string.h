@@ -24,30 +24,17 @@ struct generic_string {
   static constexpr struct non_owning_t {
   } non_owning{};
 
-  generic_string() noexcept {
-    std::memset(static_cast<void*>(this), 0, sizeof(*this));
-    h_.ptr_ = nullptr;
-  }
+  constexpr generic_string() noexcept {}
   ~generic_string() noexcept { reset(); }
 
-  generic_string(std::string_view s, owning_t) : generic_string() {
-    set_owning(s);
-  }
-  generic_string(std::string_view s, non_owning_t) : generic_string() {
+  generic_string(std::string_view s, owning_t const) { set_owning(s); }
+  generic_string(std::string_view s, non_owning_t const) { set_non_owning(s); }
+  generic_string(std::string const& s, owning_t const) { set_owning(s); }
+  generic_string(std::string const& s, non_owning_t const) {
     set_non_owning(s);
   }
-  generic_string(std::string const& s, owning_t) : generic_string() {
-    set_owning(s);
-  }
-  generic_string(std::string const& s, non_owning_t) : generic_string() {
-    set_non_owning(s);
-  }
-  generic_string(char const* s, owning_t) : generic_string() {
-    set_owning(s, mstrlen(s));
-  }
-  generic_string(char const* s, non_owning_t) : generic_string() {
-    set_non_owning(s);
-  }
+  generic_string(char const* s, owning_t const) { set_owning(s, mstrlen(s)); }
+  generic_string(char const* s, non_owning_t const) { set_non_owning(s); }
 
   char* begin() noexcept { return data(); }
   char* end() noexcept { return data() + size(); }
@@ -327,7 +314,7 @@ struct generic_string {
   };
 
   union {
-    heap h_;
+    heap h_{};
     stack s_;
   };
 };
@@ -349,12 +336,8 @@ struct basic_string : public generic_string<Ptr> {
   basic_string(std::string const& s) : base{s, base::owning} {}
   basic_string(char const* s) : base{s, base::owning} {}
 
-  basic_string(basic_string const& o) : base{} {
-    base::set_owning(o.data(), o.size());
-  }
-  basic_string(basic_string&& o) : base{} {
-    base::set_owning(o.data(), o.size());
-  }
+  basic_string(basic_string const& o) { base::set_owning(o.data(), o.size()); }
+  basic_string(basic_string&& o) { base::set_owning(o.data(), o.size()); }
   basic_string& operator=(basic_string const& o) {
     base::set_owning(o.data(), o.size());
     return *this;
@@ -394,10 +377,10 @@ struct basic_string_view : public generic_string<Ptr> {
   basic_string_view(std::string const& s) : base{s, base::owning} {}
   basic_string_view(char const* s) : base{s, base::owning} {}
 
-  basic_string_view(basic_string_view const& o) : base{} {
+  basic_string_view(basic_string_view const& o) {
     base::set_non_owning(o.data(), o.size());
   }
-  basic_string_view(basic_string_view&& o) : base{} {
+  basic_string_view(basic_string_view&& o) {
     base::set_non_owning(o.data(), o.size());
   }
   basic_string_view& operator=(basic_string_view const& o) {
