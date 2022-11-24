@@ -139,8 +139,8 @@ struct generic_string {
 
   operator std::string_view() const { return view(); }
 
-  char& operator[](size_t i) noexcept { return data()[i]; }
-  char const& operator[](size_t i) const noexcept { return data()[i]; }
+  char& operator[](size_t const i) noexcept { return data()[i]; }
+  char const& operator[](size_t const i) const noexcept { return data()[i]; }
 
   friend std::ostream& operator<<(std::ostream& out, generic_string const& s) {
     return out << s.view();
