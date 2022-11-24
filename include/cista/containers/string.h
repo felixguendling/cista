@@ -316,8 +316,7 @@ struct generic_string {
   struct heap {
     bool is_short_{false};
     bool self_allocated_{false};
-    uint8_t __fill_2__{0};
-    uint8_t __fill_3__{0};
+    uint16_t __fill__{0};
     uint32_t size_{0};
     Ptr ptr_{nullptr};
   };
