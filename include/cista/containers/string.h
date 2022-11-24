@@ -47,8 +47,7 @@ struct generic_string {
     if (!h_.is_short_ && h_.ptr_ != nullptr && h_.self_allocated_) {
       std::free(data());
     }
-    std::memset(static_cast<void*>(this), 0, sizeof(*this));
-    h_.ptr_ = nullptr;
+    h_ = heap{};
   }
 
   void set_owning(std::string const& s) {
