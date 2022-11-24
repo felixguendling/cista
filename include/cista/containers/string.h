@@ -272,22 +272,16 @@ struct generic_string {
     return std::string_view{a} >= b.view();
   }
 
-  char* data() noexcept {
-    if constexpr (std::is_pointer_v<Ptr>) {
-      return is_short() ? const_cast<char*>(s_.s_) : const_cast<char*>(h_.ptr_);
-    } else {
-      return is_short() ? const_cast<char*>(s_.s_)
-                        : const_cast<char*>(h_.ptr_.get());
-    }
-  }
-
-  char const* data() const noexcept {
+  char const* internal_data() const noexcept {
     if constexpr (std::is_pointer_v<Ptr>) {
       return is_short() ? s_.s_ : h_.ptr_;
     } else {
       return is_short() ? s_.s_ : h_.ptr_.get();
     }
   }
+
+  char* data() noexcept { return const_cast<char*>(internal_data()); }
+  char const* data() const noexcept { return internal_data(); }
 
   msize_t size() const noexcept {
     if (is_short()) {
