@@ -184,8 +184,8 @@ struct hash_storage {
       }
     }
 
-    ctrl_t* ctrl_ = nullptr;
-    T* entry_ = nullptr;
+    ctrl_t* ctrl_{nullptr};
+    T* entry_{nullptr};
   };
 
   struct const_iterator {
