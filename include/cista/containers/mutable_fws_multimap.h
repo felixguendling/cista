@@ -387,16 +387,13 @@ struct dynamic_fws_multimap_base {
   mutable_bucket at(size_type const index) {
     if (index >= index_.size()) {
       throw std::out_of_range{"dynamic_fws_multimap::at() out of range"};
-    } else {
-      return {*this, index};
     }
+    return {*this, index};
   }
 
   const_bucket at(size_type const index) const {
     if (index >= index_.size()) {
       throw std::out_of_range{"dynamic_fws_multimap::at() out of range"};
-    } else {
-      return {*this, index};
     }
     return {*this, index};
   }
@@ -539,9 +536,8 @@ protected:
         auto const entry = *it;
         vec.erase(it);
         return entry;
-      } else {
-        return {};
       }
+      return {};
     };
 
     return pop(free_buckets_[to_idx(requested_order)]);  // NOLINT

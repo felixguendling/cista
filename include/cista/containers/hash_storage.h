@@ -328,11 +328,11 @@ struct hash_storage {
   // --- at()
   template <typename Key>
   mapped_type& at_impl(Key&& key) {
-    if (auto it = find(std::forward<Key>(key)); it != end()) {
-      return GetValue{}(*it);
-    } else {
+    auto const it = find(std::forward<Key>(key));
+    if (it == end()) {
       throw std::out_of_range{"hash_storage::at() key not found"};
     }
+    return GetValue{}(*it);
   }
 
   mapped_type& at(key_type const& key) { return at_impl(key); }
