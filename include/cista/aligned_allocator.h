@@ -7,7 +7,7 @@
 
 namespace cista {
 
-template <typename T, std::size_t N = 16>
+template <typename T, std::size_t N = 16U>
 struct aligned_allocator {
   using value_type = T;
   using size_type = std::size_t;

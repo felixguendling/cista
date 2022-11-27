@@ -18,9 +18,9 @@ namespace cista {
 template <std::size_t Size>
 struct bitset {
   using block_t = std::uint64_t;
-  static constexpr auto const bits_per_block = sizeof(block_t) * 8;
+  static constexpr auto const bits_per_block = sizeof(block_t) * 8U;
   static constexpr auto const num_blocks =
-      Size / bits_per_block + (Size % bits_per_block == 0 ? 0 : 1);
+      Size / bits_per_block + (Size % bits_per_block == 0U ? 0U : 1U);
 
   constexpr bitset() noexcept = default;
   constexpr bitset(std::string_view s) noexcept { set(s); }
@@ -29,7 +29,7 @@ struct bitset {
 
   constexpr void set(std::string_view s) noexcept {
     for (std::size_t i = 0U; i != std::min(Size, s.size()); ++i) {
-      set(i, s[s.size() - i - 1] != '0');
+      set(i, s[s.size() - i - 1U] != '0');
     }
   }
 
@@ -80,19 +80,19 @@ struct bitset {
   bool none() const noexcept { return !any(); }
 
   block_t sanitized_last_block() const noexcept {
-    if constexpr ((Size % bits_per_block) != 0) {
-      return blocks_[num_blocks - 1] &
-             ~((~block_t{0}) << (Size % bits_per_block));
+    if constexpr ((Size % bits_per_block) != 0U) {
+      return blocks_[num_blocks - 1U] &
+             ~((~block_t{0U}) << (Size % bits_per_block));
     } else {
-      return blocks_[num_blocks - 1];
+      return blocks_[num_blocks - 1U];
     }
   }
 
   std::string to_string() const {
-    auto s = std::string{};
+    std::string s{};
     s.resize(Size);
     for (auto i = 0U; i != Size; ++i) {
-      s[i] = test(Size - i - 1) ? '1' : '0';
+      s[i] = test(Size - i - 1U) ? '1' : '0';
     }
     return s;
   }
@@ -194,12 +194,12 @@ struct bitset {
       return *this;
     }
 
-    if constexpr ((Size % bits_per_block) != 0) {
-      blocks_[num_blocks - 1] = sanitized_last_block();
+    if constexpr ((Size % bits_per_block) != 0U) {
+      blocks_[num_blocks - 1U] = sanitized_last_block();
     }
 
     if constexpr (num_blocks == 1U) {
-      blocks_[0] >>= shift;
+      blocks_[0U] >>= shift;
       return *this;
     } else {
       if (shift == 0U) {
@@ -223,7 +223,7 @@ struct bitset {
         blocks_[border] = (blocks_[num_blocks - 1] >> shift_bits);
       }
 
-      for (auto i = border + 1; i != num_blocks; ++i) {
+      for (auto i = border + 1U; i != num_blocks; ++i) {
         blocks_[i] = 0U;
       }
 
@@ -238,7 +238,7 @@ struct bitset {
     }
 
     if constexpr (num_blocks == 1U) {
-      blocks_[0] <<= shift;
+      blocks_[0U] <<= shift;
       return *this;
     } else {
       if (shift == 0U) {
@@ -256,9 +256,9 @@ struct bitset {
         for (auto i = std::size_t{num_blocks - 1}; i != shift_blocks; --i) {
           blocks_[i] =
               (blocks_[i - shift_blocks] << shift_bits) |
-              (blocks_[i - shift_blocks - 1] >> (bits_per_block - shift_bits));
+              (blocks_[i - shift_blocks - 1U] >> (bits_per_block - shift_bits));
         }
-        blocks_[shift_blocks] = blocks_[0] << shift_bits;
+        blocks_[shift_blocks] = blocks_[0U] << shift_bits;
       }
 
       for (auto i = 0U; i != shift_blocks; ++i) {

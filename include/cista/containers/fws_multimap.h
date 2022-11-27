@@ -45,7 +45,7 @@ struct fws_multimap_entry {
   }
 
   std::size_t size() const noexcept { return index_end - index_start; }
-  bool empty() const noexcept { return size() == 0; }
+  bool empty() const noexcept { return size() == 0U; }
 
   DataVec const& data_;
   index_t const index_start;

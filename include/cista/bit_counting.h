@@ -16,31 +16,31 @@ namespace cista {
 
 template <typename T>
 constexpr unsigned trailing_zeros(T t) noexcept {
-  static_assert(sizeof(T) == 8 || sizeof(T) == 4, "not supported");
+  static_assert(sizeof(T) == 8U || sizeof(T) == 4U, "not supported");
 
-  if (t == 0) {
-    return sizeof(T) == 8 ? 64 : 32;
+  if (t == 0U) {
+    return sizeof(T) == 8U ? 64U : 32U;
   }
 
-  if constexpr (sizeof(T) == 8) {  // 64bit
+  if constexpr (sizeof(T) == 8U) {  // 64bit
 #if defined(_MSC_VER) && defined(_M_X64)
-    unsigned long index = 0;
+    unsigned long index = 0U;
     _BitScanForward64(&index, t);
     return index;
 #elif defined(_MSC_VER)
-    unsigned long index = 0;
+    unsigned long index = 0U;
     if (static_cast<uint32_t>(t) == 0) {
-      _BitScanForward(&index, t >> 32);
-      return index + 32;
+      _BitScanForward(&index, t >> 32U);
+      return index + 32U;
     }
     _BitScanForward(&index, static_cast<uint32_t>(t));
     return index;
 #else
     return static_cast<unsigned>(__builtin_ctzll(t));
 #endif
-  } else if constexpr (sizeof(T) == 4) {  // 32bit
+  } else if constexpr (sizeof(T) == 4U) {  // 32bit
 #if defined(_MSC_VER)
-    unsigned long index = 0;
+    unsigned long index = 0U;
     _BitScanForward(&index, t);
     return index;
 #else
@@ -51,38 +51,38 @@ constexpr unsigned trailing_zeros(T t) noexcept {
 
 template <typename T>
 constexpr unsigned leading_zeros(T t) noexcept {
-  static_assert(sizeof(T) == 8 || sizeof(T) == 4, "not supported");
+  static_assert(sizeof(T) == 8U || sizeof(T) == 4U, "not supported");
 
-  if (t == 0) {
-    return sizeof(T) == 8 ? 64 : 32;
+  if (t == 0U) {
+    return sizeof(T) == 8U ? 64U : 32U;
   }
 
-  if constexpr (sizeof(T) == 8) {  // 64bit
+  if constexpr (sizeof(T) == 8U) {  // 64bit
 #if defined(_MSC_VER) && defined(_M_X64)
-    unsigned long index = 0;
+    unsigned long index = 0U;
     if (_BitScanReverse64(&index, t)) {
-      return 63 - index;
+      return 63U - index;
     }
-    return 64;
+    return 64U;
 #elif defined(_MSC_VER)
-    unsigned long index = 0;
-    if ((t >> 32) && _BitScanReverse(&index, t >> 32)) {
-      return 31 - index;
+    unsigned long index = 0U;
+    if ((t >> 32U) && _BitScanReverse(&index, t >> 32U)) {
+      return 31U - index;
     }
     if (_BitScanReverse(&index, static_cast<uint32_t>(t))) {
-      return 63 - index;
+      return 63U - index;
     }
-    return 64;
+    return 64U;
 #else
     return static_cast<unsigned>(__builtin_clzll(t));
 #endif
-  } else if constexpr (sizeof(T) == 4) {  // 32bit
+  } else if constexpr (sizeof(T) == 4U) {  // 32bit
 #if defined(_MSC_VER)
     unsigned long index = 0;
     if (_BitScanReverse(&index, t)) {
-      return 31 - index;
+      return 31U - index;
     }
-    return 32;
+    return 32U;
 #else
     return static_cast<unsigned>(__builtin_clz(t));
 #endif
@@ -94,7 +94,7 @@ inline std::size_t popcount(std::uint64_t const b) noexcept {
   return __popcnt64(b);
 #elif defined(_MSC_VER)
   return static_cast<std::size_t>(__popcnt(static_cast<uint32_t>(b)) +
-                                  __popcnt(static_cast<uint32_t>(b >> 32)));
+                                  __popcnt(static_cast<uint32_t>(b >> 32U)));
 #elif defined(__INTEL_COMPILER)
   return static_cast<std::size_t>(_mm_popcnt_u64(b));
 #else

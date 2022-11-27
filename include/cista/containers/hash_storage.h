@@ -86,7 +86,7 @@ struct hash_storage {
     constexpr explicit bit_mask(group_t const mask) noexcept : mask_{mask} {}
 
     bit_mask& operator++() noexcept {
-      mask_ &= (mask_ - 1);
+      mask_ &= (mask_ - 1U);
       return *this;
     }
 
@@ -252,7 +252,7 @@ struct hash_storage {
 
   static constexpr size_type capacity_to_growth(
       size_type const capacity) noexcept {
-    return (capacity == 7) ? 6 : capacity - (capacity / 8);
+    return (capacity == 7U) ? 6U : capacity - (capacity / 8U);
   }
 
   constexpr hash_storage() = default;
@@ -396,10 +396,10 @@ struct hash_storage {
   size_t erase_impl(Key&& key) {
     auto it = find(std::forward<Key>(key));
     if (it == end()) {
-      return 0;
+      return 0U;
     }
     erase(it);
-    return 1;
+    return 1U;
   }
 
   size_t erase(key_type const& k) { return erase_impl(k); }
@@ -427,7 +427,7 @@ struct hash_storage {
   }
 
   iterator begin() noexcept {
-    auto it = iterator_at(0);
+    auto it = iterator_at(0U);
     if (ctrl_ != nullptr) {
       it.skip_empty_or_deleted();
     }
@@ -543,14 +543,14 @@ struct hash_storage {
       target = find_first_non_full(hash);
     }
     ++size_;
-    growth_left_ -= (is_empty(ctrl_[target.offset_]) ? 1 : 0);
+    growth_left_ -= (is_empty(ctrl_[target.offset_]) ? 1U : 0U);
     set_ctrl(target.offset_, h2(hash));
     return target.offset_;
   }
 
   void set_ctrl(size_type const i, h2_t const c) noexcept {
     ctrl_[i] = static_cast<ctrl_t>(c);
-    ctrl_[((i - WIDTH) & capacity_) + 1 + ((WIDTH - 1) & capacity_)] =
+    ctrl_[((i - WIDTH) & capacity_) + 1U + ((WIDTH - 1U) & capacity_)] =
         static_cast<ctrl_t>(c);
   }
 
@@ -570,7 +570,7 @@ struct hash_storage {
   void initialize_entries() {
     self_allocated_ = true;
     auto const size = static_cast<size_type>(
-        capacity_ * sizeof(T) + (capacity_ + 1 + WIDTH) * sizeof(ctrl_t));
+        capacity_ * sizeof(T) + (capacity_ + 1U + WIDTH) * sizeof(ctrl_t));
     entries_ = reinterpret_cast<T*>(
         CISTA_ALIGNED_ALLOC(ALIGNMENT, static_cast<size_t>(size)));
     if (entries_ == nullptr) {
