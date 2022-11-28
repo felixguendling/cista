@@ -117,10 +117,12 @@ struct bitset {
     }
 
     for (int i = num_blocks - 2; i != -1; --i) {
-      if (a.blocks_[i] < b.blocks_[i]) {
+      auto const x = a.blocks_[i];
+      auto const y = b.blocks_[i];
+      if (x < y) {
         return true;
       }
-      if (b.blocks_[i] < a.blocks_[i]) {
+      if (y < x) {
         return false;
       }
     }
