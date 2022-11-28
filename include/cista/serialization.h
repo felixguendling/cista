@@ -192,7 +192,7 @@ void serialize(Ctx& c,
   }
 
   if (origin->el_ != nullptr) {
-    auto i = 0u;
+    auto i = 0U;
     for (auto it = start; it != start + static_cast<offset_t>(size);
          it += serialized_size<T>()) {
       serialize(c, static_cast<T const*>(origin->el_ + i++), it);
@@ -320,7 +320,7 @@ template <typename Ctx, typename T, size_t Size>
 void serialize(Ctx& c, array<T, Size> const* origin, offset_t const pos) {
   auto const size =
       static_cast<offset_t>(serialized_size<T>() * origin->size());
-  auto i = 0u;
+  auto i = 0U;
   for (auto it = pos; it != pos + size; it += serialized_size<T>()) {
     serialize(c, origin->el_ + i++, it);
   }
@@ -479,7 +479,7 @@ struct deserialization_context {
   constexpr static size_t type_size() noexcept {
     using Type = decay_t<T>;
     if constexpr (std::is_same_v<Type, void>) {
-      return 0;
+      return 0U;
     } else {
       return sizeof(Type);
     }
@@ -512,8 +512,8 @@ struct deserialization_context {
            "size out of bounds");
 
     if constexpr (!std::is_same_v<T, void>) {
-      verify((pos &
-              static_cast<intptr_t>(std::alignment_of<decay_t<T>>() - 1)) == 0U,
+      verify((pos & static_cast<intptr_t>(std::alignment_of<decay_t<T>>() -
+                                          1U)) == 0U,
              "ptr alignment");
     }
   }
@@ -670,7 +670,7 @@ void check_state(Ctx const& c,
   c.check_bool(el->self_allocated_);
   c.require(!el->self_allocated_, "vec self-allocated");
   c.require(el->allocated_size_ == el->used_size_, "vec size mismatch");
-  c.require((el->size() == 0) == (el->el_ == nullptr), "vec size=0 <=> ptr=0");
+  c.require((el->size() == 0U) == (el->el_ == nullptr), "vec size=0 <=> ptr=0");
 }
 
 template <typename Ctx, typename T, typename Ptr, bool Indexed,
@@ -949,7 +949,8 @@ T copy_from_potentially_unaligned(std::string_view buf) {
   };
 
   auto const is_already_aligned =
-      (reinterpret_cast<std::uintptr_t>(buf.data()) % sizeof(max_align_t)) == 0;
+      (reinterpret_cast<std::uintptr_t>(buf.data()) % sizeof(max_align_t)) ==
+      0U;
   if (is_already_aligned) {
     return *deserialize<T, Mode>(buf);
   }

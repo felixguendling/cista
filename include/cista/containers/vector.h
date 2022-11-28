@@ -374,9 +374,9 @@ struct basic_vector {
   TemplateSizeType used_size_{0};
   TemplateSizeType allocated_size_{0};
   bool self_allocated_{false};
-  uint8_t __fill_0__{0};
-  uint16_t __fill_1__{0};
-  uint32_t __fill_2__{0};
+  uint8_t __fill_0__{0U};
+  uint16_t __fill_1__{0U};
+  uint32_t __fill_2__{0U};
 };
 
 namespace raw {

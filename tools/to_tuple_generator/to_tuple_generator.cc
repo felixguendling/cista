@@ -113,7 +113,7 @@ inline auto to_tuple(T& t) {
   })";
 
   for (auto i = 1U; i <= max_members; ++i) {
-    std::cout << R"( else if constexpr (a == )" << i << R"() {
+    std::cout << R"( else if constexpr (a == )" << i << R"(U) {
     auto& [)" << var_list(i, false)
               << R"(] = t;
     return std::tie()"

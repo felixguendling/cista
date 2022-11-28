@@ -14,12 +14,12 @@ template <std::size_t Size, typename Enable = void>
 struct bytes_to_integer_type {};
 
 template <std::size_t Size>
-struct bytes_to_integer_type<Size, std::enable_if_t<Size == 1>> {
+struct bytes_to_integer_type<Size, std::enable_if_t<Size == 1U>> {
   using type = std::uint8_t;
 };
 
 template <std::size_t Size>
-struct bytes_to_integer_type<Size, std::enable_if_t<Size == 2>> {
+struct bytes_to_integer_type<Size, std::enable_if_t<Size == 2U>> {
   using type = std::uint16_t;
 };
 
@@ -37,7 +37,7 @@ template <typename Arg, typename... T>
 constexpr std::size_t index_of_type() noexcept {
   constexpr std::array<bool, sizeof...(T)> matches = {
       {std::is_same<std::decay_t<Arg>, std::decay_t<T>>::value...}};
-  for (std::size_t i = 0; i < sizeof...(T); ++i) {
+  for (std::size_t i = 0U; i < sizeof...(T); ++i) {
     if (matches[i]) {
       return i;
     }
@@ -235,89 +235,89 @@ struct variant {
   static auto apply(F&& f, index_t const idx, Vs&&... vs)
       -> decltype(f((vs, std::declval<type_at_index_t<0U, T...>>())...)) {
     switch (idx) {
-      case B + 0:
-        if constexpr (B + 0 < sizeof...(T)) {
-          return f(vs.template as<type_at_index_t<B + 0, T...>>()...);
+      case B + 0U:
+        if constexpr (B + 0U < sizeof...(T)) {
+          return f(vs.template as<type_at_index_t<B + 0U, T...>>()...);
         }
         [[fallthrough]];
-      case B + 1:
-        if constexpr (B + 1 < sizeof...(T)) {
-          return f(vs.template as<type_at_index_t<B + 1, T...>>()...);
+      case B + 1U:
+        if constexpr (B + 1U < sizeof...(T)) {
+          return f(vs.template as<type_at_index_t<B + 1U, T...>>()...);
         }
         [[fallthrough]];
-      case B + 2:
-        if constexpr (B + 2 < sizeof...(T)) {
-          return f(vs.template as<type_at_index_t<B + 2, T...>>()...);
+      case B + 2U:
+        if constexpr (B + 2U < sizeof...(T)) {
+          return f(vs.template as<type_at_index_t<B + 2U, T...>>()...);
         }
         [[fallthrough]];
-      case B + 3:
-        if constexpr (B + 3 < sizeof...(T)) {
-          return f(vs.template as<type_at_index_t<B + 3, T...>>()...);
+      case B + 3U:
+        if constexpr (B + 3U < sizeof...(T)) {
+          return f(vs.template as<type_at_index_t<B + 3U, T...>>()...);
         }
         [[fallthrough]];
-      case B + 4:
-        if constexpr (B + 4 < sizeof...(T)) {
-          return f(vs.template as<type_at_index_t<B + 4, T...>>()...);
+      case B + 4U:
+        if constexpr (B + 4U < sizeof...(T)) {
+          return f(vs.template as<type_at_index_t<B + 4U, T...>>()...);
         }
         [[fallthrough]];
-      case B + 5:
-        if constexpr (B + 5 < sizeof...(T)) {
-          return f(vs.template as<type_at_index_t<B + 5, T...>>()...);
+      case B + 5U:
+        if constexpr (B + 5U < sizeof...(T)) {
+          return f(vs.template as<type_at_index_t<B + 5U, T...>>()...);
         }
         [[fallthrough]];
-      case B + 6:
-        if constexpr (B + 6 < sizeof...(T)) {
-          return f(vs.template as<type_at_index_t<B + 6, T...>>()...);
+      case B + 6U:
+        if constexpr (B + 6U < sizeof...(T)) {
+          return f(vs.template as<type_at_index_t<B + 6U, T...>>()...);
         }
         [[fallthrough]];
-      case B + 7:
-        if constexpr (B + 7 < sizeof...(T)) {
-          return f(vs.template as<type_at_index_t<B + 7, T...>>()...);
+      case B + 7U:
+        if constexpr (B + 7U < sizeof...(T)) {
+          return f(vs.template as<type_at_index_t<B + 7U, T...>>()...);
         }
         [[fallthrough]];
-      case B + 8:
-        if constexpr (B + 8 < sizeof...(T)) {
-          return f(vs.template as<type_at_index_t<B + 8, T...>>()...);
+      case B + 8U:
+        if constexpr (B + 8U < sizeof...(T)) {
+          return f(vs.template as<type_at_index_t<B + 8U, T...>>()...);
         }
         [[fallthrough]];
-      case B + 9:
-        if constexpr (B + 9 < sizeof...(T)) {
-          return f(vs.template as<type_at_index_t<B + 9, T...>>()...);
+      case B + 9U:
+        if constexpr (B + 9U < sizeof...(T)) {
+          return f(vs.template as<type_at_index_t<B + 9U, T...>>()...);
         }
         [[fallthrough]];
-      case B + 10:
-        if constexpr (B + 10 < sizeof...(T)) {
-          return f(vs.template as<type_at_index_t<B + 10, T...>>()...);
+      case B + 10U:
+        if constexpr (B + 10U < sizeof...(T)) {
+          return f(vs.template as<type_at_index_t<B + 10U, T...>>()...);
         }
         [[fallthrough]];
-      case B + 11:
-        if constexpr (B + 11 < sizeof...(T)) {
-          return f(vs.template as<type_at_index_t<B + 11, T...>>()...);
+      case B + 11U:
+        if constexpr (B + 11U < sizeof...(T)) {
+          return f(vs.template as<type_at_index_t<B + 11U, T...>>()...);
         }
         [[fallthrough]];
-      case B + 12:
-        if constexpr (B + 12 < sizeof...(T)) {
-          return f(vs.template as<type_at_index_t<B + 12, T...>>()...);
+      case B + 12U:
+        if constexpr (B + 12U < sizeof...(T)) {
+          return f(vs.template as<type_at_index_t<B + 12U, T...>>()...);
         }
         [[fallthrough]];
-      case B + 13:
-        if constexpr (B + 13 < sizeof...(T)) {
-          return f(vs.template as<type_at_index_t<B + 13, T...>>()...);
+      case B + 13U:
+        if constexpr (B + 13U < sizeof...(T)) {
+          return f(vs.template as<type_at_index_t<B + 13U, T...>>()...);
         }
         [[fallthrough]];
-      case B + 14:
-        if constexpr (B + 14 < sizeof...(T)) {
-          return f(vs.template as<type_at_index_t<B + 14, T...>>()...);
+      case B + 14U:
+        if constexpr (B + 14U < sizeof...(T)) {
+          return f(vs.template as<type_at_index_t<B + 14U, T...>>()...);
         }
         [[fallthrough]];
-      case B + 15:
-        if constexpr (B + 15 < sizeof...(T)) {
-          return f(vs.template as<type_at_index_t<B + 15, T...>>()...);
+      case B + 15U:
+        if constexpr (B + 15U < sizeof...(T)) {
+          return f(vs.template as<type_at_index_t<B + 15U, T...>>()...);
         }
         break;
     }
 
-    if constexpr (B + 15 < sizeof...(T)) {
+    if constexpr (B + 15U < sizeof...(T)) {
       return apply<F, B + 16U>(std::forward<F>(f), std::forward<Vs>(vs)...);
     }
 
