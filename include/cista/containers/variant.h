@@ -112,12 +112,11 @@ struct variant {
         }
       });
       return *this;
-    } else {
-      destruct();
-      idx_ = static_cast<index_t>(index_of_type<Arg, T...>());
-      new (&storage_) std::decay_t<Arg>{std::forward<Arg>(arg)};
-      return *this;
     }
+    destruct();
+    idx_ = static_cast<index_t>(index_of_type<Arg, T...>());
+    new (&storage_) std::decay_t<Arg>{std::forward<Arg>(arg)};
+    return *this;
   }
 #if _MSVC_LANG >= 202002L || __cplusplus >= 202002L
   constexpr

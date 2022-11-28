@@ -71,11 +71,10 @@ struct file {
   size_t size() const {
     if (f_ == nullptr) {
       return 0U;
-    } else {
-      LARGE_INTEGER filesize;
-      verify(GetFileSizeEx(f_, &filesize), "file size error");
-      return static_cast<size_t>(filesize.QuadPart);
     }
+    LARGE_INTEGER filesize;
+    verify(GetFileSizeEx(f_, &filesize), "file size error");
+    return static_cast<size_t>(filesize.QuadPart);
   }
 
   buffer content() const {
@@ -231,11 +230,10 @@ struct file {
   size_t size() const {
     if (f_ == nullptr) {
       return 0U;
-    } else {
-      struct stat s;
-      verify(fstat(fd(), &s) != -1, "fstat error");
-      return static_cast<size_t>(s.st_size);
     }
+    struct stat s;
+    verify(fstat(fd(), &s) != -1, "fstat error");
+    return static_cast<size_t>(s.st_size);
   }
 
   buffer content() {
