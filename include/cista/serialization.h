@@ -417,17 +417,13 @@ template <typename Arg, typename... Args>
 Arg checked_addition(Arg a1, Args... aN) {
   using Type = decay_t<Arg>;
 
-  auto add_if_ok = [&](Arg x) {
+  auto add_if_ok = [&](Arg const x) {
     if (x == 0) {
       return;
-    } else if (x < 0) {
-      if (a1 < std::numeric_limits<Type>::min() - x) {
-        throw std::overflow_error("addition overflow");
-      }
-    } else if (x > 0) {
-      if (a1 > std::numeric_limits<Type>::max() - x) {
-        throw std::overflow_error("addition overflow");
-      }
+    }
+    if (((x < 0) && (a1 < std::numeric_limits<Type>::min() - x)) ||
+        ((x > 0) && (a1 > std::numeric_limits<Type>::max() - x))) {
+      throw std::overflow_error("addition overflow");
     }
     a1 = a1 + x;
   };
