@@ -48,7 +48,7 @@ struct aligned_allocator {
   void destroy(pointer p) const { p->~value_type(); }
 
   size_type max_size() const noexcept {
-    return size_type(-1) / sizeof(value_type);
+    return size_type(~0U) / sizeof(value_type);
   }
 
   template <typename T2>
