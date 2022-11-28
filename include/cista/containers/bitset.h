@@ -111,14 +111,16 @@ struct bitset {
     auto const b_last = b.sanitized_last_block();
     if (a_last < b_last) {
       return true;
-    } else if (b_last < a_last) {
+    }
+    if (b_last < a_last) {
       return false;
     }
 
     for (int i = num_blocks - 2; i != -1; --i) {
       if (a.blocks_[i] < b.blocks_[i]) {
         return true;
-      } else if (b.blocks_[i] < a.blocks_[i]) {
+      }
+      if (b.blocks_[i] < a.blocks_[i]) {
         return false;
       }
     }
