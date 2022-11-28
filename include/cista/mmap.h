@@ -106,15 +106,15 @@ struct mmap {
 
   size_t size() const noexcept { return used_size_; }
 
-  inline uint8_t* data() noexcept { return static_cast<uint8_t*>(addr_); }
-  inline uint8_t const* data() const noexcept {
+  uint8_t* data() noexcept { return static_cast<uint8_t*>(addr_); }
+  uint8_t const* data() const noexcept {
     return static_cast<unsigned char const*>(addr_);
   }
 
-  inline uint8_t* begin() noexcept { return data(); }
-  inline uint8_t* end() noexcept { return data() + used_size_; }
-  inline uint8_t const* begin() const noexcept { return data(); }
-  inline uint8_t const* end() const noexcept { return data() + used_size_; }
+  uint8_t* begin() noexcept { return data(); }
+  uint8_t* end() noexcept { return data() + used_size_; }
+  uint8_t const* begin() const noexcept { return data(); }
+  uint8_t const* end() const noexcept { return data() + used_size_; }
 
   uint8_t& operator[](size_t i) noexcept { return data()[i]; }
   uint8_t const& operator[](size_t i) const noexcept { return data()[i]; }

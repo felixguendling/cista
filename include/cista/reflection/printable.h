@@ -12,7 +12,7 @@
 
 #ifndef CISTA_PRINTABLE_NO_VEC
 template <typename T>
-inline std::ostream& operator<<(std::ostream& out, std::vector<T> const& v) {
+std::ostream& operator<<(std::ostream& out, std::vector<T> const& v) {
   out << "[\n  ";
   auto first = true;
   for (auto const& e : v) {

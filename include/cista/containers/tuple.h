@@ -194,7 +194,7 @@ template <typename... T>
 struct is_tuple<tuple<T...>> : std::true_type {};
 
 template <typename T>
-inline constexpr auto is_tuple_v = is_tuple<T>::value;
+constexpr auto is_tuple_v = is_tuple<T>::value;
 
 template <typename T>
 struct tuple_size;
@@ -204,7 +204,7 @@ struct tuple_size<tuple<T...>>
     : public std::integral_constant<std::size_t, sizeof...(T)> {};
 
 template <typename T>
-inline constexpr std::size_t tuple_size_v = tuple_size<std::decay_t<T>>::value;
+constexpr std::size_t tuple_size_v = tuple_size<std::decay_t<T>>::value;
 
 template <typename F, typename Tuple, std::size_t... I>
 constexpr decltype(auto) apply_impl(std::index_sequence<I...>, F&& f,
