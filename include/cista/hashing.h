@@ -37,10 +37,10 @@ struct has_std_hash<
 }  // namespace detail
 
 template <typename T>
-constexpr bool has_hash_v = detail::has_hash<T>::value;
+inline constexpr bool has_hash_v = detail::has_hash<T>::value;
 
 template <typename T>
-constexpr bool has_std_hash_v = detail::has_std_hash<T>::value;
+inline constexpr bool has_std_hash_v = detail::has_std_hash<T>::value;
 
 template <typename A, typename B>
 struct is_hash_equivalent_helper : std::false_type {};
