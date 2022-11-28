@@ -42,10 +42,10 @@ struct hash_storage {
       decay_t<decltype(std::declval<GetKey>().operator()(std::declval<T>()))>;
   using mapped_type =
       decay_t<decltype(std::declval<GetValue>().operator()(std::declval<T>()))>;
-  using group_t = uint64_t;
-  using h2_t = uint8_t;
+  using group_t = std::uint64_t;
+  using h2_t = std::uint8_t;
   static constexpr size_type const WIDTH = 8U;
-  static constexpr size_t const ALIGNMENT = alignof(T);
+  static constexpr std::size_t const ALIGNMENT = alignof(T);
 
   template <typename Key>
   hash_t compute_hash(Key const& k) {
@@ -135,7 +135,7 @@ struct hash_storage {
     bit_mask match_empty_or_deleted() const noexcept {
       return bit_mask{(ctrl_ & (~ctrl_ << 7U)) & MSBS};
     }
-    size_t count_leading_empty_or_deleted() const noexcept {
+    std::size_t count_leading_empty_or_deleted() const noexcept {
       return (trailing_zeros(((~ctrl_ & (ctrl_ >> 7U)) | GAPS) + 1U) + 7U) >>
              3U;
     }
@@ -238,7 +238,7 @@ struct hash_storage {
     return c < END;
   }
 
-  static constexpr size_t normalize_capacity(size_type const n) noexcept {
+  static constexpr std::size_t normalize_capacity(size_type const n) noexcept {
     return n == 0U ? 1 : ~size_type{} >> leading_zeros(n);
   }
 
@@ -393,7 +393,7 @@ struct hash_storage {
 
   // --- erase()
   template <typename Key>
-  size_t erase_impl(Key&& key) {
+  std::size_t erase_impl(Key&& key) {
     auto it = find(std::forward<Key>(key));
     if (it == end()) {
       return 0U;
@@ -402,10 +402,10 @@ struct hash_storage {
     return 1U;
   }
 
-  size_t erase(key_type const& k) { return erase_impl(k); }
+  std::size_t erase(key_type const& k) { return erase_impl(k); }
 
   template <typename Key>
-  size_t erase(Key&& key) {
+  std::size_t erase(Key&& key) {
     return erase_impl(std::forward<Key>(key));
   }
 
@@ -459,7 +459,7 @@ struct hash_storage {
   size_type size() const noexcept { return size_; }
   size_type capacity() const noexcept { return capacity_; }
   size_type max_size() const noexcept {
-    return std::numeric_limits<size_t>::max();
+    return std::numeric_limits<std::size_t>::max();
   }
 
   bool is_free(int index) const noexcept {
@@ -473,7 +473,7 @@ struct hash_storage {
                WIDTH;
   }
 
-  bool was_never_full(size_t const index) const noexcept {
+  bool was_never_full(std::size_t const index) const noexcept {
     auto const index_before = (index - WIDTH) & capacity_;
 
     auto const empty_after = group{ctrl_ + index}.match_empty();
@@ -486,7 +486,7 @@ struct hash_storage {
 
   void erase_meta_only(const_iterator it) noexcept {
     --size_;
-    auto const index = static_cast<size_t>(it.inner_.ctrl_ - ctrl_);
+    auto const index = static_cast<std::size_t>(it.inner_.ctrl_ - ctrl_);
     auto const wnf = was_never_full(index);
     set_ctrl(index, static_cast<h2_t>(wnf ? EMPTY : DELETED));
     growth_left_ += wnf;
@@ -563,7 +563,7 @@ struct hash_storage {
   }
 
   void reset_ctrl() noexcept {
-    std::memset(ctrl_, EMPTY, static_cast<size_t>(capacity_ + WIDTH + 1U));
+    std::memset(ctrl_, EMPTY, static_cast<std::size_t>(capacity_ + WIDTH + 1U));
     ctrl_[capacity_] = END;
   }
 
@@ -572,7 +572,7 @@ struct hash_storage {
     auto const size = static_cast<size_type>(
         capacity_ * sizeof(T) + (capacity_ + 1U + WIDTH) * sizeof(ctrl_t));
     entries_ = reinterpret_cast<T*>(
-        CISTA_ALIGNED_ALLOC(ALIGNMENT, static_cast<size_t>(size)));
+        CISTA_ALIGNED_ALLOC(ALIGNMENT, static_cast<std::size_t>(size)));
     if (entries_ == nullptr) {
       throw std::bad_alloc{};
     }
@@ -580,7 +580,8 @@ struct hash_storage {
     std::memset(entries_, 0, size);
 #endif
     ctrl_ = reinterpret_cast<ctrl_t*>(
-        reinterpret_cast<uint8_t*>(ptr_cast(entries_)) + capacity_ * sizeof(T));
+        reinterpret_cast<std::uint8_t*>(ptr_cast(entries_)) +
+        capacity_ * sizeof(T));
     reset_ctrl();
     reset_growth_left();
   }

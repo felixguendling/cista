@@ -13,7 +13,7 @@ namespace cista {
 
 template <typename Ptr = char const*>
 struct generic_string {
-  using msize_t = uint32_t;
+  using msize_t = std::uint32_t;
 
   static msize_t mstrlen(char const* s) noexcept {
     return static_cast<msize_t>(std::strlen(s));
@@ -139,8 +139,10 @@ struct generic_string {
 
   operator std::string_view() const { return view(); }
 
-  char& operator[](size_t const i) noexcept { return data()[i]; }
-  char const& operator[](size_t const i) const noexcept { return data()[i]; }
+  char& operator[](std::size_t const i) noexcept { return data()[i]; }
+  char const& operator[](std::size_t const i) const noexcept {
+    return data()[i];
+  }
 
   friend std::ostream& operator<<(std::ostream& out, generic_string const& s) {
     return out << s.view();
@@ -296,8 +298,8 @@ struct generic_string {
   struct heap {
     bool is_short_{false};
     bool self_allocated_{false};
-    uint16_t __fill__{0};
-    uint32_t size_{0};
+    std::uint16_t __fill__{0};
+    std::uint32_t size_{0};
     Ptr ptr_{nullptr};
   };
 

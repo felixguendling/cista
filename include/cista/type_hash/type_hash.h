@@ -50,7 +50,7 @@ hash_t type_hash(T const& el, hash_t h,
   }
 }
 
-template <typename T, size_t Size>
+template <typename T, std::size_t Size>
 hash_t type_hash(array<T, Size> const&, hash_t h,
                  std::map<hash_t, unsigned>& done) noexcept {
   h = hash_combine(h, hash("array"));
