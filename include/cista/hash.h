@@ -26,13 +26,13 @@ inline hash_t hash(std::string_view s, hash_t h = BASE_HASH) {
   return XXH3_64bits_withSeed(s.data(), s.size(), h);
 }
 
-template <size_t N>
+template <std::size_t N>
 constexpr hash_t hash(const char (&str)[N], hash_t const h = BASE_HASH) {
   return XXH3_64bits_withSeed(str, N - 1, h);
 }
 
 template <typename T>
-constexpr uint64_t hash(T const& buf, hash_t const h = BASE_HASH) {
+constexpr std::uint64_t hash(T const& buf, hash_t const h = BASE_HASH) {
   return buf.size() == 0 ? h : XXH3_64bits_withSeed(&buf[0], buf.size(), h);
 }
 
@@ -40,7 +40,7 @@ constexpr uint64_t hash(T const& buf, hash_t const h = BASE_HASH) {
 
 #include "wyhash.h"
 
-using hash_t = uint64_t;
+using hash_t = std::uint64_t;
 
 constexpr auto const BASE_HASH = 34432ULL;
 
@@ -57,14 +57,15 @@ inline hash_t hash(std::string_view s, hash_t h = BASE_HASH) {
   return wyhash::wyhash(s.data(), s.size(), h, wyhash::_wyp);
 }
 
-template <size_t N>
+template <std::size_t N>
 constexpr hash_t hash(const char (&str)[N],
                       hash_t const h = BASE_HASH) noexcept {
   return wyhash::wyhash(str, N - 1, h, wyhash::_wyp);
 }
 
 template <typename T>
-constexpr uint64_t hash(T const& buf, hash_t const h = BASE_HASH) noexcept {
+constexpr std::uint64_t hash(T const& buf,
+                             hash_t const h = BASE_HASH) noexcept {
   return buf.size() == 0 ? h
                          : wyhash::wyhash(&buf[0], buf.size(), h, wyhash::_wyp);
 }
@@ -73,7 +74,7 @@ constexpr uint64_t hash(T const& buf, hash_t const h = BASE_HASH) noexcept {
 
 #include "wyhash.h"
 
-using hash_t = uint64_t;
+using hash_t = std::uint64_t;
 
 constexpr auto const BASE_HASH = 123ULL;
 
@@ -90,14 +91,15 @@ inline hash_t hash(std::string_view s, hash_t h = BASE_HASH) {
   return wyhash::FastestHash(s.data(), s.size(), h);
 }
 
-template <size_t N>
+template <std::size_t N>
 constexpr hash_t hash(const char (&str)[N],
                       hash_t const h = BASE_HASH) noexcept {
   return wyhash::FastestHash(str, N - 1U, h);
 }
 
 template <typename T>
-constexpr uint64_t hash(T const& buf, hash_t const h = BASE_HASH) noexcept {
+constexpr std::uint64_t hash(T const& buf,
+                             hash_t const h = BASE_HASH) noexcept {
   return buf.size() == 0U ? h : wyhash::FastestHash(&buf[0U], buf.size(), h);
 }
 
@@ -122,20 +124,21 @@ constexpr hash_t hash_combine(hash_t h, Args... val) noexcept {
 
 constexpr hash_t hash(std::string_view s, hash_t h = BASE_HASH) noexcept {
   auto const ptr = s.data();
-  for (auto i = size_t{0ULL}; i < s.size(); ++i) {
-    h = hash_combine(h, static_cast<uint8_t>(ptr[i]));
+  for (std::size_t i = 0U; i < s.size(); ++i) {
+    h = hash_combine(h, static_cast<std::uint8_t>(ptr[i]));
   }
   return h;
 }
 
-template <size_t N>
+template <std::size_t N>
 constexpr hash_t hash(const char (&str)[N],
                       hash_t const h = BASE_HASH) noexcept {
   return hash(std::string_view{str, N - 1}, h);
 }
 
 template <typename T>
-constexpr uint64_t hash(T const& buf, hash_t const h = BASE_HASH) noexcept {
+constexpr std::uint64_t hash(T const& buf,
+                             hash_t const h = BASE_HASH) noexcept {
   return buf.size() == 0
              ? h
              : hash(std::string_view{reinterpret_cast<char const*>(&buf[0]),

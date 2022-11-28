@@ -29,11 +29,11 @@ constexpr unsigned trailing_zeros(T t) noexcept {
     return index;
 #elif defined(_MSC_VER)
     unsigned long index = 0U;
-    if (static_cast<uint32_t>(t) == 0) {
+    if (static_cast<std::uint32_t>(t) == 0) {
       _BitScanForward(&index, t >> 32U);
       return index + 32U;
     }
-    _BitScanForward(&index, static_cast<uint32_t>(t));
+    _BitScanForward(&index, static_cast<std::uint32_t>(t));
     return index;
 #else
     return static_cast<unsigned>(__builtin_ctzll(t));
@@ -69,7 +69,7 @@ constexpr unsigned leading_zeros(T t) noexcept {
     if ((t >> 32U) && _BitScanReverse(&index, t >> 32U)) {
       return 31U - index;
     }
-    if (_BitScanReverse(&index, static_cast<uint32_t>(t))) {
+    if (_BitScanReverse(&index, static_cast<std::uint32_t>(t))) {
       return 63U - index;
     }
     return 64U;
@@ -93,8 +93,9 @@ inline std::size_t popcount(std::uint64_t const b) noexcept {
 #if defined(_MSC_VER) && defined(_M_X64)
   return __popcnt64(b);
 #elif defined(_MSC_VER)
-  return static_cast<std::size_t>(__popcnt(static_cast<uint32_t>(b)) +
-                                  __popcnt(static_cast<uint32_t>(b >> 32U)));
+  return static_cast<std::size_t>(
+      __popcnt(static_cast<std::uint32_t>(b)) +
+      __popcnt(static_cast<std::uint32_t>(b >> 32U)));
 #elif defined(__INTEL_COMPILER)
   return static_cast<std::size_t>(_mm_popcnt_u64(b));
 #else

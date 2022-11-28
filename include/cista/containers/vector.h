@@ -17,7 +17,7 @@
 namespace cista {
 
 template <typename T, typename Ptr, bool IndexPointers = false,
-          typename TemplateSizeType = uint32_t>
+          typename TemplateSizeType = std::uint32_t>
 struct basic_vector {
   using size_type = TemplateSizeType;
   using value_type = T;
@@ -276,7 +276,7 @@ struct basic_vector {
     }
 
     auto next_size = next_power_of_two(new_size);
-    auto num_bytes = static_cast<size_t>(to_idx(next_size)) * sizeof(T);
+    auto num_bytes = static_cast<std::size_t>(to_idx(next_size)) * sizeof(T);
     auto mem_buf = static_cast<T*>(std::malloc(to_idx(num_bytes)));  // NOLINT
     if (mem_buf == nullptr) {
       throw std::bad_alloc();
@@ -335,7 +335,7 @@ struct basic_vector {
     return el >= begin() && el < end();
   }
 
-  size_t index_of(T const* el) const noexcept {
+  std::size_t index_of(T const* el) const noexcept {
     assert(contains(el));
     return std::distance(begin(), el);
   }
@@ -374,9 +374,9 @@ struct basic_vector {
   TemplateSizeType used_size_{0};
   TemplateSizeType allocated_size_{0};
   bool self_allocated_{false};
-  uint8_t __fill_0__{0U};
-  uint16_t __fill_1__{0U};
-  uint32_t __fill_2__{0U};
+  std::uint8_t __fill_0__{0U};
+  std::uint16_t __fill_1__{0U};
+  std::uint32_t __fill_2__{0U};
 };
 
 namespace raw {

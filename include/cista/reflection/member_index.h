@@ -8,7 +8,7 @@
 namespace cista {
 
 template <typename T, typename MemberType>
-size_t member_index(MemberType T::*const member_ptr) {
+std::size_t member_index(MemberType T::*const member_ptr) {
   auto i = 0U, field_index = std::numeric_limits<unsigned>::max();
   T t{};
   cista::for_each_field(t, [&](auto&& m) {

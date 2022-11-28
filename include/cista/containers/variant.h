@@ -25,7 +25,7 @@ struct bytes_to_integer_type<Size, std::enable_if_t<Size == 2U>> {
 
 template <typename... T>
 constexpr std::size_t bytes() noexcept {
-  return (sizeof...(T) > std::numeric_limits<uint8_t>::max()) ? 2U : 1U;
+  return (sizeof...(T) > std::numeric_limits<std::uint8_t>::max()) ? 2U : 1U;
 }
 
 template <typename... T>
@@ -180,7 +180,7 @@ struct variant {
                  std::decay_t<Arg>{std::forward<CtorArgs>(ctor_args)...});
   }
 
-  template <size_t I, typename... CtorArgs>
+  template <std::size_t I, typename... CtorArgs>
   type_at_index_t<I, T...>& emplace(CtorArgs&&... ctor_args) {
     static_assert(I < sizeof...(T));
     destruct();

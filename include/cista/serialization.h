@@ -52,7 +52,7 @@ struct vector_range {
   }
 
   offset_t start_;
-  size_t size_;
+  std::size_t size_;
 };
 
 template <typename Target, mode Mode>
@@ -124,7 +124,7 @@ struct serialization_context {
                : std::nullopt;
   }
 
-  uint64_t checksum(offset_t const from) const noexcept {
+  std::uint64_t checksum(offset_t const from) const noexcept {
     return t_.checksum(from);
   }
 
@@ -265,12 +265,12 @@ void serialize(Ctx& c,
   auto const start =
       origin->entries_ == nullptr
           ? NULLPTR_OFFSET
-          : c.write(
-                origin->entries_,
-                static_cast<size_t>(origin->capacity_ * serialized_size<T>() +
-                                    (origin->capacity_ + 1 + Type::WIDTH) *
-                                        sizeof(typename Type::ctrl_t)),
-                std::alignment_of_v<T>);
+          : c.write(origin->entries_,
+                    static_cast<std::size_t>(
+                        origin->capacity_ * serialized_size<T>() +
+                        (origin->capacity_ + 1 + Type::WIDTH) *
+                            sizeof(typename Type::ctrl_t)),
+                    std::alignment_of_v<T>);
   auto const ctrl_start =
       start == NULLPTR_OFFSET
           ? c.write(Type::empty_group(), 16 * sizeof(typename Type::ctrl_t),
@@ -311,12 +311,12 @@ void serialize(Ctx& c,
   }
 }
 
-template <typename Ctx, size_t Size>
+template <typename Ctx, std::size_t Size>
 void serialize(Ctx& c, bitset<Size> const* origin, offset_t const pos) {
   serialize(c, &origin->blocks_, pos);
 }
 
-template <typename Ctx, typename T, size_t Size>
+template <typename Ctx, typename T, std::size_t Size>
 void serialize(Ctx& c, array<T, Size> const* origin, offset_t const pos) {
   auto const size =
       static_cast<offset_t>(serialized_size<T>() * origin->size());
@@ -357,7 +357,7 @@ void serialize(Ctx& c, strong<T, Tag> const* origin,
 constexpr offset_t integrity_start(mode const m) noexcept {
   offset_t start = 0;
   if (is_mode_enabled(m, mode::WITH_VERSION)) {
-    start += sizeof(uint64_t);
+    start += sizeof(std::uint64_t);
   }
   return start;
 }
@@ -365,7 +365,7 @@ constexpr offset_t integrity_start(mode const m) noexcept {
 constexpr offset_t data_start(mode const m) noexcept {
   auto start = integrity_start(m);
   if (is_mode_enabled(m, mode::WITH_INTEGRITY)) {
-    start += sizeof(uint64_t);
+    start += sizeof(std::uint64_t);
   }
   return start;
 }
@@ -448,7 +448,7 @@ template <mode Mode>
 struct deserialization_context {
   static constexpr auto const MODE = Mode;
 
-  deserialization_context(uint8_t const* from, uint8_t const* to)
+  deserialization_context(std::uint8_t const* from, std::uint8_t const* to)
       : from_{reinterpret_cast<intptr_t>(from)},
         to_{reinterpret_cast<intptr_t>(to)} {}
 
@@ -472,7 +472,7 @@ struct deserialization_context {
   }
 
   template <typename T>
-  constexpr static size_t type_size() noexcept {
+  constexpr static std::size_t type_size() noexcept {
     using Type = decay_t<T>;
     if constexpr (std::is_same_v<Type, void>) {
       return 0U;
@@ -483,7 +483,7 @@ struct deserialization_context {
 
   template <typename T>
   void check_ptr(offset_ptr<T> const& el,
-                 size_t const size = type_size<T>()) const {
+                 std::size_t const size = type_size<T>()) const {
     if (el != nullptr) {
       checked_addition(el.offset_, reinterpret_cast<offset_t>(&el));
       check_ptr(el.get(), size);
@@ -491,7 +491,7 @@ struct deserialization_context {
   }
 
   template <typename T>
-  void check_ptr(T* el, size_t const size = type_size<T>()) const {
+  void check_ptr(T* el, std::size_t const size = type_size<T>()) const {
     if constexpr ((MODE & mode::UNCHECKED) == mode::UNCHECKED) {
       return;
     }
@@ -504,8 +504,9 @@ struct deserialization_context {
     verify(pos >= from_, "underflow");
     verify(checked_addition(pos, static_cast<intptr_t>(size)) <= to_,
            "overflow");
-    verify(size < static_cast<size_t>(std::numeric_limits<intptr_t>::max()),
-           "size out of bounds");
+    verify(
+        size < static_cast<std::size_t>(std::numeric_limits<intptr_t>::max()),
+        "size out of bounds");
 
     if constexpr (!std::is_same_v<T, void>) {
       verify((pos & static_cast<intptr_t>(std::alignment_of<decay_t<T>>() -
@@ -515,7 +516,7 @@ struct deserialization_context {
   }
 
   static void check_bool(bool const& b) {
-    auto const val = *reinterpret_cast<uint8_t const*>(&b);
+    auto const val = *reinterpret_cast<std::uint8_t const*>(&b);
     verify(val <= 1U, "valid bool");
   }
 
@@ -547,7 +548,7 @@ struct deep_check_context : public deserialization_context<Mode> {
 };
 
 template <typename T, mode const Mode = mode::NONE>
-void check(uint8_t const* const from, uint8_t const* const to) {
+void check(std::uint8_t const* const from, std::uint8_t const* const to) {
   verify(to - from > data_start(Mode), "invalid range");
 
   if constexpr ((Mode & mode::WITH_VERSION) == mode::WITH_VERSION) {
@@ -557,11 +558,11 @@ void check(uint8_t const* const from, uint8_t const* const to) {
   }
 
   if constexpr ((Mode & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
-    verify(convert_endian<Mode>(*reinterpret_cast<uint64_t const*>(
+    verify(convert_endian<Mode>(*reinterpret_cast<std::uint64_t const*>(
                from + integrity_start(Mode))) ==
                hash(std::string_view{
                    reinterpret_cast<char const*>(from + data_start(Mode)),
-                   static_cast<size_t>(to - from - data_start(Mode))}),
+                   static_cast<std::size_t>(to - from - data_start(Mode))}),
            "invalid checksum");
   }
 }
@@ -661,8 +662,8 @@ template <typename Ctx, typename T, typename Ptr, bool Indexed,
 void check_state(Ctx const& c,
                  basic_vector<T, Ptr, Indexed, TemplateSizeType>* el) {
   c.check_ptr(el->el_,
-              checked_multiplication(static_cast<size_t>(el->allocated_size_),
-                                     sizeof(T)));
+              checked_multiplication(
+                  static_cast<std::size_t>(el->allocated_size_), sizeof(T)));
   c.check_bool(el->self_allocated_);
   c.require(!el->self_allocated_, "vec self-allocated");
   c.require(el->allocated_size_ == el->used_size_, "vec size mismatch");
@@ -681,7 +682,7 @@ void recurse(Ctx&, basic_vector<T, Ptr, Indexed, TemplateSizeType>* el,
 // --- STRING ---
 template <typename Ctx, typename Ptr>
 void convert_endian_and_ptr(Ctx const& c, generic_string<Ptr>* el) {
-  if (*reinterpret_cast<uint8_t const*>(&el->s_.is_short_) == 0U) {
+  if (*reinterpret_cast<std::uint8_t const*>(&el->s_.is_short_) == 0U) {
     deserialize(c, &el->h_.ptr_);
     c.convert_endian(el->h_.size_);
   }
@@ -772,12 +773,13 @@ void check_state(Ctx const& c,
               el->capacity_, static_cast<typename Type::size_type>(sizeof(T))),
           checked_addition(el->capacity_, 1U, Type::WIDTH)));
   c.check_ptr(el->ctrl_, checked_addition(el->capacity_, 1U, Type::WIDTH));
-  c.require(el->entries_ == nullptr ||
-                reinterpret_cast<uint8_t const*>(ptr_cast(el->ctrl_)) ==
-                    reinterpret_cast<uint8_t const*>(ptr_cast(el->entries_)) +
-                        checked_multiplication(
-                            static_cast<size_t>(el->capacity_), sizeof(T)),
-            "hash storage: entries!=null -> ctrl = entries+capacity");
+  c.require(
+      el->entries_ == nullptr ||
+          reinterpret_cast<std::uint8_t const*>(ptr_cast(el->ctrl_)) ==
+              reinterpret_cast<std::uint8_t const*>(ptr_cast(el->entries_)) +
+                  checked_multiplication(
+                      static_cast<std::size_t>(el->capacity_), sizeof(T)),
+      "hash storage: entries!=null -> ctrl = entries+capacity");
   c.require(
       (el->entries_ == nullptr) == (el->capacity_ == 0U && el->size_ == 0U),
       "hash storage: entries=null <=> size=capacity=0");
@@ -834,13 +836,13 @@ void recurse(Ctx&, hash_storage<T, Ptr, GetKey, GetValue, Hash, Eq>* el,
 }
 
 // --- BITSET<SIZE> ---
-template <typename Ctx, size_t Size, typename Fn>
+template <typename Ctx, std::size_t Size, typename Fn>
 void recurse(Ctx&, bitset<Size>* el, Fn&& fn) {
   fn(&el->blocks_);
 }
 
 // --- ARRAY<T> ---
-template <typename Ctx, typename T, size_t Size, typename Fn>
+template <typename Ctx, typename T, std::size_t Size, typename Fn>
 void recurse(Ctx&, array<T, Size>* el, Fn&& fn) {
   for (auto& m : *el) {
     fn(&m);
@@ -870,7 +872,7 @@ void recurse(Ctx const& c, tuple<T...>* el) {
 }
 
 template <typename T, mode const Mode = mode::NONE>
-T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
+T* deserialize(std::uint8_t* from, std::uint8_t* to = nullptr) {
   if constexpr (is_mode_enabled(Mode, mode::CAST)) {
     CISTA_UNUSED_PARAM(to)
     return reinterpret_cast<T*>(from);
@@ -891,24 +893,25 @@ T* deserialize(uint8_t* from, uint8_t* to = nullptr) {
 }
 
 template <typename T, mode const Mode = mode::NONE>
-T const* deserialize(uint8_t const* from, uint8_t const* to = nullptr) {
+T const* deserialize(std::uint8_t const* from,
+                     std::uint8_t const* to = nullptr) {
   static_assert(!endian_conversion_necessary<Mode>(), "cannot be const");
-  return deserialize<T, Mode | mode::_CONST>(const_cast<uint8_t*>(from),
-                                             const_cast<uint8_t*>(to));
+  return deserialize<T, Mode | mode::_CONST>(const_cast<std::uint8_t*>(from),
+                                             const_cast<std::uint8_t*>(to));
 }
 
 template <typename T, mode const Mode = mode::NONE, typename CharT>
 T const* deserialize(CharT const* from, CharT const* to = nullptr) {
   static_assert(sizeof(CharT) == 1U, "byte size entries");
-  return deserialize<T, Mode>(reinterpret_cast<uint8_t const*>(from),
-                              reinterpret_cast<uint8_t const*>(to));
+  return deserialize<T, Mode>(reinterpret_cast<std::uint8_t const*>(from),
+                              reinterpret_cast<std::uint8_t const*>(to));
 }
 
 template <typename T, mode const Mode = mode::NONE, typename CharT>
 T* deserialize(CharT* from, CharT* to = nullptr) {
   static_assert(sizeof(CharT) == 1U, "byte size entries");
-  return deserialize<T, Mode>(reinterpret_cast<uint8_t*>(from),
-                              reinterpret_cast<uint8_t*>(to));
+  return deserialize<T, Mode>(reinterpret_cast<std::uint8_t*>(from),
+                              reinterpret_cast<std::uint8_t*>(to));
 }
 
 template <typename T, mode const Mode = mode::NONE>
@@ -922,7 +925,7 @@ auto deserialize(Container& c) {
 }
 
 template <typename T, mode const Mode = mode::NONE>
-T* unchecked_deserialize(uint8_t* from, uint8_t* to = nullptr) {
+T* unchecked_deserialize(std::uint8_t* from, std::uint8_t* to = nullptr) {
   return deserialize<T, Mode | mode::UNCHECKED>(from, to);
 }
 

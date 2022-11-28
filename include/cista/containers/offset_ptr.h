@@ -64,7 +64,7 @@ struct offset_ptr {
   operator T*() const noexcept { return get(); }
   T& operator*() const noexcept { return *get(); }
   T* operator->() const noexcept { return get(); }
-  T& operator[](size_t const i) const noexcept { return get()[i]; }
+  T& operator[](std::size_t const i) const noexcept { return get()[i]; }
 
   T* get() const noexcept {
     auto const ptr =
