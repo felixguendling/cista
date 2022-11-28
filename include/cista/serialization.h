@@ -156,8 +156,8 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
   } else if constexpr (std::numeric_limits<Type>::is_integer) {
     c.write(pos, convert_endian<Ctx::MODE>(*origin));
   } else {
-    CISTA_UNUSED_PARAM(origin);
-    CISTA_UNUSED_PARAM(pos);
+    CISTA_UNUSED_PARAM(origin)
+    CISTA_UNUSED_PARAM(pos)
   }
 }
 

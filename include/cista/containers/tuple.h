@@ -194,7 +194,7 @@ template <typename... T>
 struct is_tuple<tuple<T...>> : std::true_type {};
 
 template <typename T>
-constexpr auto is_tuple_v = is_tuple<T>::value;
+inline constexpr auto is_tuple_v = is_tuple<T>::value;
 
 template <typename T>
 struct tuple_size;

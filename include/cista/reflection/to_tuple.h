@@ -19,7 +19,7 @@ struct has_cista_members<
     : std::true_type {};
 
 template <typename T>
-constexpr auto const has_cista_members_v = has_cista_members<T>::value;
+inline constexpr auto const has_cista_members_v = has_cista_members<T>::value;
 
 template <typename... Ts, std::size_t... I>
 constexpr auto add_const_helper(std::tuple<Ts...>&& t,
@@ -49,12 +49,12 @@ auto to_ptrs(T&& t) {
 }  // namespace detail
 
 template <typename T>
-constexpr auto to_tuple_works_v = detail::has_cista_members_v<T> ||
-                                  (std::is_aggregate_v<T> &&
+inline constexpr auto to_tuple_works_v = detail::has_cista_members_v<T> ||
+                                         (std::is_aggregate_v<T> &&
 #if !defined(_MSC_VER) || defined(NDEBUG)
-                                   std::is_standard_layout_v<T> &&
+                                          std::is_standard_layout_v<T> &&
 #endif
-                                   !std::is_polymorphic_v<T>);
+                                          !std::is_polymorphic_v<T>);
 
 template <typename T,
           std::enable_if_t<detail::has_cista_members_v<T> && std::is_const_v<T>,
