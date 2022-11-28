@@ -418,7 +418,7 @@ struct variant_size<variant<T...>>
     : std::integral_constant<std::size_t, sizeof...(T)> {};
 
 template <class T>
-inline constexpr std::size_t variant_size_v = variant_size<T>::value;
+constexpr std::size_t variant_size_v = variant_size<T>::value;
 
 namespace raw {
 using cista::variant;

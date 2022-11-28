@@ -19,16 +19,16 @@ struct has_cista_members<
     : std::true_type {};
 
 template <typename T>
-inline constexpr auto const has_cista_members_v = has_cista_members<T>::value;
+constexpr auto const has_cista_members_v = has_cista_members<T>::value;
 
 template <typename... Ts, std::size_t... I>
-constexpr inline auto add_const_helper(std::tuple<Ts...>&& t,
-                                       std::index_sequence<I...>) {
+constexpr auto add_const_helper(std::tuple<Ts...>&& t,
+                                std::index_sequence<I...>) {
   return std::make_tuple(std::cref(std::get<I>(t))...);
 }
 
 template <typename T>
-constexpr inline auto add_const(T&& t) {
+constexpr auto add_const(T&& t) {
   return add_const_helper(
       std::forward<T>(t),
       std::make_index_sequence<std::tuple_size_v<std::decay_t<decltype(t)>>>());
@@ -49,17 +49,17 @@ auto to_ptrs(T&& t) {
 }  // namespace detail
 
 template <typename T>
-inline constexpr auto to_tuple_works_v = detail::has_cista_members_v<T> ||
-                                         (std::is_aggregate_v<T> &&
+constexpr auto to_tuple_works_v = detail::has_cista_members_v<T> ||
+                                  (std::is_aggregate_v<T> &&
 #if !defined(_MSC_VER) || defined(NDEBUG)
-                                          std::is_standard_layout_v<T> &&
+                                   std::is_standard_layout_v<T> &&
 #endif
-                                          !std::is_polymorphic_v<T>);
+                                   !std::is_polymorphic_v<T>);
 
 template <typename T,
           std::enable_if_t<detail::has_cista_members_v<T> && std::is_const_v<T>,
                            void*> = nullptr>
-constexpr inline auto to_tuple(T& t) {
+constexpr auto to_tuple(T& t) {
   return detail::add_const(
       const_cast<std::add_lvalue_reference_t<std::remove_const_t<T>>>(t)
           .cista_members());
@@ -68,13 +68,13 @@ constexpr inline auto to_tuple(T& t) {
 template <typename T, std::enable_if_t<detail::has_cista_members_v<T> &&
                                            !std::is_const_v<T>,
                                        void*> = nullptr>
-constexpr inline auto to_tuple(T&& t) {
+constexpr auto to_tuple(T&& t) {
   return t.cista_members();
 }
 
 template <typename T,
           std::enable_if_t<!detail::has_cista_members_v<T>, void*> = nullptr>
-inline auto to_tuple(T& t) {
+auto to_tuple(T& t) {
   constexpr auto const a = arity<T>();
   static_assert(a <= 64U, "Max. supported members: 64");
   if constexpr (a == 0U) {
@@ -522,7 +522,7 @@ inline auto to_tuple(T& t) {
 }
 
 template <typename T>
-inline auto to_ptr_tuple(T&& t) {
+auto to_ptr_tuple(T&& t) {
   return detail::to_ptrs(to_tuple(std::forward<T>(t)));
 }
 }  // namespace cista

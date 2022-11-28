@@ -6,7 +6,7 @@
 namespace cista {
 
 template <typename Fn>
-inline void chunk(unsigned const chunk_size, size_t const total, Fn fn) {
+void chunk(unsigned const chunk_size, size_t const total, Fn fn) {
   size_t offset = 0U;
   size_t remaining = total;
   while (remaining != 0U) {

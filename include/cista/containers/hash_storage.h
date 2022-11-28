@@ -222,7 +222,7 @@ struct hash_storage {
     iterator inner_;
   };
 
-  static inline ctrl_t* empty_group() noexcept {
+  static ctrl_t* empty_group() noexcept {
     alignas(16) static constexpr ctrl_t empty_group[] = {
         END,   EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
         EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY};

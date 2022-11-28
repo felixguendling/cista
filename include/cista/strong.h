@@ -123,7 +123,7 @@ template <typename T, typename Tag>
 struct is_strong<strong<T, Tag>> : std::true_type {};
 
 template <typename T>
-inline constexpr auto const is_strong_v = is_strong<T>::value;
+constexpr auto const is_strong_v = is_strong<T>::value;
 
 template <typename T, typename Tag>
 constexpr typename strong<T, Tag>::value_t to_idx(strong<T, Tag> const& s) {

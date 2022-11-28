@@ -101,23 +101,23 @@ struct basic_vector {
   friend T* begin(basic_vector& a) noexcept { return a.begin(); }
   friend T* end(basic_vector& a) noexcept { return a.end(); }
 
-  inline T const& operator[](TemplateSizeType const index) const noexcept {
+  T const& operator[](TemplateSizeType const index) const noexcept {
     assert(el_ != nullptr && index < used_size_);
     return el_[to_idx(index)];
   }
-  inline T& operator[](TemplateSizeType const index) noexcept {
+  T& operator[](TemplateSizeType const index) noexcept {
     assert(el_ != nullptr && index < used_size_);
     return el_[to_idx(index)];
   }
 
-  inline T& at(TemplateSizeType const index) {
+  T& at(TemplateSizeType const index) {
     if (index >= used_size_) {
       throw std::out_of_range{"vector::at(): invalid index"};
     }
     return (*this)[index];
   }
 
-  inline T const& at(TemplateSizeType const index) const {
+  T const& at(TemplateSizeType const index) const {
     return const_cast<basic_vector*>(this)->at(index);
   }
 
@@ -129,8 +129,8 @@ struct basic_vector {
   T& front() noexcept { return ptr_cast(el_)[0]; }
   T const& front() const noexcept { return ptr_cast(el_)[0]; }
 
-  inline TemplateSizeType size() const noexcept { return used_size_; }
-  inline bool empty() const noexcept { return size() == 0; }
+  TemplateSizeType size() const noexcept { return used_size_; }
+  bool empty() const noexcept { return size() == 0; }
 
   template <typename It>
   void set(It begin_it, It end_it) {
@@ -391,7 +391,7 @@ template <typename Key, typename Value>
 using vector_map = basic_vector<Value, ptr<Value>, false, Key>;
 
 template <typename It, typename UnaryOperation>
-inline auto to_vec(It s, It e, UnaryOperation&& op)
+auto to_vec(It s, It e, UnaryOperation&& op)
     -> vector<decay_t<decltype(op(*s))>> {
   vector<decay_t<decltype(op(*s))>> v;
   v.reserve(static_cast<typename decltype(v)::size_type>(std::distance(s, e)));
@@ -400,7 +400,7 @@ inline auto to_vec(It s, It e, UnaryOperation&& op)
 }
 
 template <typename Container, typename UnaryOperation>
-inline auto to_vec(Container const& c, UnaryOperation&& op)
+auto to_vec(Container const& c, UnaryOperation&& op)
     -> vector<decltype(op(*std::begin(c)))> {
   vector<decltype(op(*std::begin(c)))> v;
   v.reserve(static_cast<typename decltype(v)::size_type>(
@@ -410,8 +410,7 @@ inline auto to_vec(Container const& c, UnaryOperation&& op)
 }
 
 template <typename Container>
-inline auto to_vec(Container const& c)
-    -> vector<decay_t<decltype(*std::begin(c))>> {
+auto to_vec(Container const& c) -> vector<decay_t<decltype(*std::begin(c))>> {
   vector<decay_t<decltype(*std::begin(c))>> v;
   v.reserve(static_cast<typename decltype(v)::size_type>(
       std::distance(std::begin(c), std::end(c))));
@@ -419,7 +418,7 @@ inline auto to_vec(Container const& c)
   return v;
 }
 template <typename It, typename UnaryOperation>
-inline auto to_indexed_vec(It s, It e, UnaryOperation&& op)
+auto to_indexed_vec(It s, It e, UnaryOperation&& op)
     -> indexed_vector<decay_t<decltype(op(*s))>> {
   indexed_vector<decay_t<decltype(op(*s))>> v;
   v.reserve(static_cast<typename decltype(v)::size_type>(std::distance(s, e)));
@@ -428,7 +427,7 @@ inline auto to_indexed_vec(It s, It e, UnaryOperation&& op)
 }
 
 template <typename Container, typename UnaryOperation>
-inline auto to_indexed_vec(Container const& c, UnaryOperation&& op)
+auto to_indexed_vec(Container const& c, UnaryOperation&& op)
     -> indexed_vector<decay_t<decltype(op(*std::begin(c)))>> {
   indexed_vector<decay_t<decltype(op(*std::begin(c)))>> v;
   v.reserve(static_cast<typename decltype(v)::size_type>(
@@ -438,7 +437,7 @@ inline auto to_indexed_vec(Container const& c, UnaryOperation&& op)
 }
 
 template <typename Container>
-inline auto to_indexed_vec(Container const& c)
+auto to_indexed_vec(Container const& c)
     -> indexed_vector<decay_t<decltype(*std::begin(c))>> {
   indexed_vector<decay_t<decltype(*std::begin(c))>> v;
   v.reserve(static_cast<typename decltype(v)::size_type>(
@@ -461,7 +460,7 @@ template <typename Key, typename Value>
 using vector_map = basic_vector<Value, ptr<Value>, false, Key>;
 
 template <typename It, typename UnaryOperation>
-inline auto to_vec(It s, It e, UnaryOperation&& op)
+auto to_vec(It s, It e, UnaryOperation&& op)
     -> vector<decay_t<decltype(op(*s))>> {
   vector<decay_t<decltype(op(*s))>> v;
   v.reserve(static_cast<typename decltype(v)::size_type>(std::distance(s, e)));
@@ -470,7 +469,7 @@ inline auto to_vec(It s, It e, UnaryOperation&& op)
 }
 
 template <typename Container, typename UnaryOperation>
-inline auto to_vec(Container&& c, UnaryOperation&& op)
+auto to_vec(Container&& c, UnaryOperation&& op)
     -> vector<decltype(op(*std::begin(c)))> {
   vector<decltype(op(*std::begin(c)))> v;
   v.reserve(static_cast<typename decltype(v)::size_type>(c.size()));
@@ -479,7 +478,7 @@ inline auto to_vec(Container&& c, UnaryOperation&& op)
 }
 
 template <typename Container>
-inline auto to_vec(Container&& c) -> vector<decay_t<decltype(*std::begin(c))>> {
+auto to_vec(Container&& c) -> vector<decay_t<decltype(*std::begin(c))>> {
   vector<decay_t<decltype(*std::begin(c))>> v;
   v.reserve(static_cast<typename decltype(v)::size_type>(
       std::distance(std::begin(c), std::end(c))));
@@ -487,7 +486,7 @@ inline auto to_vec(Container&& c) -> vector<decay_t<decltype(*std::begin(c))>> {
   return v;
 }
 template <typename It, typename UnaryOperation>
-inline auto to_indexed_vec(It s, It e, UnaryOperation&& op)
+auto to_indexed_vec(It s, It e, UnaryOperation&& op)
     -> indexed_vector<decay_t<decltype(op(*s))>> {
   indexed_vector<decay_t<decltype(op(*s))>> v;
   v.reserve(static_cast<typename decltype(v)::size_type>(std::distance(s, e)));
@@ -496,7 +495,7 @@ inline auto to_indexed_vec(It s, It e, UnaryOperation&& op)
 }
 
 template <typename Container, typename UnaryOperation>
-inline auto to_indexed_vec(Container const& c, UnaryOperation&& op)
+auto to_indexed_vec(Container const& c, UnaryOperation&& op)
     -> indexed_vector<decay_t<decltype(op(*std::begin(c)))>> {
   indexed_vector<decay_t<decltype(op(*std::begin(c)))>> v;
   v.reserve(static_cast<typename decltype(v)::size_type>(
@@ -506,7 +505,7 @@ inline auto to_indexed_vec(Container const& c, UnaryOperation&& op)
 }
 
 template <typename Container>
-inline auto to_indexed_vec(Container const& c)
+auto to_indexed_vec(Container const& c)
     -> indexed_vector<decay_t<decltype(*std::begin(c))>> {
   indexed_vector<decay_t<decltype(*std::begin(c))>> v;
   v.reserve(static_cast<typename decltype(v)::size_type>(

@@ -8,7 +8,7 @@
 namespace cista {
 
 template <typename T, typename Fn>
-inline void for_each_ptr_field(T& t, Fn&& fn) {
+void for_each_ptr_field(T& t, Fn&& fn) {
   if constexpr (std::is_pointer_v<T>) {
     if (t != nullptr) {
       for_each_ptr_field(*t, std::forward<Fn>(fn));
@@ -21,7 +21,7 @@ inline void for_each_ptr_field(T& t, Fn&& fn) {
 }
 
 template <typename T, typename Fn>
-inline void for_each_field(T& t, Fn&& fn) {
+void for_each_field(T& t, Fn&& fn) {
   if constexpr (std::is_pointer_v<T>) {
     if (t != nullptr) {
       for_each_field(*t, std::forward<Fn>(fn));
@@ -34,7 +34,7 @@ inline void for_each_field(T& t, Fn&& fn) {
 }
 
 template <typename T, typename Fn>
-inline void for_each_field(Fn&& fn) {
+void for_each_field(Fn&& fn) {
   T t{};
   for_each_field<T>(t, std::forward<Fn>(fn));
 }
