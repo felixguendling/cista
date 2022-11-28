@@ -39,7 +39,7 @@ struct fws_multimap_entry {
     return data_[data_index(index)];
   }
 
-  index_t data_index(index_t const index) const {
+  index_t data_index(index_t const index) const noexcept {
     assert(index_start + index < data_.size());
     return index_start + index;
   }
