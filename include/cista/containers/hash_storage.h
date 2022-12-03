@@ -63,7 +63,7 @@ struct hash_storage {
   };
 
   struct find_info {
-    size_type offset_, probe_length_;
+    size_type offset_{}, probe_length_{};
   };
 
   struct probe_seq {

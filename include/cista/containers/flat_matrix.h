@@ -46,7 +46,7 @@ struct base_flat_matrix {
   }
 
   size_type column_count_{0U};
-  VectorType entries_;
+  VectorType entries_{};
 };
 
 namespace detail {
