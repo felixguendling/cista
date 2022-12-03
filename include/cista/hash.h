@@ -133,15 +133,15 @@ constexpr hash_t hash(std::string_view s, hash_t h = BASE_HASH) noexcept {
 template <std::size_t N>
 constexpr hash_t hash(const char (&str)[N],
                       hash_t const h = BASE_HASH) noexcept {
-  return hash(std::string_view{str, N - 1}, h);
+  return hash(std::string_view{str, N - 1U}, h);
 }
 
 template <typename T>
 constexpr std::uint64_t hash(T const& buf,
                              hash_t const h = BASE_HASH) noexcept {
-  return buf.size() == 0
+  return buf.size() == 0U
              ? h
-             : hash(std::string_view{reinterpret_cast<char const*>(&buf[0]),
+             : hash(std::string_view{reinterpret_cast<char const*>(&buf[0U]),
                                      buf.size()},
                     h);
 }

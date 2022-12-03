@@ -96,7 +96,7 @@ struct hashing {
     } else if constexpr (is_pointer_v<Type>) {
       return hash_combine(seed, reinterpret_cast<intptr_t>(ptr_cast(el)));
     } else if constexpr (is_char_array_v<Type>) {
-      return hash(std::string_view{el, sizeof(el) - 1}, seed);
+      return hash(std::string_view{el, sizeof(el) - 1U}, seed);
     } else if constexpr (is_string_like_v<Type>) {
       using std::begin;
       using std::end;

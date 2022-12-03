@@ -244,14 +244,14 @@ struct file {
 
   std::uint64_t checksum(offset_t const start = 0) const {
     constexpr auto const block_size =
-        static_cast<std::size_t>(512 * 1024);  // 512kB
+        static_cast<std::size_t>(512U * 1024U);  // 512kB
     verify(size_ >= static_cast<std::size_t>(start), "invalid checksum offset");
     verify(!std::fseek(f_, static_cast<long>(start), SEEK_SET), "fseek error");
     auto c = BASE_HASH;
     char buf[block_size];
     chunk(block_size, size_ - static_cast<std::size_t>(start),
           [&](auto const, auto const s) {
-            verify(std::fread(buf, 1, s, f_) == s, "invalid read");
+            verify(std::fread(buf, 1U, s, f_) == s, "invalid read");
             c = hash(std::string_view{buf, s}, c);
           });
     return c;
@@ -260,7 +260,7 @@ struct file {
   template <typename T>
   void write(std::size_t const pos, T const& val) {
     verify(!std::fseek(f_, static_cast<long>(pos), SEEK_SET), "seek error");
-    verify(std::fwrite(reinterpret_cast<unsigned char const*>(&val), 1,
+    verify(std::fwrite(reinterpret_cast<unsigned char const*>(&val), 1U,
                        serialized_size<T>(), f_) == serialized_size<T>(),
            "write error");
   }
@@ -280,7 +280,7 @@ struct file {
     } else {
       verify(!std::fseek(f_, 0, SEEK_END), "seek error");
     }
-    verify(std::fwrite(ptr, 1, size, f_) == size, "write error");
+    verify(std::fwrite(ptr, 1U, size, f_) == size, "write error");
     size_ = curr_offset + size;
     return static_cast<offset_t>(curr_offset);
   }

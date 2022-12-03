@@ -59,13 +59,13 @@ constexpr std::size_t get_offset(std::size_t const current_idx,
   if constexpr (sizeof...(Ts) == 0U) {
     return current_idx == 1 ? current_offset + sizeof(T) : current_offset;
   } else {
-    return get_offset<Ts...>(current_idx - 1, current_offset);
+    return get_offset<Ts...>(current_idx - 1U, current_offset);
   }
 }
 
 template <typename... Ts>
 constexpr std::size_t get_total_size() {
-  return get_offset<Ts...>(sizeof...(Ts) + 1);
+  return get_offset<Ts...>(sizeof...(Ts) + 1U);
 }
 
 template <std::size_t I, typename T, typename... Ts>
@@ -73,7 +73,7 @@ constexpr auto get_arg(T&& arg, Ts&&... args) {
   if constexpr (I == 0U) {
     return std::forward<T>(arg);
   } else {
-    return get_arg<I - 1>(std::forward<Ts>(args)...);
+    return get_arg<I - 1U>(std::forward<Ts>(args)...);
   }
 }
 

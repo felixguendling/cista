@@ -239,15 +239,15 @@ struct hash_storage {
   }
 
   static constexpr std::size_t normalize_capacity(size_type const n) noexcept {
-    return n == 0U ? 1 : ~size_type{} >> leading_zeros(n);
+    return n == 0U ? 1U : ~size_type{} >> leading_zeros(n);
   }
 
   static constexpr size_type h1(size_type const hash) noexcept {
-    return (hash >> 7) ^ 16777619;
+    return (hash >> 7U) ^ 16777619U;
   }
 
   static constexpr h2_t h2(size_type const hash) noexcept {
-    return hash & 0x7F;
+    return hash & 0x7FU;
   }
 
   static constexpr size_type capacity_to_growth(
