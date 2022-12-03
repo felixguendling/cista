@@ -75,12 +75,12 @@ struct offset_ptr {
   }
 
   template <typename Int>
-  T* operator+(Int i) const noexcept {
+  T* operator+(Int const i) const noexcept {
     return get() + i;
   }
 
   template <typename Int>
-  T* operator-(Int i) const noexcept {
+  T* operator-(Int const i) const noexcept {
     return get() - i;
   }
 
