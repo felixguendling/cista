@@ -117,8 +117,8 @@ struct mmap {
   std::uint8_t const* begin() const noexcept { return data(); }
   std::uint8_t const* end() const noexcept { return data() + used_size_; }
 
-  std::uint8_t& operator[](std::size_t i) noexcept { return data()[i]; }
-  std::uint8_t const& operator[](std::size_t i) const noexcept {
+  std::uint8_t& operator[](std::size_t const i) noexcept { return data()[i]; }
+  std::uint8_t const& operator[](std::size_t const i) const noexcept {
     return data()[i];
   }
 
