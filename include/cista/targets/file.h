@@ -268,18 +268,20 @@ struct file {
   offset_t write(void const* ptr, std::size_t const size,
                  std::size_t alignment) {
     auto curr_offset = size_;
+    long seek_offset = 0;
+    int seek_whence = SEEK_END;
     if (alignment > 1U) {
       auto unaligned_ptr = reinterpret_cast<void*>(size_);
       auto space = std::numeric_limits<std::size_t>::max();
       auto const aligned_ptr =
           std::align(alignment, size, unaligned_ptr, space);
-      curr_offset = aligned_ptr ? reinterpret_cast<std::uintptr_t>(aligned_ptr)
-                                : curr_offset;
-      verify(!std::fseek(f_, static_cast<long>(curr_offset), SEEK_SET),
-             "seek error");
-    } else {
-      verify(!std::fseek(f_, 0, SEEK_END), "seek error");
+      if (aligned_ptr != nullptr) {
+        curr_offset = reinterpret_cast<std::uintptr_t>(aligned_ptr);
+      }
+      seek_offset = static_cast<long>(curr_offset);
+      seek_whence = SEEK_SET;
     }
+    verify(!std::fseek(f_, seek_offset, seek_whence), "seek error");
     verify(std::fwrite(ptr, 1U, size, f_) == size, "write error");
     size_ = curr_offset + size;
     return static_cast<offset_t>(curr_offset);
