@@ -268,7 +268,7 @@ struct file {
   offset_t write(void const* ptr, std::size_t const size,
                  std::size_t alignment) {
     auto curr_offset = size_;
-    if (alignment != 0 && alignment != 1) {
+    if (alignment > 1U) {
       auto unaligned_ptr = reinterpret_cast<void*>(size_);
       auto space = std::numeric_limits<std::size_t>::max();
       auto const aligned_ptr =
