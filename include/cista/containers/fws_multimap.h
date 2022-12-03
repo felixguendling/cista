@@ -20,14 +20,14 @@ struct fws_multimap_entry {
 
   fws_multimap_entry(DataVec const& data, IndexVec const& index,
                      index_t const key)
-      : data_{data}, index_start{index[key]}, index_end{index[key + 1]} {}
+      : data_{data}, index_start_{index[key]}, index_end_{index[key + 1]} {}
 
   fws_multimap_entry(DataVec const& data, index_t const start_index,
                      index_t const end_index)
-      : data_{data}, index_start{start_index}, index_end{end_index} {}
+      : data_{data}, index_start_{start_index}, index_end_{end_index} {}
 
-  iterator begin() const { return data_.begin() + index_start; }
-  iterator end() const { return data_.begin() + index_end; }
+  iterator begin() const { return data_.begin() + index_start_; }
+  iterator end() const { return data_.begin() + index_end_; }
 
   iterator cbegin() const { return begin(); }
   iterator cend() const { return end(); }
@@ -40,16 +40,16 @@ struct fws_multimap_entry {
   }
 
   index_t data_index(index_t const index) const noexcept {
-    assert(index_start + index < data_.size());
-    return index_start + index;
+    assert(index_start_ + index < data_.size());
+    return index_start_ + index;
   }
 
-  std::size_t size() const noexcept { return index_end - index_start; }
+  std::size_t size() const noexcept { return index_end_ - index_start_; }
   bool empty() const noexcept { return size() == 0U; }
 
   DataVec const& data_;
-  index_t const index_start;
-  index_t const index_end;
+  index_t const index_start_;
+  index_t const index_end_;
 };
 
 template <typename MapType, typename EntryType>
