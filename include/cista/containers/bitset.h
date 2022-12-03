@@ -91,7 +91,7 @@ struct bitset {
   std::string to_string() const {
     std::string s{};
     s.resize(Size);
-    for (auto i = 0U; i != Size; ++i) {
+    for (std::size_t i = 0U; i != Size; ++i) {
       s[i] = test(Size - i - 1U) ? '1' : '0';
     }
     return s;
