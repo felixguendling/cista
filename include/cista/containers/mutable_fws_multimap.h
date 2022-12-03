@@ -243,7 +243,7 @@ struct dynamic_fws_multimap_base {
       return *it;
     }
 
-    dynamic_fws_multimap_base& mutable_mm() {
+    dynamic_fws_multimap_base& mutable_mm() noexcept {
       return const_cast<dynamic_fws_multimap_base&>(multimap_);  // NOLINT
     }
 
