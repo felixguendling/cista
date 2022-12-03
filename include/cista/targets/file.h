@@ -286,7 +286,7 @@ struct file {
   }
 
   FILE* f_{nullptr};
-  std::size_t size_ = 0u;
+  std::size_t size_{0U};
 };
 
 }  // namespace cista
