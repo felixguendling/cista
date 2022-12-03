@@ -51,11 +51,11 @@ struct array {
   constexpr friend T* begin(array& a) { return a.begin(); }
   constexpr friend T* end(array& a) { return a.end(); }
 
-  constexpr T const& back() const noexcept { return el_[Size - 1]; }
-  constexpr T& back() noexcept { return el_[Size - 1]; }
+  constexpr T const& back() const noexcept { return el_[Size - 1U]; }
+  constexpr T& back() noexcept { return el_[Size - 1U]; }
 
-  constexpr T& front() noexcept { return el_[0]; }
-  constexpr T const& front() const noexcept { return el_[0]; }
+  constexpr T& front() noexcept { return el_[0U]; }
+  constexpr T const& front() const noexcept { return el_[0U]; }
 
   constexpr T* data() noexcept { return el_; }
   constexpr T const* data() const noexcept { return el_; }
