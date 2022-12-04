@@ -19,7 +19,7 @@ struct base_flat_matrix {
     }
 
     base_flat_matrix& matrix_;
-    size_type row_index_;
+    int row_index_;
   };
 
   struct const_row {
