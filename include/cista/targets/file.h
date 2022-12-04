@@ -143,7 +143,7 @@ struct file {
                                 : curr_offset;
     }
 
-    unsigned char const buf[16U] = {0U};
+    std::uint8_t const buf[16U] = {0U};
     auto const num_padding_bytes = static_cast<DWORD>(curr_offset - size_);
     if (num_padding_bytes != 0U) {
       verify(num_padding_bytes < 16U, "invalid padding size");
@@ -166,7 +166,7 @@ struct file {
       overlapped.Offset = 0xFFFFFFFF;
       overlapped.OffsetHigh = 0xFFFFFFFF;
       DWORD bytes_written = {0};
-      verify(WriteFile(f_, reinterpret_cast<unsigned char const*>(ptr) + from,
+      verify(WriteFile(f_, reinterpret_cast<std::uint8_t const*>(ptr) + from,
                        block_size, &bytes_written, &overlapped),
              "write error");
       verify(bytes_written == block_size, "write error bytes written");
@@ -260,7 +260,7 @@ struct file {
   template <typename T>
   void write(std::size_t const pos, T const& val) {
     verify(!std::fseek(f_, static_cast<long>(pos), SEEK_SET), "seek error");
-    verify(std::fwrite(reinterpret_cast<unsigned char const*>(&val), 1U,
+    verify(std::fwrite(reinterpret_cast<std::uint8_t const*>(&val), 1U,
                        serialized_size<T>(), f_) == serialized_size<T>(),
            "write error");
   }
