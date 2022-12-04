@@ -273,7 +273,7 @@ void serialize(Ctx& c,
                     std::alignment_of_v<T>);
   auto const ctrl_start =
       start == NULLPTR_OFFSET
-          ? c.write(Type::empty_group(), 16 * sizeof(typename Type::ctrl_t),
+          ? c.write(Type::empty_group(), 16U * sizeof(typename Type::ctrl_t),
                     std::alignment_of_v<typename Type::ctrl_t>)
           : start +
                 static_cast<offset_t>(origin->capacity_ * serialized_size<T>());
