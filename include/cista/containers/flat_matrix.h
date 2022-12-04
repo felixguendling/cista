@@ -13,7 +13,7 @@ struct base_flat_matrix {
     constexpr row(base_flat_matrix& matrix, int const row_index) noexcept
         : matrix_(matrix), row_index_(row_index) {}
 
-    value_type& operator[](int column_index) {
+    value_type& operator[](int const column_index) {
       auto pos = matrix_.column_count_ * row_index_ + column_index;
       return matrix_.entries_[pos];
     }
