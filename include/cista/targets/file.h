@@ -97,7 +97,7 @@ struct file {
   }
 
   std::uint64_t checksum(offset_t const start = 0) const {
-    constexpr auto const block_size = 512 * 1024;  // 512kB
+    constexpr auto const block_size = 512U * 1024U;  // 512kB
     auto c = BASE_HASH;
     char buf[block_size];
     chunk(block_size, size_ - static_cast<std::size_t>(start),
@@ -143,10 +143,10 @@ struct file {
                                 : curr_offset;
     }
 
-    unsigned char const buf[16] = {0};
+    unsigned char const buf[16U] = {0U};
     auto const num_padding_bytes = static_cast<DWORD>(curr_offset - size_);
     if (num_padding_bytes != 0U) {
-      verify(num_padding_bytes < 16, "invalid padding size");
+      verify(num_padding_bytes < 16U, "invalid padding size");
       OVERLAPPED overlapped = {0};
       overlapped.Offset = static_cast<std::uint32_t>(size_);
 #ifdef _WIN64
@@ -238,7 +238,7 @@ struct file {
 
   buffer content() {
     auto b = buffer(size());
-    verify(std::fread(b.data(), 1, b.size(), f_) == b.size(), "read error");
+    verify(std::fread(b.data(), 1U, b.size(), f_) == b.size(), "read error");
     return b;
   }
 
