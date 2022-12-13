@@ -11,6 +11,8 @@ template <typename T, std::size_t Size>
 struct array {
   using value_type = T;
 
+  static constexpr std::size_t size() noexcept { return Size; }
+
   constexpr T const& operator[](std::size_t const index) const noexcept {
     return el_[index];
   }
