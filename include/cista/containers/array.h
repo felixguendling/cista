@@ -98,6 +98,15 @@ struct array {
   T el_[Size];
 };
 
+template <class T>
+struct is_cista_array: std::false_type {};
+
+template <class T, size_t Size>
+struct is_cista_array<array<T, Size>>: std::true_type {};
+
+template <class T>
+inline constexpr bool is_cista_array_v = is_cista_array<T>::value;
+
 namespace raw {
 using cista::array;
 }  // namespace raw
