@@ -20,6 +20,7 @@
 #include "cista/targets/buf.h"
 #include "cista/targets/file.h"
 #include "cista/type_hash/type_hash.h"
+#include "cista/type_hash/static_type_hash.h"
 #include "cista/unused_param.h"
 #include "cista/verify.h"
 
@@ -375,7 +376,12 @@ void serialize(Target& t, T& value) {
   serialization_context<Target, Mode> c{t};
 
   if constexpr (is_mode_enabled(Mode, mode::WITH_VERSION)) {
-    auto const h = convert_endian<Mode>(type_hash<decay_t<T>>());
+    auto get_type_hash = [&](){
+      if constexpr (has_static_hash_v<decay_t<T>>)
+        return static_type_hash<decay_t<T>>();
+      else return type_hash<decay_t<T>>();
+    };
+    auto const h = convert_endian<Mode>(get_type_hash());
     c.write(&h, sizeof(h));
   }
 
@@ -552,9 +558,11 @@ void check(std::uint8_t const* const from, std::uint8_t const* const to) {
   verify(to - from > data_start(Mode), "invalid range");
 
   if constexpr ((Mode & mode::WITH_VERSION) == mode::WITH_VERSION) {
-    verify(convert_endian<Mode>(*reinterpret_cast<hash_t const*>(from)) ==
-               type_hash<T>(),
-           "invalid version");
+    const auto saved_hash = convert_endian<Mode>(*reinterpret_cast<hash_t const*>(from));
+    if constexpr (has_static_hash_v<T>)
+      verify(saved_hash == static_type_hash<T>(), "invalid version");
+    else verify(saved_hash == type_hash<T>(), "invalid version");
+
   }
 
   if constexpr ((Mode & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
