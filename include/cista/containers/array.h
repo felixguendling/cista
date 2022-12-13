@@ -9,7 +9,7 @@ namespace cista {
 
 template <typename T, std::size_t Size>
 struct array {
-  constexpr std::size_t size() const noexcept { return Size; }
+  using value_type = T;
 
   constexpr T const& operator[](std::size_t const index) const noexcept {
     return el_[index];
