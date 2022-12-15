@@ -268,8 +268,8 @@ struct file {
   offset_t write(void const* ptr, std::size_t const size,
                  std::size_t alignment) {
     auto curr_offset = size_;
-    long seek_offset = 0;
-    int seek_whence = SEEK_END;
+    auto seek_offset = long{0};
+    auto seek_whence = int{SEEK_END};
     if (alignment > 1U) {
       auto unaligned_ptr = reinterpret_cast<void*>(size_);
       auto space = std::numeric_limits<std::size_t>::max();
