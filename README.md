@@ -11,7 +11,7 @@
         <img src="https://github.com/felixguendling/cista/workflows/Windows%20Build/badge.svg">
     </a>
     <a href="https://opensource.org/licenses/MIT" >
-        <img src="https://img.shields.io/apm/l/vim-mode.svg">
+        <img src="https://img.shields.io/github/license/felixguendling/cista">
     </a>
 </p>
 
