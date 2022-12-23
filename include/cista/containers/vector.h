@@ -26,7 +26,7 @@ struct basic_vector {
   using const_iterator = T const*;
 
   basic_vector() noexcept = default;
-  explicit basic_vector(TemplateSizeType size, T init = T{}) {
+  explicit basic_vector(size_type const size, T init = T{}) {
     resize(size, std::move(init));
   }
   basic_vector(std::initializer_list<T> init) { set(init.begin(), init.end()); }
@@ -136,12 +136,11 @@ struct basic_vector {
   template <typename It>
   void set(It begin_it, It end_it) {
     auto const range_size = std::distance(begin_it, end_it);
-    if (range_size < 0 ||
-        range_size > std::numeric_limits<TemplateSizeType>::max()) {
+    if (range_size < 0 || range_size > std::numeric_limits<size_type>::max()) {
       throw std::runtime_error{"cista::vector::set: invalid range"};
     }
 
-    reserve(static_cast<TemplateSizeType>(range_size));
+    reserve(static_cast<size_type>(range_size));
 
     auto copy_source = begin_it;
     auto copy_target = el_;
@@ -149,12 +148,12 @@ struct basic_vector {
       new (copy_target) T{std::forward<decltype(*copy_source)>(*copy_source)};
     }
 
-    used_size_ = static_cast<TemplateSizeType>(range_size);
+    used_size_ = static_cast<size_type>(range_size);
   }
 
   void set(basic_vector const& arr) {
     if constexpr (std::is_trivially_copyable_v<T>) {
-      if (arr.used_size_ != TemplateSizeType{0U}) {
+      if (arr.used_size_ != 0U) {
         reserve(arr.used_size_);
         std::memcpy(data(), arr.data(), arr.used_size_ * sizeof(T));
       }
@@ -211,8 +210,7 @@ struct basic_vector {
     }
 
     auto const pos_idx = pos - begin();
-    auto const new_count =
-        static_cast<TemplateSizeType>(std::distance(first, last));
+    auto const new_count = static_cast<size_type>(std::distance(first, last));
     reserve(used_size_ + new_count);
     pos = begin() + pos_idx;
 
@@ -259,7 +257,7 @@ struct basic_vector {
     return *ptr;
   }
 
-  void resize(TemplateSizeType const size, T init = T{}) {
+  void resize(size_type const size, T init = T{}) {
     reserve(size);
     for (auto i = used_size_; i < size; ++i) {
       new (el_ + i) T{init};
@@ -331,8 +329,7 @@ struct basic_vector {
       for (auto it = new_end; it != end(); ++it) {
         it->~T();
       }
-      used_size_ -=
-          static_cast<TemplateSizeType>(std::distance(new_end, end()));
+      used_size_ -= static_cast<size_type>(std::distance(new_end, end()));
     }
     return end();
   }
