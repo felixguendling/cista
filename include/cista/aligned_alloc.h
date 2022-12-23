@@ -14,13 +14,7 @@ T1 to_next_multiple(T1 const n, T2 const multiple) noexcept {
 
 }  // namespace cista
 
-#if defined(_MSC_VER)
-
-#define CISTA_ALIGNED_ALLOC(alignment, size) \
-  (_aligned_malloc((size), cista::next_power_of_two((alignment))))
-#define CISTA_ALIGNED_FREE(alignment, ptr) (_aligned_free((ptr)))
-
-#elif __has_include("mimalloc.h")
+#if CISTA_USE_MIMALLOC
 
 #include "mimalloc.h"
 #define CISTA_ALIGNED_ALLOC(alignment, size)                                  \
@@ -29,6 +23,12 @@ T1 to_next_multiple(T1 const n, T2 const multiple) noexcept {
       cista::next_power_of_two((alignment))))
 #define CISTA_ALIGNED_FREE(alignment, ptr) \
   (mi_free_aligned((ptr), cista::next_power_of_two((alignment))))
+
+#elif defined(_MSC_VER)
+
+#define CISTA_ALIGNED_ALLOC(alignment, size) \
+  (_aligned_malloc((size), cista::next_power_of_two((alignment))))
+#define CISTA_ALIGNED_FREE(alignment, ptr) (_aligned_free((ptr)))
 
 #elif defined(_LIBCPP_HAS_C11_FEATURES) || defined(_GLIBCXX_HAVE_ALIGNED_ALLOC)
 
