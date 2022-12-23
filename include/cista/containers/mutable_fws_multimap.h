@@ -496,6 +496,10 @@ struct dynamic_fws_multimap_base {
 
   void grow_bucket(size_type const map_index, index_type& idx,
                    size_type const requested_capacity) {
+    /* Currently, only trivially copyable types are supported.
+     * Changing this would require to do custom memory management. */
+    static_assert(std::is_trivially_copyable_v<T>);
+
     assert(requested_capacity > 0U);
     auto const new_capacity =
         size_type{cista::next_power_of_two(to_idx(requested_capacity))};
