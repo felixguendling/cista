@@ -525,9 +525,7 @@ struct deserialization_context {
       return;
     }
 
-    if (!condition) {
-      throw std::runtime_error(msg);
-    }
+    verify(condition, msg);
   }
 
   intptr_t from_, to_;
