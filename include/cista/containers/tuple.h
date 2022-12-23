@@ -271,7 +271,7 @@ bool lt(Tuple&& a, Tuple&& b) {
 }
 
 template <typename Tuple>
-std::enable_if_t<is_tuple_v<decay_t<Tuple>>, bool> operator<(Tuple && a,
+std::enable_if_t<is_tuple_v<decay_t<Tuple>>, bool> operator<(Tuple&& a,
                                                              Tuple&& b) {
   return lt(a, b);
 }
