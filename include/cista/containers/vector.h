@@ -20,6 +20,7 @@ template <typename T, typename Ptr, bool IndexPointers = false,
           typename TemplateSizeType = std::uint32_t>
 struct basic_vector {
   using size_type = base_t<TemplateSizeType>;
+  using access_type = TemplateSizeType;
   using value_type = T;
   using iterator = T*;
   using const_iterator = T const*;
@@ -82,18 +83,18 @@ struct basic_vector {
   T const* data() const noexcept { return begin(); }
   T* data() noexcept { return begin(); }
   T const* begin() const noexcept { return el_; }
-  T const* end() const noexcept { return el_ + to_idx(used_size_); }  // NOLINT
+  T const* end() const noexcept { return el_ + used_size_; }  // NOLINT
   T* begin() noexcept { return el_; }
-  T* end() noexcept { return el_ + to_idx(used_size_); }  // NOLINT
+  T* end() noexcept { return el_ + used_size_; }  // NOLINT
 
   std::reverse_iterator<T const*> rbegin() const {
-    return std::reverse_iterator<T*>(el_ + to_idx(size()));  // NOLINT
+    return std::reverse_iterator<T*>(el_ + size());  // NOLINT
   }
   std::reverse_iterator<T const*> rend() const {
     return std::reverse_iterator<T*>(el_);
   }
   std::reverse_iterator<T*> rbegin() {
-    return std::reverse_iterator<T*>(el_ + to_idx(size()));  // NOLINT
+    return std::reverse_iterator<T*>(el_ + size());  // NOLINT
   }
   std::reverse_iterator<T*> rend() { return std::reverse_iterator<T*>(el_); }
 
@@ -103,37 +104,33 @@ struct basic_vector {
   friend T* begin(basic_vector& a) noexcept { return a.begin(); }
   friend T* end(basic_vector& a) noexcept { return a.end(); }
 
-  T const& operator[](TemplateSizeType const index) const noexcept {
+  T const& operator[](access_type const index) const noexcept {
     assert(el_ != nullptr && index < used_size_);
     return el_[to_idx(index)];
   }
-  T& operator[](TemplateSizeType const index) noexcept {
+  T& operator[](access_type const index) noexcept {
     assert(el_ != nullptr && index < used_size_);
     return el_[to_idx(index)];
   }
 
-  T& at(TemplateSizeType const index) {
+  T& at(access_type const index) {
     if (index >= used_size_) {
       throw std::out_of_range{"vector::at(): invalid index"};
     }
-    return (*this)[index];
+    return (*this)[to_idx(index)];
   }
 
-  T const& at(TemplateSizeType const index) const {
-    return const_cast<basic_vector*>(this)->at(index);
+  T const& at(access_type const index) const {
+    return const_cast<basic_vector*>(this)->at(to_idx(index));
   }
 
-  T const& back() const noexcept {
-    return ptr_cast(el_)[to_idx(used_size_) - 1];
-  }
-  T& back() noexcept { return ptr_cast(el_)[to_idx(used_size_) - 1]; }
+  T const& back() const noexcept { return ptr_cast(el_)[used_size_ - 1]; }
+  T& back() noexcept { return ptr_cast(el_)[used_size_ - 1]; }
 
   T& front() noexcept { return ptr_cast(el_)[0]; }
   T const& front() const noexcept { return ptr_cast(el_)[0]; }
 
-  inline base_t<TemplateSizeType> size() const noexcept {
-    return to_idx(used_size_);
-  }
+  inline size_type size() const noexcept { return used_size_; }
   inline bool empty() const noexcept { return size() == 0U; }
 
   template <typename It>
@@ -248,7 +245,7 @@ struct basic_vector {
   }
 
   void push_back(T const& el) {
-    reserve(used_size_ + TemplateSizeType{1});
+    reserve(used_size_ + 1U);
     new (el_ + used_size_) T(el);
     ++used_size_;
   }
@@ -277,7 +274,7 @@ struct basic_vector {
     }
   }
 
-  void reserve(base_t<TemplateSizeType> new_size) {
+  void reserve(size_type new_size) {
     new_size = std::max(allocated_size_, new_size);
 
     if (allocated_size_ >= new_size) {
@@ -285,8 +282,8 @@ struct basic_vector {
     }
 
     auto next_size = next_power_of_two(new_size);
-    auto num_bytes = static_cast<std::size_t>(to_idx(next_size)) * sizeof(T);
-    auto mem_buf = static_cast<T*>(std::malloc(to_idx(num_bytes)));  // NOLINT
+    auto num_bytes = static_cast<std::size_t>(next_size) * sizeof(T);
+    auto mem_buf = static_cast<T*>(std::malloc(num_bytes));  // NOLINT
     if (mem_buf == nullptr) {
       throw std::bad_alloc();
     }
@@ -380,8 +377,8 @@ struct basic_vector {
   }
 
   Ptr el_{nullptr};
-  base_t<TemplateSizeType> used_size_{0U};
-  base_t<TemplateSizeType> allocated_size_{0U};
+  size_type used_size_{0U};
+  size_type allocated_size_{0U};
   bool self_allocated_{false};
   std::uint8_t __fill_0__{0U};
   std::uint16_t __fill_1__{0U};
