@@ -110,7 +110,7 @@ struct mmap {
   std::string_view view() const noexcept {
     return {static_cast<char const*>(addr_), size()};
   }
-  std::uint8_t* data() noexcept { return static_cast<unsigned char*>(addr_); }
+  std::uint8_t* data() noexcept { return static_cast<std::uint8_t*>(addr_); }
   std::uint8_t const* data() const noexcept {
     return static_cast<unsigned char const*>(addr_);
   }
