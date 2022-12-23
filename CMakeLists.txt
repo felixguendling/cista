@@ -150,8 +150,6 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR
 
   add_custom_target(cista-fuzz)
   add_dependencies(cista-fuzz ${cista-fuzz-targets})
-else()
-  message(STATUS "Cista fuzzing disabled (compiler=${CMAKE_CXX_COMPILER_ID})")
 endif()
 
 add_library(cista::cista ALIAS cista)
