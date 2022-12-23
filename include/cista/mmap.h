@@ -112,7 +112,7 @@ struct mmap {
   }
   std::uint8_t* data() noexcept { return static_cast<std::uint8_t*>(addr_); }
   std::uint8_t const* data() const noexcept {
-    return static_cast<unsigned char const*>(addr_);
+    return static_cast<std::uint8_t const*>(addr_);
   }
 
   std::uint8_t* begin() noexcept { return data(); }
