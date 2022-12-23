@@ -13,7 +13,7 @@ namespace cista {
 
 template <typename Ptr = char const*>
 struct generic_string {
-  using msize_t = uint32_t;
+  using msize_t = std::uint32_t;
   using value_type = char;
 
   static msize_t mstrlen(char const* s) noexcept {
