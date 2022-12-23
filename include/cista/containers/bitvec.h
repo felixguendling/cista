@@ -143,7 +143,7 @@ struct bitvec {
     return a.sanitized_last_block() == b.sanitized_last_block();
   }
 
-  friend bool operator<(bitvec const& a, bitvec const& b) {
+  friend bool operator<(bitvec const& a, bitvec const& b) noexcept {
     assert(a.size() == b.size());
     if (a.empty() && b.empty()) {
       return false;
