@@ -127,7 +127,7 @@ struct strong {
   constexpr bool operator<(T const& o) const { return v_ < o; }
   constexpr bool operator>(T const& o) const { return v_ > o; }
 
-  explicit operator T const&() const& { return v_; }
+  explicit operator T const&() const& noexcept { return v_; }
 
   friend std::ostream& operator<<(std::ostream& o, strong const& t) {
     return o << t.v_;
@@ -143,7 +143,7 @@ template <typename T, typename Tag>
 struct is_strong<strong<T, Tag>> : std::true_type {};
 
 template <typename T>
-inline constexpr auto const is_strong_v = is_strong<T>::value;
+constexpr auto const is_strong_v = is_strong<T>::value;
 
 template <typename T, typename Tag>
 inline constexpr typename strong<T, Tag>::value_t to_idx(

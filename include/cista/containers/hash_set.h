@@ -3,7 +3,6 @@
 #include <functional>
 
 #include "cista/containers/hash_storage.h"
-#include "cista/containers/ptr.h"
 #include "cista/equal_to.h"
 #include "cista/hashing.h"
 
@@ -11,7 +10,7 @@ namespace cista {
 
 struct identity {
   template <typename T>
-  decltype(auto) operator()(T&& t) {
+  decltype(auto) operator()(T&& t) const noexcept {
     return std::forward<T>(t);
   }
 };

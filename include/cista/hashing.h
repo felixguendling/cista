@@ -38,10 +38,10 @@ struct has_std_hash<
 }  // namespace detail
 
 template <typename T>
-constexpr bool has_hash_v = detail::has_hash<T>::value;
+inline constexpr bool has_hash_v = detail::has_hash<T>::value;
 
 template <typename T>
-constexpr bool has_std_hash_v = detail::has_std_hash<T>::value;
+inline constexpr bool has_std_hash_v = detail::has_std_hash<T>::value;
 
 template <typename A, typename B>
 struct is_hash_equivalent_helper : std::false_type {};
@@ -101,7 +101,7 @@ struct hashing {
     } else if constexpr (is_pointer_v<Type>) {
       return hash_combine(seed, reinterpret_cast<intptr_t>(ptr_cast(el)));
     } else if constexpr (is_char_array_v<Type>) {
-      return hash(std::string_view{el, sizeof(el) - 1}, seed);
+      return hash(std::string_view{el, sizeof(el) - 1U}, seed);
     } else if constexpr (is_string_like_v<Type>) {
       using std::begin;
       using std::end;

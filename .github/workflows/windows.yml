@@ -25,14 +25,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: seanmiddleditch/gha-setup-ninja@master
+      - uses: ilammy/msvc-dev-cmd@v1
 
       - name: Build
         run: |
-          $env:BOOST_ROOT = $env:BOOST_ROOT_1_72_0
-          $devShell = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -find **\Microsoft.VisualStudio.DevShell.dll
-          $installPath = &"${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationpath
-          Import-Module $devShell
-          Enter-VsDevShell -VsInstallPath $installPath -SkipAutomaticLocation -DevCmdArguments "-arch=${{ matrix.arch }}"
           cmake -GNinja -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.mode }}
           cmake --build build --target cista-test cista-test-single-header
 

@@ -74,9 +74,9 @@ struct basic_unique_ptr {
 
   Ptr el_{nullptr};
   bool self_allocated_{false};
-  uint8_t __fill_0__{0};
-  uint16_t __fill_1__{0};
-  uint32_t __fill_2__{0};
+  std::uint8_t __fill_0__{0U};
+  std::uint16_t __fill_1__{0U};
+  std::uint32_t __fill_2__{0U};
 };
 
 namespace raw {

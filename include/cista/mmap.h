@@ -22,7 +22,8 @@ namespace cista {
 
 struct mmap {
   static constexpr auto const OFFSET = 0ULL;
-  static constexpr auto const ENTIRE_FILE = std::numeric_limits<size_t>::max();
+  static constexpr auto const ENTIRE_FILE =
+      std::numeric_limits<std::size_t>::max();
   enum class protection { READ, WRITE, MODIFY };
 
   mmap() = default;
@@ -87,7 +88,7 @@ struct mmap {
     }
   }
 
-  void resize(size_t const new_size) {
+  void resize(std::size_t const new_size) {
     verify(prot_ == protection::WRITE || prot_ == protection::MODIFY,
            "read-only not resizable");
     if (size_ < new_size) {
@@ -96,7 +97,7 @@ struct mmap {
     used_size_ = new_size;
   }
 
-  void reserve(size_t const new_size) {
+  void reserve(std::size_t const new_size) {
     verify(prot_ == protection::WRITE || prot_ == protection::MODIFY,
            "read-only not resizable");
     if (size_ < new_size) {
@@ -104,23 +105,25 @@ struct mmap {
     }
   }
 
-  size_t size() const noexcept { return used_size_; }
+  std::size_t size() const noexcept { return used_size_; }
 
-  inline std::string_view view() const {
+  std::string_view view() const noexcept {
     return {static_cast<char const*>(addr_), size()};
   }
-  inline uint8_t* data() noexcept { return static_cast<unsigned char*>(addr_); }
-  inline uint8_t const* data() const noexcept {
+  std::uint8_t* data() noexcept { return static_cast<unsigned char*>(addr_); }
+  std::uint8_t const* data() const noexcept {
     return static_cast<unsigned char const*>(addr_);
   }
 
-  inline uint8_t* begin() noexcept { return data(); }
-  inline uint8_t* end() noexcept { return data() + used_size_; }
-  inline uint8_t const* begin() const noexcept { return data(); }
-  inline uint8_t const* end() const noexcept { return data() + used_size_; }
+  std::uint8_t* begin() noexcept { return data(); }
+  std::uint8_t* end() noexcept { return data() + used_size_; }
+  std::uint8_t const* begin() const noexcept { return data(); }
+  std::uint8_t const* end() const noexcept { return data() + used_size_; }
 
-  unsigned char& operator[](size_t i) noexcept { return data()[i]; }
-  unsigned char const& operator[](size_t i) const noexcept { return data()[i]; }
+  std::uint8_t& operator[](std::size_t const i) noexcept { return data()[i]; }
+  std::uint8_t const& operator[](std::size_t const i) const noexcept {
+    return data()[i];
+  }
 
 private:
   void unmap() {
@@ -144,9 +147,9 @@ private:
 #ifdef _WIN32
     auto const size_low = static_cast<DWORD>(size_);
 #ifdef _WIN64
-    auto const size_high = static_cast<DWORD>(size_ >> 32);
+    auto const size_high = static_cast<DWORD>(size_ >> 32U);
 #else
-    auto const size_high = static_cast<DWORD>(0);
+    auto const size_high = static_cast<DWORD>(0U);
 #endif
     const auto fm = ::CreateFileMapping(
         f_.f_, 0, prot_ == protection::READ ? PAGE_READONLY : PAGE_READWRITE,
@@ -190,7 +193,7 @@ private:
 #endif
   }
 
-  void resize_map(size_t const new_size) {
+  void resize_map(std::size_t const new_size) {
     if (prot_ == protection::READ) {
       return;
     }
@@ -203,8 +206,8 @@ private:
 
   file f_;
   protection prot_;
-  size_t size_;
-  size_t used_size_;
+  std::size_t size_;
+  std::size_t used_size_;
   void* addr_;
 #ifdef _WIN32
   HANDLE file_mapping_;

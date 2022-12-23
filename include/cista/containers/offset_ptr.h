@@ -14,11 +14,11 @@
 namespace cista {
 
 #if __cpp_lib_bit_cast
-inline offset_t to_offset(void const* ptr) {
+inline offset_t to_offset(void const* ptr) noexcept {
   return std::bit_cast<offset_t>(ptr);
 }
 #else
-inline offset_t to_offset(void const* ptr) {
+inline offset_t to_offset(void const* ptr) noexcept {
   offset_t r;
   std::memcpy(&r, &ptr, sizeof(ptr));
   return r;
@@ -27,8 +27,8 @@ inline offset_t to_offset(void const* ptr) {
 
 template <typename T, typename Enable = void>
 struct offset_ptr {
-  offset_ptr() noexcept = default;
-  offset_ptr(std::nullptr_t) noexcept : offset_{NULLPTR_OFFSET} {}
+  constexpr offset_ptr() noexcept = default;
+  constexpr offset_ptr(std::nullptr_t) noexcept : offset_{NULLPTR_OFFSET} {}
   offset_ptr(T const* p) noexcept : offset_{ptr_to_offset(p)} {}
 
   offset_ptr& operator=(T const* p) noexcept {
@@ -64,7 +64,7 @@ struct offset_ptr {
   operator T*() const noexcept { return get(); }
   T& operator*() const noexcept { return *get(); }
   T* operator->() const noexcept { return get(); }
-  T& operator[](size_t const i) const noexcept { return get()[i]; }
+  T& operator[](std::size_t const i) const noexcept { return get()[i]; }
 
   T* get() const noexcept {
     auto const ptr =
@@ -75,12 +75,12 @@ struct offset_ptr {
   }
 
   template <typename Int>
-  T* operator+(Int i) const noexcept {
+  T* operator+(Int const i) const noexcept {
     return get() + i;
   }
 
   template <typename Int>
-  T* operator-(Int i) const noexcept {
+  T* operator-(Int const i) const noexcept {
     return get() - i;
   }
 
@@ -112,8 +112,8 @@ struct offset_ptr {
 
 template <typename T>
 struct offset_ptr<T, std::enable_if_t<std::is_same_v<void, T>>> {
-  offset_ptr() noexcept = default;
-  offset_ptr(std::nullptr_t) noexcept : offset_{NULLPTR_OFFSET} {}
+  constexpr offset_ptr() noexcept = default;
+  constexpr offset_ptr(std::nullptr_t) noexcept : offset_{NULLPTR_OFFSET} {}
   offset_ptr(T const* p) noexcept : offset_{ptr_to_offset(p)} {}
 
   offset_ptr& operator=(T const* p) noexcept {

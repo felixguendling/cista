@@ -15,19 +15,19 @@ template <std::size_t I, typename... Ts>
 struct tuple_element;
 
 template <std::size_t I, typename T, typename... Ts>
-struct tuple_element<I, tuple<T, Ts...>> : tuple_element<I - 1, tuple<Ts...>> {
+struct tuple_element<I, tuple<T, Ts...>> : tuple_element<I - 1U, tuple<Ts...>> {
 };
 
 template <typename T, typename... Ts>
-struct tuple_element<0, tuple<T, Ts...>> {
+struct tuple_element<0U, tuple<T, Ts...>> {
   using type = T;
 };
 
 template <std::size_t I, typename T, typename... Ts>
-struct tuple_element<I, T, Ts...> : tuple_element<I - 1, Ts...> {};
+struct tuple_element<I, T, Ts...> : tuple_element<I - 1U, Ts...> {};
 
 template <typename T, typename... Ts>
-struct tuple_element<0, T, Ts...> {
+struct tuple_element<0U, T, Ts...> {
   using type = T;
 };
 
@@ -45,27 +45,27 @@ constexpr std::size_t max_align_of() {
 
 template <typename T, typename... Ts>
 constexpr std::size_t get_offset(std::size_t const current_idx,
-                                 std::size_t current_offset = 0) {
-  if (auto const misalign = current_offset % alignof(T); misalign != 0) {
+                                 std::size_t current_offset = 0U) {
+  if (auto const misalign = current_offset % alignof(T); misalign != 0U) {
     current_offset += (alignof(T) - misalign) % alignof(T);
   }
 
-  if (current_idx == 0) {
+  if (current_idx == 0U) {
     return current_offset;
   }
 
   current_offset += sizeof(T);
 
-  if constexpr (sizeof...(Ts) == 0) {
+  if constexpr (sizeof...(Ts) == 0U) {
     return current_idx == 1 ? current_offset + sizeof(T) : current_offset;
   } else {
-    return get_offset<Ts...>(current_idx - 1, current_offset);
+    return get_offset<Ts...>(current_idx - 1U, current_offset);
   }
 }
 
 template <typename... Ts>
 constexpr std::size_t get_total_size() {
-  return get_offset<Ts...>(sizeof...(Ts) + 1);
+  return get_offset<Ts...>(sizeof...(Ts) + 1U);
 }
 
 template <std::size_t I, typename T, typename... Ts>
@@ -73,7 +73,7 @@ constexpr auto get_arg(T&& arg, Ts&&... args) {
   if constexpr (I == 0U) {
     return std::forward<T>(arg);
   } else {
-    return get_arg<I - 1>(std::forward<Ts>(args)...);
+    return get_arg<I - 1U>(std::forward<Ts>(args)...);
   }
 }
 
@@ -204,7 +204,7 @@ struct tuple_size<tuple<T...>>
     : public std::integral_constant<std::size_t, sizeof...(T)> {};
 
 template <typename T>
-inline constexpr std::size_t tuple_size_v = tuple_size<std::decay_t<T>>::value;
+constexpr std::size_t tuple_size_v = tuple_size<std::decay_t<T>>::value;
 
 template <typename F, typename Tuple, std::size_t... I>
 constexpr decltype(auto) apply_impl(std::index_sequence<I...>, F&& f,
@@ -265,7 +265,8 @@ bool lt(Tuple&& a, Tuple&& b) {
         get<Index>(std::forward<Tuple>(a))) {
       return false;
     }
-    return lt<Tuple, Index + 1>(std::forward<Tuple>(a), std::forward<Tuple>(b));
+    return lt<Tuple, Index + 1U>(std::forward<Tuple>(a),
+                                 std::forward<Tuple>(b));
   }
 }
 

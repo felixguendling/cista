@@ -68,23 +68,22 @@ struct file {
     return *this;
   }
 
-  size_t size() const {
+  std::size_t size() const {
     if (f_ == nullptr) {
       return 0U;
-    } else {
-      LARGE_INTEGER filesize;
-      verify(GetFileSizeEx(f_, &filesize), "file size error");
-      return static_cast<size_t>(filesize.QuadPart);
     }
+    LARGE_INTEGER filesize;
+    verify(GetFileSizeEx(f_, &filesize), "file size error");
+    return static_cast<std::size_t>(filesize.QuadPart);
   }
 
   buffer content() const {
     constexpr auto block_size = 8192u;
-    size_t const file_size = size();
+    std::size_t const file_size = size();
 
     auto b = buffer(file_size);
 
-    chunk(block_size, size(), [&](size_t const from, unsigned block_size) {
+    chunk(block_size, size(), [&](std::size_t const from, unsigned block_size) {
       OVERLAPPED overlapped = {0};
       overlapped.Offset = static_cast<DWORD>(from);
 #ifdef _WIN64
@@ -97,11 +96,11 @@ struct file {
     return b;
   }
 
-  uint64_t checksum(offset_t const start = 0) const {
-    constexpr auto const block_size = 512 * 1024;  // 512kB
+  std::uint64_t checksum(offset_t const start = 0) const {
+    constexpr auto const block_size = 512U * 1024U;  // 512kB
     auto c = BASE_HASH;
     char buf[block_size];
-    chunk(block_size, size_ - static_cast<size_t>(start),
+    chunk(block_size, size_ - static_cast<std::size_t>(start),
           [&](auto const from, auto const size) {
             OVERLAPPED overlapped = {0};
             overlapped.Offset = static_cast<DWORD>(start + from);
@@ -144,14 +143,14 @@ struct file {
                                 : curr_offset;
     }
 
-    unsigned char const buf[16] = {0};
+    std::uint8_t const buf[16U] = {0U};
     auto const num_padding_bytes = static_cast<DWORD>(curr_offset - size_);
     if (num_padding_bytes != 0U) {
-      verify(num_padding_bytes < 16, "invalid padding size");
+      verify(num_padding_bytes < 16U, "invalid padding size");
       OVERLAPPED overlapped = {0};
-      overlapped.Offset = static_cast<uint32_t>(size_);
+      overlapped.Offset = static_cast<std::uint32_t>(size_);
 #ifdef _WIN64
-      overlapped.OffsetHigh = static_cast<uint32_t>(size_ >> 32u);
+      overlapped.OffsetHigh = static_cast<std::uint32_t>(size_ >> 32u);
 #endif
       DWORD bytes_written = {0};
       verify(WriteFile(f_, buf, num_padding_bytes, &bytes_written, &overlapped),
@@ -162,12 +161,12 @@ struct file {
     }
 
     constexpr auto block_size = 8192u;
-    chunk(block_size, size, [&](size_t const from, unsigned block_size) {
+    chunk(block_size, size, [&](std::size_t const from, unsigned block_size) {
       OVERLAPPED overlapped = {0};
       overlapped.Offset = 0xFFFFFFFF;
       overlapped.OffsetHigh = 0xFFFFFFFF;
       DWORD bytes_written = {0};
-      verify(WriteFile(f_, reinterpret_cast<unsigned char const*>(ptr) + from,
+      verify(WriteFile(f_, reinterpret_cast<std::uint8_t const*>(ptr) + from,
                        block_size, &bytes_written, &overlapped),
              "write error");
       verify(bytes_written == block_size, "write error bytes written");
@@ -180,7 +179,7 @@ struct file {
   }
 
   HANDLE f_{nullptr};
-  size_t size_{0U};
+  std::size_t size_{0U};
 };
 }  // namespace cista
 #else
@@ -228,31 +227,31 @@ struct file {
     return fd;
   }
 
-  size_t size() const {
+  std::size_t size() const {
     if (f_ == nullptr) {
       return 0U;
-    } else {
-      struct stat s;
-      verify(fstat(fd(), &s) != -1, "fstat error");
-      return static_cast<size_t>(s.st_size);
     }
+    struct stat s;
+    verify(fstat(fd(), &s) != -1, "fstat error");
+    return static_cast<std::size_t>(s.st_size);
   }
 
   buffer content() {
     auto b = buffer(size());
-    verify(std::fread(b.data(), 1, b.size(), f_) == b.size(), "read error");
+    verify(std::fread(b.data(), 1U, b.size(), f_) == b.size(), "read error");
     return b;
   }
 
-  uint64_t checksum(offset_t const start = 0) const {
-    constexpr auto const block_size = static_cast<size_t>(512 * 1024);  // 512kB
-    verify(size_ >= static_cast<size_t>(start), "invalid checksum offset");
+  std::uint64_t checksum(offset_t const start = 0) const {
+    constexpr auto const block_size =
+        static_cast<std::size_t>(512U * 1024U);  // 512kB
+    verify(size_ >= static_cast<std::size_t>(start), "invalid checksum offset");
     verify(!std::fseek(f_, static_cast<long>(start), SEEK_SET), "fseek error");
     auto c = BASE_HASH;
     char buf[block_size];
-    chunk(block_size, size_ - static_cast<size_t>(start),
+    chunk(block_size, size_ - static_cast<std::size_t>(start),
           [&](auto const, auto const s) {
-            verify(std::fread(buf, 1, s, f_) == s, "invalid read");
+            verify(std::fread(buf, 1U, s, f_) == s, "invalid read");
             c = hash(std::string_view{buf, s}, c);
           });
     return c;
@@ -261,7 +260,7 @@ struct file {
   template <typename T>
   void write(std::size_t const pos, T const& val) {
     verify(!std::fseek(f_, static_cast<long>(pos), SEEK_SET), "seek error");
-    verify(std::fwrite(reinterpret_cast<unsigned char const*>(&val), 1,
+    verify(std::fwrite(reinterpret_cast<std::uint8_t const*>(&val), 1U,
                        serialized_size<T>(), f_) == serialized_size<T>(),
            "write error");
   }
@@ -269,25 +268,27 @@ struct file {
   offset_t write(void const* ptr, std::size_t const size,
                  std::size_t alignment) {
     auto curr_offset = size_;
-    if (alignment != 0 && alignment != 1) {
+    auto seek_offset = long{0};
+    auto seek_whence = int{SEEK_END};
+    if (alignment > 1U) {
       auto unaligned_ptr = reinterpret_cast<void*>(size_);
       auto space = std::numeric_limits<std::size_t>::max();
       auto const aligned_ptr =
           std::align(alignment, size, unaligned_ptr, space);
-      curr_offset = aligned_ptr ? reinterpret_cast<std::uintptr_t>(aligned_ptr)
-                                : curr_offset;
-      verify(!std::fseek(f_, static_cast<long>(curr_offset), SEEK_SET),
-             "seek error");
-    } else {
-      verify(!std::fseek(f_, 0, SEEK_END), "seek error");
+      if (aligned_ptr != nullptr) {
+        curr_offset = reinterpret_cast<std::uintptr_t>(aligned_ptr);
+      }
+      seek_offset = static_cast<long>(curr_offset);
+      seek_whence = SEEK_SET;
     }
-    verify(std::fwrite(ptr, 1, size, f_) == size, "write error");
+    verify(!std::fseek(f_, seek_offset, seek_whence), "seek error");
+    verify(std::fwrite(ptr, 1U, size, f_) == size, "write error");
     size_ = curr_offset + size;
     return static_cast<offset_t>(curr_offset);
   }
 
   FILE* f_{nullptr};
-  std::size_t size_ = 0u;
+  std::size_t size_{0U};
 };
 
 }  // namespace cista

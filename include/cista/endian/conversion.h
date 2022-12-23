@@ -19,7 +19,7 @@
 namespace cista {
 
 template <typename T>
-constexpr T endian_swap(T t) {
+constexpr T endian_swap(T const t) noexcept {
   static_assert(sizeof(T) == 1U || sizeof(T) == 2U || sizeof(T) == 4U ||
                 sizeof(T) == 8U);
 
@@ -28,21 +28,21 @@ constexpr T endian_swap(T t) {
   } else if constexpr (sizeof(T) == 2U) {
     union {
       T t;
-      uint16_t i;
+      std::uint16_t i;
     } u{t};
     u.i = CISTA_BYTESWAP_16(u.i);
     return u.t;
   } else if constexpr (sizeof(T) == 4U) {
     union {
       T t;
-      uint32_t i;
+      std::uint32_t i;
     } u{t};
     u.i = CISTA_BYTESWAP_32(u.i);
     return u.t;
   } else if constexpr (sizeof(T) == 8U) {
     union {
       T t;
-      uint64_t i;
+      std::uint64_t i;
     } u{t};
     u.i = CISTA_BYTESWAP_64(u.i);
     return u.t;
@@ -50,7 +50,7 @@ constexpr T endian_swap(T t) {
 }
 
 template <mode Mode>
-constexpr bool endian_conversion_necessary() {
+constexpr bool endian_conversion_necessary() noexcept {
   if constexpr ((Mode & mode::SERIALIZE_BIG_ENDIAN) ==
                 mode::SERIALIZE_BIG_ENDIAN) {
 #if defined(CISTA_BIG_ENDIAN)
@@ -68,7 +68,7 @@ constexpr bool endian_conversion_necessary() {
 }
 
 template <mode Mode, typename T>
-constexpr T convert_endian(T t) {
+constexpr T convert_endian(T t) noexcept {
   if constexpr (endian_conversion_necessary<Mode>()) {
     return endian_swap(t);
   } else {
