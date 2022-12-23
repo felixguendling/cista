@@ -131,8 +131,8 @@ struct basic_vector {
   T& front() noexcept { return ptr_cast(el_)[0]; }
   T const& front() const noexcept { return ptr_cast(el_)[0]; }
 
-  inline size_type size() const noexcept { return used_size_; }
-  inline bool empty() const noexcept { return size() == 0U; }
+  size_type size() const noexcept { return used_size_; }
+  bool empty() const noexcept { return size() == 0U; }
 
   template <typename It>
   void set(It begin_it, It end_it) {
