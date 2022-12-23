@@ -81,11 +81,11 @@ struct dynamic_fws_multimap_base {
     friend const_iterator end(bucket const& b) { return b.end(); }
 
     value_type& operator[](size_type index) {
-      return mutable_mm().data_[data_index(to_idx(index))];
+      return mutable_mm().data_[data_index(index)];
     }
 
     value_type const& operator[](size_type index) const {
-      return multimap_.data_[data_index(to_idx(index))];
+      return multimap_.data_[data_index(index)];
     }
 
     value_type& at(size_type const index) {
@@ -397,30 +397,30 @@ struct dynamic_fws_multimap_base {
     return {*this, to_idx(index)};
   }
 
-  mutable_bucket front() { return (*this)[0U]; }
-  const_bucket front() const { return (*this)[0U]; }
+  mutable_bucket front() { return (*this)[access_t{0U}]; }
+  const_bucket front() const { return (*this)[access_t{0U}]; }
 
-  mutable_bucket back() { return (*this)[size() - 1U]; }
-  const_bucket back() const { return (*this)[size() - 1U]; }
+  mutable_bucket back() { return (*this)[access_t{size() - 1U}]; }
+  const_bucket back() const { return (*this)[access_t{size() - 1U}]; }
 
   mutable_bucket emplace_back() { return (*this)[access_t{size()}]; }
 
-  mutable_bucket get_or_create(size_type const index) {
+  mutable_bucket get_or_create(access_t const index) {
     verify(index != std::numeric_limits<size_type>::max(),
            "mutable_fws_multimap::get_or_create: type bound");
-    if (index + 1U >= index_.size()) {
-      index_.resize(index + 1U);
+    if (to_idx(index) + 1U >= index_.size()) {
+      index_.resize(to_idx(index + 1U));
     }
-    return {*this, index};
+    return {*this, to_idx(index)};
   }
 
-  void erase(size_type const i) {
-    if (i < index_.size()) {
-      release_bucket(index_[i]);
+  void erase(access_t const i) {
+    if (to_idx(i) < index_.size()) {
+      release_bucket(index_[to_idx(i)]);
     }
   }
 
-  base_t<SizeType> size() const noexcept { return index_.size(); }
+  size_type size() const noexcept { return index_.size(); }
   size_type data_size() const noexcept { return data_.size(); }
   size_type element_count() const noexcept { return element_count_; }
   [[nodiscard]] bool empty() const noexcept { return size() == 0; }
@@ -478,7 +478,8 @@ struct dynamic_fws_multimap_base {
     element_count_ = 0U;
   }
 
-  size_type insert_new_entry(size_type const map_index) {
+  size_type insert_new_entry(access_t const i) {
+    auto const map_index = to_idx(i);
     assert(map_index < index_.size());
     auto& idx = index_[map_index];
     if (idx.size_ == idx.capacity_) {
@@ -490,15 +491,17 @@ struct dynamic_fws_multimap_base {
     return data_index;
   }
 
-  void grow_bucket(size_type const map_index, index_type& idx) {
-    grow_bucket(map_index, idx, idx.capacity_ + 1U);
+  void grow_bucket(access_t const map_index, index_type& idx) {
+    grow_bucket(to_idx(map_index), idx, idx.capacity_ + 1U);
   }
 
-  void grow_bucket(size_type const map_index, index_type& idx,
+  void grow_bucket(access_t const i, index_type& idx,
                    size_type const requested_capacity) {
     /* Currently, only trivially copyable types are supported.
      * Changing this would require to do custom memory management. */
     static_assert(std::is_trivially_copyable_v<T>);
+
+    auto const map_index = to_idx(i);
 
     assert(requested_capacity > 0U);
     auto const new_capacity =
@@ -583,7 +586,8 @@ struct dynamic_fws_multimap_base {
     }
   }
 
-  size_type push_back_entry(size_type const map_index, value_type const& val) {
+  size_type push_back_entry(size_type const i, value_type const& val) {
+    auto const map_index = to_idx(i);
     auto const data_index = insert_new_entry(map_index);
     data_[data_index] = val;
     ++element_count_;
@@ -591,7 +595,8 @@ struct dynamic_fws_multimap_base {
   }
 
   template <typename... Args>
-  size_type emplace_back_entry(size_type const map_index, Args&&... args) {
+  size_type emplace_back_entry(size_type const i, Args&&... args) {
+    auto const map_index = to_idx(i);
     auto const data_index = insert_new_entry(map_index);
     data_[data_index] = value_type{std::forward<Args>(args)...};
     ++element_count_;
