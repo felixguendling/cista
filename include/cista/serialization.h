@@ -353,7 +353,7 @@ void serialize(Ctx& c, array<T, Size> const* origin, offset_t const pos) {
       static_cast<offset_t>(serialized_size<T>() * origin->size());
   auto i = 0U;
   for (auto it = pos; it != pos + size; it += serialized_size<T>()) {
-    serialize(c, origin->el_ + i++, it);
+    serialize(c, &(*origin)[i++], it);
   }
 }
 
@@ -565,9 +565,7 @@ struct deserialization_context {
       return;
     }
 
-    if (!condition) {
-      throw std::runtime_error(msg);
-    }
+    verify(condition, msg);
   }
 
   intptr_t from_, to_;

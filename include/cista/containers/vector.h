@@ -13,6 +13,7 @@
 #include "cista/is_iterable.h"
 #include "cista/next_power_of_2.h"
 #include "cista/strong.h"
+#include "cista/verify.h"
 
 namespace cista {
 
@@ -136,9 +137,9 @@ struct basic_vector {
   template <typename It>
   void set(It begin_it, It end_it) {
     auto const range_size = std::distance(begin_it, end_it);
-    if (range_size < 0 || range_size > std::numeric_limits<size_type>::max()) {
-      throw std::runtime_error{"cista::vector::set: invalid range"};
-    }
+    verify(range_size >= 0 &&
+               range_size <= std::numeric_limits<size_type>::max(),
+           "cista::vector::set: invalid range");
 
     reserve(static_cast<size_type>(range_size));
 
