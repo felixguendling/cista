@@ -40,7 +40,7 @@ std::string to_string(std::vector<bool> const& v) {
 }
 
 template <typename T>
-bool lt(T const& x, T const& y) {
+bool bitvec_lt(T const& x, T const& y) {
   assert(x.size() == y.size());
   for (size_t i = x.size() - 1; i != 0; --i) {
     if (x[i] ^ y[i]) return y[i];
@@ -70,7 +70,7 @@ TEST_CASE("bitvec less than") {
   CHECK(to_string(ref1) == std::string_view{str_1});
   CHECK(to_string(ref2) == std::string_view{str_2});
 
-  auto const ref_lt = lt(ref1, ref2);
-  auto const uut_lt = lt(uut1, uut2);
+  auto const ref_lt = bitvec_lt(ref1, ref2);
+  auto const uut_lt = bitvec_lt(uut1, uut2);
   CHECK(ref_lt == uut_lt);
 }
