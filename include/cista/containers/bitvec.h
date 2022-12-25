@@ -26,7 +26,7 @@ struct basic_bitvec {
     basic_bitvec ret;
     ret.resize(size);
     for (auto& b : b.blocks_) {
-      ret = std::numeric_limits<block_t>::max();
+      b = std::numeric_limits<block_t>::max();
     }
     return ret;
   }
