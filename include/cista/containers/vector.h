@@ -137,9 +137,9 @@ struct basic_vector {
   template <typename It>
   void set(It begin_it, It end_it) {
     auto const range_size = std::distance(begin_it, end_it);
-    verify(range_size >= 0 &&
-               range_size <= std::numeric_limits<size_type>::max(),
-           "cista::vector::set: invalid range");
+    verify(
+        range_size >= 0 && range_size <= std::numeric_limits<size_type>::max(),
+        "cista::vector::set: invalid range");
 
     reserve(static_cast<size_type>(range_size));
 
