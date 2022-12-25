@@ -11,6 +11,12 @@
 template <typename K, typename V>
 using mutable_fws_multimap = cista::offset::mutable_fws_multimap<K, V>;
 
+template <typename T>
+using strong_key = cista::strong<T, struct strong_key_tag>;
+
+template <typename T>
+using weak_key = T;
+
 namespace utl {
 
 template <typename Container, typename Element>
@@ -61,78 +67,80 @@ std::ostream& operator<<(std::ostream& out, test_edge const& e) {
              << ", weight=" << e.weight_ << "}";
 }
 
-mutable_fws_multimap<unsigned, int> build_test_map_1() {
-  mutable_fws_multimap<unsigned, int> mm;
+template <typename KeyType = unsigned>
+mutable_fws_multimap<KeyType, int> build_test_map_1() {
+  mutable_fws_multimap<KeyType, int> mm;
 
-  mm[0].push_back(4);
-  mm[0].push_back(8);
+  mm[KeyType{0}].push_back(4);
+  mm[KeyType{0}].push_back(8);
 
-  mm[1].push_back(15);
-  mm[1].push_back(16);
-  mm[1].push_back(23);
-  mm[1].push_back(42);
+  mm[KeyType{1}].push_back(15);
+  mm[KeyType{1}].push_back(16);
+  mm[KeyType{1}].push_back(23);
+  mm[KeyType{1}].push_back(42);
 
-  mm[2].push_back(100);
-  mm[2].push_back(200);
-  mm[2].push_back(250);
-  mm[2].push_back(300);
-  mm[2].push_back(350);
-  mm[2].push_back(400);
+  mm[KeyType{2}].push_back(100);
+  mm[KeyType{2}].push_back(200);
+  mm[KeyType{2}].push_back(250);
+  mm[KeyType{2}].push_back(300);
+  mm[KeyType{2}].push_back(350);
+  mm[KeyType{2}].push_back(400);
 
   return mm;
 }
 
-TEST_CASE("mutable_fws_multimap_test, int_1") {
-  mutable_fws_multimap<unsigned, int> mm;
+TEST_CASE_TEMPLATE("mutable_fws_multimap_test, int_1", KeyType,
+                   strong_key<unsigned>, weak_key<unsigned>) {
+  mutable_fws_multimap<KeyType, int> mm;
 
   REQUIRE(0 == mm.element_count());
   REQUIRE(0 == mm.size());
 
-  mm[0].push_back(42);
+  mm[KeyType{0}].push_back(42);
   REQUIRE(1 == mm.element_count());
   REQUIRE(1 == mm.size());
-  CHECK(ElementsAreArray(mm[0], {42}));
-  CHECK(1 == mm[0].size());
+  CHECK(ElementsAreArray(mm[KeyType{0}], {42}));
+  CHECK(1 == mm[KeyType{0}].size());
 
-  mm[1].push_back(4);
+  mm[KeyType{1}].push_back(4);
   REQUIRE(2 == mm.element_count());
   REQUIRE(2 == mm.size());
-  CHECK(ElementsAreArray(mm[0], {42}));
-  CHECK(1 == mm[0].size());
-  CHECK(ElementsAreArray(mm[1], {4}));
-  CHECK(1 == mm[1].size());
+  CHECK(ElementsAreArray(mm[KeyType{0}], {42}));
+  CHECK(1 == mm[KeyType{0}].size());
+  CHECK(ElementsAreArray(mm[KeyType{1}], {4}));
+  CHECK(1 == mm[KeyType{1}].size());
 
-  mm[1].push_back(8);
+  mm[KeyType{1}].push_back(8);
   REQUIRE(3 == mm.element_count());
   REQUIRE(2 == mm.size());
-  CHECK(ElementsAreArray(mm[0], {42}));
-  CHECK(1 == mm[0].size());
-  CHECK(ElementsAreArray(mm[1], {4, 8}));
-  CHECK(2 == mm[1].size());
+  CHECK(ElementsAreArray(mm[KeyType{0}], {42}));
+  CHECK(1 == mm[KeyType{0}].size());
+  CHECK(ElementsAreArray(mm[KeyType{1}], {4, 8}));
+  CHECK(2 == mm[KeyType{1}].size());
 
-  mm[1].emplace_back(15);
+  mm[KeyType{1}].emplace_back(15);
   REQUIRE(4 == mm.element_count());
   REQUIRE(2 == mm.size());
-  CHECK(ElementsAreArray(mm[0], {42}));
-  CHECK(1 == mm[0].size());
-  CHECK(ElementsAreArray(mm[1], {4, 8, 15}));
-  CHECK(3 == mm[1].size());
+  CHECK(ElementsAreArray(mm[KeyType{0}], {42}));
+  CHECK(1 == mm[KeyType{0}].size());
+  CHECK(ElementsAreArray(mm[KeyType{1}], {4, 8, 15}));
+  CHECK(3 == mm[KeyType{1}].size());
 
-  mm[1].push_back(16);
+  mm[KeyType{1}].push_back(16);
   REQUIRE(5 == mm.element_count());
   REQUIRE(2 == mm.size());
-  CHECK(ElementsAreArray(mm[0], {42}));
-  CHECK(1 == mm[0].size());
-  CHECK(ElementsAreArray(mm[1], {4, 8, 15, 16}));
-  CHECK(4 == mm[1].size());
+  CHECK(ElementsAreArray(mm[KeyType{0}], {42}));
+  CHECK(1 == mm[KeyType{0}].size());
+  CHECK(ElementsAreArray(mm[KeyType{1}], {4, 8, 15, 16}));
+  CHECK(4 == mm[KeyType{1}].size());
 
-  mm[0].push_back(23);
+  mm[KeyType{0}].push_back(23);
   REQUIRE(6 == mm.element_count());
   REQUIRE(2 == mm.size());
-  CHECK(ElementsAreArray(mm[0], {42, 23}));
-  CHECK(2 == mm[0].size());
-  CHECK(ElementsAreArray(mm[1], {4, 8, 15, 16}));
-  CHECK(4 == mm[1].size());
+  CHECK(ElementsAreArray(mm[KeyType{0}], {42, 23}));
+  CHECK(2 == mm[KeyType{0}].size());
+  CHECK(ElementsAreArray(mm[KeyType{1}], {4, 8, 15, 16}));
+  CHECK(4 == mm[KeyType{1}].size());
 }
 
 TEST_CASE("mutable_fws_multimap_test, graph_1") {
@@ -169,16 +177,17 @@ TEST_CASE("mutable_fws_multimap_test, int_2") {
   CHECK(42 == mm[1].back());
 }
 
-TEST_CASE("mutable_fws_multimap_test, int_insert_1") {
-  auto mm = build_test_map_1();
+TEST_CASE_TEMPLATE("mutable_fws_multimap_test, int_insert_1", KeyType,
+                   strong_key<unsigned>, weak_key<unsigned>) {
+  auto mm = build_test_map_1<KeyType>();
 
-  mm[1].insert(std::next(mm[1].begin(), 2), 20);
+  mm[KeyType{1}].insert(std::next(mm[KeyType{1}].begin(), 2), 20);
 
   REQUIRE(3 == mm.size());
   CHECK(13 == mm.element_count());
-  CHECK(ElementsAreArray(mm[0], {4, 8}));
-  CHECK(ElementsAreArray(mm[1], {15, 16, 20, 23, 42}));
-  CHECK(ElementsAreArray(mm[2], {100, 200, 250, 300, 350, 400}));
+  CHECK(ElementsAreArray(mm[KeyType{0}], {4, 8}));
+  CHECK(ElementsAreArray(mm[KeyType{1}], {15, 16, 20, 23, 42}));
+  CHECK(ElementsAreArray(mm[KeyType{2}], {100, 200, 250, 300, 350, 400}));
 }
 
 TEST_CASE("mutable_fws_multimap_test, int_insert_2") {
@@ -194,48 +203,49 @@ TEST_CASE("mutable_fws_multimap_test, int_insert_2") {
   CHECK(ElementsAreArray(mm[2], {100, 200, 250, 300, 350, 400}));
 }
 
-TEST_CASE("mutable_fws_multimap_test, int_erase_1") {
-  auto mm = build_test_map_1();
+TEST_CASE_TEMPLATE("mutable_fws_multimap_test, int_erase_1", KeyType,
+                   weak_key<unsigned>, strong_key<unsigned>) {
+  auto mm = build_test_map_1<KeyType>();
 
-  utl::erase(mm[1], 16);
+  utl::erase(mm[KeyType{1}], 16);
 
   REQUIRE(3 == mm.size());
   CHECK(11 == mm.element_count());
-  CHECK(ElementsAreArray(mm[0], {4, 8}));
-  CHECK(ElementsAreArray(mm[1], {15, 23, 42}));
-  CHECK(ElementsAreArray(mm[2], {100, 200, 250, 300, 350, 400}));
+  CHECK(ElementsAreArray(mm[KeyType{0}], {4, 8}));
+  CHECK(ElementsAreArray(mm[KeyType{1}], {15, 23, 42}));
+  CHECK(ElementsAreArray(mm[KeyType{2}], {100, 200, 250, 300, 350, 400}));
 
-  utl::erase(mm[2], 100);
+  utl::erase(mm[KeyType{2}], 100);
 
   REQUIRE(3 == mm.size());
   CHECK(10 == mm.element_count());
-  CHECK(ElementsAreArray(mm[0], {4, 8}));
-  CHECK(ElementsAreArray(mm[1], {15, 23, 42}));
-  CHECK(ElementsAreArray(mm[2], {200, 250, 300, 350, 400}));
+  CHECK(ElementsAreArray(mm[KeyType{0}], {4, 8}));
+  CHECK(ElementsAreArray(mm[KeyType{1}], {15, 23, 42}));
+  CHECK(ElementsAreArray(mm[KeyType{2}], {200, 250, 300, 350, 400}));
 
-  utl::erase(mm[2], 400);
+  utl::erase(mm[KeyType{2}], 400);
 
   REQUIRE(3 == mm.size());
   CHECK(9 == mm.element_count());
-  CHECK(ElementsAreArray(mm[0], {4, 8}));
-  CHECK(ElementsAreArray(mm[1], {15, 23, 42}));
-  CHECK(ElementsAreArray(mm[2], {200, 250, 300, 350}));
+  CHECK(ElementsAreArray(mm[KeyType{0}], {4, 8}));
+  CHECK(ElementsAreArray(mm[KeyType{1}], {15, 23, 42}));
+  CHECK(ElementsAreArray(mm[KeyType{2}], {200, 250, 300, 350}));
 
-  utl::erase(mm[2], 250);
-
-  REQUIRE(3 == mm.size());
-  CHECK(8 == mm.element_count());
-  CHECK(ElementsAreArray(mm[0], {4, 8}));
-  CHECK(ElementsAreArray(mm[1], {15, 23, 42}));
-  CHECK(ElementsAreArray(mm[2], {200, 300, 350}));
-
-  utl::erase(mm[1], 404);
+  utl::erase(mm[KeyType{2}], 250);
 
   REQUIRE(3 == mm.size());
   CHECK(8 == mm.element_count());
-  CHECK(ElementsAreArray(mm[0], {4, 8}));
-  CHECK(ElementsAreArray(mm[1], {15, 23, 42}));
-  CHECK(ElementsAreArray(mm[2], {200, 300, 350}));
+  CHECK(ElementsAreArray(mm[KeyType{0}], {4, 8}));
+  CHECK(ElementsAreArray(mm[KeyType{1}], {15, 23, 42}));
+  CHECK(ElementsAreArray(mm[KeyType{2}], {200, 300, 350}));
+
+  utl::erase(mm[KeyType{1}], 404);
+
+  REQUIRE(3 == mm.size());
+  CHECK(8 == mm.element_count());
+  CHECK(ElementsAreArray(mm[KeyType{0}], {4, 8}));
+  CHECK(ElementsAreArray(mm[KeyType{1}], {15, 23, 42}));
+  CHECK(ElementsAreArray(mm[KeyType{2}], {200, 300, 350}));
 }
 
 TEST_CASE("mutable_fws_multimap_test, int_erase_2") {

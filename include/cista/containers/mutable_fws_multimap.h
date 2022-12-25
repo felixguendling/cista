@@ -478,7 +478,7 @@ struct dynamic_fws_multimap_base {
     element_count_ = 0U;
   }
 
-  size_type insert_new_entry(access_t const i) {
+  size_type insert_new_entry(size_type const i) {
     auto const map_index = to_idx(i);
     assert(map_index < index_.size());
     auto& idx = index_[map_index];
@@ -491,17 +491,15 @@ struct dynamic_fws_multimap_base {
     return data_index;
   }
 
-  void grow_bucket(access_t const map_index, index_type& idx) {
+  void grow_bucket(size_type const map_index, index_type& idx) {
     grow_bucket(to_idx(map_index), idx, idx.capacity_ + 1U);
   }
 
-  void grow_bucket(access_t const i, index_type& idx,
+  void grow_bucket(size_type const map_index, index_type& idx,
                    size_type const requested_capacity) {
     /* Currently, only trivially copyable types are supported.
      * Changing this would require to do custom memory management. */
     static_assert(std::is_trivially_copyable_v<T>);
-
-    auto const map_index = to_idx(i);
 
     assert(requested_capacity > 0U);
     auto const new_capacity =
@@ -586,8 +584,7 @@ struct dynamic_fws_multimap_base {
     }
   }
 
-  size_type push_back_entry(size_type const i, value_type const& val) {
-    auto const map_index = to_idx(i);
+  size_type push_back_entry(size_type const map_index, value_type const& val) {
     auto const data_index = insert_new_entry(map_index);
     data_[data_index] = val;
     ++element_count_;
