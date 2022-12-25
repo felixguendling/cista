@@ -9,7 +9,7 @@
 namespace cista {
 
 template <typename Key, typename DataVec, typename IndexVec>
-struct vecvec {
+struct basic_vecvec {
   static_assert(std::is_same_v<typename IndexVec::value_type, base_t<Key>>);
 
   using data_value_type = typename DataVec::value_type;
@@ -25,7 +25,8 @@ struct vecvec {
     using pointer = std::add_pointer_t<value_type>;
     using reference = std::add_lvalue_reference<value_type>;
 
-    bucket(vecvec* map, index_value_type const i) : map_{map}, i_{to_idx(i)} {}
+    bucket(basic_vecvec* map, index_value_type const i)
+        : map_{map}, i_{to_idx(i)} {}
 
     template <typename T = std::decay_t<data_value_type>,
               typename = std::enable_if_t<std::is_same_v<T, char>>>
@@ -132,7 +133,7 @@ struct vecvec {
       return bucket_begin_idx() + i < bucket_end_idx();
     }
 
-    vecvec* map_;
+    basic_vecvec* map_;
     index_value_type i_;
   };
 
@@ -146,7 +147,7 @@ struct vecvec {
     using pointer = std::add_pointer_t<value_type>;
     using reference = std::add_lvalue_reference<value_type>;
 
-    const_bucket(vecvec const* map, index_value_type const i)
+    const_bucket(basic_vecvec const* map, index_value_type const i)
         : map_{map}, i_{to_idx(i)} {}
 
     template <typename T = std::decay_t<data_value_type>,
@@ -240,7 +241,7 @@ struct vecvec {
     }
 
     std::size_t i_;
-    vecvec const* map_;
+    basic_vecvec const* map_;
   };
 
   using value_type = bucket;
@@ -249,12 +250,14 @@ struct vecvec {
   const_bucket operator[](Key const i) const { return {this, to_idx(i)}; }
 
   const_bucket at(Key const i) const {
-    verify(to_idx(i) < bucket_starts_.size(), "vecvec::at: index out of range");
+    verify(to_idx(i) < bucket_starts_.size(),
+           "basic_vecvec::at: index out of range");
     return {this, to_idx(i)};
   }
 
   bucket at(Key const i) {
-    verify(to_idx(i) < bucket_starts_.size(), "vecvec::at: index out of range");
+    verify(to_idx(i) < bucket_starts_.size(),
+           "basic_vecvec::at: index out of range");
     return {this, to_idx(i)};
   }
 
@@ -288,10 +291,10 @@ struct vecvec {
   const_bucket begin() const { return const_bucket{this, 0U}; }
   const_bucket end() const { return const_bucket{this, size()}; }
 
-  friend bucket begin(vecvec& m) { return m.begin(); }
-  friend bucket end(vecvec& m) { return m.end(); }
-  friend const_bucket begin(vecvec const& m) { return m.begin(); }
-  friend const_bucket end(vecvec const& m) { return m.end(); }
+  friend bucket begin(basic_vecvec& m) { return m.begin(); }
+  friend bucket end(basic_vecvec& m) { return m.end(); }
+  friend const_bucket begin(basic_vecvec const& m) { return m.begin(); }
+  friend const_bucket end(basic_vecvec const& m) { return m.end(); }
 
   DataVec data_;
   IndexVec bucket_starts_;
@@ -300,14 +303,14 @@ struct vecvec {
 namespace offset {
 
 template <typename K, typename V>
-using vecvec = vecvec<K, vector<V>, vector<base_t<K>>>;
+using vecvec = basic_vecvec<K, vector<V>, vector<base_t<K>>>;
 
 }  // namespace offset
 
 namespace raw {
 
 template <typename K, typename V>
-using vecvec = vecvec<K, vector<V>, vector<base_t<K>>>;
+using vecvec = basic_vecvec<K, vector<V>, vector<base_t<K>>>;
 
 }  // namespace raw
 
