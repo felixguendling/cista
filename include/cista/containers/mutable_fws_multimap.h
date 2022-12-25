@@ -51,10 +51,13 @@ struct dynamic_fws_multimap_base {
     size_type capacity() const noexcept { return get_index().capacity_; }
     bool empty() const noexcept { return size() == 0; }
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wclass-conversion"
     template <bool IsConst = Const, typename = std::enable_if_t<!IsConst>>
     operator bucket<true>() {
       return bucket{multimap_, index_};
     }
+#pragma clang diagnostic pop
 
     iterator begin() { return mutable_mm().data_.begin() + get_index().begin_; }
 
@@ -101,12 +104,12 @@ struct dynamic_fws_multimap_base {
 
     value_type& back() {
       assert(!empty());
-      return (*this)[size() - 1U];
+      return (*this)[static_cast<size_type>(size() - 1U)];
     }
 
     value_type const& back() const {
       assert(!empty());
-      return (*this)[size() - 1U];
+      return (*this)[static_cast<size_type>(size() - 1U)];
     }
 
     size_type data_index(size_type const index) const {
@@ -165,7 +168,7 @@ struct dynamic_fws_multimap_base {
         mutable_mm().element_count_ -= old_size - new_size;
       } else if (new_size > old_size) {
         for (auto i = old_size; i < new_size; ++i) {
-          data[index.begin_ + i] = init;
+          data[static_cast<unsigned>(index.begin_ + i)] = init;
         }
         mutable_mm().element_count_ += new_size - old_size;
       }
@@ -175,7 +178,7 @@ struct dynamic_fws_multimap_base {
     template <bool IsConst = Const, typename = std::enable_if_t<!IsConst>>
     void pop_back() {
       if (!empty()) {
-        resize(size() - 1U);
+        resize(static_cast<size_type>(size() - 1U));
       }
     }
 

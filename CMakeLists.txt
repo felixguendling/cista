@@ -8,7 +8,8 @@ project(cista LANGUAGES CXX VERSION 0.7)
 
 include(GNUInstallDirs)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR
+    "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
   set(cista-compile-flags
      -Wno-global-constructors
      -Wno-exit-time-destructors

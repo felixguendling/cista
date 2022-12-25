@@ -18,9 +18,9 @@ void set(std::vector<bool>& v, std::string_view s) {
 }
 
 void set(cista::raw::bitvec& v, std::string_view s) {
-  v.resize(s.size());
+  v.resize(static_cast<unsigned>(s.size()));
   for (auto i = 0U; i != s.size(); ++i) {
-    auto const j = s.size() - i - 1;
+    auto const j = static_cast<unsigned>(s.size() - i - 1);
     v.set(j, s[i] != '0');
   }
 }
@@ -42,7 +42,7 @@ std::string to_string(std::vector<bool> const& v) {
 template <typename T>
 bool bitvec_lt(T const& x, T const& y) {
   assert(x.size() == y.size());
-  for (size_t i = x.size() - 1; i != 0; --i) {
+  for (auto i = x.size() - 1; i != 0; --i) {
     if (x[i] ^ y[i]) return y[i];
   }
   if (x[0] ^ y[0]) return y[0];

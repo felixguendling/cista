@@ -18,7 +18,9 @@ namespace cista {
 template <typename Vec>
 struct basic_bitvec {
   using block_t = typename Vec::value_type;
-  static constexpr auto const bits_per_block = sizeof(block_t) * 8;
+  using size_type = typename Vec::size_type;
+  static constexpr auto const bits_per_block =
+      static_cast<unsigned>(sizeof(block_t) * 8);
 
   constexpr basic_bitvec() noexcept {}
   constexpr basic_bitvec(std::string_view s) noexcept { set(s); }
@@ -33,11 +35,12 @@ struct basic_bitvec {
 
   auto cista_members() noexcept { return std::tie(blocks_); }
 
-  static constexpr std::size_t num_blocks(std::size_t num_bits) {
-    return num_bits / bits_per_block + (num_bits % bits_per_block == 0 ? 0 : 1);
+  static constexpr unsigned num_blocks(std::size_t num_bits) {
+    return static_cast<unsigned>(num_bits / bits_per_block +
+                                 (num_bits % bits_per_block == 0 ? 0 : 1));
   }
 
-  void resize(std::size_t const new_size) {
+  void resize(size_type const new_size) {
     if (new_size == size_) {
       return;
     }
@@ -59,10 +62,10 @@ struct basic_bitvec {
     }
   }
 
-  constexpr void set(std::size_t const i, bool const val = true) noexcept {
+  constexpr void set(size_type const i, bool const val = true) noexcept {
     assert(i < size_);
     assert((i / bits_per_block) < blocks_.size());
-    auto& block = blocks_[i / bits_per_block];
+    auto& block = blocks_[static_cast<unsigned>(i) / bits_per_block];
     auto const bit = i % bits_per_block;
     if (val) {
       block |= (block_t{1U} << bit);
@@ -73,7 +76,7 @@ struct basic_bitvec {
 
   void reset() noexcept { blocks_ = {}; }
 
-  bool operator[](std::size_t i) const noexcept { return test(i); }
+  bool operator[](size_type i) const noexcept { return test(i); }
 
   std::size_t count() const noexcept {
     auto sum = std::size_t{0U};
@@ -83,24 +86,24 @@ struct basic_bitvec {
     return sum + popcount(sanitized_last_block());
   }
 
-  constexpr bool test(std::size_t const i) const noexcept {
+  constexpr bool test(size_type const i) const noexcept {
     if (i >= size_) {
       return false;
     }
     assert((i / bits_per_block) < blocks_.size());
-    auto const block = blocks_[i / bits_per_block];
+    auto const block = blocks_[static_cast<unsigned>(i) / bits_per_block];
     auto const bit = (i % bits_per_block);
     return (block & (block_t{1U} << bit)) != 0U;
   }
 
-  std::size_t size() const noexcept { return size_; }
+  size_type size() const noexcept { return size_; }
   bool empty() const noexcept { return size() == 0U; }
 
   bool any() const noexcept {
     if (empty()) {
       return false;
     }
-    for (auto i = std::size_t{0U}; i != blocks_.size() - 1; ++i) {
+    for (auto i = size_type{0U}; i != blocks_.size() - 1; ++i) {
       if (blocks_[i] != 0U) {
         return true;
       }
@@ -136,7 +139,7 @@ struct basic_bitvec {
       return true;
     }
 
-    for (auto i = std::size_t{0U}; i != a.blocks_.size() - 1; ++i) {
+    for (auto i = size_type{0U}; i != a.blocks_.size() - 1; ++i) {
       if (a.blocks_[i] != b.blocks_[i]) {
         return false;
       }
@@ -304,11 +307,11 @@ struct basic_bitvec {
       auto const shift_bits = shift % bits_per_block;
 
       if (shift_bits == 0U) {
-        for (auto i = std::size_t{blocks_.size() - 1}; i >= shift_blocks; --i) {
+        for (auto i = size_type{blocks_.size() - 1}; i >= shift_blocks; --i) {
           blocks_[i] = blocks_[i - shift_blocks];
         }
       } else {
-        for (auto i = std::size_t{blocks_.size() - 1}; i != shift_blocks; --i) {
+        for (auto i = size_type{blocks_.size() - 1}; i != shift_blocks; --i) {
           blocks_[i] =
               (blocks_[i - shift_blocks] << shift_bits) |
               (blocks_[i - shift_blocks - 1] >> (bits_per_block - shift_bits));
@@ -340,7 +343,7 @@ struct basic_bitvec {
     return out << b.str();
   }
 
-  std::size_t size_{0U};
+  size_type size_{0U};
   Vec blocks_;
 };
 
