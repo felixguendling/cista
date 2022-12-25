@@ -25,7 +25,7 @@ struct basic_bitvec {
   static constexpr basic_bitvec max(std::size_t const size) {
     basic_bitvec ret;
     ret.resize(size);
-    for (auto& b : b.blocks_) {
+    for (auto& b : ret.blocks_) {
       b = std::numeric_limits<block_t>::max();
     }
     return ret;
