@@ -71,7 +71,7 @@ struct variant {
   template <typename Arg,
             typename = std::enable_if_t<
                 index_of_type<std::decay_t<Arg>, T...>() != TYPE_NOT_FOUND>>
-  constexpr explicit variant(Arg&& arg)
+  constexpr variant(Arg&& arg)
       : idx_{static_cast<index_t>(index_of_type<Arg, T...>())} {
 #if defined(CISTA_ZERO_OUT)
     std::memset(&storage_, 0, sizeof(storage_));
@@ -217,12 +217,18 @@ struct variant {
 
   template <typename F>
   auto apply(F&& f) -> decltype(f(std::declval<type_at_index_t<0U, T...>>())) {
+    if (idx_ == NO_VALUE) {
+      throw std::runtime_error{"variant::apply: no value"};
+    }
     return apply(std::forward<F>(f), idx_, *this);
   }
 
   template <typename F>
   auto apply(F&& f) const
       -> decltype(f(std::declval<type_at_index_t<0U, T...>>())) {
+    if (idx_ == NO_VALUE) {
+      throw std::runtime_error{"variant::apply: no value"};
+    }
     return apply(std::forward<F>(f), idx_, *this);
   }
 

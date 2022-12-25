@@ -9,6 +9,7 @@
 
 using my_key = cista::strong<std::uint32_t, struct _key>;
 
+/*
 struct my_entry {
   my_entry() : i_{static_cast<int*>(malloc(sizeof(int)))} {
     cista::verify(i_ != nullptr, "bad malloc");
@@ -60,6 +61,9 @@ struct my_entry {
 
   int* i_{nullptr};
 };
+*/
+
+using my_entry = int;
 
 int run(std::uint8_t const* data, size_t const size) {
   cista::offset::mutable_fws_multimap<my_key, my_entry> uut;
@@ -73,7 +77,7 @@ int run(std::uint8_t const* data, size_t const size) {
     auto const insert = data[8] <= 128 ? true : false;
 
     std::memcpy(&key.v_, data, sizeof(key.v_));
-    std::memcpy(value.i_, data + sizeof(key.v_), sizeof(int));
+    std::memcpy(&value, data + sizeof(key.v_), sizeof(int));
 
     if (key > 1'000'000) {
       continue;
@@ -102,7 +106,7 @@ int run(std::uint8_t const* data, size_t const size) {
     using std::begin;
     using std::end;
     auto const key = bucket.index();
-    auto const ref_range = ref.equal_range(key);
+    auto const ref_range = ref.equal_range(my_key{key});
     auto const equal = std::equal(
         begin(bucket), end(bucket), ref_range.first, ref_range.second,
         [](my_entry const& a, std::pair<my_key, my_entry> const& b) {

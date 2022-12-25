@@ -107,6 +107,9 @@ struct mmap {
 
   std::size_t size() const noexcept { return used_size_; }
 
+  std::string_view view() const noexcept {
+    return {static_cast<char const*>(addr_), size()};
+  }
   std::uint8_t* data() noexcept { return static_cast<std::uint8_t*>(addr_); }
   std::uint8_t const* data() const noexcept {
     return static_cast<std::uint8_t const*>(addr_);

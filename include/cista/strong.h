@@ -19,6 +19,13 @@ struct strong {
       std::is_nothrow_move_constructible_v<T>)
       : v_{std::move(v)} {}
 
+  template <typename X>
+#if _MSVC_LANG >= 202002L || __cplusplus >= 202002L
+  requires std::is_integral_v<std::decay_t<X>> &&
+      std::is_integral_v<std::decay_t<T>>
+#endif
+  explicit constexpr strong(X&& x) : v_{static_cast<T>(x)} {}
+
   constexpr strong(strong&& o) noexcept(
       std::is_nothrow_move_constructible_v<T>) = default;
   constexpr strong& operator=(strong&& o) noexcept(
@@ -54,33 +61,45 @@ struct strong {
   }
 
   constexpr strong operator+(strong const& s) const {
-    return strong{v_ + s.v_};
+    return strong{static_cast<value_t>(v_ + s.v_)};
   }
   constexpr strong operator-(strong const& s) const {
-    return strong{v_ - s.v_};
+    return strong{static_cast<value_t>(v_ - s.v_)};
   }
   constexpr strong operator*(strong const& s) const {
-    return strong{v_ * s.v_};
+    return strong{static_cast<value_t>(v_ * s.v_)};
   }
   constexpr strong operator/(strong const& s) const {
-    return strong{v_ / s.v_};
+    return strong{static_cast<value_t>(v_ / s.v_)};
   }
-  constexpr strong operator+(T const& i) const { return strong{v_ + i}; }
-  constexpr strong operator-(T const& i) const { return strong{v_ - i}; }
-  constexpr strong operator*(T const& i) const { return strong{v_ * i}; }
-  constexpr strong operator/(T const& i) const { return strong{v_ / i}; }
+  constexpr strong operator+(T const& i) const {
+    return strong{static_cast<value_t>(v_ + i)};
+  }
+  constexpr strong operator-(T const& i) const {
+    return strong{static_cast<value_t>(v_ - i)};
+  }
+  constexpr strong operator*(T const& i) const {
+    return strong{static_cast<value_t>(v_ * i)};
+  }
+  constexpr strong operator/(T const& i) const {
+    return strong{static_cast<value_t>(v_ / i)};
+  }
 
-  constexpr strong& operator+=(T const& i) const {
+  constexpr strong& operator+=(T const& i) {
     v_ += i;
     return *this;
   }
-  constexpr strong& operator-=(T const& i) const {
+  constexpr strong& operator-=(T const& i) {
     v_ -= i;
     return *this;
   }
 
-  constexpr strong operator>>(T const& i) const { return strong{v_ >> i}; }
-  constexpr strong operator<<(T const& i) const { return strong{v_ << i}; }
+  constexpr strong operator>>(T const& i) const {
+    return strong{static_cast<value_t>(v_ >> i)};
+  }
+  constexpr strong operator<<(T const& i) const {
+    return strong{static_cast<value_t>(v_ << i)};
+  }
   constexpr strong operator>>(strong const& o) const { return v_ >> o.v_; }
   constexpr strong operator<<(strong const& o) const { return v_ << o.v_; }
 
@@ -126,9 +145,23 @@ template <typename T>
 constexpr auto const is_strong_v = is_strong<T>::value;
 
 template <typename T, typename Tag>
-constexpr typename strong<T, Tag>::value_t to_idx(strong<T, Tag> const& s) {
+inline constexpr typename strong<T, Tag>::value_t to_idx(
+    strong<T, Tag> const& s) {
   return s.v_;
 }
+
+template <typename T>
+struct base_type {
+  using type = T;
+};
+
+template <typename T, typename Tag>
+struct base_type<strong<T, Tag>> {
+  using type = T;
+};
+
+template <typename T>
+using base_t = typename base_type<T>::type;
 
 template <typename T>
 T to_idx(T const& t) {

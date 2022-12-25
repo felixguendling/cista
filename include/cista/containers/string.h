@@ -14,6 +14,7 @@ namespace cista {
 template <typename Ptr = char const*>
 struct generic_string {
   using msize_t = std::uint32_t;
+  using value_type = char;
 
   static msize_t mstrlen(char const* s) noexcept {
     return static_cast<msize_t>(std::strlen(s));
@@ -40,6 +41,11 @@ struct generic_string {
   char* end() noexcept { return data() + size(); }
   char const* begin() const noexcept { return data(); }
   char const* end() const noexcept { return data() + size(); }
+
+  friend char const* begin(generic_string const& s) { return s.begin(); }
+  friend char* begin(generic_string& s) { return s.begin(); }
+  friend char const* end(generic_string const& s) { return s.end(); }
+  friend char* end(generic_string& s) { return s.end(); }
 
   bool is_short() const noexcept { return s_.is_short_; }
 
@@ -330,13 +336,17 @@ struct basic_string : public generic_string<Ptr> {
   basic_string(std::string_view s) : base{s, base::owning} {}
   basic_string(std::string const& s) : base{s, base::owning} {}
   basic_string(char const* s) : base{s, base::owning} {}
+  basic_string(char const* s, typename base::msize_t const len)
+      : base{s, len, base::owning} {}
 
   basic_string(basic_string const& o) { base::set_owning(o.data(), o.size()); }
-  basic_string(basic_string&& o) { base::set_owning(o.data(), o.size()); }
+  basic_string(basic_string&& o) { base::move_from(std::move(o)); }
+
   basic_string& operator=(basic_string const& o) {
     base::set_owning(o.data(), o.size());
     return *this;
   }
+
   basic_string& operator=(basic_string&& o) {
     base::move_from(std::move(o));
     return *this;
@@ -368,9 +378,11 @@ struct basic_string_view : public generic_string<Ptr> {
     return out << s.view();
   }
 
-  basic_string_view(std::string_view s) : base{s, base::owning} {}
-  basic_string_view(std::string const& s) : base{s, base::owning} {}
-  basic_string_view(char const* s) : base{s, base::owning} {}
+  basic_string_view(std::string_view s) : base{s, base::non_owning} {}
+  basic_string_view(std::string const& s) : base{s, base::non_owning} {}
+  basic_string_view(char const* s) : base{s, base::non_owning} {}
+  basic_string_view(char const* s, typename base::msize_t const len)
+      : base{s, len, base::non_owning} {}
 
   basic_string_view(basic_string_view const& o) {
     base::set_non_owning(o.data(), o.size());

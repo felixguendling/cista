@@ -20,13 +20,16 @@ namespace cista {
 template <typename T, typename Ptr, bool IndexPointers = false,
           typename TemplateSizeType = std::uint32_t>
 struct basic_vector {
-  using size_type = TemplateSizeType;
+  using size_type = base_t<TemplateSizeType>;
+  using access_type = TemplateSizeType;
   using value_type = T;
   using iterator = T*;
   using const_iterator = T const*;
 
   basic_vector() noexcept = default;
-  explicit basic_vector(TemplateSizeType size) { resize(size); }
+  explicit basic_vector(size_type const size, T init = T{}) {
+    resize(size, std::move(init));
+  }
   basic_vector(std::initializer_list<T> init) { set(init.begin(), init.end()); }
 
   template <typename It>
@@ -102,45 +105,43 @@ struct basic_vector {
   friend T* begin(basic_vector& a) noexcept { return a.begin(); }
   friend T* end(basic_vector& a) noexcept { return a.end(); }
 
-  T const& operator[](TemplateSizeType const index) const noexcept {
+  T const& operator[](access_type const index) const noexcept {
     assert(el_ != nullptr && index < used_size_);
     return el_[to_idx(index)];
   }
-  T& operator[](TemplateSizeType const index) noexcept {
+  T& operator[](access_type const index) noexcept {
     assert(el_ != nullptr && index < used_size_);
     return el_[to_idx(index)];
   }
 
-  T& at(TemplateSizeType const index) {
+  T& at(access_type const index) {
     if (index >= used_size_) {
       throw std::out_of_range{"vector::at(): invalid index"};
     }
-    return (*this)[index];
+    return (*this)[to_idx(index)];
   }
 
-  T const& at(TemplateSizeType const index) const {
-    return const_cast<basic_vector*>(this)->at(index);
+  T const& at(access_type const index) const {
+    return const_cast<basic_vector*>(this)->at(to_idx(index));
   }
 
-  T const& back() const noexcept {
-    return ptr_cast(el_)[to_idx(used_size_) - 1];
-  }
-  T& back() noexcept { return ptr_cast(el_)[to_idx(used_size_) - 1]; }
+  T const& back() const noexcept { return ptr_cast(el_)[used_size_ - 1]; }
+  T& back() noexcept { return ptr_cast(el_)[used_size_ - 1]; }
 
   T& front() noexcept { return ptr_cast(el_)[0]; }
   T const& front() const noexcept { return ptr_cast(el_)[0]; }
 
-  TemplateSizeType size() const noexcept { return used_size_; }
-  bool empty() const noexcept { return size() == 0; }
+  size_type size() const noexcept { return used_size_; }
+  bool empty() const noexcept { return size() == 0U; }
 
   template <typename It>
   void set(It begin_it, It end_it) {
     auto const range_size = std::distance(begin_it, end_it);
-    verify(range_size >= 0 &&
-               range_size <= std::numeric_limits<TemplateSizeType>::max(),
-           "cista::vector::set: invalid range");
+    verify(
+        range_size >= 0 && range_size <= std::numeric_limits<size_type>::max(),
+        "cista::vector::set: invalid range");
 
-    reserve(static_cast<TemplateSizeType>(range_size));
+    reserve(static_cast<size_type>(range_size));
 
     auto copy_source = begin_it;
     auto copy_target = el_;
@@ -148,12 +149,12 @@ struct basic_vector {
       new (copy_target) T{std::forward<decltype(*copy_source)>(*copy_source)};
     }
 
-    used_size_ = static_cast<TemplateSizeType>(range_size);
+    used_size_ = static_cast<size_type>(range_size);
   }
 
   void set(basic_vector const& arr) {
     if constexpr (std::is_trivially_copyable_v<T>) {
-      if (arr.used_size_ != TemplateSizeType{0U}) {
+      if (arr.used_size_ != 0U) {
         reserve(arr.used_size_);
         std::memcpy(data(), arr.data(), arr.used_size_ * sizeof(T));
       }
@@ -204,9 +205,13 @@ struct basic_vector {
 
   template <class FwdIt>
   T* insert(T* pos, FwdIt first, FwdIt last, std::forward_iterator_tag) {
+    if (empty()) {
+      set(first, last);
+      return begin();
+    }
+
     auto const pos_idx = pos - begin();
-    auto const new_count =
-        static_cast<TemplateSizeType>(std::distance(first, last));
+    auto const new_count = static_cast<size_type>(std::distance(first, last));
     reserve(used_size_ + new_count);
     pos = begin() + pos_idx;
 
@@ -239,21 +244,21 @@ struct basic_vector {
   }
 
   void push_back(T const& el) {
-    reserve(used_size_ + 1);
+    reserve(used_size_ + 1U);
     new (el_ + used_size_) T(el);
     ++used_size_;
   }
 
   template <typename... Args>
   T& emplace_back(Args&&... el) {
-    reserve(used_size_ + 1);
+    reserve(used_size_ + 1U);
     new (el_ + used_size_) T{std::forward<Args>(el)...};
     T* ptr = el_ + used_size_;
     ++used_size_;
     return *ptr;
   }
 
-  void resize(TemplateSizeType const size, T init = T{}) {
+  void resize(size_type const size, T init = T{}) {
     reserve(size);
     for (auto i = used_size_; i < size; ++i) {
       new (el_ + i) T{init};
@@ -268,7 +273,7 @@ struct basic_vector {
     }
   }
 
-  void reserve(TemplateSizeType new_size) {
+  void reserve(size_type new_size) {
     new_size = std::max(allocated_size_, new_size);
 
     if (allocated_size_ >= new_size) {
@@ -276,8 +281,8 @@ struct basic_vector {
     }
 
     auto next_size = next_power_of_two(new_size);
-    auto num_bytes = static_cast<std::size_t>(to_idx(next_size)) * sizeof(T);
-    auto mem_buf = static_cast<T*>(std::malloc(to_idx(num_bytes)));  // NOLINT
+    auto num_bytes = static_cast<std::size_t>(next_size) * sizeof(T);
+    auto mem_buf = static_cast<T*>(std::malloc(num_bytes));  // NOLINT
     if (mem_buf == nullptr) {
       throw std::bad_alloc();
     }
@@ -325,8 +330,7 @@ struct basic_vector {
       for (auto it = new_end; it != end(); ++it) {
         it->~T();
       }
-      used_size_ -=
-          static_cast<TemplateSizeType>(std::distance(new_end, end()));
+      used_size_ -= static_cast<size_type>(std::distance(new_end, end()));
     }
     return end();
   }
@@ -371,8 +375,8 @@ struct basic_vector {
   }
 
   Ptr el_{nullptr};
-  TemplateSizeType used_size_{0};
-  TemplateSizeType allocated_size_{0};
+  size_type used_size_{0U};
+  size_type allocated_size_{0U};
   bool self_allocated_{false};
   std::uint8_t __fill_0__{0U};
   std::uint16_t __fill_1__{0U};

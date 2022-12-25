@@ -10,6 +10,7 @@
 #pragma intrinsic(_BitScanForward)
 #endif
 
+#include <cinttypes>
 #include <cstddef>
 
 namespace cista {

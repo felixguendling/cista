@@ -2,8 +2,8 @@
 
 #include <cstdio>
 #include <cstring>
-
 #include <memory>
+#include <vector>
 
 #include "cista/hash.h"
 #include "cista/offset_t.h"

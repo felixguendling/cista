@@ -1,7 +1,7 @@
 #pragma once
 
+#include <chrono>
 #include <cstdint>
-
 #include <functional>
 #include <string>
 #include <string_view>
@@ -9,6 +9,7 @@
 #include <type_traits>
 
 #include "cista/containers/offset_ptr.h"
+#include "cista/containers/pair.h"
 #include "cista/containers/string.h"
 #include "cista/decay.h"
 #include "cista/hash.h"
@@ -72,6 +73,9 @@ template <typename A, typename B>
 constexpr bool is_ptr_same = is_pointer_v<A>&& is_pointer_v<B>;
 
 template <typename T>
+struct hashing;
+
+template <typename T>
 struct hashing {
   template <typename A, typename B>
   static constexpr bool is_hash_equivalent() noexcept {
@@ -89,7 +93,8 @@ struct hashing {
     return hashing<T1>{};
   }
 
-  constexpr hash_t operator()(T const& el, hash_t const seed = BASE_HASH) {
+  constexpr hash_t operator()(T const& el,
+                              hash_t const seed = BASE_HASH) const {
     using Type = decay_t<T>;
     if constexpr (has_hash_v<Type>) {
       return hash_combine(el.hash(), seed);
@@ -108,17 +113,19 @@ struct hashing {
     } else if constexpr (is_iterable_v<Type>) {
       auto h = seed;
       for (auto const& v : el) {
-        h = hashing<decltype(v)>()(v, h);
+        h = hashing<std::decay_t<decltype(v)>>()(v, h);
       }
       return h;
     } else if constexpr (has_std_hash_v<Type>) {
       return std::hash<Type>()(el);
     } else if constexpr (to_tuple_works_v<Type>) {
       auto h = seed;
-      for_each_field(el, [&h](auto&& f) { h = hashing<decltype(f)>{}(f, h); });
+      for_each_field(el, [&h](auto&& f) {
+        h = hashing<std::decay_t<decltype(f)>>{}(f, h);
+      });
       return h;
     } else if constexpr (is_strong_v<Type>) {
-      return hashing<typename Type::value_t>{}(el.v_);
+      return hashing<typename Type::value_t>{}(el.v_, seed);
     } else {
       static_assert(has_hash_v<Type> || std::is_scalar_v<Type> ||
                         has_std_hash_v<Type> || is_iterable_v<Type> ||
@@ -128,9 +135,28 @@ struct hashing {
   }
 };
 
+template <typename Rep, typename Period>
+struct hashing<std::chrono::duration<Rep, Period>> {
+  hash_t operator()(std::chrono::duration<Rep, Period> const& el,
+                    hash_t const seed = BASE_HASH) {
+    return hashing<Rep>{}(el.count(), seed);
+  }
+};
+
 template <typename T1, typename T2>
 struct hashing<std::pair<T1, T2>> {
   constexpr hash_t operator()(std::pair<T1, T2> const& el,
+                              hash_t const seed = BASE_HASH) {
+    std::size_t h = seed;
+    h = hashing<T1>{}(el.first, h);
+    h = hashing<T2>{}(el.second, h);
+    return h;
+  }
+};
+
+template <typename T1, typename T2>
+struct hashing<pair<T1, T2>> {
+  constexpr hash_t operator()(pair<T1, T2> const& el,
                               hash_t const seed = BASE_HASH) {
     std::size_t h = seed;
     h = hashing<T1>{}(el.first, h);
@@ -161,7 +187,7 @@ struct hashing<char const*> {
 };
 
 template <typename... Args>
-hash_t build_hash(Args... args) {
+hash_t build_hash(Args const&... args) {
   hash_t h = BASE_HASH;
   ((h = hashing<decltype(args)>{}(args, h)), ...);
   return h;

@@ -233,18 +233,17 @@ constexpr decltype(auto) apply(F&& f, Tuple&& a, Tuple&& b) {
       std::forward<F>(f), std::forward<Tuple>(a), std::forward<Tuple>(b));
 }
 
-template <typename Tuple, std::size_t... I>
-constexpr decltype(auto) eq(std::index_sequence<I...>, Tuple&& a, Tuple&& b) {
-  return ((get<I>(std::forward<Tuple>(a)) == get<I>(std::forward<Tuple>(b))) &&
-          ...);
+template <typename T1, typename T2, std::size_t... I>
+constexpr decltype(auto) eq(std::index_sequence<I...>, T1&& a, T2&& b) {
+  return ((get<I>(std::forward<T1>(a)) == get<I>(std::forward<T2>(b))) && ...);
 }
 
-template <typename Tuple>
-std::enable_if_t<is_tuple_v<decay_t<Tuple>>, bool> operator==(Tuple&& a,
-                                                              Tuple&& b) {
+template <typename T1, typename T2>
+std::enable_if_t<is_tuple_v<decay_t<T1>> && is_tuple_v<decay_t<T2>>, bool>
+operator==(T1&& a, T2&& b) {
   return eq(
-      std::make_index_sequence<tuple_size_v<std::remove_reference_t<Tuple>>>{},
-      std::forward<Tuple>(a), std::forward<Tuple>(b));
+      std::make_index_sequence<tuple_size_v<std::remove_reference_t<T1>>>{},
+      std::forward<T1>(a), std::forward<T2>(b));
 }
 
 template <typename Tuple>

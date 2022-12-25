@@ -8,7 +8,8 @@ project(cista LANGUAGES CXX VERSION 0.7)
 
 include(GNUInstallDirs)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR
+    "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
   set(cista-compile-flags
      -Wno-global-constructors
      -Wno-exit-time-destructors
@@ -114,7 +115,9 @@ add_custom_target(cista-coverage
 )
 add_dependencies(cista-coverage cista-test)
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR
+    "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+  message(STATUS "Cista fuzzing enabled")
   set(cista-fuzz-targets "")
   file(GLOB_RECURSE fuzz-files fuzz/*.cc)
   foreach(fuzz-file ${fuzz-files})
