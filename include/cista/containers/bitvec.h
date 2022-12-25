@@ -23,12 +23,12 @@ struct basic_bitvec {
   constexpr basic_bitvec() noexcept {}
   constexpr basic_bitvec(std::string_view s) noexcept { set(s); }
   static constexpr basic_bitvec max(std::size_t const size) {
-    basic_bitvec b;
-    b.resize(size);
+    basic_bitvec ret;
+    ret.resize(size);
     for (auto& b : b.blocks_) {
-      b = std::numeric_limits<block_t>::max();
+      ret = std::numeric_limits<block_t>::max();
     }
-    return b;
+    return ret;
   }
 
   auto cista_members() noexcept { return std::tie(blocks_); }
