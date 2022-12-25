@@ -13,3 +13,4 @@
 #include "cista/containers/unique_ptr.h"
 #include "cista/containers/variant.h"
 #include "cista/containers/vector.h"
+#include "cista/containers/vecvec.h"
