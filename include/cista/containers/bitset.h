@@ -25,11 +25,11 @@ struct bitset {
   constexpr bitset() noexcept = default;
   constexpr bitset(std::string_view s) noexcept { set(s); }
   static constexpr bitset max() {
-    bitset b;
-    for (auto& b : b.blocks_) {
+    bitset ret;
+    for (auto& b : ret.blocks_) {
       b = std::numeric_limits<block_t>::max();
     }
-    return b;
+    return ret;
   }
 
   auto cista_members() noexcept { return std::tie(blocks_); }
