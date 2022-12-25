@@ -16,14 +16,14 @@
 namespace cista {
 
 template <typename Vec>
-struct bitvec {
+struct basic_bitvec {
   using block_t = typename Vec::value_type;
   static constexpr auto const bits_per_block = sizeof(block_t) * 8;
 
-  constexpr bitvec() noexcept {}
-  constexpr bitvec(std::string_view s) noexcept { set(s); }
-  static constexpr bitvec max(std::size_t const size) {
-    bitvec b;
+  constexpr basic_bitvec() noexcept {}
+  constexpr basic_bitvec(std::string_view s) noexcept { set(s); }
+  static constexpr basic_bitvec max(std::size_t const size) {
+    basic_bitvec b;
     b.resize(size);
     for (auto& b : b.blocks_) {
       b = std::numeric_limits<block_t>::max();
@@ -128,7 +128,8 @@ struct bitvec {
     return s;
   }
 
-  friend bool operator==(bitvec const& a, bitvec const& b) noexcept {
+  friend bool operator==(basic_bitvec const& a,
+                         basic_bitvec const& b) noexcept {
     assert(a.size() == b.size());
 
     if (a.empty() && b.empty()) {
@@ -143,7 +144,7 @@ struct bitvec {
     return a.sanitized_last_block() == b.sanitized_last_block();
   }
 
-  friend bool operator<(bitvec const& a, bitvec const& b) noexcept {
+  friend bool operator<(basic_bitvec const& a, basic_bitvec const& b) noexcept {
     assert(a.size() == b.size());
     if (a.empty() && b.empty()) {
       return false;
@@ -167,23 +168,26 @@ struct bitvec {
 
     return false;
   }
-  friend bool operator!=(bitvec const& a, bitvec const& b) noexcept {
+  friend bool operator!=(basic_bitvec const& a,
+                         basic_bitvec const& b) noexcept {
     return !(a == b);
   }
 
-  friend bool operator>(bitvec const& a, bitvec const& b) noexcept {
+  friend bool operator>(basic_bitvec const& a, basic_bitvec const& b) noexcept {
     return !(a.empty() && b.empty()) && b < a;
   }
 
-  friend bool operator<=(bitvec const& a, bitvec const& b) noexcept {
+  friend bool operator<=(basic_bitvec const& a,
+                         basic_bitvec const& b) noexcept {
     return (a.empty() && b.empty()) || !(a > b);
   }
 
-  friend bool operator>=(bitvec const& a, bitvec const& b) noexcept {
+  friend bool operator>=(basic_bitvec const& a,
+                         basic_bitvec const& b) noexcept {
     return (a.empty() && b.empty()) || !(a < b);
   }
 
-  bitvec& operator&=(bitvec const& o) noexcept {
+  basic_bitvec& operator&=(basic_bitvec const& o) noexcept {
     assert(size() == o.size());
 
     for (auto i = 0U; i < blocks_.size(); ++i) {
@@ -192,7 +196,7 @@ struct bitvec {
     return *this;
   }
 
-  bitvec& operator|=(bitvec const& o) noexcept {
+  basic_bitvec& operator|=(basic_bitvec const& o) noexcept {
     assert(size() == o.size());
 
     for (auto i = 0U; i < blocks_.size(); ++i) {
@@ -201,7 +205,7 @@ struct bitvec {
     return *this;
   }
 
-  bitvec& operator^=(bitvec const& o) noexcept {
+  basic_bitvec& operator^=(basic_bitvec const& o) noexcept {
     assert(size() == o.size());
 
     for (auto i = 0U; i < blocks_.size(); ++i) {
@@ -210,7 +214,7 @@ struct bitvec {
     return *this;
   }
 
-  bitvec operator~() const noexcept {
+  basic_bitvec operator~() const noexcept {
     auto copy = *this;
     for (auto& b : copy.blocks_) {
       b = ~b;
@@ -218,25 +222,28 @@ struct bitvec {
     return copy;
   }
 
-  friend bitvec operator&(bitvec const& lhs, bitvec const& rhs) noexcept {
+  friend basic_bitvec operator&(basic_bitvec const& lhs,
+                                basic_bitvec const& rhs) noexcept {
     auto copy = lhs;
     copy &= rhs;
     return copy;
   }
 
-  friend bitvec operator|(bitvec const& lhs, bitvec const& rhs) noexcept {
+  friend basic_bitvec operator|(basic_bitvec const& lhs,
+                                basic_bitvec const& rhs) noexcept {
     auto copy = lhs;
     copy |= rhs;
     return copy;
   }
 
-  friend bitvec operator^(bitvec const& lhs, bitvec const& rhs) noexcept {
+  friend basic_bitvec operator^(basic_bitvec const& lhs,
+                                basic_bitvec const& rhs) noexcept {
     auto copy = lhs;
     copy ^= rhs;
     return copy;
   }
 
-  bitvec& operator>>=(std::size_t const shift) noexcept {
+  basic_bitvec& operator>>=(std::size_t const shift) noexcept {
     if (shift >= size_) {
       reset();
       return *this;
@@ -279,7 +286,7 @@ struct bitvec {
     }
   }
 
-  bitvec& operator<<=(std::size_t const shift) noexcept {
+  basic_bitvec& operator<<=(std::size_t const shift) noexcept {
     if (shift >= size_) {
       reset();
       return *this;
@@ -317,19 +324,19 @@ struct bitvec {
     }
   }
 
-  bitvec operator>>(std::size_t const i) const noexcept {
+  basic_bitvec operator>>(std::size_t const i) const noexcept {
     auto copy = *this;
     copy >>= i;
     return copy;
   }
 
-  bitvec operator<<(std::size_t const i) const noexcept {
+  basic_bitvec operator<<(std::size_t const i) const noexcept {
     auto copy = *this;
     copy <<= i;
     return copy;
   }
 
-  friend std::ostream& operator<<(std::ostream& out, bitvec const& b) {
+  friend std::ostream& operator<<(std::ostream& out, basic_bitvec const& b) {
     return out << b.str();
   }
 
@@ -338,11 +345,11 @@ struct bitvec {
 };
 
 namespace offset {
-using bitvec = bitvec<vector<std::uint64_t>>;
+using bitvec = basic_bitvec<vector<std::uint64_t>>;
 }
 
 namespace raw {
-using bitvec = bitvec<vector<std::uint64_t>>;
+using bitvec = basic_bitvec<vector<std::uint64_t>>;
 }
 
 }  // namespace cista
