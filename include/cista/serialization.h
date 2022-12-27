@@ -30,6 +30,13 @@
 
 namespace cista {
 
+template <typename T, typename Member>
+cista::offset_t member_offset(T const* t, Member const* m) {
+  static_assert(std::is_trivially_copyable_v<T>);
+  return (reinterpret_cast<std::uint8_t const*>(m) -
+          reinterpret_cast<std::uint8_t const*>(t));
+}
+
 // =============================================================================
 // SERIALIZE
 // -----------------------------------------------------------------------------
