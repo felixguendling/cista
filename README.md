@@ -84,6 +84,39 @@ auto b = cista::mmap("data", cista::mmap::protection::READ);
 auto positions = cista::deserialize<pos_map, MODE>(b);
 ```
 
+Advanced example showing support for non-aggregate types like derived classes:
+
+```cpp
+namespace data = cista::offset;
+constexpr auto MODE = cista::mode::WITH_VERSION;
+
+struct parent {
+  parent() = default;
+  explicit parent(int a) : x_{a}, y_{a} {}
+  auto cista_members() { return std::tie(x_, y_); }
+  int x_, y_;
+};
+struct child : parent {
+  child() = default;
+  explicit child(int a) : parent{a}, z_{a} {}
+  auto cista_members() {
+    return std::tie(*static_cast<parent*>(this), z_);
+  }
+  int z_;
+};
+
+/*
+ * Automatically defaulted for you:
+ *   - de/serialization
+ *   - hashing (use child in hash containers)
+ *   - equality comparison
+ *   - data structure version ("type hash")
+ */
+using t = data::hash_map<child, int>;
+
+// ... usage, serialization as in the previous examples
+```
+
 # Benchmarks
 
 Have a look at the [benchmark repository](https://github.com/felixguendling/cpp-serialization-benchmark) for more details.
