@@ -84,7 +84,7 @@ auto b = cista::mmap("data", cista::mmap::protection::READ);
 auto positions = cista::deserialize<pos_map, MODE>(b);
 ```
 
-Advanced example showing support for non-aggregate types like derived classes:
+Advanced example showing support for non-aggregate types like derived classes or classes with custom constructors:
 
 ```cpp
 namespace data = cista::offset;
