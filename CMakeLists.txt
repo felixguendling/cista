@@ -29,6 +29,8 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR
      -Wno-documentation-unknown-command
      -Wno-reserved-identifier
      -Wno-weak-vtables
+     -Wno-unneeded-member-function
+     -Wno-unused-member-function
      -Werror
   )
 endif()
