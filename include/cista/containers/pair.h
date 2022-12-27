@@ -10,6 +10,7 @@ struct pair {
   CISTA_COMPARABLE()
   using first_type = T1;
   using second_type = T2;
+  auto cista_members() { return std::tie(first, second); }
   T1 first{};
   T2 second{};
 };
