@@ -38,6 +38,14 @@ hash_t type_hash(std::chrono::time_point<Clock, Duration> const&, hash_t h,
   return h;
 }
 
+template <typename T, std::size_t Size>
+hash_t type_hash(array<T, Size> const&, hash_t h,
+                 std::map<hash_t, unsigned>& done) noexcept {
+  h = hash_combine(h, hash("array"));
+  h = hash_combine(h, Size);
+  return type_hash(T{}, h, done);
+}
+
 template <typename T>
 hash_t type_hash(T const& el, hash_t h,
                  std::map<hash_t, unsigned>& done) noexcept {
@@ -70,14 +78,6 @@ hash_t type_hash(T const& el, hash_t h,
     });
     return h;
   }
-}
-
-template <typename T, std::size_t Size>
-hash_t type_hash(array<T, Size> const&, hash_t h,
-                 std::map<hash_t, unsigned>& done) noexcept {
-  h = hash_combine(h, hash("array"));
-  h = hash_combine(h, Size);
-  return type_hash(T{}, h, done);
 }
 
 template <typename T, typename Ptr, bool Indexed, typename TemplateSizeType>

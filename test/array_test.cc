@@ -91,22 +91,23 @@ TEST_CASE("array serialize test") {
     struct inner {
       int b_{0};
       int c_{0};
-      data::array<int, 4> d_;
+      data::array<int, 128> d_;
     } j_;
   };
 
   cista::byte_buf buf;
 
   {
-    serialize_me obj{1, {2, 3, data::array<int, 4>{}}};
+    serialize_me obj{1, {2, 3, data::array<int, 128>{}}};
     obj.j_.d_[0] = 1;
     obj.j_.d_[1] = 2;
     obj.j_.d_[2] = 3;
     obj.j_.d_[3] = 4;
-    buf = cista::serialize(obj);
+    buf = cista::serialize<mode::WITH_VERSION>(obj);
   }  // EOL obj
 
-  auto const deserialize = cista::deserialize<serialize_me>(buf);
+  auto const deserialize =
+      cista::deserialize<serialize_me, mode::WITH_VERSION>(buf);
   CHECK(deserialize->j_.d_[0] == 1);
   CHECK(deserialize->j_.d_[1] == 2);
   CHECK(deserialize->j_.d_[2] == 3);
