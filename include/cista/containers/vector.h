@@ -118,11 +118,11 @@ struct basic_vector {
     if (index >= used_size_) {
       throw std::out_of_range{"vector::at(): invalid index"};
     }
-    return (*this)[to_idx(index)];
+    return (*this)[index];
   }
 
   T const& at(access_type const index) const {
-    return const_cast<basic_vector*>(this)->at(to_idx(index));
+    return const_cast<basic_vector*>(this)->at(index);
   }
 
   T const& back() const noexcept { return ptr_cast(el_)[used_size_ - 1]; }

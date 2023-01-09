@@ -1,65 +1,111 @@
 #pragma once
 
+#include <cinttypes>
+
 #include "cista/containers/vector.h"
 
 namespace cista {
 
-template <typename VectorType>
+template <typename Vector>
 struct base_flat_matrix {
-  using value_type = typename VectorType::value_type;
-  using size_type = typename VectorType::size_type;
+  using value_type = typename Vector::value_type;
+  using size_type = typename Vector::size_type;
 
   struct row {
-    constexpr row(base_flat_matrix& matrix, int const row_index) noexcept
-        : matrix_(matrix), row_index_(row_index) {}
+    row(base_flat_matrix& matrix, size_type const i) : matrix_(matrix), i_(i) {}
 
-    value_type& operator[](int const column_index) {
-      auto pos = matrix_.column_count_ * row_index_ + column_index;
+    using iterator = typename Vector::iterator;
+    using const_iterator = typename Vector::const_iterator;
+
+    const_iterator begin() const {
+      return std::next(matrix_.entries_, matrix_.n_columns_ * i_);
+    }
+    const_iterator end() const {
+      return std::next(matrix_.entries_, matrix_.n_columns_ * (i_ + 1));
+    }
+    iterator begin() {
+      return std::next(matrix_.entries_, matrix_.n_columns_ * i_);
+    }
+    iterator end() {
+      return std::next(matrix_.entries_, matrix_.n_columns_ * (i_ + 1));
+    }
+    friend const_iterator begin(row const& r) { return r.begin(); }
+    friend const_iterator end(row const& r) { return r.end(); }
+    friend iterator begin(row& r) { return r.begin(); }
+    friend iterator end(row& r) { return r.end(); }
+
+    value_type& operator[](size_type const j) {
+      assert(j < matrix_.n_columns_);
+      auto const pos = matrix_.n_columns_ * i_ + j;
       return matrix_.entries_[pos];
     }
 
     base_flat_matrix& matrix_;
-    int row_index_;
+    size_type i_;
   };
 
   struct const_row {
-    constexpr const_row(base_flat_matrix const& matrix,
-                        int const row_index) noexcept
-        : matrix_(matrix), row_index_(row_index) {}
+    const_row(base_flat_matrix const& matrix, size_type const i)
+        : matrix_(matrix), i_(i) {}
 
-    value_type const& operator[](int const column_index) const {
-      auto pos = matrix_.column_count_ * row_index_ + column_index;
+    using iterator = typename Vector::const_iterator;
+
+    iterator begin() const {
+      return std::next(matrix_.entries_, matrix_.n_columns_ * i_);
+    }
+    iterator end() const {
+      return std::next(matrix_.entries_, matrix_.n_columns_ * (i_ + 1));
+    }
+    friend iterator begin(const_row const& r) { return r.begin(); }
+    friend iterator end(const_row const& r) { return r.end(); }
+
+    value_type const& operator[](size_type const j) const {
+      assert(j < matrix_.n_columns_);
+      auto const pos = matrix_.n_columns_ * i_ + j;
       return matrix_.entries_[pos];
     }
 
     base_flat_matrix const& matrix_;
-    int row_index_;
+    size_type i_;
   };
 
-  row operator[](int const row_index) noexcept { return {*this, row_index}; }
-  const_row operator[](int const row_index) const noexcept {
-    return {*this, row_index};
+  row operator[](size_type i) {
+    assert(i < n_rows_);
+    return {*this, i};
+  }
+  const_row operator[](size_type i) const {
+    assert(i < n_rows_);
+    return {*this, i};
   }
 
-  value_type& operator()(int const row_index, int const column_index) {
-    return entries_[column_count_ * row_index + column_index];
+  value_type& operator()(size_type const i, size_type const j) {
+    assert(i < n_rows_ && j < n_columns_);
+    return entries_[n_columns_ * i + j];
   }
 
-  size_type column_count_{0U};
-  VectorType entries_{};
+  row at(size_type const i) {
+    verify(i < n_rows_, "matrix::at: index out of range");
+    return {*this, i};
+  }
+
+  const_row at(size_type const i) const {
+    verify(i < n_rows_, "matrix::at: index out of range");
+    return {*this, i};
+  }
+
+  void resize(size_type const n_rows, size_t const n_columns) {
+    n_rows_ = n_rows;
+    n_columns_ = n_columns;
+    entries_.resize(n_rows * n_columns);
+  }
+
+  void reset(value_type const& t) {
+    std::fill(begin(entries_), end(entries_), t);
+  }
+
+  size_type n_rows_{0U}, n_columns_{0U};
+  Vector entries_;
 };
-
-namespace detail {
-
-template <typename V>
-auto make_flat_matrix(std::uint32_t const column_count,
-                      typename V::value_type const& init) {
-  V v{};
-  v.resize(column_count * column_count, init);
-  return base_flat_matrix<V>{column_count, std::move(v)};
-}
-
-}  // namespace detail
 
 namespace offset {
 
@@ -67,9 +113,12 @@ template <typename T>
 using flat_matrix = base_flat_matrix<vector<T>>;
 
 template <typename T>
-flat_matrix<T> make_flat_matrix(std::uint32_t const column_count,
-                                T const& init = T{}) {
-  return detail::make_flat_matrix<vector<T>>(column_count, init);
+inline flat_matrix<T> make_flat_matrix(std::uint32_t const n_rows,
+                                       std::uint32_t const n_columns,
+                                       T const& init = T{}) {
+  auto v = vector<T>{};
+  v.resize(n_rows * n_columns, init);
+  return {n_rows, n_columns, std::move(v)};
 }
 
 }  // namespace offset
@@ -80,9 +129,12 @@ template <typename T>
 using flat_matrix = base_flat_matrix<vector<T>>;
 
 template <typename T>
-flat_matrix<T> make_flat_matrix(std::uint32_t const column_count,
-                                T const& init = T{}) {
-  return detail::make_flat_matrix<vector<T>>(column_count, init);
+inline flat_matrix<T> make_flat_matrix(std::uint32_t const n_rows,
+                                       std::uint32_t const n_columns,
+                                       T const& init = T{}) {
+  auto v = vector<T>{};
+  v.resize(n_rows * n_columns, init);
+  return {n_rows, n_columns, std::move(v)};
 }
 
 }  // namespace raw
