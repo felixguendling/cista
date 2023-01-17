@@ -21,12 +21,12 @@ jobs:
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
-          sudo ./llvm.sh 14
+          sudo ./llvm.sh 15
           rm llvm.sh
-          sudo apt-get install -y --no-install-recommends clang-format-14
+          sudo apt-get install -y --no-install-recommends clang-format-15
 
       - name: Format files
-        run: find include test -type f -a \( -name "*.cc" -o -name "*.h" \) -print0 | xargs -0  clang-format-14 -i
+        run: find include test -type f -a \( -name "*.cc" -o -name "*.h" \) -print0 | xargs -0  clang-format-15 -i
 
       - name: Check for differences
         run: |
@@ -46,15 +46,15 @@ jobs:
             cc: gcc-10
             mode: Debug
             valgrind: true
-          - name: Clang 14 Release
-            cxx: clang++-14
-            cc: clang-14
+          - name: Clang 15 Release
+            cxx: clang++-15
+            cc: clang-15
             mode: Release
             cxxflags: -stdlib=libc++
             ldflags: -lc++abi
-          - name: Clang 14 Debug
-            cxx: clang++-14
-            cc: clang-14
+          - name: Clang 15 Debug
+            cxx: clang++-15
+            cc: clang-15
             mode: Debug
             fuzz: true
           - key: GCC 10 Sanitizer
@@ -72,16 +72,16 @@ jobs:
 
       # ==== INSTALL ====
       - name: Install
-        if: matrix.config.cc == 'clang-14'
+        if: matrix.config.cc == 'clang-15'
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
           sudo apt-get update
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
-          sudo ./llvm.sh 14 || sudo ./llvm.sh 14 workaround
+          sudo ./llvm.sh 15 || sudo ./llvm.sh 15 workaround
           rm llvm.sh
-          sudo apt-get install -y --no-install-recommends libc++-14-dev libc++abi-14-dev clang-tidy-14 libunwind-14-dev llvm-14
+          sudo apt-get install -y --no-install-recommends libstdc++-12-dev libc++-15-dev libc++abi-15-dev clang-tidy-15 libunwind-15-dev llvm-15 libfuzzer-15-dev
 
       # ==== BUILD ====
       - name: CMake
