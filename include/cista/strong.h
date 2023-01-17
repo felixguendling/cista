@@ -21,10 +21,11 @@ struct strong {
 
   template <typename X>
 #if _MSVC_LANG >= 202002L || __cplusplus >= 202002L
-  requires std::is_integral_v<std::decay_t<X>> &&
-      std::is_integral_v<std::decay_t<T>>
+    requires std::is_integral_v<std::decay_t<X>> &&
+             std::is_integral_v<std::decay_t<T>>
 #endif
-  explicit constexpr strong(X&& x) : v_{static_cast<T>(x)} {}
+  explicit constexpr strong(X&& x) : v_{static_cast<T>(x)} {
+  }
 
   constexpr strong(strong&& o) noexcept(
       std::is_nothrow_move_constructible_v<T>) = default;
