@@ -90,11 +90,14 @@ struct test_set {
         break;
 
       case SET: {
-        auto const index = std::min({ref1.size() - 1U, ref2.size() - 1U, num});
-        ref1[index] = value;
-        ref2[index] = value;
-        uut1.set(index, value);
-        uut2.set(index, value);
+        if (!ref1.empty()) {
+          auto const index =
+              std::min({ref1.size() - 1U, ref2.size() - 1U, num});
+          ref1[index] = value;
+          ref2[index] = value;
+          uut1.set(index, value);
+          uut2.set(index, value);
+        }
         break;
       }
 
