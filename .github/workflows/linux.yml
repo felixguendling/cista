@@ -81,7 +81,7 @@ jobs:
           chmod +x llvm.sh
           sudo ./llvm.sh 14 || sudo ./llvm.sh 14 workaround
           rm llvm.sh
-          sudo apt-get install -y --no-install-recommends libc++-14-dev libc++abi-14-dev clang-tidy-14 libunwind-14-dev llvm-14 libfuzzer-14-dev
+          sudo apt-get install -y --no-install-recommends libstdc++-12-dev libc++-14-dev libc++abi-14-dev clang-tidy-14 libunwind-14-dev llvm-14 libfuzzer-14-dev
 
       # ==== BUILD ====
       - name: CMake
