@@ -38,6 +38,7 @@ endif()
 option(CISTA_ZERO_OUT "zero out fresh memory for valgrind" OFF)
 option(CISTA_COVERAGE "generate coverage report" OFF)
 option(CISTA_GENERATE_TO_TUPLE "generate include/cista/reflection/to_tuple.h" OFF)
+option(CISTA_USE_MIMALLOC "compile with mimalloc support" OFF)
 set(CISTA_HASH "FNV1A" CACHE STRING "Options: FNV1A XXH3 WYHASH WYHASH_FASTEST")
 
 add_library(cista INTERFACE)
@@ -51,6 +52,9 @@ endif()
 target_compile_definitions(cista INTERFACE CISTA_${CISTA_HASH}=1)
 if (CISTA_ZERO_OUT)
   target_compile_definitions(cista INTERFACE CISTA_ZERO_OUT=1)
+endif()
+if (CISTA_USE_MIMALLOC)
+  target_compile_definitions(cista INTERFACE CISTA_USE_MIMALLOC=1)
 endif()
 target_include_directories(cista SYSTEM INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
