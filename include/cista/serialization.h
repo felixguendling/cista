@@ -20,6 +20,7 @@
 #include "cista/strong.h"
 #include "cista/targets/buf.h"
 #include "cista/targets/file.h"
+#include "cista/type_hash/static_type_hash.h"
 #include "cista/type_hash/type_hash.h"
 #include "cista/unused_param.h"
 #include "cista/verify.h"
@@ -403,7 +404,8 @@ void serialize(Ctx& c, strong<T, Tag> const* origin,
 
 constexpr offset_t integrity_start(mode const m) noexcept {
   offset_t start = 0;
-  if (is_mode_enabled(m, mode::WITH_VERSION)) {
+  if (is_mode_enabled(m, mode::WITH_VERSION) ||
+      is_mode_enabled(m, mode::WITH_STATIC_VERSION)) {
     start += sizeof(std::uint64_t);
   }
   return start;
@@ -421,9 +423,20 @@ template <mode const Mode = mode::NONE, typename Target, typename T>
 void serialize(Target& t, T& value) {
   serialization_context<Target, Mode> c{t};
 
-  if constexpr (is_mode_enabled(Mode, mode::WITH_VERSION)) {
-    auto const h = convert_endian<Mode>(type_hash<decay_t<T>>());
-    c.write(&h, sizeof(h));
+  if constexpr (is_mode_enabled(Mode, mode::WITH_VERSION) ||
+                is_mode_enabled(Mode, mode::WITH_STATIC_VERSION)) {
+    static_assert(is_mode_enabled(Mode, mode::WITH_VERSION) ^
+                      is_mode_enabled(Mode, mode::WITH_STATIC_VERSION),
+                  "WITH_VERSION cannot be combined with WITH_STATIC_VERSION");
+
+    if constexpr (is_mode_enabled(Mode, mode::WITH_VERSION)) {
+      auto const h = convert_endian<Mode>(type_hash<decay_t<T>>());
+      c.write(&h, sizeof(h));
+    } else {
+      constexpr auto const type_hash = static_type_hash<decay_t<T>>();
+      auto const h = convert_endian<Mode>(type_hash);
+      c.write(&h, sizeof(h));
+    }
   }
 
   auto integrity_offset = offset_t{0};
