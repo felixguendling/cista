@@ -40,8 +40,9 @@ struct count_map {
     auto const it = find(k);
     if (it == end()) {
       arr_[size_] = value_type{k, static_cast<mapped_type>(size_)};
+      auto const index = size_;
       ++size_;
-      return {size_ - 1U, true};
+      return {static_cast<mapped_type>(index), true};
     } else {
       return {it->second, false};
     }
@@ -84,19 +85,16 @@ template <typename T, std::size_t NMaxTypes>
 constexpr hash_data<NMaxTypes> static_type_hash(T const*,
                                                 hash_data<NMaxTypes>) noexcept;
 
-template <typename Tuple, std::size_t NMaxTypes>
-constexpr auto hash_tuple(hash_data<NMaxTypes> h) {
-  auto const call_on_tuple_element = [&]<std::size_t I>() {
-    using element_type = std::decay_t<std::tuple_element_t<I, Tuple>>;
-    h = static_type_hash(null<element_type>(), h);
-  };
+template <typename Tuple, std::size_t NMaxTypes, std::size_t I>
+constexpr auto hash_tuple_element(hash_data<NMaxTypes> const h) {
+  using element_type = std::decay_t<std::tuple_element_t<I, Tuple>>;
+  return static_type_hash(null<element_type>(), h);
+}
 
-  auto const int_seq_for = [&]<std::size_t... I>(std::index_sequence<I...>) {
-    (call_on_tuple_element.template operator()<I>(), ...);
-  };
-
-  int_seq_for(std::make_index_sequence<std::tuple_size_v<Tuple>>());
-
+template <typename Tuple, std::size_t NMaxTypes, std::size_t... I>
+constexpr auto hash_tuple(Tuple const*, hash_data<NMaxTypes> h,
+                          std::index_sequence<I...>) {
+  (hash_tuple_element<Tuple, NMaxTypes, I>(h), ...);
   return h;
 }
 
@@ -125,7 +123,10 @@ constexpr hash_data<NMaxTypes> static_type_hash(
     return h.combine(static_type2str_hash<T>());
   } else {
     static_assert(to_tuple_works_v<Type>, "Please implement custom type hash.");
-    return hash_tuple<tuple_representation_t<T>>(h.combine(hash("struct")));
+    using tuple_t = tuple_representation_t<T>;
+    return hash_tuple<tuple_t>(
+        null<tuple_t>(), h.combine(hash("struct")),
+        std::make_index_sequence<std::tuple_size_v<tuple_t>>());
   }
 }
 
