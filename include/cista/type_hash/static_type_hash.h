@@ -58,7 +58,13 @@ struct count_map {
   }
 
   constexpr const_iterator begin() const { return std::begin(arr_); }
-  constexpr const_iterator end() const { return std::next(begin(), size_); }
+  constexpr const_iterator end() const {
+    return std::next(
+        begin(),
+        static_cast<
+            typename std::iterator_traits<const_iterator>::difference_type>(
+            size_));
+  }
 
   std::size_t size_{0U};
   std::array<value_type, Size> arr_{};
