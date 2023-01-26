@@ -135,7 +135,7 @@ constexpr auto static_type_hash(std::chrono::duration<Rep, Period> const*,
                                 hash_data<NMaxTypes> h) noexcept {
   h = h.combine(hash("duration"));
   h = static_type_hash(null<Rep>(), h);
-  h = h.combine(hash(static_type_str<Period>()));
+  h = static_type_str(null<Period>(), h);
   return h;
 }
 
@@ -144,7 +144,7 @@ constexpr auto static_type_hash(std::chrono::time_point<Clock, Duration> const*,
                                 hash_data<NMaxTypes> h) noexcept {
   h = h.combine(hash("timepoint"));
   h = static_type_hash(null<Duration>(), h);
-  h = h.combine(hash(static_type_str<Clock>()));
+  h = static_type_hash(null<Clock>(), h);
   return h;
 }
 
@@ -224,7 +224,7 @@ constexpr auto static_type_hash(strong<T, Tag> const*,
                                 hash_data<NMaxTypes> h) noexcept {
   h = h.combine(hash("strong"));
   h = static_type_hash(null<T>(), h);
-  h = h.combine(hash(static_type_str<Tag>()));
+  h = static_type_hash(null<Tag>(), h);
   return h;
 }
 
