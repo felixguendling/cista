@@ -31,12 +31,11 @@ struct count_map {
     key_type first;
     mapped_type second;
   };
-  using iterator = typename std::array<value_type, Size>::iterator;
   using const_iterator = typename std::array<value_type, Size>::const_iterator;
 
   constexpr count_map() = default;
 
-  constexpr std::pair<mapped_type, bool> add(key_type k) {
+  constexpr std::pair<mapped_type, bool> add(key_type k) noexcept {
     auto const it = find(k);
     if (it == end()) {
       arr_[size_] = value_type{k, static_cast<mapped_type>(size_)};
@@ -48,7 +47,7 @@ struct count_map {
     }
   }
 
-  constexpr const_iterator find(key_type k) const {
+  constexpr const_iterator find(key_type k) const noexcept {
     for (auto it = begin(); it != end(); ++it) {
       if (it->first == k) {
         return it;
@@ -57,8 +56,8 @@ struct count_map {
     return end();
   }
 
-  constexpr const_iterator begin() const { return std::begin(arr_); }
-  constexpr const_iterator end() const {
+  constexpr const_iterator begin() const noexcept { return std::begin(arr_); }
+  constexpr const_iterator end() const noexcept {
     return std::next(
         begin(),
         static_cast<
@@ -72,7 +71,7 @@ struct count_map {
 
 template <std::size_t NMaxTypes>
 struct hash_data {
-  constexpr hash_data combine(hash_t const h) const {
+  constexpr hash_data combine(hash_t const h) const noexcept {
     hash_data r;
     r.done_ = done_;
     r.h_ = hash_combine(h_, h);
@@ -92,14 +91,14 @@ constexpr hash_data<NMaxTypes> static_type_hash(T const*,
                                                 hash_data<NMaxTypes>) noexcept;
 
 template <typename Tuple, std::size_t NMaxTypes, std::size_t I>
-constexpr auto hash_tuple_element(hash_data<NMaxTypes> const h) {
+constexpr auto hash_tuple_element(hash_data<NMaxTypes> const h) noexcept {
   using element_type = std::decay_t<std::tuple_element_t<I, Tuple>>;
   return static_type_hash(null<element_type>(), h);
 }
 
 template <typename Tuple, std::size_t NMaxTypes, std::size_t... I>
 constexpr auto hash_tuple(Tuple const*, hash_data<NMaxTypes> h,
-                          std::index_sequence<I...>) {
+                          std::index_sequence<I...>) noexcept {
   (hash_tuple_element<Tuple, NMaxTypes, I>(h), ...);
   return h;
 }
@@ -155,7 +154,8 @@ constexpr auto static_type_hash(std::chrono::time_point<Clock, Duration> const*,
 }
 
 template <typename T, std::size_t Size, std::size_t NMaxTypes>
-constexpr auto static_type_hash(array<T, Size> const*, hash_data<NMaxTypes> h) {
+constexpr auto static_type_hash(array<T, Size> const*,
+                                hash_data<NMaxTypes> h) noexcept {
   h = static_type_hash(null<T>(), h);
   return h.combine(hash("array")).combine(Size);
 }
