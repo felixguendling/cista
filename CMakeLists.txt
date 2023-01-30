@@ -33,6 +33,8 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR
      -Wno-unused-member-function
      -Werror
   )
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  set(cista-compile-flags -Wall -Wextra)
 endif()
 
 option(CISTA_ZERO_OUT "zero out fresh memory for valgrind" OFF)

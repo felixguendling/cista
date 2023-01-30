@@ -51,13 +51,17 @@ struct dynamic_fws_multimap_base {
     size_type capacity() const noexcept { return get_index().capacity_; }
     bool empty() const noexcept { return size() == 0; }
 
+#ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wclass-conversion"
+#endif
     template <bool IsConst = Const, typename = std::enable_if_t<!IsConst>>
     operator bucket<true>() {
       return bucket{multimap_, index_};
     }
+#ifdef __clang__
 #pragma clang diagnostic pop
+#endif
 
     iterator begin() { return mutable_mm().data_.begin() + get_index().begin_; }
 

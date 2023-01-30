@@ -339,7 +339,7 @@ struct basic_string : public generic_string<Ptr> {
   basic_string(char const* s, typename base::msize_t const len)
       : base{s, len, base::owning} {}
 
-  basic_string(basic_string const& o) { base::set_owning(o.data(), o.size()); }
+  basic_string(basic_string const& o) : base{o.view(), base::owning} {}
   basic_string(basic_string&& o) { base::move_from(std::move(o)); }
 
   basic_string& operator=(basic_string const& o) {
