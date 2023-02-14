@@ -19,6 +19,34 @@ struct optional {
   template <typename... Ts>
   optional(std::nullopt_t) noexcept {}
 
+  optional(optional const& other) { copy(other); }
+  optional& operator=(optional const& other) { return copy(other); }
+
+  optional(optional&& other) noexcept { move(std::forward<optional>(other)); }
+  optional& operator=(optional&& other) noexcept {
+    return move(std::forward<optional>(other));
+  }
+
+  optional& copy(optional const& other) {
+    if (other.has_value()) {
+      new (&storage_[0]) T{other.value()};
+    }
+
+    valid_ = other.has_value();
+
+    return *this;
+  }
+
+  optional& move(optional&& other) {
+    if (other.has_value()) {
+      new (&storage_[0]) T(std::move(other.value()));
+    }
+
+    valid_ = other.has_value();
+
+    return *this;
+  }
+
   T const& value() const {
     if (!valid_) {
       throw std::bad_optional_access{};
