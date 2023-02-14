@@ -295,7 +295,7 @@ struct basic_bitvec {
       return *this;
     }
 
-    if constexpr (blocks_.size() == 1U) {
+    if (blocks_.size() == 1U) {
       blocks_[0] <<= shift;
       return *this;
     } else {
