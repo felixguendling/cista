@@ -25,7 +25,7 @@ struct optional {
   optional(optional&& other) noexcept { move(std::forward<optional>(other)); }
   optional& operator=(optional&& other) noexcept {
     return move(std::forward<optional>(other));
-  };
+  }
 
   optional& copy(optional const& other) {
     if (other.has_value()) {
