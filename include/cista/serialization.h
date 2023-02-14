@@ -377,9 +377,9 @@ void serialize(Ctx& c, variant<T...> const* origin, offset_t const pos) {
 template <typename Ctx, typename T>
 void serialize(Ctx& c, optional<T> const* origin, offset_t const pos) {
   using Type = decay_t<decltype(*origin)>;
-  auto const offset = cista_member_offset(Type, storage_);
+
   if (origin->valid_) {
-    serialize(c, &origin->storage_[0], pos + offset);
+    serialize(c, &origin->value(), pos + cista_member_offset(Type, storage_));
   }
 }
 
