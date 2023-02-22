@@ -28,6 +28,7 @@ struct basic_unique_ptr {
   }
 
   basic_unique_ptr& operator=(basic_unique_ptr&& o) noexcept {
+    reset();
     el_ = o.el_;
     self_allocated_ = o.self_allocated_;
     o.el_ = nullptr;
