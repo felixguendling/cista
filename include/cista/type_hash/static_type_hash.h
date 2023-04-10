@@ -116,7 +116,7 @@ constexpr hash_data<NMaxTypes> static_type_hash(
 
   if constexpr (is_pointer_v<Type>) {
     using PointeeType = remove_pointer_t<Type>;
-    if constexpr (std::is_same_v<PointeeType, void>) {
+    if constexpr (std::is_same_v<std::remove_const_t<PointeeType>, void>) {
       return h.combine(hash("void*"));
     } else {
       h = h.combine(hash("pointer"));

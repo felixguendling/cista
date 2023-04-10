@@ -568,7 +568,7 @@ struct deserialization_context {
         size < static_cast<std::size_t>(std::numeric_limits<intptr_t>::max()),
         "size out of bounds");
 
-    if constexpr (!std::is_same_v<T, void>) {
+    if constexpr (!std::is_same_v<std::remove_const_t<T>, void>) {
       verify((pos & static_cast<intptr_t>(std::alignment_of<decay_t<T>>() -
                                           1U)) == 0U,
              "ptr alignment");
