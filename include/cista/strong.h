@@ -3,6 +3,7 @@
 #include <limits>
 #include <ostream>
 #include <type_traits>
+#include <utility>
 
 namespace cista {
 
@@ -185,6 +186,13 @@ public:
     return cista::strong<T, Tag>{std::numeric_limits<T>::max()};
   }
   static constexpr bool is_integer = std::is_integral_v<T>;
+};
+
+template <typename T, typename Tag>
+struct hash<cista::strong<T, Tag>> {
+  size_t operator()(cista::strong<T, Tag> const& t) const {
+    return hash<T>{}(t.v_);
+  }
 };
 
 }  // namespace std
