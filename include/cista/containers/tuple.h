@@ -212,85 +212,84 @@ constexpr decltype(auto) apply_impl(std::index_sequence<I...>, F&& f,
   return std::invoke(std::forward<F>(f), get<I>(std::forward<Tuple>(t))...);
 }
 
-template <typename F, typename Tuple>
+template <typename F, typename Tuple,
+          typename Enable = std::enable_if_t<is_tuple_v<std::decay_t<Tuple>>>>
 constexpr decltype(auto) apply(F&& f, Tuple&& t) {
   return apply_impl(std::make_index_sequence<tuple_size_v<Tuple>>{},
                     std::forward<F>(f), std::forward<Tuple>(t));
 }
 
 template <typename F, typename Tuple, std::size_t... I>
-constexpr decltype(auto) apply_impl(std::index_sequence<I...>, F&& f, Tuple&& a,
-                                    Tuple&& b) {
+constexpr decltype(auto) apply_impl(std::index_sequence<I...>, F&& f,
+                                    Tuple const& a, Tuple const& b) {
   return (std::invoke(std::forward<F>(f), get<I>(std::forward<Tuple>(a)),
                       get<I>(std::forward<Tuple>(b))),
           ...);
 }
 
 template <typename F, typename Tuple>
-constexpr decltype(auto) apply(F&& f, Tuple&& a, Tuple&& b) {
+constexpr decltype(auto) apply(F&& f, Tuple const& a, Tuple const& b) {
   return apply_impl(
       std::make_index_sequence<tuple_size_v<std::remove_reference_t<Tuple>>>{},
       std::forward<F>(f), std::forward<Tuple>(a), std::forward<Tuple>(b));
 }
 
 template <typename T1, typename T2, std::size_t... I>
-constexpr decltype(auto) eq(std::index_sequence<I...>, T1&& a, T2&& b) {
-  return ((get<I>(std::forward<T1>(a)) == get<I>(std::forward<T2>(b))) && ...);
+constexpr decltype(auto) eq(std::index_sequence<I...>, T1 const& a,
+                            T2 const& b) {
+  return ((get<I>(a) == get<I>(b)) && ...);
 }
 
 template <typename T1, typename T2>
 std::enable_if_t<is_tuple_v<decay_t<T1>> && is_tuple_v<decay_t<T2>>, bool>
 operator==(T1&& a, T2&& b) {
   return eq(
-      std::make_index_sequence<tuple_size_v<std::remove_reference_t<T1>>>{},
-      std::forward<T1>(a), std::forward<T2>(b));
+      std::make_index_sequence<tuple_size_v<std::remove_reference_t<T1>>>{}, a,
+      b);
 }
 
 template <typename Tuple>
-std::enable_if_t<is_tuple_v<decay_t<Tuple>>, bool> operator!=(Tuple&& a,
-                                                              Tuple&& b) {
+std::enable_if_t<is_tuple_v<decay_t<Tuple>>, bool> operator!=(Tuple const& a,
+                                                              Tuple const& b) {
   return !(a == b);
 }
 
 template <typename Tuple, std::size_t Index = 0U>
-bool lt(Tuple&& a, Tuple&& b) {
+bool lt(Tuple const& a, Tuple const& b) {
   if constexpr (Index == tuple_size_v<Tuple>) {
     return false;
   } else {
-    if (get<Index>(std::forward<Tuple>(a)) <
-        get<Index>(std::forward<Tuple>(b))) {
+    if (get<Index>(a) < get<Index>(b)) {
       return true;
     }
-    if (get<Index>(std::forward<Tuple>(b)) <
-        get<Index>(std::forward<Tuple>(a))) {
+    if (get<Index>(b) < get<Index>(a)) {
       return false;
     }
-    return lt<Tuple, Index + 1U>(std::forward<Tuple>(a),
-                                 std::forward<Tuple>(b));
+    return lt<Tuple, Index + 1U>(a, b);
   }
 }
 
 template <typename Tuple>
-std::enable_if_t<is_tuple_v<decay_t<Tuple>>, bool> operator<(Tuple&& a,
-                                                             Tuple&& b) {
+std::enable_if_t<is_tuple_v<decay_t<Tuple>>, bool> operator<(Tuple const& a,
+                                                             Tuple const& b) {
   return lt(a, b);
 }
 
 template <typename Tuple>
-std::enable_if_t<is_tuple_v<decay_t<Tuple>>, bool> operator<=(Tuple&& a,
-                                                              Tuple&& b) {
+std::enable_if_t<is_tuple_v<decay_t<Tuple>>, bool> operator<=(Tuple const& a,
+                                                              Tuple const& b) {
   return !(b < a);
 }
 
 template <typename Tuple>
-std::enable_if_t<is_tuple_v<decay_t<Tuple>>, bool> operator>(Tuple&& a,
-                                                             Tuple&& b) {
+std::enable_if_t<is_tuple_v<decay_t<Tuple>>, bool> operator>(Tuple const& a,
+                                                             Tuple const& b) {
   return b < a;
 }
 
 template <typename Tuple>
-std::enable_if_t<is_tuple_v<decay_t<Tuple>>, bool> operator>=(Tuple&& a,
-                                                              Tuple&& b) {
+std::enable_if_t<is_tuple_v<decay_t<Tuple>>, bool> operator>=(Tuple const& a,
+                                                              Tuple const& b) {
   return !(a < b);
 }
 

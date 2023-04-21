@@ -9,6 +9,10 @@ on:
     types:
       - published
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: windows-latest
@@ -23,9 +27,11 @@ jobs:
       CC: cl.exe
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: seanmiddleditch/gha-setup-ninja@master
+      - uses: actions/checkout@v3
       - uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install ninja
+        run: choco install ninja
 
       - name: Build
         run: |

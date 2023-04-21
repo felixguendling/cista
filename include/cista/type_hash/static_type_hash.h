@@ -144,6 +144,15 @@ constexpr auto static_type_hash(std::chrono::duration<Rep, Period> const*,
   return h;
 }
 
+template <typename A, typename B, std::size_t NMaxTypes>
+constexpr auto static_type_hash(std::pair<A, B> const*,
+                                hash_data<NMaxTypes> h) noexcept {
+  h = h.combine(hash("pair"));
+  h = static_type_hash(null<A>(), h);
+  h = static_type_hash(null<B>(), h);
+  return h;
+}
+
 template <typename Clock, typename Duration, std::size_t NMaxTypes>
 constexpr auto static_type_hash(std::chrono::time_point<Clock, Duration> const*,
                                 hash_data<NMaxTypes> h) noexcept {
@@ -160,8 +169,8 @@ constexpr auto static_type_hash(array<T, Size> const*,
   return h.combine(hash("array")).combine(Size);
 }
 
-template <typename T, typename Ptr, bool Indexed, typename TemplateSizeType,
-          std::size_t NMaxTypes>
+template <typename T, template <typename> typename Ptr, bool Indexed,
+          typename TemplateSizeType, std::size_t NMaxTypes>
 constexpr auto static_type_hash(
     basic_vector<T, Ptr, Indexed, TemplateSizeType> const*,
     hash_data<NMaxTypes> h) noexcept {

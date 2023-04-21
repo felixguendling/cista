@@ -5,47 +5,70 @@
 #include <cstdlib>
 #include <cstring>
 #include <algorithm>
+#include <memory>
 #include <ostream>
 #include <type_traits>
 #include <vector>
 
+#include "cista/allocator.h"
 #include "cista/containers/ptr.h"
 #include "cista/is_iterable.h"
 #include "cista/next_power_of_2.h"
 #include "cista/strong.h"
+#include "cista/unused_param.h"
 #include "cista/verify.h"
 
 namespace cista {
 
-template <typename T, typename Ptr, bool IndexPointers = false,
-          typename TemplateSizeType = std::uint32_t>
+template <typename T, template <typename> typename Ptr,
+          bool IndexPointers = false, typename TemplateSizeType = std::uint32_t,
+          class Allocator = allocator<T, Ptr>>
 struct basic_vector {
   using size_type = base_t<TemplateSizeType>;
+  using difference_type = std::ptrdiff_t;
   using access_type = TemplateSizeType;
+  using reference = T&;
+  using const_reference = T const&;
+  using pointer = Ptr<T>;
+  using const_pointer = Ptr<T const>;
   using value_type = T;
   using iterator = T*;
   using const_iterator = T const*;
+  using allocator_type = Allocator;
 
+  explicit basic_vector(allocator_type const&) noexcept {}
   basic_vector() noexcept = default;
-  explicit basic_vector(size_type const size, T init = T{}) {
+
+  explicit basic_vector(size_type const size, T init = T{},
+                        Allocator const& alloc = Allocator{}) {
+    CISTA_UNUSED_PARAM(alloc)
     resize(size, std::move(init));
   }
-  basic_vector(std::initializer_list<T> init) { set(init.begin(), init.end()); }
+
+  basic_vector(std::initializer_list<T> init,
+               Allocator const& alloc = Allocator{}) {
+    CISTA_UNUSED_PARAM(alloc)
+    set(init.begin(), init.end());
+  }
 
   template <typename It>
   basic_vector(It begin_it, It end_it) {
     set(begin_it, end_it);
   }
 
-  basic_vector(basic_vector&& arr) noexcept
-      : el_(arr.el_),
-        used_size_(arr.used_size_),
-        allocated_size_(arr.allocated_size_),
-        self_allocated_(arr.self_allocated_) {
-    arr.reset();
+  basic_vector(basic_vector&& o, Allocator const& alloc = Allocator{}) noexcept
+      : el_(o.el_),
+        used_size_(o.used_size_),
+        allocated_size_(o.allocated_size_),
+        self_allocated_(o.self_allocated_) {
+    CISTA_UNUSED_PARAM(alloc)
+    o.reset();
   }
 
-  basic_vector(basic_vector const& arr) { set(arr); }
+  basic_vector(basic_vector const& o, Allocator const& alloc = Allocator{}) {
+    CISTA_UNUSED_PARAM(alloc)
+    set(o);
+  }
 
   basic_vector& operator=(basic_vector&& arr) noexcept {
     deallocate();
@@ -81,10 +104,14 @@ struct basic_vector {
     reset();
   }
 
+  allocator_type get_allocator() const noexcept { return {}; }
+
   T const* data() const noexcept { return begin(); }
   T* data() noexcept { return begin(); }
   T const* begin() const noexcept { return el_; }
   T const* end() const noexcept { return el_ + used_size_; }  // NOLINT
+  T const* cbegin() const noexcept { return el_; }
+  T const* cend() const noexcept { return el_ + used_size_; }  // NOLINT
   T* begin() noexcept { return el_; }
   T* end() noexcept { return el_ + used_size_; }  // NOLINT
 
@@ -266,11 +293,16 @@ struct basic_vector {
     used_size_ = size;
   }
 
+  void pop_back() noexcept(noexcept(std::declval<T>().~T())) {
+    --used_size_;
+    el_[used_size_].~T();
+  }
+
   void clear() {
-    used_size_ = 0;
     for (auto& el : *this) {
       el.~T();
     }
+    used_size_ = 0;
   }
 
   void reserve(size_type new_size) {
@@ -374,7 +406,7 @@ struct basic_vector {
     self_allocated_ = false;
   }
 
-  Ptr el_{nullptr};
+  Ptr<T> el_{nullptr};
   size_type used_size_{0U};
   size_type allocated_size_{0U};
   bool self_allocated_{false};
@@ -386,13 +418,13 @@ struct basic_vector {
 namespace raw {
 
 template <typename T>
-using vector = basic_vector<T, ptr<T>>;
+using vector = basic_vector<T, ptr>;
 
 template <typename T>
-using indexed_vector = basic_vector<T, ptr<T>, true>;
+using indexed_vector = basic_vector<T, ptr, true>;
 
 template <typename Key, typename Value>
-using vector_map = basic_vector<Value, ptr<Value>, false, Key>;
+using vector_map = basic_vector<Value, ptr, false, Key>;
 
 template <typename It, typename UnaryOperation>
 auto to_vec(It s, It e, UnaryOperation&& op)
@@ -455,13 +487,13 @@ auto to_indexed_vec(Container const& c)
 namespace offset {
 
 template <typename T>
-using vector = basic_vector<T, ptr<T>>;
+using vector = basic_vector<T, ptr>;
 
 template <typename T>
-using indexed_vector = basic_vector<T, ptr<T>, true>;
+using indexed_vector = basic_vector<T, ptr, true>;
 
 template <typename Key, typename Value>
-using vector_map = basic_vector<Value, ptr<Value>, false, Key>;
+using vector_map = basic_vector<Value, ptr, false, Key>;
 
 template <typename It, typename UnaryOperation>
 auto to_vec(It s, It e, UnaryOperation&& op)

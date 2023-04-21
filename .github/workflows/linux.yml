@@ -9,11 +9,15 @@ on:
     types:
       - published
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   formatting:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install clang-format
         env:
@@ -21,12 +25,12 @@ jobs:
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
-          sudo ./llvm.sh 15
+          sudo ./llvm.sh 16
           rm llvm.sh
-          sudo apt-get install -y --no-install-recommends clang-format-15
+          sudo apt-get install -y --no-install-recommends clang-format-16
 
       - name: Format files
-        run: find include test -type f -a \( -name "*.cc" -o -name "*.h" \) -print0 | xargs -0  clang-format-15 -i
+        run: find include test -type f -a \( -name "*.cc" -o -name "*.h" \) -print0 | xargs -0  clang-format-16 -i
 
       - name: Check for differences
         run: |
@@ -37,29 +41,29 @@ jobs:
     strategy:
       matrix:
         config:
-          - name: GCC 10 Release
-            cxx: g++-10
-            cc: gcc-10
+          - name: GCC 11 Release
+            cxx: g++-11
+            cc: gcc-11
             mode: Release
-          - name: GCC 10 Debug
-            cxx: g++-10
-            cc: gcc-10
+          - name: GCC 11 Debug
+            cxx: g++-11
+            cc: gcc-11
             mode: Debug
             valgrind: true
-          - name: Clang 15 Release
-            cxx: clang++-15
-            cc: clang-15
+          - name: Clang 16 Release
+            cxx: clang++-16
+            cc: clang-16
             mode: Release
             cxxflags: -stdlib=libc++
             ldflags: -lc++abi
-          - name: Clang 15 Debug
-            cxx: clang++-15
-            cc: clang-15
+          - name: Clang 16 Debug
+            cxx: clang++-16
+            cc: clang-16
             mode: Debug
             fuzz: true
-          - key: GCC 10 Sanitizer
-            cxx: g++-10
-            cc: gcc-10
+          - key: GCC 11 Sanitizer
+            cxx: g++-11
+            cc: gcc-11
             mode: Debug
             cflags: -fsanitize=address,undefined -fno-omit-frame-pointer
             cxxflags: -fsanitize=address,undefined -fno-omit-frame-pointer
@@ -67,21 +71,25 @@ jobs:
     env:
       UBSAN_OPTIONS: halt_on_error=1:abort_on_error=1
     steps:
-      - uses: actions/checkout@v2
-      - uses: seanmiddleditch/gha-setup-ninja@master
+      - uses: actions/checkout@v3
+
+      - name: Install Ninja
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: sudo apt-get install -y --no-install-recommends ninja-build
 
       # ==== INSTALL ====
-      - name: Install
-        if: matrix.config.cc == 'clang-15'
+      - name: Install Clang
+        if: matrix.config.cc == 'clang-16'
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
           sudo apt-get update
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
-          sudo ./llvm.sh 15 || sudo ./llvm.sh 15 workaround
+          sudo ./llvm.sh 16 || sudo ./llvm.sh 16 workaround
           rm llvm.sh
-          sudo apt-get install -y --no-install-recommends libstdc++-12-dev libc++-15-dev libc++abi-15-dev clang-tidy-15 libunwind-15-dev llvm-15 libfuzzer-15-dev
+          sudo apt-get install -y --no-install-recommends libstdc++-12-dev libc++-16-dev libc++abi-16-dev clang-tidy-16 libunwind-16-dev llvm-16 libfuzzer-16-dev
 
       # ==== BUILD ====
       - name: CMake
@@ -95,7 +103,7 @@ jobs:
             -DCMAKE_CXX_LINKER_FLAGS=${{ matrix.config.ldflags }}" \
             -DCMAKE_CXX_EXE_LINKER_FLAGS="${{ matrix.config.ldflags }} \
             -DCMAKE_BUILD_TYPE=${{ matrix.config.mode }} \
-            -DCISTA_ZERO_OUT=${{ matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-10' }}
+            -DCISTA_ZERO_OUT=${{ matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-11' }}
       - name: Build
         run: cmake --build build --target cista-test cista-test-single-header
 
@@ -127,7 +135,7 @@ jobs:
 
       # ==== DISTRIBUTION ====
       - name: Upload Distribution
-        if: matrix.config.mode == 'Release' && matrix.config.cc == 'gcc-10'
+        if: matrix.config.mode == 'Release' && matrix.config.cc == 'gcc-11'
         uses: actions/upload-artifact@v1
         with:
           name: cista.h
@@ -135,7 +143,7 @@ jobs:
 
       # ==== RELEASE ====
       - name: Upload Release
-        if: github.event.action == 'published' && matrix.config.mode == 'Release' && matrix.config.cc == 'gcc-10'
+        if: github.event.action == 'published' && matrix.config.mode == 'Release' && matrix.config.cc == 'gcc-11'
         uses: actions/upload-release-asset@v1.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

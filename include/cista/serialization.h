@@ -26,7 +26,14 @@
 #include "cista/verify.h"
 
 #ifndef cista_member_offset
-#define cista_member_offset(s, m) (static_cast<cista::offset_t>(offsetof(s, m)))
+#define cista_member_offset(Type, Member)                            \
+  ([]() {                                                            \
+    if constexpr (std::is_standard_layout_v<Type>) {                 \
+      return static_cast<::cista::offset_t>(offsetof(Type, Member)); \
+    } else {                                                         \
+      return ::cista::member_offset(null<Type>(), &Type::Member);    \
+    }                                                                \
+  }())
 #endif
 
 namespace cista {
@@ -35,6 +42,13 @@ template <typename T, typename Member>
 cista::offset_t member_offset(T const* t, Member const* m) {
   static_assert(std::is_trivially_copyable_v<T>);
   return (reinterpret_cast<std::uint8_t const*>(m) -
+          reinterpret_cast<std::uint8_t const*>(t));
+}
+
+template <typename T, typename Member>
+offset_t member_offset(T const* t, Member T::*m) {
+  static_assert(std::is_trivially_copyable_v<T>);
+  return (reinterpret_cast<std::uint8_t const*>(&(t->*m)) -
           reinterpret_cast<std::uint8_t const*>(t));
 }
 
@@ -170,8 +184,8 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
   }
 }
 
-template <typename Ctx, typename T, typename Ptr, bool Indexed,
-          typename TemplateSizeType>
+template <typename Ctx, typename T, template <typename> typename Ptr,
+          bool Indexed, typename TemplateSizeType>
 void serialize(Ctx& c,
                basic_vector<T, Ptr, Indexed, TemplateSizeType> const* origin,
                offset_t const pos) {
@@ -365,6 +379,13 @@ void serialize(Ctx& c, array<T, Size> const* origin, offset_t const pos) {
   }
 }
 
+template <typename Ctx, typename A, typename B>
+void serialize(Ctx& c, pair<A, B> const* origin, offset_t const pos) {
+  using Type = decay_t<decltype(*origin)>;
+  serialize(c, &origin->first, pos + cista_member_offset(Type, first));
+  serialize(c, &origin->second, pos + cista_member_offset(Type, second));
+}
+
 template <typename Ctx, typename... T>
 void serialize(Ctx& c, variant<T...> const* origin, offset_t const pos) {
   using Type = decay_t<decltype(*origin)>;
@@ -386,7 +407,7 @@ void serialize(Ctx& c, optional<T> const* origin, offset_t const pos) {
 template <typename Ctx, typename... T>
 void serialize(Ctx& c, tuple<T...> const* origin,
                cista::offset_t const offset) {
-  apply(
+  ::cista::apply(
       [&](auto&&... args) {
         (serialize(c, &args,
                    offset + (reinterpret_cast<intptr_t>(&args) -
@@ -681,6 +702,13 @@ void deserialize(Ctx const& c, T* el) {
   recurse(c, el, [&](auto* entry) { deserialize(c, entry); });
 }
 
+// --- PAIR<A,B> ---
+template <typename Ctx, typename A, typename B, typename Fn>
+void recurse(Ctx&, pair<A, B>* el, Fn&& fn) {
+  fn(&el->first);
+  fn(&el->second);
+}
+
 // --- OFFSET_PTR<T> ---
 template <typename Ctx, typename T>
 void convert_endian_and_ptr(Ctx const& c, offset_ptr<T>* el) {
@@ -706,8 +734,8 @@ void recurse(Ctx& c, offset_ptr<T>* el, Fn&& fn) {
 }
 
 // --- VECTOR<T> ---
-template <typename Ctx, typename T, typename Ptr, bool Indexed,
-          typename TemplateSizeType>
+template <typename Ctx, typename T, template <typename> typename Ptr,
+          bool Indexed, typename TemplateSizeType>
 void convert_endian_and_ptr(
     Ctx const& c, basic_vector<T, Ptr, Indexed, TemplateSizeType>* el) {
   deserialize(c, &el->el_);
@@ -715,8 +743,8 @@ void convert_endian_and_ptr(
   c.convert_endian(el->used_size_);
 }
 
-template <typename Ctx, typename T, typename Ptr, bool Indexed,
-          typename TemplateSizeType>
+template <typename Ctx, typename T, template <typename> typename Ptr,
+          bool Indexed, typename TemplateSizeType>
 void check_state(Ctx const& c,
                  basic_vector<T, Ptr, Indexed, TemplateSizeType>* el) {
   c.check_ptr(el->el_,
@@ -728,8 +756,8 @@ void check_state(Ctx const& c,
   c.require((el->size() == 0U) == (el->el_ == nullptr), "vec size=0 <=> ptr=0");
 }
 
-template <typename Ctx, typename T, typename Ptr, bool Indexed,
-          typename TemplateSizeType, typename Fn>
+template <typename Ctx, typename T, template <typename> typename Ptr,
+          bool Indexed, typename TemplateSizeType, typename Fn>
 void recurse(Ctx&, basic_vector<T, Ptr, Indexed, TemplateSizeType>* el,
              Fn&& fn) {
   for (auto& m : *el) {  // NOLINT(clang-analyzer-core.NullDereference)

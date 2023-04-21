@@ -80,7 +80,16 @@ hash_t type_hash(T const& el, hash_t h,
   }
 }
 
-template <typename T, typename Ptr, bool Indexed, typename TemplateSizeType>
+template <typename A, typename B>
+hash_t type_hash(pair<A, B> const&, hash_t h,
+                 std::map<hash_t, unsigned>& done) noexcept {
+  h = type_hash(A{}, h, done);
+  h = type_hash(B{}, h, done);
+  return hash_combine(h, hash("pair"));
+}
+
+template <typename T, template <typename> typename Ptr, bool Indexed,
+          typename TemplateSizeType>
 hash_t type_hash(basic_vector<T, Ptr, Indexed, TemplateSizeType> const&,
                  hash_t h, std::map<hash_t, unsigned>& done) noexcept {
   h = hash_combine(h, hash("vector"));
