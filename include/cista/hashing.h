@@ -116,8 +116,6 @@ struct hashing {
         h = hashing<std::decay_t<decltype(v)>>()(v, h);
       }
       return h;
-    } else if constexpr (has_std_hash_v<Type>) {
-      return std::hash<Type>()(el);
     } else if constexpr (to_tuple_works_v<Type>) {
       auto h = seed;
       for_each_field(el, [&h](auto&& f) {
@@ -126,6 +124,8 @@ struct hashing {
       return h;
     } else if constexpr (is_strong_v<Type>) {
       return hashing<typename Type::value_t>{}(el.v_, seed);
+    } else if constexpr (has_std_hash_v<Type>) {
+      return hash_combine(std::hash<Type>()(el), seed);
     } else {
       static_assert(has_hash_v<Type> || std::is_scalar_v<Type> ||
                         has_std_hash_v<Type> || is_iterable_v<Type> ||

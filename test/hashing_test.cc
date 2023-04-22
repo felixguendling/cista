@@ -53,11 +53,6 @@ TEST_CASE("hashing std::string member") {
                                 cista::hash_combine(cista::BASE_HASH, 3))));
 }
 
-TEST_CASE("std::hash override") {
-  auto k = std_hash_key{4};
-  CHECK(cista::hashing<std_hash_key>{}(k) == 4);
-}
-
 TEST_CASE("hash() override") {
   hash_override k{7};
   CHECK(cista::hashing<hash_override>{}(k) ==
