@@ -386,6 +386,13 @@ void serialize(Ctx& c, pair<A, B> const* origin, offset_t const pos) {
   serialize(c, &origin->second, pos + cista_member_offset(Type, second));
 }
 
+template <typename Ctx, typename A, typename B>
+void serialize(Ctx& c, std::pair<A, B> const* origin, offset_t const pos) {
+  using Type = decay_t<decltype(*origin)>;
+  serialize(c, &origin->first, pos + cista_member_offset(Type, first));
+  serialize(c, &origin->second, pos + cista_member_offset(Type, second));
+}
+
 template <typename Ctx, typename... T>
 void serialize(Ctx& c, variant<T...> const* origin, offset_t const pos) {
   using Type = decay_t<decltype(*origin)>;
@@ -705,6 +712,12 @@ void deserialize(Ctx const& c, T* el) {
 // --- PAIR<A,B> ---
 template <typename Ctx, typename A, typename B, typename Fn>
 void recurse(Ctx&, pair<A, B>* el, Fn&& fn) {
+  fn(&el->first);
+  fn(&el->second);
+}
+
+template <typename Ctx, typename A, typename B, typename Fn>
+void recurse(Ctx&, std::pair<A, B>* el, Fn&& fn) {
   fn(&el->first);
   fn(&el->second);
 }
