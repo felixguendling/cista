@@ -117,6 +117,7 @@ struct generic_string {
   }
 
   void move_from(generic_string&& s) noexcept {
+    reset();
     std::memcpy(static_cast<void*>(this), &s, sizeof(*this));
     if constexpr (std::is_pointer_v<Ptr>) {
       std::memset(static_cast<void*>(&s), 0, sizeof(*this));
