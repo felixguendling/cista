@@ -316,8 +316,8 @@ protected:
   }
 
   template <std::size_t L, typename... Rest>
-  std::size_t get_size(index_value_type const i, index_value_type const j,
-                       Rest... rest) const {
+  size_type get_size(index_value_type const i, index_value_type const j,
+                     Rest... rest) const {
     if constexpr (sizeof...(Rest) == 0U) {
       return index_[L][i + j + 1] - index_[L][i + j];
     } else {
@@ -326,7 +326,7 @@ protected:
   }
 
   template <std::size_t L>
-  std::size_t get_size(index_value_type const i) const {
+  size_type get_size(index_value_type const i) const {
     return index_[L][i + 1] - index_[L][i];
   }
 

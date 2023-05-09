@@ -41,28 +41,28 @@ TEST_CASE("nvec test") {
   }
 
   {
-    auto const bucket = v.at(2, 1);
+    auto const bucket = v.at(2U, 1U);
     auto const entries = {transfer{14}, transfer{15}, transfer{16}};
     CHECK(std::equal(begin(bucket), end(bucket), begin(entries), end(entries)));
   }
 
   {
-    auto const bucket = v.at(2, 2);
+    auto const bucket = v.at(2U, 2U);
     auto const entries = {transfer{17}};
     CHECK(std::equal(begin(bucket), end(bucket), begin(entries), end(entries)));
   }
 
-  for (auto const& t : v.at(1, 2)) {
+  for (auto const& t : v.at(1U, 2U)) {
     CHECK_EQ(t.i_, 11);
   }
-  CHECK_EQ(2, v.size(0));
-  CHECK_EQ(3, v.size(1));
-  CHECK_EQ(2, v.size(0, 0));
-  CHECK_EQ(3, v.size(0, 1));
-  CHECK_EQ(2, v.size(1, 0));
-  CHECK_EQ(3, v.size(1, 1));
-  CHECK_EQ(1, v.size(1, 2));
-  CHECK_EQ(2, v.size(2, 0));
-  CHECK_EQ(3, v.size(2, 1));
-  CHECK_EQ(1, v.size(2, 2));
+  CHECK_EQ(2U, v.size(0U));
+  CHECK_EQ(3U, v.size(1U));
+  CHECK_EQ(2U, v.size(0U, 0U));
+  CHECK_EQ(3U, v.size(0U, 1U));
+  CHECK_EQ(2U, v.size(1U, 0U));
+  CHECK_EQ(3U, v.size(1U, 1U));
+  CHECK_EQ(1U, v.size(1U, 2U));
+  CHECK_EQ(2U, v.size(2U, 0U));
+  CHECK_EQ(3U, v.size(2U, 1U));
+  CHECK_EQ(1U, v.size(2U, 2U));
 }
