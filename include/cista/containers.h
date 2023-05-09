@@ -7,6 +7,7 @@
 #include "cista/containers/hash_map.h"
 #include "cista/containers/hash_set.h"
 #include "cista/containers/mutable_fws_multimap.h"
+#include "cista/containers/nvec.h"
 #include "cista/containers/optional.h"
 #include "cista/containers/string.h"
 #include "cista/containers/tuple.h"
