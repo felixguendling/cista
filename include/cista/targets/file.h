@@ -9,6 +9,7 @@
 #endif
 #include <io.h>
 #include <windows.h>
+#include <string>
 #endif
 
 #include <cinttypes>
@@ -24,6 +25,31 @@
 
 #ifdef _WIN32
 namespace cista {
+
+inline std::string last_error_str() {
+  auto const err = ::GetLastError();
+  if (err == 0) {
+    return "no error";
+  }
+
+  struct buf {
+    ~buf() {
+      if (b_ != nullptr) {
+        LocalFree(b_);
+        b_ = nullptr;
+      }
+    }
+    LPSTR b_ = nullptr;
+  } b;
+  auto const size = FormatMessageA(
+      FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
+          FORMAT_MESSAGE_IGNORE_INSERTS,
+      nullptr, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), b.b_, 0,
+      nullptr);
+
+  return size == 0 ? std::to_string(err) : std::string{b.b_, size};
+}
+
 inline HANDLE open_file(char const* path, char const* mode) {
   bool read = std::strcmp(mode, "r") == 0;
   bool write = std::strcmp(mode, "w+") == 0 || std::strcmp(mode, "r+") == 0;
@@ -33,17 +59,21 @@ inline HANDLE open_file(char const* path, char const* mode) {
   DWORD access = read ? GENERIC_READ : GENERIC_READ | GENERIC_WRITE;
   DWORD create_mode = read ? OPEN_EXISTING : CREATE_ALWAYS;
 
-  return CreateFileA(path, access, 0, nullptr, create_mode,
-                     FILE_ATTRIBUTE_NORMAL, nullptr);
+  auto const f = CreateFileA(path, access, 0, nullptr, create_mode,
+                             FILE_ATTRIBUTE_NORMAL, nullptr);
+  if (f == INVALID_HANDLE_VALUE) {
+    throw std::runtime_error{std::string{"cannot open path="} + path +
+                             ", mode=" + mode + ", message=\"" +
+                             last_error_str() + "\""};
+  }
+  return f;
 }
 
 struct file {
   file() = default;
 
   file(char const* path, char const* mode)
-      : f_(open_file(path, mode)), size_{size()} {
-    verify(f_ != INVALID_HANDLE_VALUE, "unable to open file");
-  }
+      : f_(open_file(path, mode)), size_{size()} {}
 
   ~file() {
     if (f_ != nullptr) {
