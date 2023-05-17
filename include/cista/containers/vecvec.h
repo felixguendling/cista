@@ -46,6 +46,15 @@ struct basic_vecvec {
 
     bool empty() const { return begin() == end(); }
 
+    template <typename Args>
+    void push_back(Args&& args) {
+      map_->data_.insert(std::next(std::begin(map_->data_), bucket_end_idx()),
+                         std::forward<Args>(args));
+      for (auto i = i_ + 1; i != map_->bucket_starts_.size(); ++i) {
+        ++map_->bucket_starts_[i];
+      }
+    }
+
     value_type& operator[](std::size_t const i) {
       assert(is_inside_bucket(i));
       return map_->data_[to_idx(map_->bucket_starts_[i_] + i)];
