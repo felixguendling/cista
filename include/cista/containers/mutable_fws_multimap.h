@@ -57,7 +57,7 @@ struct dynamic_fws_multimap_base {
 #endif
     template <bool IsConst = Const, typename = std::enable_if_t<!IsConst>>
     operator bucket<true>() {
-      return bucket{multimap_, index_};
+      return bucket<true>{multimap_, index_};
     }
 #ifdef __clang__
 #pragma clang diagnostic pop

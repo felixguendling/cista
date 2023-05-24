@@ -1,3 +1,4 @@
+#include <array>
 #include <memory>
 #include <set>
 
@@ -83,14 +84,16 @@ TEST_CASE("vecvec resize test") {
 
   d.resize(5);
 
-  auto const expected =
-      std::array<std::string_view, 5>{"hello", "world", "test", "", ""};
+  auto const expected = std::array<std::string_view, 5>{
+      std::string_view{"hello"}, std::string_view{"world"},
+      std::string_view{"test"}, std::string_view{""}, std::string_view{""}};
   for (auto i = 0U; i != d.size(); ++i) {
     CHECK((d[key{i}].view() == expected[i]));
   }
 
   d.resize(1);
-  auto const expected_1 = std::array<std::string_view, 1>{"hello"};
+  auto const expected_1 =
+      std::array<std::string_view, 1>{std::string_view{"hello"}};
   for (auto i = 0U; i != d.size(); ++i) {
     CHECK((d[key{i}].view() == expected_1[i]));
   }

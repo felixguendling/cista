@@ -297,7 +297,8 @@ struct basic_vecvec {
 
   void resize(std::size_t const new_size) {
     auto const old_size = bucket_starts_.size();
-    bucket_starts_.resize(new_size + 1U);
+    bucket_starts_.resize(
+        static_cast<typename IndexVec::size_type>(new_size + 1U));
     for (auto i = old_size; i < new_size + 1U; ++i) {
       bucket_starts_[i] = data_.size();
     }
