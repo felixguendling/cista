@@ -71,3 +71,27 @@ TEST_CASE("vecvec bucket emplace_back test") {
   CHECK_EQ("worldx", d[key{1}].view());
   CHECK_EQ("testx", d[key{2}].view());
 }
+
+TEST_CASE("vecvec resize test") {
+  using key = cista::strong<unsigned, struct x_>;
+  using data = cista::raw::vecvec<key, char>;
+
+  data d;
+  d.emplace_back("hello");
+  d.emplace_back("world");
+  d.emplace_back("test");
+
+  d.resize(5);
+
+  auto const expected =
+      std::array<std::string_view, 5>{"hello", "world", "test", "", ""};
+  for (auto i = 0U; i != d.size(); ++i) {
+    CHECK((d[key{i}].view() == expected[i]));
+  }
+
+  d.resize(1);
+  auto const expected_1 = std::array<std::string_view, 1>{"hello"};
+  for (auto i = 0U; i != d.size(); ++i) {
+    CHECK((d[key{i}].view() == expected_1[i]));
+  }
+}
