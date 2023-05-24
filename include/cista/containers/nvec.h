@@ -286,6 +286,8 @@ struct basic_nvec {
     return get_bucket<const_bucket, Indices...>(index_[I][first], rest...);
   }
 
+  auto cista_members() noexcept { return std::tie(index_, data_); }
+
 protected:
   template <typename BucketType, typename... Rest>
   BucketType get_bucket(index_value_type const bucket_start,
