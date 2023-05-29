@@ -107,7 +107,7 @@ struct basic_vecvec {
       --i_;
       return *this;
     }
-    bucket operator*() { return *this; }
+    bucket operator*() const { return *this; }
     bucket& operator+=(difference_type const n) {
       i_ += n;
       return *this;
