@@ -28,6 +28,9 @@ struct basic_vecvec {
     bucket(basic_vecvec* map, index_value_type const i)
         : map_{map}, i_{to_idx(i)} {}
 
+    friend iterator data(bucket const& b) { return b.begin(); }
+    friend std::size_t size(bucket const& b) { return b.size(); }
+
     template <typename T = std::decay_t<data_value_type>,
               typename = std::enable_if_t<std::is_same_v<T, char>>>
     std::string_view view() const {
@@ -158,6 +161,9 @@ struct basic_vecvec {
 
     const_bucket(basic_vecvec const* map, index_value_type const i)
         : map_{map}, i_{to_idx(i)} {}
+
+    friend iterator data(const_bucket const& b) { return b.begin(); }
+    friend std::size_t size(const_bucket const& b) { return b.size(); }
 
     template <typename T = std::decay_t<data_value_type>,
               typename = std::enable_if_t<std::is_same_v<T, char>>>
