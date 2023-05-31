@@ -11,6 +11,7 @@ include(GNUInstallDirs)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR
     "${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
   set(cista-compile-flags
+     -Wno-unknown-warning-option
      -Wno-global-constructors
      -Wno-exit-time-destructors
      -fno-strict-aliasing

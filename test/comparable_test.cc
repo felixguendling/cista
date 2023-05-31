@@ -9,7 +9,7 @@
 #endif
 
 struct comparable_a {
-  CISTA_COMPARABLE()
+  CISTA_FRIEND_COMPARABLE(comparable_a)
   int i_ = 1;
   int j_ = 2;
   double d_ = 100.0;
