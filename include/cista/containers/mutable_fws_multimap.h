@@ -143,13 +143,17 @@ struct dynamic_fws_multimap_base {
     }
 
     template <bool IsConst = Const, typename = std::enable_if_t<!IsConst>>
-    void insert(iterator it, value_type const& val) {
-      prepare_insert(it) = val;
+    iterator insert(iterator it, value_type const& val) {
+      auto insert_it = prepare_insert(it);
+      *insert_it = val;
+      return insert_it;
     }
 
     template <bool IsConst = Const, typename = std::enable_if_t<!IsConst>>
-    void insert(iterator it, value_type&& val) {
-      prepare_insert(it) = std::move(val);
+    iterator insert(iterator it, value_type&& val) {
+      auto insert_it = prepare_insert(it);
+      *insert_it = std::move(val);
+      return insert_it;
     }
 
     template <bool IsConst = Const, typename = std::enable_if_t<!IsConst>>
@@ -242,7 +246,7 @@ struct dynamic_fws_multimap_base {
     }
 
     template <bool IsConst = Const, typename = std::enable_if_t<!IsConst>>
-    value_type& prepare_insert(bucket::iterator it) {
+    iterator prepare_insert(bucket::iterator it) {
       auto const pos = std::distance(begin(), it);
       auto& index = get_index();
       reserve(index.size_ + 1U);
@@ -250,7 +254,7 @@ struct dynamic_fws_multimap_base {
       std::move_backward(it, end(), std::next(end()));
       ++index.size_;
       ++mutable_mm().element_count_;
-      return *it;
+      return it;
     }
 
     dynamic_fws_multimap_base& mutable_mm() noexcept {
