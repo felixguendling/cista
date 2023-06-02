@@ -152,7 +152,7 @@ struct basic_nvec {
     using reference = std::add_lvalue_reference<value_type>;
 
     const_bucket(basic_nvec const* map, index_value_type const i)
-        : map_{map}, i_{to_idx(i)} {}
+        : i_{to_idx(i)}, map_{map} {}
 
     template <typename T = std::decay_t<data_value_type>,
               typename = std::enable_if_t<std::is_same_v<T, char>>>
@@ -236,13 +236,13 @@ struct basic_nvec {
   private:
     std::size_t bucket_begin_idx() const { return to_idx(map_->index_[0][i_]); }
     std::size_t bucket_end_idx() const {
-      return to_idx(map_->index_[0][i_ + 1]);
+      return to_idx(map_->index_[0][i_ + 1U]);
     }
     bool is_inside_bucket(std::size_t const i) const {
       return bucket_begin_idx() + i < bucket_end_idx();
     }
 
-    std::size_t i_;
+    size_type i_;
     basic_nvec const* map_;
   };
 
@@ -254,6 +254,11 @@ struct basic_nvec {
 
   template <typename Container>
   void emplace_back(Container&& bucket) {
+    if (index_[0].size() == 0U) {
+      for (auto& i : index_) {
+        i.push_back(0U);
+      }
+    }
     add<N - 1>(bucket);
   }
 
@@ -275,7 +280,7 @@ struct basic_nvec {
     constexpr auto const I = sizeof...(Indices);
     static_assert(I == N - 1);
     verify(to_idx(first) < index_[I].size(), "nvec::at: index out of range");
-    return get_bucket<bucket>(index_[I][first], rest...);
+    return get_bucket(index_[I][first], rest...);
   }
 
   template <typename... Indices>
@@ -283,23 +288,33 @@ struct basic_nvec {
     constexpr auto const I = sizeof...(Indices);
     static_assert(I == N - 1);
     verify(to_idx(first) < index_[I].size(), "nvec::at: index out of range");
-    return get_bucket<const_bucket, Indices...>(index_[I][first], rest...);
+    return get_bucket(index_[I][first], rest...);
   }
 
   auto cista_members() noexcept { return std::tie(index_, data_); }
 
-protected:
-  template <typename BucketType, typename... Rest>
-  BucketType get_bucket(index_value_type const bucket_start,
-                        index_value_type const i, Rest... rest) {
-    return get_bucket<BucketType, Rest...>(
-        index_[sizeof...(Rest)][bucket_start + i], rest...);
+  template <typename... Rest>
+  bucket get_bucket(index_value_type const bucket_start,
+                    index_value_type const i, Rest... rest) {
+    return get_bucket<Rest...>(index_[sizeof...(Rest)][bucket_start + i],
+                               rest...);
   }
 
-  template <typename BucketType>
-  BucketType get_bucket(index_value_type const bucket_start,
-                        index_value_type const i) {
-    return BucketType{this, bucket_start + i};
+  bucket get_bucket(index_value_type const bucket_start,
+                    index_value_type const i) {
+    return bucket{this, bucket_start + i};
+  }
+
+  template <typename... Rest>
+  const_bucket get_bucket(index_value_type const bucket_start,
+                          index_value_type const i, Rest... rest) const {
+    return get_bucket<Rest...>(index_[sizeof...(Rest)][bucket_start + i],
+                               rest...);
+  }
+
+  const_bucket get_bucket(index_value_type const bucket_start,
+                          index_value_type const i) const {
+    return const_bucket{this, bucket_start + i};
   }
 
   template <std::size_t L, typename Container>

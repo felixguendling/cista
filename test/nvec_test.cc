@@ -7,24 +7,38 @@
 #include "cista.h"
 #else
 #include "cista/containers/nvec.h"
+#include "cista/serialization.h"
+#include "cista/targets/buf.h"
 #endif
 
 TEST_CASE("nvec test") {
+  constexpr auto const kMode =
+      cista::mode::WITH_INTEGRITY | cista::mode::WITH_VERSION;
+
   struct transfer {
     bool operator==(transfer const& o) const { return o.i_ == i_; }
     int i_;
   };
-  cista::raw::nvec<std::uint32_t, transfer, 2> v;
-  v.emplace_back(std::vector<std::vector<transfer>>{
-      {transfer{1}, transfer{2}}, {transfer{3}, transfer{4}, transfer{5}}});
-  v.emplace_back(std::vector<std::vector<transfer>>{
-      {transfer{6}, transfer{7}},
-      {transfer{8}, transfer{9}, transfer{10}},
-      {transfer{11}}});
-  v.emplace_back(std::vector<std::vector<transfer>>{
-      {transfer{12}, transfer{13}},
-      {transfer{14}, transfer{15}, transfer{16}},
-      {transfer{17}}});
+
+  cista::byte_buf buf;
+  {
+    cista::offset::nvec<std::uint32_t, transfer, 2> v;
+    v.emplace_back(std::vector<std::vector<transfer>>{
+        {transfer{1}, transfer{2}}, {transfer{3}, transfer{4}, transfer{5}}});
+    v.emplace_back(std::vector<std::vector<transfer>>{
+        {transfer{6}, transfer{7}},
+        {transfer{8}, transfer{9}, transfer{10}},
+        {transfer{11}}});
+    v.emplace_back(std::vector<std::vector<transfer>>{
+        {transfer{12}, transfer{13}},
+        {transfer{14}, transfer{15}, transfer{16}},
+        {transfer{17}}});
+    buf = cista::serialize<kMode>(v);
+  }
+
+  auto const& v =
+      *cista::deserialize<cista::raw::nvec<std::uint32_t, transfer, 2>, kMode>(
+          buf);
 
   auto const all = std::vector<transfer>{
       transfer{1},  transfer{2},  transfer{3},  transfer{4},  transfer{5},
