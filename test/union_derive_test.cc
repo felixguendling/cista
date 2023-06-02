@@ -15,6 +15,7 @@ TEST_CASE("union_test") {
     int32_t a_;
     float b_;
   };
+  static_assert(!cista::to_tuple_works_v<union_type>);
 
   cista::byte_buf buf;
 

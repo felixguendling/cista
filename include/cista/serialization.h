@@ -683,7 +683,7 @@ void recurse(Ctx& c, T* el, Fn&& fn) {
   using Type = decay_t<T>;
   if constexpr (is_indexed_v<Type>) {
     fn(static_cast<typename T::value_type*>(el));
-  } else if constexpr (std::is_aggregate_v<Type> && !std::is_union_v<Type>) {
+  } else if constexpr (to_tuple_works_v<Type>) {
     for_each_ptr_field(*el, [&](auto& f) { fn(f); });
   } else if constexpr (is_mode_enabled(Ctx::MODE, mode::_PHASE_II) &&
                        std::is_pointer_v<Type>) {
