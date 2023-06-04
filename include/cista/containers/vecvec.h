@@ -292,6 +292,19 @@ struct basic_vecvec {
                  std::make_move_iterator(std::end(bucket)));
   }
 
+  template <typename X>
+  std::enable_if_t<std::is_convertible_v<std::decay_t<X>, data_value_type>>
+  emplace_back(std::initializer_list<X>&& x) {
+    if (bucket_starts_.empty()) {
+      bucket_starts_.emplace_back(index_value_type{0U});
+    }
+    bucket_starts_.emplace_back(
+        static_cast<index_value_type>(data_.size() + x.size()));
+    data_.insert(std::end(data_),  //
+                 std::make_move_iterator(std::begin(x)),
+                 std::make_move_iterator(std::end(x)));
+  }
+
   template <typename T = data_value_type,
             typename = std::enable_if_t<std::is_convertible_v<T, char const>>>
   void emplace_back(char const* s) {
