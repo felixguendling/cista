@@ -46,7 +46,7 @@ struct buf {
           std::align(alignment, num_bytes, unaligned_ptr, space);
       auto const new_offset = static_cast<offset_t>(
           aligned_ptr ? static_cast<std::uint8_t*>(aligned_ptr) - base() : 0U);
-      auto const adjustment = static_cast<std::size_t>(new_offset - start);
+      auto const adjustment = static_cast<offset_t>(new_offset - start);
       start += adjustment;
     }
 
