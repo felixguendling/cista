@@ -63,7 +63,7 @@ struct buf {
   }
 
   std::uint8_t& operator[](std::size_t const i) noexcept { return buf_[i]; }
-  std::uint8_t operator[](std::size_t const i) const noexcept {
+  std::uint8_t const& operator[](std::size_t const i) const noexcept {
     return buf_[i];
   }
   std::size_t size() const noexcept { return buf_.size(); }
