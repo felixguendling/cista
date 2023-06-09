@@ -68,6 +68,7 @@ struct equal_to {
                         to_tuple_works_v<Type>,
                     "Implement custom equality");
     }
+    return false;
   }
 };
 
