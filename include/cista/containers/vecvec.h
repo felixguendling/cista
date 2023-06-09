@@ -295,6 +295,9 @@ struct basic_vecvec {
   }
 
   bucket add_back_sized(std::size_t const bucket_size) {
+    if (bucket_starts_.empty()) {
+      bucket_starts_.emplace_back(index_value_type{0U});
+    }
     data_.resize(data_.size() + bucket_size);
     bucket_starts_.emplace_back(static_cast<index_value_type>(data_.size()));
     return at(Key{size() - 1U});
