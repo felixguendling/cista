@@ -160,7 +160,7 @@ struct basic_vecvec {
         : map_{map}, i_{to_idx(i)} {}
 
     friend iterator data(const_bucket const& b) { return b.begin(); }
-    friend std::size_t size(const_bucket const& b) { return b.size(); }
+    friend index_value_type size(const_bucket const& b) { return b.size(); }
 
     template <typename T = std::decay_t<data_value_type>,
               typename = std::enable_if_t<std::is_same_v<T, char>>>
@@ -190,7 +190,9 @@ struct basic_vecvec {
       return map_->data_[map_->bucket_starts_[i_] + i];
     }
 
-    std::size_t size() const { return bucket_end_idx() - bucket_begin_idx(); }
+    index_value_type size() const {
+      return bucket_end_idx() - bucket_begin_idx();
+    }
     const_iterator begin() const {
       return map_->data_.begin() + bucket_begin_idx();
     }
