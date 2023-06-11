@@ -31,7 +31,7 @@ struct basic_vecvec {
     friend data_value_type* data(bucket b) { return b.data(); }
     friend index_value_type size(bucket b) { return b.size(); }
 
-    data_value_type const* data() { return &front(); }
+    data_value_type const* data() { return empty() ? nullptr : &front(); }
 
     template <typename T = std::decay_t<data_value_type>,
               typename = std::enable_if_t<std::is_same_v<T, char>>>
@@ -165,7 +165,7 @@ struct basic_vecvec {
     friend data_value_type const* data(const_bucket b) { return b.data(); }
     friend index_value_type size(const_bucket b) { return b.size(); }
 
-    data_value_type const* data() { return &front(); }
+    data_value_type const* data() { return empty() ? nullptr : &front(); }
 
     template <typename T = std::decay_t<data_value_type>,
               typename = std::enable_if_t<std::is_same_v<T, char>>>
