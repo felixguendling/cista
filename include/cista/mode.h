@@ -13,6 +13,7 @@ enum class mode {
   DEEP_CHECK = 1U << 4U,
   CAST = 1U << 5U,
   WITH_STATIC_VERSION = 1U << 6U,
+  SKIP_INTEGRITY = 1U << 7U,
   _CONST = 1U << 29U,
   _PHASE_II = 1U << 30U
 };

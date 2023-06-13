@@ -441,7 +441,8 @@ constexpr offset_t integrity_start(mode const m) noexcept {
 
 constexpr offset_t data_start(mode const m) noexcept {
   auto start = integrity_start(m);
-  if (is_mode_enabled(m, mode::WITH_INTEGRITY)) {
+  if (is_mode_enabled(m, mode::WITH_INTEGRITY) ||
+      is_mode_enabled(m, mode::SKIP_INTEGRITY)) {
     start += sizeof(std::uint64_t);
   }
   return start;
