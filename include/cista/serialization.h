@@ -433,7 +433,8 @@ void serialize(Ctx& c, strong<T, Tag> const* origin,
 constexpr offset_t integrity_start(mode const m) noexcept {
   offset_t start = 0;
   if (is_mode_enabled(m, mode::WITH_VERSION) ||
-      is_mode_enabled(m, mode::WITH_STATIC_VERSION)) {
+      is_mode_enabled(m, mode::WITH_STATIC_VERSION) ||
+      is_mode_enabled(m, mode::SKIP_VERSION)) {
     start += sizeof(std::uint64_t);
   }
   return start;

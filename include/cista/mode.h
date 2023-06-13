@@ -14,6 +14,7 @@ enum class mode {
   CAST = 1U << 5U,
   WITH_STATIC_VERSION = 1U << 6U,
   SKIP_INTEGRITY = 1U << 7U,
+  SKIP_VERSION = 1U << 8U,
   _CONST = 1U << 29U,
   _PHASE_II = 1U << 30U
 };
