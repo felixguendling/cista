@@ -36,6 +36,12 @@ struct generic_string {
   }
   generic_string(char const* s, owning_t const) { set_owning(s, mstrlen(s)); }
   generic_string(char const* s, non_owning_t const) { set_non_owning(s); }
+  generic_string(char const* s, msize_t const len, owning_t const) {
+    set_owning(s, len);
+  }
+  generic_string(char const* s, msize_t const len, non_owning_t const) {
+    set_non_owning(s, len);
+  }
 
   char* begin() noexcept { return data(); }
   char* end() noexcept { return data() + size(); }
