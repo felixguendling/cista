@@ -223,7 +223,7 @@ struct basic_vecvec {
       --i_;
       return *this;
     }
-    const_bucket operator*() { return *this; }
+    const_bucket operator*() const { return *this; }
     const_bucket& operator+=(difference_type const n) {
       i_ += n;
       return *this;
