@@ -59,8 +59,8 @@ inline HANDLE open_file(char const* path, char const* mode) {
   DWORD access = read ? GENERIC_READ : GENERIC_READ | GENERIC_WRITE;
   DWORD create_mode = read ? OPEN_EXISTING : CREATE_ALWAYS;
 
-  auto const f = CreateFileA(path, access, 0, nullptr, create_mode,
-                             FILE_ATTRIBUTE_NORMAL, nullptr);
+  auto const f = CreateFileA(path, access, FILE_SHARE_READ, nullptr,
+                             create_mode, FILE_ATTRIBUTE_NORMAL, nullptr);
   if (f == INVALID_HANDLE_VALUE) {
     throw std::runtime_error{std::string{"cannot open path="} + path +
                              ", mode=" + mode + ", message=\"" +
