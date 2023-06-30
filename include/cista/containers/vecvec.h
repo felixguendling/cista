@@ -10,8 +10,6 @@ namespace cista {
 
 template <typename Key, typename DataVec, typename IndexVec>
 struct basic_vecvec {
-  static_assert(std::is_same_v<typename IndexVec::value_type, base_t<Key>>);
-
   using data_value_type = typename DataVec::value_type;
   using index_value_type = typename IndexVec::value_type;
 
@@ -352,15 +350,15 @@ struct basic_vecvec {
 
 namespace offset {
 
-template <typename K, typename V>
-using vecvec = basic_vecvec<K, vector<V>, vector<base_t<K>>>;
+template <typename K, typename V, typename SizeType = base_t<K>>
+using vecvec = basic_vecvec<K, vector<V>, vector<SizeType>>;
 
 }  // namespace offset
 
 namespace raw {
 
-template <typename K, typename V>
-using vecvec = basic_vecvec<K, vector<V>, vector<base_t<K>>>;
+template <typename K, typename V, typename SizeType = base_t<K>>
+using vecvec = basic_vecvec<K, vector<V>, vector<SizeType>>;
 
 }  // namespace raw
 
