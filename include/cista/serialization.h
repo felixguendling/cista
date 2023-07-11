@@ -644,6 +644,11 @@ void check(std::uint8_t const* const from, std::uint8_t const* const to) {
                type_hash<T>(),
            "invalid version");
   }
+  else if constexpr ((Mode & mode::WITH_STATIC_VERSION) == mode::WITH_STATIC_VERSION) {
+    verify(convert_endian<Mode>(*reinterpret_cast<hash_t const*>(from)) ==
+               static_type_hash<T>(),
+           "invalid static version");
+  }
 
   if constexpr ((Mode & mode::WITH_INTEGRITY) == mode::WITH_INTEGRITY) {
     verify(convert_endian<Mode>(*reinterpret_cast<std::uint64_t const*>(
