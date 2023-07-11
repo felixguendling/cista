@@ -99,7 +99,7 @@ constexpr auto hash_tuple_element(hash_data<NMaxTypes> const h) noexcept {
 template <typename Tuple, std::size_t NMaxTypes, std::size_t... I>
 constexpr auto hash_tuple(Tuple const*, hash_data<NMaxTypes> h,
                           std::index_sequence<I...>) noexcept {
-  (hash_tuple_element<Tuple, NMaxTypes, I>(h), ...);
+  ((h = hash_tuple_element<Tuple, NMaxTypes, I>(h)), ...);
   return h;
 }
 
