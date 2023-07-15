@@ -278,6 +278,12 @@ struct basic_vecvec {
     return {this, to_idx(i)};
   }
 
+  bucket front() { return at(Key{0}); }
+  bucket back() { return at(Key{size() - 1}); }
+
+  const_bucket front() const { return at(Key{0}); }
+  const_bucket back() const { return at(Key{size() - 1}); }
+
   index_value_type size() const {
     return empty() ? 0U : bucket_starts_.size() - 1;
   }
