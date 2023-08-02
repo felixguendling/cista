@@ -291,7 +291,7 @@ struct basic_vecvec {
 
   template <typename Container,
             typename = std::enable_if_t<std::is_convertible_v<
-                typename std::decay_t<Container>::value_type, data_value_type>>>
+                decltype(*std::declval<Container>().begin()), data_value_type>>>
   void emplace_back(Container&& bucket) {
     if (bucket_starts_.empty()) {
       bucket_starts_.emplace_back(index_value_type{0U});

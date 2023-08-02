@@ -17,7 +17,6 @@ IncludeCategories:
     Priority:        1
   - Regex:           '^<c.*'
     Priority:        2
-    Priority:        3
   - Regex:           '^<.*'
     Priority:        4
   - Regex:           '.*'
