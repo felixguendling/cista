@@ -1,0 +1,59 @@
+name: 'Install LLVM'
+description: 'Install LLVM'
+inputs:
+  version:
+    description: 'LLVM version'
+    required: false
+    default: 16
+  packages:
+    description: 'Packages to install'
+    required: false
+    default: >
+      clang-16
+      clang-tools-16
+      clang-format-16
+      clang-tidy-16
+      libc++-16-dev
+      libc++abi-16-dev
+      libclang-common-16-dev
+      libclang-rt-16-dev
+      libunwind-16-dev
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        sudo apt-get install -qq --no-install-recommends \
+          apt-transport-https \
+          ca-certificates \
+          software-properties-common
+        wget -nv -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc
+        source /etc/os-release
+        sudo add-apt-repository "deb http://apt.llvm.org/${VERSION_CODENAME}/ llvm-toolchain-${VERSION_CODENAME}-${{ inputs.version }} main"
+        sudo apt-get update
+      shell: bash
+      env:
+        DEBIAN_FRONTEND: noninteractive
+
+    # workaround for package conflicts
+    - run: |
+        sudo apt-get purge --auto-remove \
+          llvm \
+          llvm-14 \
+          python3-lldb-14 \
+          libc++-dev \
+          libc++1-14 \
+          libc++abi-dev \
+          libc++abi1-14 \
+          libc++abi-14-dev \
+          libunwind-14 \
+          libunwind-14-dev
+      shell: bash
+      env:
+        DEBIAN_FRONTEND: noninteractive
+
+    - run: |
+        sudo apt-get install -y --no-install-recommends \
+          ${{ inputs.packages }}
+      shell: bash
+      env:
+        DEBIAN_FRONTEND: noninteractive

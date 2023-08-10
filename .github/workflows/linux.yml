@@ -20,14 +20,9 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install clang-format
-        env:
-          DEBIAN_FRONTEND: noninteractive
-        run: |
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh 16
-          rm llvm.sh
-          sudo apt-get install -y --no-install-recommends clang-format-16
+        uses: ./.github/actions/install-llvm
+        with:
+          packages: clang-format-16
 
       - name: Format files
         run: find include test -type f -a \( -name "*.cc" -o -name "*.h" \) -print0 | xargs -0  clang-format-16 -i
@@ -80,16 +75,9 @@ jobs:
 
       # ==== INSTALL ====
       - name: Install Clang
-        if: matrix.config.cc == 'clang-16'
-        env:
-          DEBIAN_FRONTEND: noninteractive
-        run: |
-          sudo apt-get update
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh 16 || sudo ./llvm.sh 16 workaround
-          rm llvm.sh
-          sudo apt-get install -y --no-install-recommends libstdc++-12-dev libc++-16-dev libc++abi-16-dev clang-tidy-16 libunwind-16-dev llvm-16 libfuzzer-16-dev
+        uses: ./.github/actions/install-llvm
+        with:
+          packages: libstdc++-12-dev libc++-16-dev libc++abi-16-dev clang-tidy-16 libunwind-16-dev llvm-16 libfuzzer-16-dev
 
       # ==== BUILD ====
       - name: CMake
