@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(__has_include) && __cplusplus >= 202002L
+#if defined(__has_include) && (_MSVC_LANG >= 202002L || __cplusplus >= 202002L)
 #if __has_include(<bit>)
 #include <bit>
 #endif
