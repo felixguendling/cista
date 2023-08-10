@@ -77,7 +77,7 @@ jobs:
       - name: Install Clang
         uses: ./.github/actions/install-llvm
         with:
-          packages: libstdc++-12-dev libc++-16-dev libc++abi-16-dev clang-tidy-16 libunwind-16-dev llvm-16 libfuzzer-16-dev
+          packages: libstdc++-12-dev libc++-16-dev libc++abi-16-dev clang-tidy-16 libunwind-16-dev llvm-16 libfuzzer-16-dev llvm-16-dev libclang-rt-16-dev
 
       # ==== BUILD ====
       - name: CMake
