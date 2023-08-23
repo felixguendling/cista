@@ -21,7 +21,7 @@ struct basic_vecvec {
     using iterator_category = std::random_access_iterator_tag;
     using difference_type = std::ptrdiff_t;
     using pointer = std::add_pointer_t<value_type>;
-    using reference = std::add_lvalue_reference<value_type>;
+    using reference = bucket;
 
     bucket(basic_vecvec* map, index_value_type const i)
         : map_{map}, i_{to_idx(i)} {}
@@ -262,6 +262,8 @@ struct basic_vecvec {
   };
 
   using value_type = bucket;
+  using iterator = bucket;
+  using const_iterator = const_bucket;
 
   bucket operator[](Key const i) { return {this, to_idx(i)}; }
   const_bucket operator[](Key const i) const { return {this, to_idx(i)}; }

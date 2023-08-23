@@ -13,14 +13,14 @@ AlwaysBreakTemplateDeclarations: true
 SpacesBeforeTrailingComments: 2
 IncludeBlocks: Preserve
 IncludeCategories:
-  - Regex:           '^<.*\.h>'
-    Priority:        1
-  - Regex:           '^<c.*'
-    Priority:        2
-  - Regex:           '^<.*'
-    Priority:        4
-  - Regex:           '.*'
-    Priority:        5
+  - Regex: '^<.*\.h>'
+    Priority: 1
+  - Regex: '^<c.*'
+    Priority: 2
+  - Regex: '^<.*'
+    Priority: 4
+  - Regex: '.*'
+    Priority: 5
 ---
 BasedOnStyle: Google
 ColumnLimit: 80
@@ -37,12 +37,11 @@ AlwaysBreakTemplateDeclarations: true
 SpacesBeforeTrailingComments: 2
 IncludeBlocks: Preserve
 IncludeCategories:
-  - Regex:           '^<.*\.h>'
-    Priority:        1
-  - Regex:           '^<c.*'
-    Priority:        2
-    Priority:        3
-  - Regex:           '^<.*'
-    Priority:        4
-  - Regex:           '.*'
-    Priority:        5
+  - Regex: '^<.*\.h>'
+    Priority: 1
+  - Regex: '^<c.*'
+    Priority: 3
+  - Regex: '^<.*'
+    Priority: 4
+  - Regex: '.*'
+    Priority: 5
