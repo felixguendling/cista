@@ -149,7 +149,7 @@ struct basic_vecvec {
 
   struct const_bucket final {
     using value_type = data_value_type;
-    using iterator = typename DataVec::iterator;
+    using iterator = typename DataVec::const_iterator;
     using const_iterator = typename DataVec::const_iterator;
 
     using iterator_category = std::random_access_iterator_tag;
