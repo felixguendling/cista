@@ -54,6 +54,15 @@ TEST_CASE("nvec test") {
     }
   }
 
+  l = 0U;
+  for (auto const a : v) {
+    for (auto const b : a) {
+      for (auto const c : b) {
+        CHECK_EQ((all[l++]), c);
+      }
+    }
+  }
+
   {
     auto const bucket = v.at(2U, 1U);
     auto const entries = {transfer{14}, transfer{15}, transfer{16}};
