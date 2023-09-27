@@ -246,11 +246,113 @@ struct basic_nvec {
     basic_nvec const* map_;
   };
 
+  template <std::size_t Depth>
+  struct const_meta_bucket {
+    const_meta_bucket(basic_nvec const* nvec, index_value_type const i)
+        : nvec_{nvec}, i_{i} {}
+
+    index_value_type size() const { return nvec_->index_[i_]; }
+
+    auto begin() const {
+      if constexpr (Depth == N - 1U) {
+        return const_bucket{nvec_, nvec_->index_[Depth][i_]};
+      } else {
+        return meta_bucket<Depth + 1U>{nvec_, nvec_->index_[Depth][i_]};
+      }
+    }
+
+    auto end() const {
+      if constexpr (Depth == N - 1U) {
+        return const_bucket{nvec_, nvec_->index_[Depth][i_ + 1U]};
+      } else {
+        return meta_bucket<Depth + 1U>{nvec_, nvec_->index_[Depth][i_ + 1U]};
+      }
+    }
+
+    const_meta_bucket operator*() const { return *this; }
+
+    const_meta_bucket& operator++() {
+      ++i_;
+      return *this;
+    }
+
+    const_meta_bucket& operator--() {
+      --i_;
+      return *this;
+    }
+
+    friend bool operator==(const_meta_bucket const& a,
+                           const_meta_bucket const& b) {
+      return a.i_ == b.i_;
+    }
+
+    friend bool operator!=(const_meta_bucket const& a,
+                           const_meta_bucket const& b) {
+      return !(a == b);
+    }
+
+    basic_nvec const* nvec_;
+    index_value_type i_;
+  };
+
+  template <std::size_t Depth>
+  struct meta_bucket {
+    meta_bucket(basic_nvec* nvec, index_value_type const i)
+        : nvec_{nvec}, i_{i} {}
+
+    index_value_type size() const { return nvec_->index_[i_]; }
+
+    auto begin() const {
+      if constexpr (Depth == N - 1U) {
+        return bucket{nvec_, nvec_->index_[Depth][i_]};
+      } else {
+        return meta_bucket<Depth + 1U>{nvec_, nvec_->index_[Depth][i_]};
+      }
+    }
+
+    auto end() const {
+      if constexpr (Depth == N - 1U) {
+        return bucket{nvec_, nvec_->index_[Depth][i_ + 1U]};
+      } else {
+        return meta_bucket<Depth + 1U>{nvec_, nvec_->index_[Depth][i_ + 1U]};
+      }
+    }
+
+    meta_bucket operator*() const { return *this; }
+
+    meta_bucket& operator++() {
+      ++i_;
+      return *this;
+    }
+
+    meta_bucket& operator--() {
+      --i_;
+      return *this;
+    }
+
+    friend bool operator==(meta_bucket const& a, meta_bucket const& b) {
+      return a.i_ == b.i_;
+    }
+
+    friend bool operator!=(meta_bucket const& a, meta_bucket const& b) {
+      return !(a == b);
+    }
+
+    basic_nvec* nvec_;
+    index_value_type i_;
+  };
+
   basic_nvec() {
     for (auto& i : index_) {
       i.push_back(0U);
     }
   }
+
+  meta_bucket<1U> begin() { return {this, 0U}; }
+  meta_bucket<1U> end() { return {this, size()}; }
+
+  const_meta_bucket<1U> begin() const { return {this, 0U}; }
+  const_meta_bucket<1U> end() const { return {this, size()}; }
 
   template <typename Container>
   void emplace_back(Container&& bucket) {
@@ -321,8 +423,8 @@ struct basic_nvec {
   void add(Container&& c) {
     if constexpr (L == 0) {
       index_[0].push_back(static_cast<size_type>(data_.size() + c.size()));
-      data_.insert(end(data_), std::make_move_iterator(begin(c)),
-                   std::make_move_iterator(end(c)));
+      data_.insert(std::end(data_), std::make_move_iterator(std::begin(c)),
+                   std::make_move_iterator(std::end(c)));
     } else {
       index_[L].push_back(
           static_cast<size_type>(index_[L - 1].size() + c.size() - 1U));
