@@ -26,7 +26,7 @@ struct basic_vecvec {
     bucket(basic_vecvec* map, index_value_type const i)
         : map_{map}, i_{to_idx(i)} {}
 
-    friend data_value_type* data(bucket b) { return b.data(); }
+    friend data_value_type* data(bucket b) { return &b[0]; }
     friend index_value_type size(bucket b) { return b.size(); }
 
     data_value_type const* data() const { return empty() ? nullptr : &front(); }
