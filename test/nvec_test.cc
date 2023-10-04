@@ -19,10 +19,12 @@ TEST_CASE("nvec test") {
     bool operator==(transfer const& o) const { return o.i_ == i_; }
     int i_;
   };
+  using container_t = cista::offset::nvec<std::uint32_t, transfer, 2>;
 
   cista::byte_buf buf;
   {
-    cista::offset::nvec<std::uint32_t, transfer, 2> v;
+    container_t v;
+
     v.emplace_back(std::vector<std::vector<transfer>>{
         {transfer{1}, transfer{2}}, {transfer{3}, transfer{4}, transfer{5}}});
     v.emplace_back(std::vector<std::vector<transfer>>{
@@ -36,9 +38,7 @@ TEST_CASE("nvec test") {
     buf = cista::serialize<kMode>(v);
   }
 
-  auto const& v =
-      *cista::deserialize<cista::raw::nvec<std::uint32_t, transfer, 2>, kMode>(
-          buf);
+  auto const& v = *cista::deserialize<container_t, kMode>(buf);
 
   auto const all = std::vector<transfer>{
       transfer{1},  transfer{2},  transfer{3},  transfer{4},  transfer{5},
@@ -88,4 +88,15 @@ TEST_CASE("nvec test") {
   CHECK_EQ(2U, v.size(2U, 0U));
   CHECK_EQ(3U, v.size(2U, 1U));
   CHECK_EQ(1U, v.size(2U, 2U));
+
+  CHECK_EQ(2U, v[0U].size());
+  CHECK_EQ(3U, v[1U].size());
+  CHECK_EQ(2U, v[0U][0U].size());
+  CHECK_EQ(3U, v[0U][1U].size());
+  CHECK_EQ(2U, v[1U][0U].size());
+  CHECK_EQ(3U, v[1U][1U].size());
+  CHECK_EQ(1U, v[1U][2U].size());
+  CHECK_EQ(2U, v[2U][0U].size());
+  CHECK_EQ(3U, v[2U][1U].size());
+  CHECK_EQ(1U, v[2U][2U].size());
 }
