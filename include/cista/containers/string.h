@@ -8,6 +8,7 @@
 #include <string_view>
 
 #include "cista/containers/ptr.h"
+#include "cista/type_traits.h"
 
 namespace cista {
 
@@ -422,9 +423,6 @@ struct basic_string_view : public generic_string<Ptr> {
 };
 
 template <typename Ptr>
-struct is_string_helper : std::false_type {};
-
-template <typename Ptr>
 struct is_string_helper<generic_string<Ptr>> : std::true_type {};
 
 template <typename Ptr>
@@ -432,9 +430,6 @@ struct is_string_helper<basic_string<Ptr>> : std::true_type {};
 
 template <typename Ptr>
 struct is_string_helper<basic_string_view<Ptr>> : std::true_type {};
-
-template <class T>
-constexpr bool is_string_v = is_string_helper<std::remove_cv_t<T>>::value;
 
 namespace raw {
 using generic_string = generic_string<ptr<char const>>;

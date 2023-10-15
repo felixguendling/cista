@@ -15,6 +15,7 @@
 #include "cista/hash.h"
 #include "cista/is_iterable.h"
 #include "cista/reflection/for_each_field.h"
+#include "cista/type_traits.h"
 
 namespace cista {
 
@@ -49,18 +50,6 @@ struct is_hash_equivalent_helper : std::false_type {};
 template <typename A, typename B>
 constexpr bool is_hash_equivalent_v =
     is_hash_equivalent_helper<std::remove_cv_t<A>, std::remove_cv_t<B>>::value;
-
-template <typename T, typename = void>
-struct is_char_array_helper : std::false_type {};
-
-template <std::size_t N>
-struct is_char_array_helper<char const[N]> : std::true_type {};
-
-template <std::size_t N>
-struct is_char_array_helper<char[N]> : std::true_type {};
-
-template <typename T>
-constexpr bool is_char_array_v = is_char_array_helper<T>::value;
 
 template <typename T>
 constexpr bool is_string_like_v =
