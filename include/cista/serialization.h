@@ -261,6 +261,35 @@ void serialize(Ctx& c,
 }
 
 template <typename Ctx, typename Ptr>
+void serialize(Ctx& c, generic_cstring<Ptr> const* origin, offset_t const pos) {
+  using Type = generic_cstring<Ptr>;
+
+  if (origin->is_short()) {
+    return;
+  }
+
+  const auto* data = origin->data();
+  auto size = origin->size();
+  std::string buf;
+  if (!origin->is_owning()) {
+    buf = origin->str();
+    data = buf.data();
+    size = buf.size();
+  }
+  auto capacity = size + 1;
+
+  auto const start = c.write(data, capacity);
+  c.write(pos + cista_member_offset(Type, h_.ptr_),
+          convert_endian<Ctx::MODE>(start - cista_member_offset(Type, h_.ptr_) -
+                                    pos));
+  c.write(pos + cista_member_offset(Type, h_.size_),
+          convert_endian<Ctx::MODE>(origin->h_.size_));
+  c.write(pos + cista_member_offset(Type, h_.self_allocated_), false);
+  c.write(pos + cista_member_offset(Type, h_.minus_one_),
+          static_cast<char>(-1));
+}
+
+template <typename Ctx, typename Ptr>
 void serialize(Ctx& c, basic_string<Ptr> const* origin, offset_t const pos) {
   serialize(c, static_cast<generic_string<Ptr> const*>(origin), pos);
 }
@@ -269,6 +298,11 @@ template <typename Ctx, typename Ptr>
 void serialize(Ctx& c, basic_string_view<Ptr> const* origin,
                offset_t const pos) {
   serialize(c, static_cast<generic_string<Ptr> const*>(origin), pos);
+}
+
+template <typename Ctx, typename Ptr>
+void serialize(Ctx& c, basic_cstring<Ptr> const* origin, offset_t const pos) {
+  serialize(c, static_cast<generic_cstring<Ptr> const*>(origin), pos);
 }
 
 template <typename Ctx, typename T, typename Ptr>
