@@ -300,3 +300,12 @@ struct bitset {
 };
 
 }  // namespace cista
+
+#if __has_include("fmt/ostream.h")
+
+#include "fmt/ostream.h"
+
+template <std::size_t Size>
+struct fmt::formatter<cista::bitset<Size>> : ostream_formatter {};
+
+#endif

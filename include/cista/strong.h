@@ -196,3 +196,12 @@ struct hash<cista::strong<T, Tag>> {
 };
 
 }  // namespace std
+
+#if __has_include("fmt/ostream.h")
+
+#include "fmt/ostream.h"
+
+template <typename T, typename Tag>
+struct fmt::formatter<cista::strong<T, Tag>> : ostream_formatter {};
+
+#endif

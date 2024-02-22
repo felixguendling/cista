@@ -444,3 +444,12 @@ using string_view = basic_string_view<ptr<char const>>;
 }  // namespace offset
 
 }  // namespace cista
+
+#if __has_include("fmt/ostream.h")
+
+#include "fmt/ostream.h"
+
+template <typename Ptr>
+struct fmt::formatter<cista::basic_string<Ptr>> : ostream_formatter {};
+
+#endif
