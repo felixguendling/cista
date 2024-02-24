@@ -547,7 +547,7 @@ Arg checked_addition(Arg a1, Args... aN) {
     }
     if (((x < 0) && (a1 < std::numeric_limits<Type>::min() - x)) ||
         ((x > 0) && (a1 > std::numeric_limits<Type>::max() - x))) {
-      throw std::overflow_error("addition overflow");
+      throw_exception(std::overflow_error("addition overflow"));
     }
     a1 = a1 + x;
   };
@@ -560,7 +560,7 @@ Arg checked_multiplication(Arg a1, Args... aN) {
   using Type = decay_t<Arg>;
   auto multiply_if_ok = [&](auto x) {
     if (a1 != 0 && ((std::numeric_limits<Type>::max() / a1) < x)) {
-      throw std::overflow_error("addition overflow");
+      throw_exception(std::overflow_error("addition overflow"));
     }
     a1 = a1 * x;
   };

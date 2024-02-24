@@ -12,6 +12,7 @@
 
 #include "cista/allocator.h"
 #include "cista/containers/ptr.h"
+#include "cista/exception.h"
 #include "cista/is_iterable.h"
 #include "cista/next_power_of_2.h"
 #include "cista/strong.h"
@@ -143,7 +144,7 @@ struct basic_vector {
 
   T& at(access_type const index) {
     if (index >= used_size_) {
-      throw std::out_of_range{"vector::at(): invalid index"};
+      throw_exception(std::out_of_range{"vector::at(): invalid index"});
     }
     return (*this)[index];
   }
@@ -316,7 +317,7 @@ struct basic_vector {
     auto num_bytes = static_cast<std::size_t>(next_size) * sizeof(T);
     auto mem_buf = static_cast<T*>(std::malloc(num_bytes));  // NOLINT
     if (mem_buf == nullptr) {
-      throw std::bad_alloc();
+      throw_exception(std::bad_alloc());
     }
 
     if (size() != 0) {
