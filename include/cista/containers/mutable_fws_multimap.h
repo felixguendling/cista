@@ -13,6 +13,7 @@
 #include "cista/bit_counting.h"
 #include "cista/containers/array.h"
 #include "cista/containers/vector.h"
+#include "cista/exception.h"
 #include "cista/next_power_of_2.h"
 #include "cista/verify.h"
 
@@ -124,8 +125,8 @@ struct dynamic_fws_multimap_base {
 
     size_type bucket_index(const_iterator it) const {
       if (it < begin() || it >= end()) {
-        throw std::out_of_range{
-            "dynamic_fws_multimap::bucket::bucket_index() out of range"};
+        throw_exception(std::out_of_range{
+            "dynamic_fws_multimap::bucket::bucket_index() out of range"});
       }
       return std::distance(begin(), it);
     }
@@ -239,8 +240,8 @@ struct dynamic_fws_multimap_base {
     size_type get_and_check_data_index(size_type index) const {
       auto const& idx = get_index();
       if (index >= idx.size_) {
-        throw std::out_of_range{
-            "dynamic_fws_multimap::bucket::at() out of range"};
+        throw_exception(std::out_of_range{
+            "dynamic_fws_multimap::bucket::at() out of range"});
       }
       return idx.begin_ + index;
     }
@@ -397,14 +398,16 @@ struct dynamic_fws_multimap_base {
 
   mutable_bucket at(access_t const index) {
     if (index >= index_.size()) {
-      throw std::out_of_range{"dynamic_fws_multimap::at() out of range"};
+      throw_exception(
+          std::out_of_range{"dynamic_fws_multimap::at() out of range"});
     }
     return {*this, to_idx(index)};
   }
 
   const_bucket at(access_t const index) const {
     if (index >= index_.size()) {
-      throw std::out_of_range{"dynamic_fws_multimap::at() out of range"};
+      throw_exception(
+          std::out_of_range{"dynamic_fws_multimap::at() out of range"});
     }
     return {*this, to_idx(index)};
   }

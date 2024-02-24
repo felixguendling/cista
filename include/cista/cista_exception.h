@@ -2,6 +2,8 @@
 
 #include <exception>
 
+#include "cista/exception.h"
+
 namespace cista {
 
 struct cista_exception : public std::runtime_error {

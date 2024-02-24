@@ -62,9 +62,9 @@ inline HANDLE open_file(char const* path, char const* mode) {
   auto const f = CreateFileA(path, access, FILE_SHARE_READ, nullptr,
                              create_mode, FILE_ATTRIBUTE_NORMAL, nullptr);
   if (f == INVALID_HANDLE_VALUE) {
-    throw std::runtime_error{std::string{"cannot open path="} + path +
-                             ", mode=" + mode + ", message=\"" +
-                             last_error_str() + "\""};
+    throw_exception(std::runtime_error{std::string{"cannot open path="} + path +
+                                       ", mode=" + mode + ", message=\"" +
+                                       last_error_str() + "\""});
   }
   return f;
 }

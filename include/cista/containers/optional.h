@@ -4,6 +4,8 @@
 #include <type_traits>
 #include <utility>
 
+#include "cista/exception.h"
+
 namespace cista {
 
 template <typename T>
@@ -49,14 +51,14 @@ struct optional {
 
   T const& value() const {
     if (!valid_) {
-      throw std::bad_optional_access{};
+      throw_exception(std::bad_optional_access{});
     }
     return *reinterpret_cast<T const*>(&storage_[0]);
   }
 
   T& value() {
     if (!valid_) {
-      throw std::bad_optional_access{};
+      throw_exception(std::bad_optional_access{});
     }
     return *reinterpret_cast<T*>(&storage_[0]);
   }

@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include "cista/aligned_alloc.h"
+#include "cista/exception.h"
 
 namespace cista {
 
@@ -34,7 +35,7 @@ struct aligned_allocator {
     auto const ptr =
         static_cast<pointer>(CISTA_ALIGNED_ALLOC(N, n * sizeof(value_type)));
     if (ptr == nullptr) {
-      throw std::bad_alloc{};
+      throw_exception(std::bad_alloc{});
     }
     return ptr;
   }

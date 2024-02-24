@@ -9,6 +9,7 @@
 #include <string_view>
 
 #include "cista/containers/ptr.h"
+#include "cista/exception.h"
 #include "cista/type_traits.h"
 
 namespace cista {
@@ -310,7 +311,7 @@ struct generic_cstring {
     heap(msize_t len, owning_t) {
       char* mem = static_cast<char*>(std::malloc(len + 1));
       if (mem == nullptr) {
-        throw std::bad_alloc{};
+        throw_exception(std::bad_alloc{});
       }
       mem[len] = '\0';
       ptr_ = mem;

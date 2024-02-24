@@ -12,6 +12,7 @@
 #include "cista/bit_counting.h"
 #include "cista/containers/ptr.h"
 #include "cista/decay.h"
+#include "cista/exception.h"
 #include "cista/hash.h"
 
 namespace cista {
@@ -345,7 +346,7 @@ struct hash_storage {
   mapped_type& at_impl(Key&& key) {
     auto const it = find(std::forward<Key>(key));
     if (it == end()) {
-      throw std::out_of_range{"hash_storage::at() key not found"};
+      throw_exception(std::out_of_range{"hash_storage::at() key not found"});
     }
     return GetValue{}(*it);
   }
@@ -589,7 +590,7 @@ struct hash_storage {
     entries_ = reinterpret_cast<T*>(
         CISTA_ALIGNED_ALLOC(ALIGNMENT, static_cast<std::size_t>(size)));
     if (entries_ == nullptr) {
-      throw std::bad_alloc{};
+      throw_exception(std::bad_alloc{});
     }
 #if defined(CISTA_ZERO_OUT)
     std::memset(entries_, 0, size);

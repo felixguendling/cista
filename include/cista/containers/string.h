@@ -8,6 +8,7 @@
 #include <string_view>
 
 #include "cista/containers/ptr.h"
+#include "cista/exception.h"
 #include "cista/type_traits.h"
 
 namespace cista {
@@ -89,7 +90,7 @@ struct generic_string {
     } else {
       h_.ptr_ = static_cast<char*>(std::malloc(len));
       if (h_.ptr_ == nullptr) {
-        throw std::bad_alloc{};
+        throw_exception(std::bad_alloc{});
       }
       h_.size_ = len;
       h_.self_allocated_ = true;
