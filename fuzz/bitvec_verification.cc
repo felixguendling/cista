@@ -30,6 +30,9 @@ bool any(std::vector<bool> const& v) {
 template <typename T>
 bool bitvec_lt(T const& x, T const& y) {
   assert(x.size() == y.size());
+  if (x.size() == 0U) {
+    return false;
+  }
   for (std::size_t i = 0U; i != x.size(); ++i) {
     auto const j = static_cast<std::size_t>(x.size() - i - 1U);
     if (x[i] ^ y[i]) {
@@ -117,8 +120,8 @@ struct test_set {
     };
 
     if (bitvec_lt(ref1, ref2) != bitvec_lt(uut1, uut2)) {
-      std::cerr << "uut1 < uut2 => " << (uut1 < uut2) << "\n"
-                << "ref1 < ref2 => " << (ref1 < ref2) << "\n";
+      std::cerr << "uut1 < uut2 => " << bitvec_lt(uut1, uut2) << "\n"
+                << "ref1 < ref2 => " << bitvec_lt(ref1, ref2) << "\n";
       print("fail on <");
       abort();
     }
