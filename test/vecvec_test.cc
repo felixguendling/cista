@@ -104,12 +104,12 @@ TEST_CASE("vecvec resize test") {
 TEST_CASE("vecvec mmap") {
   using key = cista::strong<unsigned, struct x_>;
   using idx_t = cista::mmap_vec<cista::base_t<key>>;
-  using data_t = cista::raw::vector<char>;  // cista::mmap_vec<char>;
+  using data_t = cista::mmap_vec<char>;
 
   auto idx = idx_t{cista::mmap{std::tmpnam(nullptr)}};
-  auto data = data_t{};  // data_t{cista::mmap{std::tmpnam(nullptr)}};
-  auto d = cista::basic_vecvec<key, data_t, idx_t>{
-      .data_ = std::move(data), .bucket_starts_ = std::move(idx)};
+  auto data = data_t{cista::mmap{std::tmpnam(nullptr)}};
+  auto d =
+      cista::basic_vecvec<key, data_t, idx_t>{std::move(data), std::move(idx)};
 
   d.emplace_back("hello");
   d.emplace_back("world");
