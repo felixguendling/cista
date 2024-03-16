@@ -119,7 +119,7 @@ jobs:
       # ==== FUZZ ====
       - name: Fuzzing
         if: matrix.config.fuzz
-        run: cmake --build build --target cista-fuzz
+        run: cmake --build build --target cista-fuzz-hash_map_verification-run
 
       # ==== DISTRIBUTION ====
       - name: Upload Distribution

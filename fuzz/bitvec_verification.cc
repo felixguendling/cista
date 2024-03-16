@@ -120,8 +120,8 @@ struct test_set {
     };
 
     if (bitvec_lt(ref1, ref2) != bitvec_lt(uut1, uut2)) {
-      std::cerr << "uut1 < uut2 => " << (uut1 < uut2) << "\n"
-                << "ref1 < ref2 => " << (ref1 < ref2) << "\n";
+      std::cerr << "uut1 < uut2 => " << bitvec_lt(uut1, uut2) << "\n"
+                << "ref1 < ref2 => " << bitvec_lt(ref1, ref2) << "\n";
       print("fail on <");
       abort();
     }
