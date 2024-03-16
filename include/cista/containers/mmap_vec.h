@@ -74,10 +74,14 @@ struct basic_mmap_vec {
 
   template <typename It>
   void set(It begin_it, It end_it) {
+    using diff_t =
+        std::common_type_t<typename std::iterator_traits<It>::difference_type,
+                           size_type>;
     auto const range_size = std::distance(begin_it, end_it);
-    verify(
-        range_size >= 0 && range_size <= std::numeric_limits<size_type>::max(),
-        "cista::vector::set: invalid range");
+    verify(range_size >= 0 &&
+               static_cast<diff_t>(range_size) <=
+                   static_cast<diff_t>(std::numeric_limits<size_type>::max()),
+           "cista::vector::set: invalid range");
 
     reserve(static_cast<size_type>(range_size));
 
