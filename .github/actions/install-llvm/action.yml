@@ -4,20 +4,20 @@ inputs:
   version:
     description: 'LLVM version'
     required: false
-    default: 16
+    default: 17
   packages:
     description: 'Packages to install'
     required: false
     default: >
-      clang-16
-      clang-tools-16
-      clang-format-16
-      clang-tidy-16
-      libc++-16-dev
-      libc++abi-16-dev
-      libclang-common-16-dev
-      libclang-rt-16-dev
-      libunwind-16-dev
+      clang-17
+      clang-tools-17
+      clang-format-17
+      clang-tidy-17
+      libc++-17-dev
+      libc++abi-17-dev
+      libclang-common-17-dev
+      libclang-rt-17-dev
+      libunwind-17-dev
 runs:
   using: "composite"
   steps:

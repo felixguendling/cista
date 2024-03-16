@@ -22,10 +22,10 @@ jobs:
       - name: Install clang-format
         uses: ./.github/actions/install-llvm
         with:
-          packages: clang-format-16
+          packages: clang-format-17
 
       - name: Format files
-        run: find include test -type f -a \( -name "*.cc" -o -name "*.h" \) -print0 | xargs -0  clang-format-16 -i
+        run: find include test -type f -a \( -name "*.cc" -o -name "*.h" \) -print0 | xargs -0  clang-format-17 -i
 
       - name: Check for differences
         run: |
@@ -45,15 +45,15 @@ jobs:
             cc: gcc-11
             mode: Debug
             valgrind: true
-          - name: Clang 16 Release
-            cxx: clang++-16
-            cc: clang-16
+          - name: Clang 17 Release
+            cxx: clang++-17
+            cc: clang-17
             mode: Release
             cxxflags: -stdlib=libc++
             ldflags: -lc++abi
-          - name: Clang 16 Debug
-            cxx: clang++-16
-            cc: clang-16
+          - name: Clang 17 Debug
+            cxx: clang++-17
+            cc: clang-17
             mode: Debug
             fuzz: true
           - key: GCC 11 Sanitizer
@@ -77,7 +77,7 @@ jobs:
       - name: Install Clang
         uses: ./.github/actions/install-llvm
         with:
-          packages: libstdc++-12-dev libc++-16-dev libc++abi-16-dev clang-tidy-16 libunwind-16-dev llvm-16 libfuzzer-16-dev llvm-16-dev libclang-rt-16-dev
+          packages: libstdc++-12-dev libc++-17-dev libc++abi-17-dev clang-tidy-17 libunwind-17-dev llvm-17 libfuzzer-17-dev llvm-17-dev libclang-rt-17-dev
 
       # ==== BUILD ====
       - name: CMake
