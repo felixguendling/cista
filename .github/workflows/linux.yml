@@ -120,12 +120,19 @@ jobs:
       - name: Fuzzing
         if: matrix.config.fuzz
         run: |
-          cmake --build build --target cista-fuzz-bitset_verification-run
-          cmake --build build --target cista-fuzz-bitvec_verification-run
-          cmake --build build --target cista-fuzz-graph-run
-          cmake --build build --target cista-fuzz-hash_map_verification-run
-          cmake --build build --target cista-fuzz-hash_set-run
-          cmake --build build --target cista-fuzz-multimap_verification-run
+          cmake --build build --target \
+            cista-fuzz-bitset_verification \
+            cista-fuzz-bitvec_verification \
+            cista-fuzz-graph \
+            cista-fuzz-hash_map_verification \
+            cista-fuzz-hash_set \
+            cista-fuzz-multimap_verification
+          ./build/cista-fuzz-bitset_verification -max_total_time=120
+          ./build/cista-fuzz-bitvec_verification -max_total_time=120
+          ./build/cista-fuzz-graph -max_total_time=120
+          ./build/cista-fuzz-hash_map_verification -max_total_time=120
+          ./build/cista-fuzz-hash_set -max_total_time=120
+          ./build/cista-fuzz-multimap_verification -max_total_time=120
 
       # ==== DISTRIBUTION ====
       - name: Upload Distribution
