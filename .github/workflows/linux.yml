@@ -36,13 +36,13 @@ jobs:
     strategy:
       matrix:
         config:
-          - name: GCC 11 Release
-            cxx: g++-11
-            cc: gcc-11
+          - name: GCC 12 Release
+            cxx: g++-12
+            cc: gcc-12
             mode: Release
-          - name: GCC 11 Debug
-            cxx: g++-11
-            cc: gcc-11
+          - name: GCC 12 Debug
+            cxx: g++-12
+            cc: gcc-12
             mode: Debug
             valgrind: true
           - name: Clang 17 Release
@@ -56,9 +56,9 @@ jobs:
             cc: clang-17
             mode: Debug
             fuzz: true
-          - key: GCC 11 Sanitizer
-            cxx: g++-11
-            cc: gcc-11
+          - key: GCC 12 Sanitizer
+            cxx: g++-12
+            cc: gcc-12
             mode: Debug
             cflags: -fsanitize=address,undefined -fno-omit-frame-pointer
             cxxflags: -fsanitize=address,undefined -fno-omit-frame-pointer
@@ -91,7 +91,7 @@ jobs:
             -DCMAKE_CXX_LINKER_FLAGS=${{ matrix.config.ldflags }}" \
             -DCMAKE_CXX_EXE_LINKER_FLAGS="${{ matrix.config.ldflags }} \
             -DCMAKE_BUILD_TYPE=${{ matrix.config.mode }} \
-            -DCISTA_ZERO_OUT=${{ matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-11' }}
+            -DCISTA_ZERO_OUT=${{ matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-12' }}
       - name: Build
         run: cmake --build build --target cista-test cista-test-single-header
 
@@ -136,7 +136,7 @@ jobs:
 
       # ==== DISTRIBUTION ====
       - name: Upload Distribution
-        if: matrix.config.mode == 'Release' && matrix.config.cc == 'gcc-11'
+        if: matrix.config.mode == 'Release' && matrix.config.cc == 'gcc-12'
         uses: actions/upload-artifact@v1
         with:
           name: cista.h
@@ -144,7 +144,7 @@ jobs:
 
       # ==== RELEASE ====
       - name: Upload Release
-        if: github.event.action == 'published' && matrix.config.mode == 'Release' && matrix.config.cc == 'gcc-11'
+        if: github.event.action == 'published' && matrix.config.mode == 'Release' && matrix.config.cc == 'gcc-12'
         uses: actions/upload-release-asset@v1.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
