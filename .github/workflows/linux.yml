@@ -56,9 +56,9 @@ jobs:
             cc: clang-17
             mode: Debug
             fuzz: true
-          - key: GCC 12 Sanitizer
-            cxx: g++-12
-            cc: gcc-12
+          - key: Clang 17 Sanitizer
+            cxx: clang++-17
+            cc: clang-17
             mode: Debug
             cflags: -fsanitize=address,undefined -fno-omit-frame-pointer
             cxxflags: -fsanitize=address,undefined -fno-omit-frame-pointer
