@@ -27,7 +27,7 @@ jobs:
       CC: cl.exe
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ilammy/msvc-dev-cmd@v1
 
       - name: Install ninja
