@@ -7,7 +7,9 @@
 #ifdef SINGLE_HEADER
 #include "cista.h"
 #else
+#include "cista/containers/mmap_vec.h"
 #include "cista/containers/vecvec.h"
+#include "cista/strong.h"
 #endif
 
 TEST_CASE("vecvec insert begin test") {
@@ -97,4 +99,38 @@ TEST_CASE("vecvec resize test") {
   for (auto i = 0U; i != d.size(); ++i) {
     CHECK((d[key{i}].view() == expected_1[i]));
   }
+}
+
+TEST_CASE("vecvec mmap") {
+  using key = cista::strong<unsigned, struct x_>;
+  using idx_t = cista::mmap_vec<cista::base_t<key>>;
+  using data_t = cista::raw::vector<char>;  // cista::mmap_vec<char>;
+
+  auto idx = idx_t{cista::mmap{std::tmpnam(nullptr)}};
+  auto data = data_t{};  // data_t{cista::mmap{std::tmpnam(nullptr)}};
+  auto d = cista::basic_vecvec<key, data_t, idx_t>{
+      .data_ = std::move(data), .bucket_starts_ = std::move(idx)};
+
+  d.emplace_back("hello");
+  d.emplace_back("world");
+  d.emplace_back("test");
+
+  CHECK_EQ("hello", d[key{0}].view());
+  CHECK_EQ("world", d[key{1}].view());
+  CHECK_EQ("test", d[key{2}].view());
+
+  d[key{0}].push_back('x');
+  CHECK_EQ("hellox", d[key{0}].view());
+  CHECK_EQ("world", d[key{1}].view());
+  CHECK_EQ("test", d[key{2}].view());
+
+  d[key{1}].push_back('x');
+  CHECK_EQ("hellox", d[key{0}].view());
+  CHECK_EQ("worldx", d[key{1}].view());
+  CHECK_EQ("test", d[key{2}].view());
+
+  d[key{2}].push_back('x');
+  CHECK_EQ("hellox", d[key{0}].view());
+  CHECK_EQ("worldx", d[key{1}].view());
+  CHECK_EQ("testx", d[key{2}].view());
 }
