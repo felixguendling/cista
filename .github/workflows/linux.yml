@@ -127,11 +127,11 @@ jobs:
             cista-fuzz-hash_map_verification \
             cista-fuzz-hash_set \
             cista-fuzz-multimap_verification
+          ./build/cista-fuzz-hash_map_verification -max_total_time=120
+          ./build/cista-fuzz-hash_set -max_total_time=120
           ./build/cista-fuzz-bitset_verification -max_total_time=120
           ./build/cista-fuzz-bitvec_verification -max_total_time=120
           ./build/cista-fuzz-graph -max_total_time=120
-          ./build/cista-fuzz-hash_map_verification -max_total_time=120
-          ./build/cista-fuzz-hash_set -max_total_time=120
           ./build/cista-fuzz-multimap_verification -max_total_time=120
 
       # ==== DISTRIBUTION ====
