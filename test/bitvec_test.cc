@@ -45,8 +45,17 @@ bool bitvec_lt(T const& x, T const& y) {
   for (auto i = x.size() - 1; i != 0; --i) {
     if (x[i] ^ y[i]) return y[i];
   }
-  if (x[0] ^ y[0]) return y[0];
+  if (!x.empty() && x[0] ^ y[0]) return y[0];
   return false;
+}
+
+TEST_CASE("bitvec bignum") {
+  auto uut =
+      cista::basic_bitvec<cista::basic_vector<std::uint64_t, cista::raw::ptr,
+                                              false, std::uint64_t>>{};
+  uut.resize(8355212022ULL);
+  uut.set(8355212021ULL, true);
+  uut.for_each_set_bit([](auto const i) { CHECK_EQ(i, 8355212021ULL); });
 }
 
 TEST_CASE("bitvec less than") {
@@ -64,6 +73,10 @@ TEST_CASE("bitvec less than") {
   set(uut2, str_2);
   set(ref1, str_1);
   set(ref2, str_2);
+
+  auto count = 0U;
+  uut2.for_each_set_bit([&](auto const /* */) { ++count; });
+  CHECK_EQ(count, uut2.count());
 
   CHECK(uut1.str() == std::string_view{str_1});
   CHECK(uut2.str() == std::string_view{str_2});

@@ -7,7 +7,7 @@
 
 namespace cista {
 
-template <typename T, typename Key = std::size_t>
+template <typename T, typename Key = std::uint32_t>
 struct basic_mmap_vec {
   using size_type = base_t<Key>;
   using difference_type = std::ptrdiff_t;
@@ -53,6 +53,12 @@ struct basic_mmap_vec {
   T* begin() noexcept { return reinterpret_cast<T*>(mmap_.data()); }
   T* end() noexcept { return begin() + used_size_; }  // NOLINT
 
+  friend T const* begin(basic_mmap_vec const& a) noexcept { return a.begin(); }
+  friend T const* end(basic_mmap_vec const& a) noexcept { return a.end(); }
+
+  friend T* begin(basic_mmap_vec& a) noexcept { return a.begin(); }
+  friend T* end(basic_mmap_vec& a) noexcept { return a.end(); }
+
   bool empty() const noexcept { return size() == 0U; }
 
   T const& operator[](access_type const index) const noexcept {
@@ -68,8 +74,11 @@ struct basic_mmap_vec {
   void reserve(std::size_t const size) { mmap_.resize(size * sizeof(T)); }
 
   void resize(std::size_t const size) {
+    mmap_.resize(size * sizeof(T));
+    for (auto i = used_size_; i < size; ++i) {
+      new (data() + i) T{};
+    }
     used_size_ = size;
-    mmap_.resize(size);
   }
 
   template <typename It>
