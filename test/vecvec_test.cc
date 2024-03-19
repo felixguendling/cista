@@ -8,6 +8,8 @@
 #include "cista.h"
 #else
 #include "cista/containers/mmap_vec.h"
+#include "cista/containers/paged.h"
+#include "cista/containers/paged_vecvec.h"
 #include "cista/containers/vecvec.h"
 #include "cista/strong.h"
 #endif
@@ -118,6 +120,119 @@ TEST_CASE("vecvec mmap") {
   CHECK_EQ("hello", d[key{0}].view());
   CHECK_EQ("world", d[key{1}].view());
   CHECK_EQ("test", d[key{2}].view());
+
+  d[key{0}].push_back('x');
+  CHECK_EQ("hellox", d[key{0}].view());
+  CHECK_EQ("world", d[key{1}].view());
+  CHECK_EQ("test", d[key{2}].view());
+
+  d[key{1}].push_back('x');
+  CHECK_EQ("hellox", d[key{0}].view());
+  CHECK_EQ("worldx", d[key{1}].view());
+  CHECK_EQ("test", d[key{2}].view());
+
+  d[key{2}].push_back('x');
+  CHECK_EQ("hellox", d[key{0}].view());
+  CHECK_EQ("worldx", d[key{1}].view());
+  CHECK_EQ("testx", d[key{2}].view());
+}
+
+TEST_CASE("paged_vecvec mmap") {
+  struct x {
+    char x_{'x'};
+  };
+
+  auto t = cista::mmap_vec<x>{cista::mmap(std::tmpnam(nullptr))};
+  t.push_back(x{'y'});
+  CHECK_EQ(1, t.size());
+  t.resize(5);
+  CHECK_EQ(5, t.size());
+
+  auto first = true;
+  for (auto const& x : t) {
+    if (first) {
+      CHECK_EQ(x.x_, 'y');
+      first = false;
+    } else {
+      CHECK_EQ(x.x_, 'x');
+    }
+  }
+
+  using key = cista::strong<unsigned, struct x_>;
+  using data_t = cista::paged<cista::mmap_vec<char>>;
+  using idx_t = cista::mmap_vec<cista::page<data_t::size_type>>;
+
+  auto idx = idx_t{cista::mmap{std::tmpnam(nullptr)}};
+  auto data = data_t{cista::mmap_vec<char>{cista::mmap{std::tmpnam(nullptr)}}};
+  auto d =
+      cista::paged_vecvec<idx_t, data_t, key>{std::move(data), std::move(idx)};
+
+  d.emplace_back("hello");
+  d.emplace_back("world");
+  d.emplace_back("test");
+
+  CHECK_EQ("hello", d[key{0}].view());
+  CHECK_EQ("world", d[key{1}].view());
+  CHECK_EQ("test", d[key{2}].view());
+
+  d[key{0}].push_back('x');
+  CHECK_EQ("hellox", d[key{0}].view());
+  CHECK_EQ("world", d[key{1}].view());
+  CHECK_EQ("test", d[key{2}].view());
+
+  d[key{1}].push_back('x');
+  CHECK_EQ("hellox", d[key{0}].view());
+  CHECK_EQ("worldx", d[key{1}].view());
+  CHECK_EQ("test", d[key{2}].view());
+
+  d[key{2}].push_back('x');
+  CHECK_EQ("hellox", d[key{0}].view());
+  CHECK_EQ("worldx", d[key{1}].view());
+  CHECK_EQ("testx", d[key{2}].view());
+}
+
+TEST_CASE("paged_vecvec vector") {
+  using key = cista::strong<unsigned, struct x_>;
+  using data_t = cista::paged<cista::raw::vector<char>>;
+  using idx_t = cista::mmap_vec<cista::page<data_t::size_type>>;
+
+  auto idx = idx_t{cista::mmap{std::tmpnam(nullptr)}};
+  auto data = data_t{};
+  auto d =
+      cista::paged_vecvec<idx_t, data_t, key>{std::move(data), std::move(idx)};
+
+  d.resize(3);
+  CHECK_EQ(3, d.size());
+
+  d.emplace_back("hello");
+  d.emplace_back("world");
+  d.emplace_back("test");
+
+  CHECK_EQ(6, d.size());
+
+  CHECK_EQ("hello", d[key{3}].view());
+  CHECK_EQ("world", d[key{4}].view());
+  CHECK_EQ("test", d[key{5}].view());
+
+  d[key{3}].push_back('x');
+  CHECK_EQ("hellox", d[key{3}].view());
+  CHECK_EQ("world", d[key{4}].view());
+  CHECK_EQ("test", d[key{5}].view());
+
+  d[key{4}].push_back('x');
+  CHECK_EQ("hellox", d[key{3}].view());
+  CHECK_EQ("worldx", d[key{4}].view());
+  CHECK_EQ("test", d[key{5}].view());
+
+  d[key{5}].push_back('x');
+  CHECK_EQ("hellox", d[key{3}].view());
+  CHECK_EQ("worldx", d[key{4}].view());
+  CHECK_EQ("testx", d[key{5}].view());
+
+  d.resize(0);
+  d.emplace_back("hello");
+  d.emplace_back("world");
+  d.emplace_back("test");
 
   d[key{0}].push_back('x');
   CHECK_EQ("hellox", d[key{0}].view());

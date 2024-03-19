@@ -20,7 +20,7 @@ struct basic_bitvec {
   using block_t = typename Vec::value_type;
   using size_type = typename Vec::size_type;
   static constexpr auto const bits_per_block =
-      static_cast<unsigned>(sizeof(block_t) * 8);
+      static_cast<size_type>(sizeof(block_t) * 8);
 
   constexpr basic_bitvec() noexcept {}
   constexpr basic_bitvec(std::string_view s) noexcept { set(s); }
@@ -35,9 +35,9 @@ struct basic_bitvec {
 
   auto cista_members() noexcept { return std::tie(blocks_); }
 
-  static constexpr unsigned num_blocks(std::size_t num_bits) {
-    return static_cast<unsigned>(num_bits / bits_per_block +
-                                 (num_bits % bits_per_block == 0 ? 0 : 1));
+  static constexpr size_type num_blocks(size_type num_bits) {
+    return static_cast<size_type>(num_bits / bits_per_block +
+                                  (num_bits % bits_per_block == 0 ? 0 : 1));
   }
 
   void resize(size_type const new_size) {
@@ -65,7 +65,7 @@ struct basic_bitvec {
   constexpr void set(size_type const i, bool const val = true) noexcept {
     assert(i < size_);
     assert((i / bits_per_block) < blocks_.size());
-    auto& block = blocks_[static_cast<unsigned>(i) / bits_per_block];
+    auto& block = blocks_[static_cast<size_type>(i) / bits_per_block];
     auto const bit = i % bits_per_block;
     if (val) {
       block |= (block_t{1U} << bit);
@@ -80,7 +80,7 @@ struct basic_bitvec {
 
   std::size_t count() const noexcept {
     auto sum = std::size_t{0U};
-    for (auto i = std::size_t{0U}; i != blocks_.size() - 1; ++i) {
+    for (auto i = size_type{0U}; i != blocks_.size() - 1; ++i) {
       sum += popcount(blocks_[i]);
     }
     return sum + popcount(sanitized_last_block());
@@ -91,9 +91,29 @@ struct basic_bitvec {
       return false;
     }
     assert((i / bits_per_block) < blocks_.size());
-    auto const block = blocks_[static_cast<unsigned>(i) / bits_per_block];
+    auto const block = blocks_[static_cast<size_type>(i) / bits_per_block];
     auto const bit = (i % bits_per_block);
     return (block & (block_t{1U} << bit)) != 0U;
+  }
+
+  template <typename Fn>
+  void for_each_set_bit(Fn&& f) const {
+    if (empty()) {
+      return;
+    }
+    auto const check_block = [&](size_type const i, block_t const block) {
+      if (block != 0U) {
+        for (auto bit = size_type{0U}; bit != bits_per_block; ++bit) {
+          if ((block & (block_t{1U} << bit)) != 0U) {
+            f(i * bits_per_block + bit);
+          }
+        }
+      }
+    };
+    for (auto i = size_type{0U}; i != blocks_.size() - 1; ++i) {
+      check_block(i, blocks_[i]);
+    }
+    check_block(blocks_.size() - 1, sanitized_last_block());
   }
 
   size_type size() const noexcept { return size_; }

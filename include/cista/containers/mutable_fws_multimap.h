@@ -34,7 +34,7 @@ struct dynamic_fws_multimap_base {
     size_type size_{};
     size_type capacity_{};
   };
-  using IndexVec = Vec<index_type>;
+  using index_vec_t = Vec<index_type>;
 
   template <bool Const>
   struct bucket {
@@ -557,7 +557,7 @@ struct dynamic_fws_multimap_base {
   std::optional<index_type> get_free_bucket(size_type const requested_order) {
     assert(requested_order <= Log2MaxEntriesPerBucket);
 
-    auto const pop = [](IndexVec& vec) -> std::optional<index_type> {
+    auto const pop = [](index_vec_t& vec) -> std::optional<index_type> {
       if (!vec.empty()) {
         auto it = std::prev(vec.end());
         auto const entry = *it;
@@ -619,9 +619,9 @@ struct dynamic_fws_multimap_base {
     return size_type{cista::trailing_zeros(to_idx(size))};
   }
 
-  IndexVec index_;
+  index_vec_t index_;
   data_vec_t data_;
-  array<IndexVec, Log2MaxEntriesPerBucket + 1U> free_buckets_;
+  array<index_vec_t, Log2MaxEntriesPerBucket + 1U> free_buckets_;
   size_type element_count_{};
 };
 

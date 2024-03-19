@@ -7,7 +7,7 @@
 
 namespace cista {
 
-template <typename T, typename Key = std::size_t>
+template <typename T, typename Key = std::uint32_t>
 struct basic_mmap_vec {
   using size_type = base_t<Key>;
   using difference_type = std::ptrdiff_t;
@@ -23,7 +23,8 @@ struct basic_mmap_vec {
   static_assert(std::is_trivially_copyable_v<T>);
 
   explicit basic_mmap_vec(cista::mmap mmap)
-      : mmap_{std::move(mmap)}, used_size_{mmap_.size() / sizeof(T)} {}
+      : mmap_{std::move(mmap)},
+        used_size_{static_cast<size_type>(mmap_.size() / sizeof(T))} {}
 
   void push_back(T const& t) {
     ++used_size_;
@@ -40,7 +41,7 @@ struct basic_mmap_vec {
     return *ptr;
   }
 
-  std::size_t size() const { return used_size_; }
+  size_type size() const { return used_size_; }
 
   T const* data() const noexcept { return begin(); }
   T* data() noexcept { return begin(); }
@@ -52,6 +53,12 @@ struct basic_mmap_vec {
   T const* cend() const noexcept { return begin() + used_size_; }  // NOLINT
   T* begin() noexcept { return reinterpret_cast<T*>(mmap_.data()); }
   T* end() noexcept { return begin() + used_size_; }  // NOLINT
+
+  friend T const* begin(basic_mmap_vec const& a) noexcept { return a.begin(); }
+  friend T const* end(basic_mmap_vec const& a) noexcept { return a.end(); }
+
+  friend T* begin(basic_mmap_vec& a) noexcept { return a.begin(); }
+  friend T* end(basic_mmap_vec& a) noexcept { return a.end(); }
 
   bool empty() const noexcept { return size() == 0U; }
 
@@ -65,11 +72,14 @@ struct basic_mmap_vec {
     return begin()[to_idx(index)];
   }
 
-  void reserve(std::size_t const size) { mmap_.resize(size * sizeof(T)); }
+  void reserve(size_type const size) { mmap_.resize(size * sizeof(T)); }
 
-  void resize(std::size_t const size) {
+  void resize(size_type const size) {
+    mmap_.resize(size * sizeof(T));
+    for (auto i = used_size_; i < size; ++i) {
+      new (data() + i) T{};
+    }
     used_size_ = size;
-    mmap_.resize(size);
   }
 
   template <typename It>
@@ -161,7 +171,7 @@ struct basic_mmap_vec {
   }
 
   cista::mmap mmap_;
-  std::size_t used_size_{0U};
+  size_type used_size_{0U};
 };
 
 template <typename T>

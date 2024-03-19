@@ -16,6 +16,19 @@
 namespace cista {
 
 template <typename T>
+inline constexpr unsigned constexpr_trailing_zeros(T t) {
+  auto const is_bit_set = [&](unsigned const i) {
+    return ((t >> i) & T{1U}) == T{1U};
+  };
+  for (auto i = 0U; i != sizeof(T) * 8U; ++i) {
+    if (is_bit_set(i)) {
+      return i;
+    }
+  }
+  return 0U;
+}
+
+template <typename T>
 constexpr unsigned trailing_zeros(T t) noexcept {
   static_assert(sizeof(T) == 8U || sizeof(T) == 4U, "not supported");
 
