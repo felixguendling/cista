@@ -37,9 +37,11 @@ struct paged {
   static_assert(std::is_trivially_copyable_v<value_type>);
 
   static constexpr size_type free_list_index(size_type const capacity) {
-    return static_cast<size_type>(trailing_zeros(capacity) -
-                                  trailing_zeros(MinPageSize));
+    return static_cast<size_type>(constexpr_trailing_zeros(capacity) -
+                                  constexpr_trailing_zeros(MinPageSize));
   }
+
+  static constexpr size_type free_list_size = free_list_index(MaxPageSize) + 1U;
 
   page_t resize_page(page_t const& p, size_type const size) {
     if (size <= p.capacity_) {
@@ -104,7 +106,7 @@ struct paged {
 
   template <typename ItA, typename ItB>
   void copy(page_t const& to, ItA begin, ItB end) {
-    std::memcpy(data(to), begin,
+    std::memcpy(data(to), &*begin,
                 static_cast<std::size_t>(std::distance(begin, end)));
   }
 
@@ -130,7 +132,7 @@ struct paged {
   };
 
   DataVec data_;
-  array<node, free_list_index(MaxPageSize) + 1U> free_list_{};
+  array<node, free_list_size> free_list_{};
 };
 
 }  // namespace cista

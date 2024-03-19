@@ -139,7 +139,7 @@ TEST_CASE("vecvec mmap") {
 
 TEST_CASE("paged_vecvec mmap") {
   struct x {
-    char x{'x'};
+    char x_{'x'};
   };
 
   auto t = cista::mmap_vec<x>{cista::mmap(std::tmpnam(nullptr))};
@@ -151,10 +151,10 @@ TEST_CASE("paged_vecvec mmap") {
   auto first = true;
   for (auto const& x : t) {
     if (first) {
-      CHECK_EQ(x.x, 'y');
+      CHECK_EQ(x.x_, 'y');
       first = false;
     } else {
-      CHECK_EQ(x.x, 'x');
+      CHECK_EQ(x.x_, 'x');
     }
   }
 
