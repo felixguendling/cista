@@ -104,7 +104,8 @@ struct paged {
 
   template <typename ItA, typename ItB>
   void copy(page_t const& to, ItA begin, ItB end) {
-    std::memcpy(data(to), begin, std::distance(begin, end));
+    std::memcpy(data(to), begin,
+                static_cast<std::size_t>(std::distance(begin, end)));
   }
 
   struct node {

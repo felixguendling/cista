@@ -41,7 +41,7 @@ struct basic_mmap_vec {
     return *ptr;
   }
 
-  std::size_t size() const { return used_size_; }
+  size_type size() const { return used_size_; }
 
   T const* data() const noexcept { return begin(); }
   T* data() noexcept { return begin(); }
@@ -72,9 +72,9 @@ struct basic_mmap_vec {
     return begin()[to_idx(index)];
   }
 
-  void reserve(std::size_t const size) { mmap_.resize(size * sizeof(T)); }
+  void reserve(size_type const size) { mmap_.resize(size * sizeof(T)); }
 
-  void resize(std::size_t const size) {
+  void resize(size_type const size) {
     mmap_.resize(size * sizeof(T));
     for (auto i = used_size_; i < size; ++i) {
       new (data() + i) T{};

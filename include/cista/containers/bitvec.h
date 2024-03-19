@@ -80,7 +80,7 @@ struct basic_bitvec {
 
   std::size_t count() const noexcept {
     auto sum = std::size_t{0U};
-    for (auto i = std::size_t{0U}; i != blocks_.size() - 1; ++i) {
+    for (auto i = size_type{0U}; i != blocks_.size() - 1; ++i) {
       sum += popcount(blocks_[i]);
     }
     return sum + popcount(sanitized_last_block());
