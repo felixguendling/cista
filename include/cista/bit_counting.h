@@ -20,14 +20,12 @@ inline constexpr unsigned constexpr_trailing_zeros(T t) {
   auto const is_bit_set = [&](unsigned const i) {
     return ((t >> i) & T{1U}) == T{1U};
   };
-  if (t == 0U) {
-    return 0U;
-  }
   for (auto i = 0U; i != sizeof(T) * 8U; ++i) {
     if (is_bit_set(i)) {
       return i;
     }
   }
+  return 0U;
 }
 
 template <typename T>
