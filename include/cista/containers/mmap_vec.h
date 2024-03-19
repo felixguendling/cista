@@ -23,7 +23,8 @@ struct basic_mmap_vec {
   static_assert(std::is_trivially_copyable_v<T>);
 
   explicit basic_mmap_vec(cista::mmap mmap)
-      : mmap_{std::move(mmap)}, used_size_{mmap_.size() / sizeof(T)} {}
+      : mmap_{std::move(mmap)},
+        used_size_{static_cast<size_type>(mmap_.size() / sizeof(T))} {}
 
   void push_back(T const& t) {
     ++used_size_;
@@ -170,7 +171,7 @@ struct basic_mmap_vec {
   }
 
   cista::mmap mmap_;
-  std::size_t used_size_{0U};
+  size_type used_size_{0U};
 };
 
 template <typename T>

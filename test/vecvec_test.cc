@@ -208,11 +208,7 @@ TEST_CASE("paged_vecvec vector") {
   d.emplace_back("world");
   d.emplace_back("test");
 
-  auto i = 0U;
   CHECK_EQ(6, d.size());
-  for (auto const x : d) {
-    std::cout << (i++) << ": " << x.view() << "\n";
-  }
 
   CHECK_EQ("hello", d[key{3}].view());
   CHECK_EQ("world", d[key{4}].view());
