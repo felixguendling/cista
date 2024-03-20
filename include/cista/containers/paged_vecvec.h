@@ -15,7 +15,6 @@ struct paged_vecvec {
 
   struct const_bucket final {
     using size_type = typename Paged::size_type;
-    using index_value_type = typename Paged::page;
     using data_value_type = typename Paged::value_type;
 
     using value_type = data_value_type;
@@ -36,15 +35,10 @@ struct paged_vecvec {
       return std::string_view{begin(), size()};
     }
 
-    iterator begin() { return pv_->data(i_); }
-    iterator end() { return pv_->data(i_) + size(); }
-    friend iterator begin(const_bucket const& b) { return b.begin(); }
-    friend iterator end(const_bucket const& b) { return b.end(); }
-
-    value_type& operator[](std::size_t const i) {
-      assert(i < size());
-      return *(begin() + i);
-    }
+    const_iterator begin() const { return pv_->data(i_); }
+    const_iterator end() const { return pv_->data(i_) + size(); }
+    friend const_iterator begin(const_bucket const& b) { return b.begin(); }
+    friend const_iterator end(const_bucket const& b) { return b.end(); }
 
     value_type const& operator[](std::size_t const i) const {
       assert(i < size());
@@ -63,7 +57,7 @@ struct paged_vecvec {
 
     reference operator*() const { return *this; }
 
-    index_value_type size() const { return pv_->page(i_).size_; }
+    size_type size() const { return pv_->page(i_).size_; }
 
     friend bool operator==(const_bucket const& a, const_bucket const& b) {
       assert(a.pv_ == b.pv_);
