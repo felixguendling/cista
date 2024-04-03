@@ -12,10 +12,11 @@
 
 #include "cista/bit_counting.h"
 #include "cista/containers/vector.h"
+#include "cista/strong.h"
 
 namespace cista {
 
-template <typename Vec>
+template <typename Vec, typename Key = typename Vec::size_type>
 struct basic_bitvec {
   using block_t = typename Vec::value_type;
   using size_type = typename Vec::size_type;
@@ -24,6 +25,7 @@ struct basic_bitvec {
 
   constexpr basic_bitvec() noexcept {}
   constexpr basic_bitvec(std::string_view s) noexcept { set(s); }
+  constexpr basic_bitvec(Vec&& v) noexcept : blocks_{std::move(v)} {}
   static constexpr basic_bitvec max(std::size_t const size) {
     basic_bitvec ret;
     ret.resize(size);
@@ -62,7 +64,7 @@ struct basic_bitvec {
     }
   }
 
-  constexpr void set(size_type const i, bool const val = true) noexcept {
+  constexpr void set(Key const i, bool const val = true) noexcept {
     assert(i < size_);
     assert((i / bits_per_block) < blocks_.size());
     auto& block = blocks_[static_cast<size_type>(i) / bits_per_block];
@@ -76,7 +78,7 @@ struct basic_bitvec {
 
   void reset() noexcept { blocks_ = {}; }
 
-  bool operator[](size_type i) const noexcept { return test(i); }
+  bool operator[](Key const i) const noexcept { return test(i); }
 
   std::size_t count() const noexcept {
     auto sum = std::size_t{0U};
@@ -86,13 +88,14 @@ struct basic_bitvec {
     return sum + popcount(sanitized_last_block());
   }
 
-  constexpr bool test(size_type const i) const noexcept {
+  constexpr bool test(Key const i) const noexcept {
     if (i >= size_) {
       return false;
     }
     assert((i / bits_per_block) < blocks_.size());
-    auto const block = blocks_[static_cast<size_type>(i) / bits_per_block];
-    auto const bit = (i % bits_per_block);
+    auto const block =
+        blocks_[static_cast<size_type>(to_idx(i)) / bits_per_block];
+    auto const bit = (to_idx(i) % bits_per_block);
     return (block & (block_t{1U} << bit)) != 0U;
   }
 
@@ -105,7 +108,7 @@ struct basic_bitvec {
       if (block != 0U) {
         for (auto bit = size_type{0U}; bit != bits_per_block; ++bit) {
           if ((block & (block_t{1U} << bit)) != 0U) {
-            f(i * bits_per_block + bit);
+            f(Key{i * bits_per_block + bit});
           }
         }
       }
