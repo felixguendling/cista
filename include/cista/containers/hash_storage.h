@@ -292,8 +292,8 @@ struct hash_storage {
   }
 
   hash_storage& operator=(hash_storage const& other) {
+    clear();
     if (other.size() == 0U) {
-      clear();
       return *this;
     }
     for (const auto& v : other) {

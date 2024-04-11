@@ -241,3 +241,15 @@ TEST_CASE("variant get_if") {
   REQUIRE(str != nullptr);
   CHECK(*str == "hello test test test test");
 }
+
+TEST_CASE("std visit") {
+  std::visit(
+      [](auto&& x) {
+        if constexpr (std::is_same_v<int, std::decay_t<decltype(x)>>) {
+          CHECK(true);
+        } else {
+          CHECK(false);
+        }
+      },
+      cista::variant<int, float>{1});
+}
