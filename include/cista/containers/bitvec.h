@@ -25,7 +25,9 @@ struct basic_bitvec {
 
   constexpr basic_bitvec() noexcept {}
   constexpr basic_bitvec(std::string_view s) noexcept { set(s); }
-  constexpr basic_bitvec(Vec&& v) noexcept : blocks_{std::move(v)} {}
+  constexpr basic_bitvec(Vec&& v) noexcept
+      : size_{v.size() * bits_per_block},  // inaccurate for loading mmap vector
+        blocks_{std::move(v)} {}
   static constexpr basic_bitvec max(std::size_t const size) {
     basic_bitvec ret;
     ret.resize(size);
@@ -66,9 +68,9 @@ struct basic_bitvec {
 
   constexpr void set(Key const i, bool const val = true) noexcept {
     assert(i < size_);
-    assert((i / bits_per_block) < blocks_.size());
-    auto& block = blocks_[static_cast<size_type>(i) / bits_per_block];
-    auto const bit = i % bits_per_block;
+    assert((to_idx(i) / bits_per_block) < blocks_.size());
+    auto& block = blocks_[static_cast<size_type>(to_idx(i)) / bits_per_block];
+    auto const bit = to_idx(i) % bits_per_block;
     if (val) {
       block |= (block_t{1U} << bit);
     } else {
