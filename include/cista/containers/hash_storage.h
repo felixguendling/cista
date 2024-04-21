@@ -654,7 +654,8 @@ struct hash_storage {
       return false;
     }
     for (auto const& el : *this) {
-      if (b.find(GetKey()(el)) == b.end()) {
+      auto const it = b.find(GetKey()(el));
+      if (it == b.end() || GetValue()(el) != GetValue()(*it)) {
         return false;
       }
     }
