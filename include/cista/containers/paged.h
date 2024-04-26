@@ -23,7 +23,7 @@ struct page {
 
 template <typename DataVec, typename SizeType = typename DataVec::size_type,
           SizeType MinPageSize =
-              std::max(SizeType{2U},
+              std::max(std::size_t{2U},
                        next_power_of_two(sizeof(page<SizeType>) /
                                          sizeof(typename DataVec::value_type))),
           SizeType MaxPageSize = 65536U>
