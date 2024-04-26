@@ -437,8 +437,6 @@ private:
 template <typename Key, typename DataVec, typename IndexVec, std::size_t N,
           typename SizeType = std::uint32_t>
 struct basic_nvec {
-  static_assert(std::is_same_v<typename IndexVec::value_type, base_t<Key>>);
-
   using data_vec_t = DataVec;
   using index_vec_t = IndexVec;
   using size_type = SizeType;
@@ -455,12 +453,6 @@ struct basic_nvec {
   using reference = iterator;
   using const_reference = const_iterator;
   using value_type = iterator;
-
-  basic_nvec() {
-    for (auto& i : index_) {
-      i.push_back(0U);
-    }
-  }
 
   iterator begin() { return {&data_, &index_.back(), 0U}; }
   iterator end() { return {&data_, &index_.back(), size()}; }
@@ -505,7 +497,7 @@ struct basic_nvec {
     constexpr auto const I = sizeof...(Indices);
     static_assert(I == N - 1);
     verify(to_idx(first) < index_[I].size(), "nvec::at: index out of range");
-    return get_bucket(index_[I][first], rest...);
+    return get_bucket(index_[I][to_idx(first)], rest...);
   }
 
   template <typename... Indices>
@@ -513,7 +505,7 @@ struct basic_nvec {
     constexpr auto const I = sizeof...(Indices);
     static_assert(I == N - 1);
     verify(to_idx(first) < index_[I].size(), "nvec::at: index out of range");
-    return get_bucket(index_[I][first], rest...);
+    return get_bucket(index_[I][to_idx(first)], rest...);
   }
 
   auto cista_members() noexcept { return std::tie(index_, data_); }
