@@ -292,6 +292,11 @@ struct basic_vecvec {
   }
   bool empty() const { return bucket_starts_.empty(); }
 
+  void clear() {
+    bucket_starts_.clear();
+    data_.clear();
+  }
+
   template <typename Container,
             typename = std::enable_if_t<std::is_convertible_v<
                 decltype(*std::declval<Container>().begin()), data_value_type>>>

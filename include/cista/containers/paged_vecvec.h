@@ -217,15 +217,6 @@ struct paged_vecvec {
     page_t page() { return pv_->page(i_); }
     pointer data() { pv_->data(i_); }
 
-    std::size_t bucket_begin_idx() const { return page().start_; }
-    std::size_t bucket_end_idx() const {
-      auto const p = page();
-      return p.start_ + p.size_;
-    }
-    bool is_inside_bucket(std::size_t const i) const {
-      return bucket_begin_idx() + i < bucket_end_idx();
-    }
-
     paged_vecvec* pv_;
     Key i_;
   };
@@ -284,6 +275,8 @@ struct paged_vecvec {
     paged_.copy(p, std::begin(bucket), std::end(bucket));
     idx_.emplace_back(p);
   }
+
+  void emplace_back_empty() { idx_.emplace_back(paged_.create_page(0U)); }
 
   template <typename T = data_value_type,
             typename = std::enable_if_t<std::is_convertible_v<T, char const>>>

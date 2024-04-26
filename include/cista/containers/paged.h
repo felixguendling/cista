@@ -22,7 +22,10 @@ struct page {
 };
 
 template <typename DataVec, typename SizeType = typename DataVec::size_type,
-          SizeType MinPageSize = next_power_of_two(3U * sizeof(SizeType)),
+          SizeType MinPageSize =
+              std::max(std::size_t{2U},
+                       next_power_of_two(sizeof(page<SizeType>) /
+                                         sizeof(typename DataVec::value_type))),
           SizeType MaxPageSize = 65536U>
 struct paged {
   using value_type = typename DataVec::value_type;
@@ -106,8 +109,8 @@ struct paged {
 
   template <typename ItA, typename ItB>
   void copy(page_t const& to, ItA begin, ItB end) {
-    std::memcpy(data(to), &*begin,
-                static_cast<std::size_t>(std::distance(begin, end)));
+    auto const n = static_cast<std::size_t>(std::distance(begin, end));
+    std::memcpy(data(to), &*begin, n * sizeof(value_type));
   }
 
   struct node {
