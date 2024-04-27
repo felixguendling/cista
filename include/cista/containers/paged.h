@@ -35,6 +35,7 @@ struct paged {
   using reference = typename DataVec::reference;
   using const_reference = typename DataVec::const_reference;
   using size_type = SizeType;
+  using page_size_type = PageSizeType;
   using page_t = page<SizeType, PageSizeType>;
 
   static_assert(sizeof(value_type) * MinPageSize >= sizeof(page_t));
