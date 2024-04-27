@@ -11,22 +11,23 @@
 
 namespace cista {
 
-template <typename SizeType>
+template <typename SizeType, typename PageSizeType>
 struct page {
   bool valid() const { return capacity_ != 0U; }
-  SizeType size() const noexcept { return size_; }
+  PageSizeType size() const noexcept { return size_; }
 
-  SizeType size_{0U};
-  SizeType capacity_{0U};
+  PageSizeType size_{0U};
+  PageSizeType capacity_{0U};
   SizeType start_{0U};
 };
 
 template <typename DataVec, typename SizeType = typename DataVec::size_type,
-          SizeType MinPageSize =
+          typename PageSizeType = std::uint16_t,
+          PageSizeType MinPageSize =
               std::max(std::size_t{2U},
-                       next_power_of_two(sizeof(page<SizeType>) /
+                       next_power_of_two(sizeof(page<SizeType, PageSizeType>) /
                                          sizeof(typename DataVec::value_type))),
-          SizeType MaxPageSize = 65536U>
+          PageSizeType MaxPageSize = 4096>
 struct paged {
   using value_type = typename DataVec::value_type;
   using iterator = typename DataVec::iterator;
@@ -34,19 +35,20 @@ struct paged {
   using reference = typename DataVec::reference;
   using const_reference = typename DataVec::const_reference;
   using size_type = SizeType;
-  using page_t = page<SizeType>;
+  using page_t = page<SizeType, PageSizeType>;
 
   static_assert(sizeof(value_type) * MinPageSize >= sizeof(page_t));
   static_assert(std::is_trivially_copyable_v<value_type>);
 
-  static constexpr size_type free_list_index(size_type const capacity) {
+  static constexpr std::size_t free_list_index(size_type const capacity) {
     return static_cast<size_type>(constexpr_trailing_zeros(capacity) -
                                   constexpr_trailing_zeros(MinPageSize));
   }
 
-  static constexpr size_type free_list_size = free_list_index(MaxPageSize) + 1U;
+  static constexpr auto const free_list_size =
+      free_list_index(MaxPageSize) + 1U;
 
-  page_t resize_page(page_t const& p, size_type const size) {
+  page_t resize_page(page_t const& p, PageSizeType const size) {
     if (size <= p.capacity_) {
       return {size, p.capacity_, p.start_};
     } else {
@@ -57,12 +59,12 @@ struct paged {
     }
   }
 
-  page_t create_page(size_type const size) {
+  page_t create_page(PageSizeType const size) {
     auto const capacity = next_power_of_two(std::max(MinPageSize, size));
     auto const i = free_list_index(capacity);
     verify(i < free_list_.size(), "paged::create_page: size > max capacity");
     if (!free_list_[i].empty()) {
-      auto start = free_list_[i].pop(*this);
+      auto const start = free_list_[i].pop(*this);
       return {size, capacity, start};
     } else {
       auto const start = data_.size();
