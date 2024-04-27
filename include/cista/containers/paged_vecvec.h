@@ -271,7 +271,8 @@ struct paged_vecvec {
             typename = std::enable_if_t<std::is_convertible_v<
                 decltype(*std::declval<Container>().begin()), data_value_type>>>
   void emplace_back(Container&& bucket) {
-    auto p = paged_.create_page(static_cast<size_type>(bucket.size()));
+    auto p = paged_.create_page(
+        static_cast<typename Paged::page_size_type>(bucket.size()));
     paged_.copy(p, std::begin(bucket), std::end(bucket));
     idx_.emplace_back(p);
   }

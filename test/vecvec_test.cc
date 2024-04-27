@@ -160,7 +160,7 @@ TEST_CASE("paged_vecvec mmap") {
 
   using key = cista::strong<unsigned, struct x_>;
   using data_t = cista::paged<cista::mmap_vec<char>>;
-  using idx_t = cista::mmap_vec<cista::page<data_t::size_type>>;
+  using idx_t = cista::mmap_vec<data_t::page_t>;
 
   auto idx = idx_t{cista::mmap{std::tmpnam(nullptr)}};
   auto data = data_t{cista::mmap_vec<char>{cista::mmap{std::tmpnam(nullptr)}}};
@@ -194,14 +194,14 @@ TEST_CASE("paged_vecvec mmap") {
 TEST_CASE("paged_vecvec vector") {
   using key = cista::strong<unsigned, struct x_>;
   using data_t = cista::paged<cista::raw::vector<char>>;
-  using idx_t = cista::mmap_vec<cista::page<data_t::size_type>>;
+  using idx_t = cista::mmap_vec<data_t::page_t>;
 
   auto idx = idx_t{cista::mmap{std::tmpnam(nullptr)}};
   auto data = data_t{};
   auto d =
       cista::paged_vecvec<idx_t, data_t, key>{std::move(data), std::move(idx)};
 
-  d.resize(3);
+  d.resize(3U);
   CHECK_EQ(3, d.size());
 
   d.emplace_back("hello");
