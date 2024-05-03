@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 
 #include "doctest.h"
 
@@ -29,6 +30,26 @@ TEST_CASE("string long short corner 14") {
   CHECK(s.is_short());
   CHECK(s.size() == std::strlen(CORNER_CASE_SHORT_14));
   CHECK(s.view() == CORNER_CASE_SHORT_14);
+}
+
+TEST_CASE("string erase") {
+  auto uut = std::vector<cista::generic_string<char const*>>{};
+  auto ref = std::vector<std::string>{};
+  for (auto const s :
+       {CORNER_CASE_SHORT_14, CORNER_CASE_SHORT_15, CORNER_CASE_LONG_16}) {
+    auto x = cista::generic_string{
+        s, cista::generic_string<char const*>::non_owning};
+    x.erase(3, 7);
+    uut.emplace_back(std::move(x));
+
+    auto y = std::string{s};
+    y.erase(3, 7);
+    ref.emplace_back(std::move(y));
+  }
+
+  for (auto i = 0U; i != ref.size(); ++i) {
+    CHECK(ref[i] == uut[i].view());
+  }
 }
 
 TEST_CASE("string long short corner 15") {

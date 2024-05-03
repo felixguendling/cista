@@ -33,6 +33,8 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR
      -Wno-unneeded-member-function
      -Wno-unused-member-function
      -Wno-unsafe-buffer-usage
+     -Wno-deprecated-declarations
+     -Wno-ctad-maybe-unsupported
      -Werror
   )
 elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")

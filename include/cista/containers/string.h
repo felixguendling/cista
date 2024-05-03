@@ -45,6 +45,12 @@ struct generic_string {
     set_non_owning(s, len);
   }
 
+  generic_string(generic_string&& o) { move_from(std::move(o)); }
+  generic_string(generic_string const& o) { copy_from(o); }
+
+  generic_string& operator=(generic_string&& o) { move_from(std::move(o)); }
+  generic_string& operator=(generic_string const& o) { copy_from(o); }
+
   char* begin() noexcept { return data(); }
   char* end() noexcept { return data() + size(); }
   char const* begin() const noexcept { return data(); }
@@ -309,6 +315,19 @@ struct generic_string {
                               : short_length_limit;
     }
     return h_.size_;
+  }
+
+  generic_string& erase(msize_t const pos, msize_t const n) {
+    if (!is_short() && !h_.self_allocated_) {
+      set_owning(view());
+    }
+    auto const size_before = size();
+    std::memmove(data() + pos, data() + pos + n, size_before - (pos + n));
+    std::memset(data() + size_before - n, 0U, n);
+    if (!is_short()) {
+      h_.size_ = size_before - n;
+    }
+    return *this;
   }
 
   struct heap {
