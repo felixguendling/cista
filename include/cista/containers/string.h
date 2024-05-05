@@ -48,8 +48,14 @@ struct generic_string {
   generic_string(generic_string&& o) { move_from(std::move(o)); }
   generic_string(generic_string const& o) { copy_from(o); }
 
-  generic_string& operator=(generic_string&& o) { move_from(std::move(o)); }
-  generic_string& operator=(generic_string const& o) { copy_from(o); }
+  generic_string& operator=(generic_string&& o) {
+    move_from(std::move(o));
+    return *this;
+  }
+  generic_string& operator=(generic_string const& o) {
+    copy_from(o);
+    return *this;
+  }
 
   char* begin() noexcept { return data(); }
   char* end() noexcept { return data() + size(); }
