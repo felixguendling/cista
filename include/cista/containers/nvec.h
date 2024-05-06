@@ -479,7 +479,9 @@ struct basic_nvec {
   iterator operator[](Key const k) { return begin() + to_idx(k); }
   const_iterator operator[](Key const k) const { return begin() + to_idx(k); }
 
-  size_type size() const { return index_[N - 1].size() - 1U; }
+  size_type size() const {
+    return index_[N - 1].size() == 0U ? 0U : (index_[N - 1].size() - 1U);
+  }
 
   template <typename... Indices>
   size_type size(Key const first, Indices... rest) const {
