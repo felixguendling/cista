@@ -104,3 +104,79 @@ TEST_CASE("string hash") {
   auto h = cista::hash(str, cista::BASE_HASH);
   CHECK(cista::BASE_HASH == h);
 }
+
+TEST_CASE("string starts_with") {
+  string s = "abacaba";
+
+  CHECK(s.starts_with("abac") == true);
+  CHECK(s.starts_with("abacaba") == true);
+  CHECK(s.starts_with("abacaba_") == false);
+  CHECK(s.starts_with("a") == true);
+  CHECK(s.starts_with("") == true);
+  CHECK(s.starts_with("abad") == false);
+
+  CHECK(s.starts_with(string{"abac"}) == true);
+  CHECK(s.starts_with(string{"abacaba"}) == true);
+  CHECK(s.starts_with(string{"abacaba_"}) == false);
+  CHECK(s.starts_with(string{"a"}) == true);
+  CHECK(s.starts_with(string{""}) == true);
+  CHECK(s.starts_with(string{"abad"}) == false);
+
+  CHECK(s.starts_with(std::string{"abac"}) == true);
+  CHECK(s.starts_with(std::string{"abacaba"}) == true);
+  CHECK(s.starts_with(std::string{"abacaba_"}) == false);
+  CHECK(s.starts_with(std::string{"a"}) == true);
+  CHECK(s.starts_with(std::string{""}) == true);
+  CHECK(s.starts_with(std::string{"\0", 1}) == false);
+  CHECK(s.starts_with(std::string{"abad"}) == false);
+
+  CHECK(s.starts_with(std::string_view{"abac"}) == true);
+  CHECK(s.starts_with(std::string_view{"abacaba"}) == true);
+  CHECK(s.starts_with(std::string_view{"abacaba_"}) == false);
+  CHECK(s.starts_with(std::string_view{"a"}) == true);
+  CHECK(s.starts_with(std::string_view{""}) == true);
+  CHECK(s.starts_with(std::string_view{"\0", 1}) == false);
+  CHECK(s.starts_with(std::string_view{"abad"}) == false);
+
+  CHECK(s.starts_with('a') == true);
+  CHECK(s.starts_with('b') == false);
+  CHECK(s.starts_with('\0') == false);
+}
+
+TEST_CASE("string ends_with") {
+  string s = "abacaba";
+
+  CHECK(s.ends_with("caba") == true);
+  CHECK(s.ends_with("abacaba") == true);
+  CHECK(s.ends_with("abacaba_") == false);
+  CHECK(s.ends_with("a") == true);
+  CHECK(s.ends_with("") == true);
+  CHECK(s.ends_with("daba") == false);
+
+  CHECK(s.ends_with(string{"caba"}) == true);
+  CHECK(s.ends_with(string{"abacaba"}) == true);
+  CHECK(s.ends_with(string{"abacaba_"}) == false);
+  CHECK(s.ends_with(string{"a"}) == true);
+  CHECK(s.ends_with(string{""}) == true);
+  CHECK(s.ends_with(string{"daba"}) == false);
+
+  CHECK(s.ends_with(std::string{"caba"}) == true);
+  CHECK(s.ends_with(std::string{"abacaba"}) == true);
+  CHECK(s.ends_with(std::string{"abacaba_"}) == false);
+  CHECK(s.ends_with(std::string{"a"}) == true);
+  CHECK(s.ends_with(std::string{""}) == true);
+  CHECK(s.ends_with(std::string{"\0", 1}) == false);
+  CHECK(s.ends_with(std::string{"daba"}) == false);
+
+  CHECK(s.ends_with(std::string_view{"caba"}) == true);
+  CHECK(s.ends_with(std::string_view{"abacaba"}) == true);
+  CHECK(s.ends_with(std::string_view{"abacaba_"}) == false);
+  CHECK(s.ends_with(std::string_view{"a"}) == true);
+  CHECK(s.ends_with(std::string_view{""}) == true);
+  CHECK(s.ends_with(std::string_view{"\0", 1}) == false);
+  CHECK(s.ends_with(std::string_view{"daba"}) == false);
+
+  CHECK(s.ends_with('a') == true);
+  CHECK(s.ends_with('b') == false);
+  CHECK(s.ends_with('\0') == false);
+}
