@@ -64,6 +64,7 @@ struct optional {
   }
 
   bool has_value() const noexcept { return valid_; }
+  operator bool() const noexcept { return valid_; }
 
   T* operator->() noexcept { return reinterpret_cast<T*>(&storage_[0]); }
   T const* operator->() const noexcept {
