@@ -337,47 +337,45 @@ struct generic_string {
   }
 
   constexpr bool starts_with(generic_string const& s) const noexcept {
-    if (s.size() > size()) {
-      return false;
-    }
-    return !std::memcmp(s.data(), data(), s.size());
+    return starts_with(s.data(), s.size());
   }
   constexpr bool starts_with(std::string_view const& sv) const noexcept {
-    if (sv.size() > size()) {
-      return false;
-    }
-    return !std::memcmp(sv.data(), data(), sv.size());
+    return starts_with(sv.data(), sv.size());
   }
   constexpr bool starts_with(char const* s) const noexcept {
-    msize_t size_s = mstrlen(s);
+    return starts_with(s, mstrlen(s));
+  }
+  constexpr bool starts_with(char const* s, msize_t size_s) const noexcept {
     if (size_s > size()) {
       return false;
+    }
+    if (empty()) {
+      return size_s == 0;
     }
     return !std::memcmp(s, data(), size_s);
   }
   constexpr bool starts_with(char ch) const noexcept {
-    if (size() == 0) {
+    if (empty()) {
       return false;
     }
     return data()[0] == ch;
   }
 
   constexpr bool ends_with(generic_string const& s) const noexcept {
-    if (s.size() > size()) {
-      return false;
-    }
-    return !std::memcmp(s.data(), data() + size() - s.size(), s.size());
+    return ends_with(s.data(), s.size());
   }
   constexpr bool ends_with(std::string_view const& sv) const noexcept {
-    if (sv.size() > size()) {
-      return false;
-    }
-    return !std::memcmp(sv.data(), data() + size() - sv.size(), sv.size());
+    return ends_with(sv.data(), sv.size());
   }
   constexpr bool ends_with(char const* s) const noexcept {
-    msize_t size_s = mstrlen(s);
+    return ends_with(s, mstrlen(s));
+  }
+  constexpr bool ends_with(char const* s, msize_t size_s) const noexcept {
     if (size_s > size()) {
       return false;
+    }
+    if (empty()) {
+      return size_s == 0;
     }
     return !std::memcmp(s, data() + size() - size_s, size_s);
   }
@@ -385,7 +383,7 @@ struct generic_string {
     if (size() == 0) {
       return false;
     }
-    return data()[size()-1] == ch;
+    return data()[size() - 1] == ch;
   }
 
   struct heap {
