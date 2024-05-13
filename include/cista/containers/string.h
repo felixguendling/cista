@@ -349,8 +349,11 @@ struct generic_string {
     if (size_s > size()) {
       return false;
     }
+    if (size_s == 0) {
+      return true;
+    }
     if (empty()) {
-      return size_s == 0;
+      return false;
     }
     return !std::memcmp(s, data(), size_s);
   }
@@ -374,8 +377,11 @@ struct generic_string {
     if (size_s > size()) {
       return false;
     }
+    if (size_s == 0) {
+      return true;
+    }
     if (empty()) {
-      return size_s == 0;
+      return false;
     }
     return !std::memcmp(s, data() + size() - size_s, size_s);
   }
