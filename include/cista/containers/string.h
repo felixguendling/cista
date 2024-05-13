@@ -337,10 +337,10 @@ struct generic_string {
   }
 
   constexpr bool starts_with(generic_string const& s) const noexcept {
-    return starts_with(s.data(), s.size());
+    return starts_with(s.data(), static_cast<msize_t>(s.size()));
   }
   constexpr bool starts_with(std::string_view const& sv) const noexcept {
-    return starts_with(sv.data(), sv.size());
+    return starts_with(sv.data(), static_cast<msize_t>(sv.size()));
   }
   constexpr bool starts_with(char const* s) const noexcept {
     return starts_with(s, mstrlen(s));
@@ -362,10 +362,10 @@ struct generic_string {
   }
 
   constexpr bool ends_with(generic_string const& s) const noexcept {
-    return ends_with(s.data(), s.size());
+    return ends_with(s.data(), static_cast<msize_t>(s.size()));
   }
   constexpr bool ends_with(std::string_view const& sv) const noexcept {
-    return ends_with(sv.data(), sv.size());
+    return ends_with(sv.data(), static_cast<msize_t>(sv.size()));
   }
   constexpr bool ends_with(char const* s) const noexcept {
     return ends_with(s, mstrlen(s));
