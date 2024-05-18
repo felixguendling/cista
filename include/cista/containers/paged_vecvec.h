@@ -277,6 +277,12 @@ struct paged_vecvec {
     idx_.emplace_back(p);
   }
 
+  template <typename X>
+  std::enable_if_t<std::is_convertible_v<std::decay_t<X>, data_value_type>>
+  emplace_back(std::initializer_list<X>&& x) {
+    emplace_back(x);
+  }
+
   void emplace_back_empty() { idx_.emplace_back(paged_.create_page(0U)); }
 
   template <typename T = data_value_type,
