@@ -201,6 +201,7 @@ struct paged_vecvec {
     operator const_bucket() const { return {pv_, i_}; }
 
     size_type size() const { return pv_->page(i_).size_; }
+    bool empty() const { return size() == 0U; }
 
     friend bool operator==(bucket const& a, bucket const& b) {
       assert(a.pv_ == b.pv_);
