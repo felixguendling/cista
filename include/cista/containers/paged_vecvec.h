@@ -55,9 +55,20 @@ struct paged_vecvec {
       return *(begin() + i);
     }
 
+    value_type const& front() const {
+      assert(!empty());
+      return (*this)[0];
+    }
+
+    value_type const& back() const {
+      assert(!empty());
+      return (*this)[size() - 1U];
+    }
+
     reference operator*() const { return *this; }
 
     size_type size() const { return pv_->page(i_).size_; }
+    bool empty() const { return size() == 0U; }
 
     friend bool operator==(const_bucket const& a, const_bucket const& b) {
       assert(a.pv_ == b.pv_);
@@ -123,6 +134,26 @@ struct paged_vecvec {
     using pointer = std::add_pointer_t<value_type>;
 
     bucket(paged_vecvec* pv, Key const i) : pv_{pv}, i_{i} {}
+
+    value_type& front() {
+      assert(!empty());
+      return (*this)[0];
+    }
+
+    value_type& back() {
+      assert(!empty());
+      return (*this)[size() - 1U];
+    }
+
+    value_type const& front() const {
+      assert(!empty());
+      return (*this)[0];
+    }
+
+    value_type const& back() const {
+      assert(!empty());
+      return (*this)[size() - 1U];
+    }
 
     void push_back(data_value_type const& x) {
       auto& p = pv_->page(i_);
