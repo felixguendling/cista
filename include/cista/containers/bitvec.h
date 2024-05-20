@@ -129,12 +129,12 @@ struct basic_bitvec {
     }
 
     auto const first_block_idx = i / bits_per_block;
-    auto const block = blocks_[first_block_idx];
-    if (block != 0U) {
+    auto const first_block = blocks_[first_block_idx];
+    if (first_block != 0U) {
       auto const first_bit = i % bits_per_block;
       auto const n = std::min(size(), bits_per_block);
       for (auto bit = first_bit; bit != n; ++bit) {
-        if ((block & (block_t{1U} << bit)) != 0U) {
+        if ((first_block & (block_t{1U} << bit)) != 0U) {
           return Key{first_block_idx * bits_per_block + bit};
         }
       }
@@ -156,8 +156,9 @@ struct basic_bitvec {
       return std::nullopt;
     };
 
-    for (auto i = first_block_idx + 1U; i != blocks_.size() - 1; ++i) {
-      if (auto const set_bit_idx = check_block(i, blocks_[i]);
+    for (auto block_idx = first_block_idx + 1U; block_idx != blocks_.size() - 1;
+         ++block_idx) {
+      if (auto const set_bit_idx = check_block(block_idx, blocks_[block_idx]);
           set_bit_idx.has_value()) {
         return set_bit_idx;
       }
