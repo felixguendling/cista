@@ -175,7 +175,7 @@ struct basic_bitvec {
   std::optional<Key> get_next(std::atomic_size_t& next) const {
     while (true) {
       auto expected = next.load();
-      auto idx = next_set_bit(Key{expected});
+      auto idx = next_set_bit(Key{static_cast<base_t<Key>>(expected)});
       if (!idx.has_value()) {
         return std::nullopt;
       }
