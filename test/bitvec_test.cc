@@ -115,7 +115,7 @@ TEST_CASE("bitvec parallel") {
   auto bits = std::vector<std::size_t>{};
   bits.resize(b.size() * 0.2);
   std::generate(begin(bits), end(bits), [&]() {
-    auto x = get_random_number() % b.size();
+    auto x = static_cast<std::uint32_t>(get_random_number() % b.size());
     b.set(x, true);
     return x;
   });
