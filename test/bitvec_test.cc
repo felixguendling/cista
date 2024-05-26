@@ -1,6 +1,7 @@
 #include "doctest.h"
 
 #include <sstream>
+#include <thread>
 #include <vector>
 
 #ifdef SINGLE_HEADER
@@ -86,4 +87,66 @@ TEST_CASE("bitvec less than") {
   auto const ref_lt = bitvec_lt(ref1, ref2);
   auto const uut_lt = bitvec_lt(uut1, uut2);
   CHECK(ref_lt == uut_lt);
+}
+
+unsigned long get_random_number() {  // period 2^96-1
+  static std::uint64_t x = 123456789, y = 362436069, z = 521288629;
+
+  unsigned long t;
+  x ^= x << 16;
+  x ^= x >> 5;
+  x ^= x << 1;
+
+  t = x;
+  x = y;
+  y = z;
+  z = t ^ x ^ y;
+
+  return z;
+}
+
+TEST_CASE("bitvec parallel") {
+  constexpr auto const kBits = 1'000'000U;
+  constexpr auto const kWorkers = 100U;
+
+  auto b = cista::raw::bitvec{};
+  b.resize(kBits);
+
+  auto bits = std::vector<std::size_t>{};
+  bits.resize(b.size() * 0.2);
+  std::generate(begin(bits), end(bits), [&]() {
+    auto x = static_cast<std::uint32_t>(get_random_number() % b.size());
+    b.set(x, true);
+    return x;
+  });
+  std::sort(begin(bits), end(bits));
+  bits.erase(std::unique(begin(bits), end(bits)), end(bits));
+
+  auto next = std::atomic_size_t{0U};
+  auto workers = std::vector<std::thread>(kWorkers);
+  auto collected_bits = std::vector<std::vector<std::size_t>>(kWorkers);
+  for (auto i = 0U; i != kWorkers; ++i) {
+    workers[i] = std::thread{[&, i]() {
+      auto next_bit = std::optional<std::size_t>{};
+      do {
+        next_bit = b.get_next(next);
+        if (next_bit.has_value()) {
+          collected_bits[i].push_back(*next_bit);
+        }
+      } while (next_bit.has_value());
+    }};
+  }
+
+  for (auto& w : workers) {
+    w.join();
+  }
+
+  auto check = std::vector<std::size_t>{};
+  for (auto& x : collected_bits) {
+    check.insert(end(check), begin(x), end(x));
+  }
+  std::sort(begin(check), end(check));
+  check.erase(std::unique(begin(check), end(check)), end(check));
+
+  CHECK_EQ(bits, check);
 }
