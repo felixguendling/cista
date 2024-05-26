@@ -18,6 +18,24 @@ constexpr auto const CORNER_CASE_LONG_16 = "0123456789123456";
 constexpr auto const LONG_STR = "hello world hello world";
 constexpr auto const SHORT_STR = "hello world";
 
+TEST_CASE("self assignment") {
+  // case short string
+  cista::raw::string test_short{"test_short"};
+  std::string output_short_pre{test_short};
+  test_short = test_short;
+  std::string output_short_post{test_short};
+  // test_short is empty now
+  CHECK(output_short_pre == output_short_post);
+
+  // case long string
+  cista::raw::string test_long{"test_long_12345678901234567890123456789012"};
+  std::string output_long_pre{test_long};
+  test_long = test_long;
+  std::string output_long_post{test_long};
+  // test_long is filled with 0x01 now
+  CHECK(output_long_pre == output_long_post);
+}
+
 TEST_CASE("string init") {
   auto s = string{};
   CHECK(!s.is_short());

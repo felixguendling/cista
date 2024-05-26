@@ -137,6 +137,9 @@ struct generic_string {
   }
 
   void move_from(generic_string&& s) noexcept {
+    if (&s == this) {
+      return;
+    }
     reset();
     std::memcpy(static_cast<void*>(this), &s, sizeof(*this));
     if constexpr (std::is_pointer_v<Ptr>) {
@@ -151,6 +154,9 @@ struct generic_string {
   }
 
   void copy_from(generic_string const& s) {
+    if (&s == this) {
+      return;
+    }
     reset();
     if (s.is_short()) {
       std::memcpy(static_cast<void*>(this), &s, sizeof(s));
@@ -434,6 +440,9 @@ struct basic_string : public generic_string<Ptr> {
   basic_string(basic_string&& o) { base::move_from(std::move(o)); }
 
   basic_string& operator=(basic_string const& o) {
+    if (&o == this) {
+      return *this;
+    }
     base::set_owning(o.data(), o.size());
     return *this;
   }
