@@ -336,6 +336,62 @@ struct generic_string {
     return *this;
   }
 
+  constexpr bool starts_with(generic_string const& s) const noexcept {
+    return starts_with(s.data(), static_cast<msize_t>(s.size()));
+  }
+  constexpr bool starts_with(std::string_view const& sv) const noexcept {
+    return starts_with(sv.data(), static_cast<msize_t>(sv.size()));
+  }
+  constexpr bool starts_with(char const* s) const noexcept {
+    return starts_with(s, mstrlen(s));
+  }
+  constexpr bool starts_with(char const* s, msize_t size_s) const noexcept {
+    if (size_s > size()) {
+      return false;
+    }
+    if (size_s == 0) {
+      return true;
+    }
+    if (empty()) {
+      return false;
+    }
+    return !std::memcmp(s, data(), size_s);
+  }
+  constexpr bool starts_with(char ch) const noexcept {
+    if (empty()) {
+      return false;
+    }
+    return data()[0] == ch;
+  }
+
+  constexpr bool ends_with(generic_string const& s) const noexcept {
+    return ends_with(s.data(), static_cast<msize_t>(s.size()));
+  }
+  constexpr bool ends_with(std::string_view const& sv) const noexcept {
+    return ends_with(sv.data(), static_cast<msize_t>(sv.size()));
+  }
+  constexpr bool ends_with(char const* s) const noexcept {
+    return ends_with(s, mstrlen(s));
+  }
+  constexpr bool ends_with(char const* s, msize_t size_s) const noexcept {
+    if (size_s > size()) {
+      return false;
+    }
+    if (size_s == 0) {
+      return true;
+    }
+    if (empty()) {
+      return false;
+    }
+    return !std::memcmp(s, data() + size() - size_s, size_s);
+  }
+  constexpr bool ends_with(char ch) const noexcept {
+    if (size() == 0) {
+      return false;
+    }
+    return data()[size() - 1] == ch;
+  }
+
   struct heap {
     bool is_short_{false};
     bool self_allocated_{false};
