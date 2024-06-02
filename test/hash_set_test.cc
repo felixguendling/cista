@@ -158,6 +158,70 @@ TEST_CASE("serialize hash_set test") {
   CHECK(*deserialized->find(make_e3()) == make_e3());
 }
 
+TEST_CASE("hash_set self-assignment") {
+  using namespace cista::raw;
+
+  hash_set<string> s{"hash", "set", "self", "assignment"};
+  s = s;
+
+  CHECK(s.size() == 4);
+  CHECK(s.find("hash") != s.end());
+  CHECK(s.find("set") != s.end());
+  CHECK(s.find("self") != s.end());
+  CHECK(s.find("assignment") != s.end());
+}
+
+TEST_CASE("hash_set self-move-assignment") {
+  using namespace cista::raw;
+
+  hash_set<string> s{"hash", "set", "self", "assignment"};
+  s = std::move(s);
+
+  CHECK(s.size() == 4);
+  CHECK(s.find("hash") != s.end());
+  CHECK(s.find("set") != s.end());
+  CHECK(s.find("self") != s.end());
+  CHECK(s.find("assignment") != s.end());
+}
+
+TEST_CASE("hash_map self-assignment") {
+  using namespace cista::raw;
+
+  hash_map<string, int> s{
+      {"hash", 1}, {"map", 2}, {"self", 3}, {"assignment", 128}};
+  s = s;
+
+  CHECK(s.size() == 4);
+  CHECK(s.find("hash") != s.end());
+  CHECK(s.find("map") != s.end());
+  CHECK(s.find("self") != s.end());
+  CHECK(s.find("assignment") != s.end());
+
+  CHECK(s["hash"] == 1);
+  CHECK(s["map"] == 2);
+  CHECK(s["self"] == 3);
+  CHECK(s["assignment"] == 128);
+}
+
+TEST_CASE("hash_map self-move-assignment") {
+  using namespace cista::raw;
+
+  hash_map<string, int> s{
+      {"hash", 1}, {"map", 2}, {"self", 3}, {"assignment", 128}};
+  s = std::move(s);
+
+  CHECK(s.size() == 4);
+  CHECK(s.find("hash") != s.end());
+  CHECK(s.find("map") != s.end());
+  CHECK(s.find("self") != s.end());
+  CHECK(s.find("assignment") != s.end());
+
+  CHECK(s["hash"] == 1);
+  CHECK(s["map"] == 2);
+  CHECK(s["self"] == 3);
+  CHECK(s["assignment"] == 128);
+}
+
 #ifndef _MSC_VER  // MSVC compiler bug :/
 TEST_CASE("string view get") {
   using namespace cista::raw;
