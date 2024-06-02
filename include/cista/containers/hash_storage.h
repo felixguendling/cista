@@ -281,6 +281,9 @@ struct hash_storage {
   }
 
   hash_storage& operator=(hash_storage&& other) noexcept {
+    if (&other == this) {
+      return *this;
+    }
     entries_ = other.entries_;
     ctrl_ = other.ctrl_;
     size_ = other.size_;
@@ -292,6 +295,9 @@ struct hash_storage {
   }
 
   hash_storage& operator=(hash_storage const& other) {
+    if (&other == this) {
+      return *this;
+    }
     clear();
     if (other.size() == 0U) {
       return *this;
