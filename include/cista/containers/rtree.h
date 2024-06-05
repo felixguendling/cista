@@ -25,8 +25,7 @@ struct rtree {
 
   // used for splits
   static constexpr auto const kMinItemsPercentage = 10U;
-  static constexpr auto const kMinItems =
-      MaxItems * (kMinItemsPercentage / 100 + 1);
+  static constexpr auto const kMinItems = ((MaxItems * kMinItemsPercentage) / 100) + 1;
 
   enum class kind : std::uint8_t { kLeaf, kBranch };
 
@@ -129,6 +128,32 @@ struct rtree {
       return axis;
     }
 
+    /**
+     * Checks if this and another rectangle are the same
+     * @param other_rect The rectangle to compare to
+     * @return True if they are equal
+     */
+    bool equals(rect const& other_rect) {
+       if (!coord_t_equal(min_, other_rect.min_) || !coord_t_equal(max_, other_rect.max_)) {
+         return false;
+       }
+       return true;
+    }
+
+    /**
+     * Checks if two coordinates are the same
+     * @param coord_1 First coordinate
+     * @param coord_2 Second coordinate
+     * @return True if they are the same
+     */
+    static bool coord_t_equal(coord_t const& coord_1, coord_t const& coord_2) {
+      for (size_t i = 0; i < Dims; ++i) {
+        if (!feq(coord_1[i], coord_2[i])){
+          return false;
+        }
+      }
+      return true;
+    }
     coord_t min_, max_;
   };
 
@@ -311,16 +336,13 @@ struct rtree {
         return;
       }
 
-      // Something goes wrong right here :(
       auto new_root_idx = node_new(kind::kBranch);
 
       auto right = node_idx_t::invalid();
       node_split(rect_, root_, right);
 
       auto new_root = get_node(new_root_idx);
-      //assert(root_ < nodes_.size());
       new_root.rects_[0] = get_node(root_).rect_calc();
-      //assert(right < nodes_.size());
       new_root.rects_[1] = get_node(right).rect_calc();
       new_root.children_[0] = root_;
       new_root.children_[1] = right;
@@ -380,41 +402,54 @@ struct rtree {
     node_insert(nr, n_idx, insert_rect, std::move(data), depth, split);
   }
 
-  void node_split(rect r, node_idx_t const n_idx, node_idx_t& right_out) {
+  void node_split(rect node_rect, node_idx_t const n_idx, node_idx_t& right_out) {
+    auto const axis = node_rect.largest_axis();
     right_out = node_new(get_node(n_idx).kind_);
-    auto& n = get_node(n_idx);
+    auto& new_node = get_node(n_idx);
     auto& right = get_node(right_out);
-    auto const axis = r.largest_axis();
-    for (auto i = 0U; i != n.count_; ++i) {
-      auto const min_dist = n.rects_[i].min_[axis] - r.min_[axis];
-      auto const max_dist = r.max_[axis] - n.rects_[i].max_[axis];
+    for (auto i = 0U; i < new_node.count_; ++i) {
+      auto const min_dist = new_node.rects_[i].min_[axis] - node_rect.min_[axis];
+      auto const max_dist = node_rect.max_[axis] - new_node.rects_[i].max_[axis];
       if (max_dist < min_dist) {
         // move to right
-        assert(nodes_.contains(&n));
-        assert(nodes_.contains(&right));
-        n.move_rect_at_index_into(i, right);
+        new_node.move_rect_at_index_into(i, right);
         --i;
       }
     }
+
+    std::cout << "right: " << right.count_ << "\n";
+    std::cout << "new_node: " << new_node.count_ << "\n";
+    std::cout << "nodes_.size(): " << nodes_.size() << "\n";
+    std::cout << "new_node.count_: " << new_node.count_ << "\n";
+    std::cout << "kMinItems: " << kMinItems << "\n";
+
     // Make sure that both left and right nodes have at least
     // MINITEMS by moving datas into underflowed nodes.
-    if (n.count_ < kMinItems) {
+    if (new_node.count_ < kMinItems) {
       // reverse sort by min axis
       right.sort_by_axis(axis, true, false);
       do {
-        assert(nodes_.contains(&n));
-        assert(nodes_.contains(&right));
-        right.move_rect_at_index_into(right.count_ - 1, n);
-      } while (n.count_ < kMinItems);
+        right.move_rect_at_index_into(right.count_ - 1, new_node);
+      } while (new_node.count_ < kMinItems);
     } else if (right.count_ < kMinItems) {
       // reverse sort by max axis
-      n.sort_by_axis(axis, true, true);
+      new_node.sort_by_axis(axis, true, true);
       do {
-        assert(nodes_.contains(&n));
-        assert(nodes_.contains(&right));
-        n.move_rect_at_index_into(n.count_ - 1, right);
+        new_node.move_rect_at_index_into(new_node.count_ - 1, right);
       } while (right.count_ < kMinItems);
     }
+    if (new_node.kind_ == kind::kBranch) {
+      new_node.sort_by_axis(0, true, false);
+      right.sort_by_axis(0,true, false);
+    }
+    /*
+    std::cout << "\n";
+    std::cout << "right: " << right.count_ << "\n";
+    std::cout << "new_node: " << new_node.count_ << "\n";
+    std::cout << "nodes_.size(): " << nodes_.size() << "\n";
+    std::cout << "\n";
+     */
+
   }
 
   unsigned node_choose(node const& n, rect const& r, unsigned const depth) {
