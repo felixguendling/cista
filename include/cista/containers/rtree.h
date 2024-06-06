@@ -301,15 +301,15 @@ struct rtree {
       }
     }
 
-    using node_array_t = array<node_idx_t, MaxItems>;
-    using data_array_t = array<DataType, MaxItems>;
+    using node_vector_t = array<node_idx_t, MaxItems>;
+    using data_vector_t = array<DataType, MaxItems>;
 
     unsigned count_{0U};
     kind kind_;
     array<rect, MaxItems> rects_;
     union {
-      node_array_t children_;
-      data_array_t data_;
+      node_vector_t children_;
+      data_vector_t data_;
     };
   };
 
@@ -339,9 +339,10 @@ struct rtree {
       auto new_root_idx = node_new(kind::kBranch);
 
       auto right = node_idx_t::invalid();
+
       node_split(rect_, root_, right);
 
-      auto new_root = get_node(new_root_idx);
+      auto& new_root = get_node(new_root_idx);
       new_root.rects_[0] = get_node(root_).rect_calc();
       new_root.rects_[1] = get_node(right).rect_calc();
       new_root.children_[0] = root_;
@@ -402,74 +403,72 @@ struct rtree {
     node_insert(nr, n_idx, insert_rect, std::move(data), depth, split);
   }
 
+  /**
+   * Function for splitting an overflowing node into multiple nodes.
+   * @param node_rect The bounding rectangle of the overflowing node
+   * @param n_idx The node id of the overflowing node
+   * @param right_out The newly added node
+   */
   void node_split(rect node_rect, node_idx_t const n_idx, node_idx_t& right_out) {
     auto const axis = node_rect.largest_axis();
     right_out = node_new(get_node(n_idx).kind_);
-    auto& new_node = get_node(n_idx);
+    auto& old_node = get_node(n_idx);
     auto& right = get_node(right_out);
-    for (auto i = 0U; i < new_node.count_; ++i) {
-      auto const min_dist = new_node.rects_[i].min_[axis] - node_rect.min_[axis];
-      auto const max_dist = node_rect.max_[axis] - new_node.rects_[i].max_[axis];
+    for (auto i = 0U; i < old_node.count_; ++i) {
+      auto const min_dist = old_node.rects_[i].min_[axis] - node_rect.min_[axis];
+      auto const max_dist = node_rect.max_[axis] - old_node.rects_[i].max_[axis];
       if (max_dist < min_dist) {
         // move to right
-        new_node.move_rect_at_index_into(i, right);
+        old_node.move_rect_at_index_into(i, right);
         --i;
       }
     }
 
-    std::cout << "right: " << right.count_ << "\n";
-    std::cout << "new_node: " << new_node.count_ << "\n";
-    std::cout << "nodes_.size(): " << nodes_.size() << "\n";
-    std::cout << "new_node.count_: " << new_node.count_ << "\n";
-    std::cout << "kMinItems: " << kMinItems << "\n";
-
-    // Make sure that both left and right nodes have at least
     // MINITEMS by moving datas into underflowed nodes.
-    if (new_node.count_ < kMinItems) {
+    if (old_node.count_ < kMinItems) {
       // reverse sort by min axis
       right.sort_by_axis(axis, true, false);
       do {
-        right.move_rect_at_index_into(right.count_ - 1, new_node);
-      } while (new_node.count_ < kMinItems);
+        right.move_rect_at_index_into(right.count_ - 1, old_node);
+      } while (old_node.count_ < kMinItems);
     } else if (right.count_ < kMinItems) {
       // reverse sort by max axis
-      new_node.sort_by_axis(axis, true, true);
+      old_node.sort_by_axis(axis, true, true);
       do {
-        new_node.move_rect_at_index_into(new_node.count_ - 1, right);
+        old_node.move_rect_at_index_into(old_node.count_ - 1, right);
       } while (right.count_ < kMinItems);
     }
-    if (new_node.kind_ == kind::kBranch) {
-      new_node.sort_by_axis(0, true, false);
+    if (old_node.kind_ == kind::kBranch) {
+      old_node.sort_by_axis(0, true, false);
       right.sort_by_axis(0,true, false);
     }
-    /*
-    std::cout << "\n";
-    std::cout << "right: " << right.count_ << "\n";
-    std::cout << "new_node: " << new_node.count_ << "\n";
-    std::cout << "nodes_.size(): " << nodes_.size() << "\n";
-    std::cout << "\n";
-     */
-
   }
 
-  unsigned node_choose(node const& n, rect const& r, unsigned const depth) {
+  /**
+   * Chooses the node to insert the rectangle and its data into
+   * @param search_node The node to search in
+   * @param search_rect The rectangle to search for
+   * @param depth
+   * @return A fitting node to place the rectangle into
+   */
+  unsigned node_choose(node const& search_node, rect const& search_rect, unsigned const depth) {
     auto const h = path_hint_[depth];
-    if (h < n.count_) {
-      if (n.rects_[h].contains(r)) {
+    if (h < search_node.count_) {
+      if (search_node.rects_[h].contains(search_rect)) {
         return h;
       }
     }
 
     // Take a quick look for the first node that contain the rect.
-    for (auto i = 0U; i != n.count_; ++i) {
-      if (n.rects_[i].contains(r)) {
+    for (auto i = 0U; i != search_node.count_; ++i) {
+      if (search_node.rects_[i].contains(search_rect)) {
         path_hint_[depth] = i;
         return i;
       }
     }
 
     // Fallback to using che "choose least enlargment" algorithm.
-    auto const i = n.choose_least_enlargement(r);
+    auto const i = search_node.choose_least_enlargement(search_rect);
     path_hint_[depth] = i;
     return i;
   }
@@ -493,21 +492,30 @@ struct rtree {
     return node_idx_t{nodes_.size() - 1U};
   }
 
+  /**
+   * Traverses the rtree and executes a function for each intersection
+   * @tparam Fn The function type of the handed function
+   * @param current_node The current node to search in
+   * @param search_rect The rectangle to search for intersects
+   * @param fn The function to execute
+   * @return True if the function fn returns true for every found intersection hit
+   */
   template <typename Fn>
-  bool node_search(node const& n, rect const& r, Fn&& fn) {
-    if (n.kind_ == kind::kLeaf) {
-      for (auto i = 0U; i != n.count_; ++i) {
-        if (n.rects_[i].intersects(r)) {
-          if (!fn(n.rects_[i].min_, n.rects_[i].max_, n.data_[i])) {
+  bool node_search(node const& current_node, rect const& search_rect, Fn&& fn) {
+    if (current_node.kind_ == kind::kLeaf) {
+      for (auto i = 0U; i != current_node.count_; ++i) {
+        if (current_node.rects_[i].intersects(search_rect)) {
+          if (!fn(current_node.rects_[i].min_, current_node.rects_[i].max_,
+                  current_node.data_[i])) {
             return false;
           }
         }
       }
       return true;
     }
-    for (auto i = 0U; i != n.count_; ++i) {
-      if (n.rects_[i].intersects(r)) {
-        if (!node_search(get_node(n.children_[i]), r, fn)) {
+    for (auto i = 0U; i != current_node.count_; ++i) {
+      if (current_node.rects_[i].intersects(search_rect)) {
+        if (!node_search(get_node(current_node.children_[i]), search_rect, fn)) {
           return false;
         }
       }
@@ -515,6 +523,13 @@ struct rtree {
     return true;
   }
 
+  /**
+   * Searches the rtree for rectangles intersecting (min, max) and executes a function for each hit
+   * @tparam Fn The function type of the handed function
+   * @param min The lower vertex of the rectangle
+   * @param max The upper vertex of the rectangle
+   * @param fn The function to execute
+   */
   template <typename Fn>
   void search(coord_t const& min, coord_t const& max, Fn&& fn) {
     auto const r = rect{min, max};
