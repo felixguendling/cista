@@ -134,10 +134,21 @@ struct rtree {
      * @return True if they are equal
      */
     bool equals(rect const& other_rect) {
-       if (!coord_t_equal(min_, other_rect.min_) || !coord_t_equal(max_, other_rect.max_)) {
+       if (!coord_t_equal(min_, other_rect.min_) ||
+          !coord_t_equal(max_, other_rect.max_)) {
          return false;
        }
        return true;
+    }
+
+    bool equals_bin(rect const& other_rect) {
+      for (size_t i = 0; i < Dims; ++i) {
+        if (min_[i] != other_rect.min_[i] ||
+            max_[i] != other_rect.max_[i]) {
+          return false;
+        }
+      }
+      return true;
     }
 
     /**
@@ -536,6 +547,169 @@ struct rtree {
     if (root_ != node_idx_t::invalid()) {
       node_search(get_node(root_), r, std::forward<Fn>(fn));
     }
+  }
+
+  /**
+   *
+   * @param nr
+   * @param delete_node_id
+   * @param ir
+   * @param item
+   * @param depth
+   * @param removed
+   * @param shrunk
+   * @param compare
+   * @param udata
+   */
+  void node_delete(rect& nr, node_idx_t delete_node_id, rect& ir, DataType item,
+                   unsigned const depth, bool& removed, bool& shrunk,
+                   int compare(const DataType a, const DataType b, void* udata),
+                   void* udata) {
+    removed = false;
+    shrunk = false;
+    auto& delete_node = get_node(delete_node_id);
+    if (delete_node.kind_ == kind::kLeaf) {
+      for (size_t i = 0; i < delete_node.count_; ++i) {
+        if (!ir.equals_bin(delete_node.rects_[i])) {
+          continue;
+        }
+        /**
+         * BIG PROBLEM
+         * The function memcmp compares two variable based on their bytes in
+         * memory. A struct which got used in this implementation has buffer
+         * bytes which could be set differently at initialization.
+         */
+        int cmp = compare ? compare(delete_node.data_[i], item, udata) :
+                          memcmp(&delete_node.data_[i], &item, sizeof(DataType));
+        if (cmp != 0) {
+          continue;
+        }
+
+        // Found the target item to delete.
+        if (true) {
+          // Free not necessary?
+        }
+        delete_node.rects_[i] = delete_node.rects_[delete_node.count_ - 1];
+        delete_node.data_[i] = delete_node.data_[delete_node.count_ - 1];
+        delete_node.count_--;
+        if (ir.onedge(nr)) {
+          // The item rect was on the edge of the node rect.
+          // We need to recalculate the node rect.
+          nr = delete_node.rect_calc();
+          // Notify the caller that we shrunk the rect.
+          shrunk = true;
+        }
+        removed = true;
+        return;
+      }
+      return;
+    }
+
+    int h = 0;
+    h = path_hint_[depth];
+    rect crect;
+    if (h < delete_node.count_) {
+      if (delete_node.rects_[h].contains(ir)) {
+        node_delete(delete_node.rects_[h], delete_node.children_[h], ir,item, depth + 1, removed, shrunk, compare, udata);
+        if (removed) {
+          goto removed;
+        }
+
+      }
+    }
+    h = 0;
+    for (; h < delete_node.count_; h++) {
+      if (!delete_node.rects_[h].contains(ir)) {
+        continue;
+      }
+      crect = delete_node.rects_[h];
+      node_delete(delete_node.rects_[h], delete_node.children_[h], ir, item, depth + 1, removed, shrunk, compare, udata);
+      if (!removed) {
+        continue;
+      }
+    removed:
+      if (get_node(delete_node.children_[h]).count_ == 0) {
+        // underflow
+        // free the node, planned with a free_list: delete_node.children_[h]
+        delete_node.rects_[h] = delete_node.rects_[delete_node.count_ - 1];
+        delete_node.children_[h] = delete_node.children_[delete_node.count_ - 1];
+        delete_node.count_--;
+        nr = delete_node.rect_calc();
+        shrunk = true;
+        return;
+      }
+      path_hint_[depth] = h;
+      if (shrunk) {
+        shrunk = !delete_node.rects_[h].equals(crect);
+        if (shrunk) {
+          nr = delete_node.rect_calc();
+        }
+      }
+      return;
+    }
+  }
+
+  /**
+   *
+   * @param min
+   * @param max
+   * @param item
+   * @param compare
+   * @param udata
+   */
+  void delete_0(coord_t const& min, coord_t const& max, DataType const item, int compare(const DataType a, const DataType b, void* udata),
+                void* udata) {
+    rect input_rect = {min,max};
+
+    if (root_ == node_idx_t::invalid()) {
+      return;
+    }
+    auto removed = false;
+    auto shrunk = false;
+    node_delete(rect_, root_, input_rect, item, 0, removed, shrunk, compare, udata);
+    if (!removed) {
+      return;
+    }
+    count_--;
+    if (count_ == 0) {
+      // free the root node, planned with a free_list:
+      root_ = node_idx_t::invalid();
+      height_ = 0;
+    } else {
+      while (get_node(root_).kind_ == kind::kBranch && count_ == 1) {
+        auto& prev = get_node(root_);
+        root_ = get_node(root_).children_[0];
+        prev.count_ = 0;
+        // free the prev node, planned with a free_list:
+        height_--;
+      }
+      if (shrunk) {
+        rect_ = get_node(root_).rect_calc();
+      }
+    }
+  }
+
+  /**
+   *
+   * @param min
+   * @param max
+   * @param data
+   */
+  void delete_element(coord_t const& min, coord_t const& max, DataType const data) {
+    return delete_0(min, max, data, NULL, NULL);
+  }
+
+  /**
+   *
+   * @param min
+   * @param max
+   * @param data
+   * @param compare
+   * @param udata
+   */
+  void delete_element_with_comparator(coord_t const& min, coord_t const& max, DataType const data, int compare(const DataType a, const DataType b, void* udata),
+                                      void* udata) {
+    return delete_0(min, max, data, compare, udata);
   }
 
   rect rect_;

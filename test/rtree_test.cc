@@ -24,7 +24,7 @@ void print_node(cista::rtree<size_t> rt, cista::rtree<size_t>::node_idx_t node_i
   std::stringstream rect_string;
   std::vector<cista::rtree<size_t>::node_idx_t> nodes_to_visit;
 
-  for (size_t i = 0; i < rt.nodes_[node_id].count_ /*&& rt.nodes_[node_id].children_[i] != cista::rtree<size_t>::node_idx_t::invalid()*/; ++i) {
+  for (size_t i = 0;/*rt.root_ != cista::rtree<size_t>::node_idx_t::invalid() &&*/ i < rt.nodes_[node_id].count_; ++i) {
     rect_string << "|{";
     rect_string << std::fixed << std::setprecision(2) << rt.nodes_[node_id].rects_[i].min_[0] << ", ";
     rect_string << std::fixed << std::setprecision(2) << rt.nodes_[node_id].rects_[i].min_[1] << " / ";
@@ -52,7 +52,9 @@ void print_node(cista::rtree<size_t> rt, cista::rtree<size_t>::node_idx_t node_i
 
 void print_visualize(cista::rtree<size_t> &rt, bool complete = false) {
   std::cout << "digraph rtree {\n";
-  print_node(rt, rt.root_, complete);
+  if (rt.root_ != cista::rtree<size_t>::node_idx_t::invalid()) {
+    print_node(rt, rt.root_, complete);
+  }
   std::cout << "}\n";
 }
 
@@ -168,9 +170,11 @@ TEST_SUITE("rtree") {
     rt.get_node(rt.root_).move_rect_at_index_into(5, rt.get_node(other_node));
     rt.get_node(rt.root_).move_rect_at_index_into(5, rt.get_node(other_node));
     rt.get_node(rt.root_).move_rect_at_index_into(5, rt.get_node(other_node));
+    CHECK((rt.get_node(other_node).count_ == 3));
+    CHECK((rt.get_node(rt.root_).count_ == 7));
   }
 
-  TEST_CASE("random insert test") {
+  TEST_CASE("random insert") {
     int N = 100000;
     std::vector<cista::rtree<size_t>::rect> rand_rects_list;
     srand(static_cast<unsigned>(time(0)));
@@ -201,5 +205,228 @@ TEST_SUITE("rtree") {
 
       CHECK(found_correct);
     }
+  }
+
+  TEST_CASE("simple delete: depth 1") {
+    int N = 10;
+    std::vector<cista::rtree<size_t>::rect> rand_rects_list;
+    srand(static_cast<unsigned>(time(0)));
+
+    for (int i = 0; i < N; ++i) {
+      fill_rand_rect(rand_rects_list);
+    }
+
+
+
+    cista::rtree<size_t> rt;
+    for (size_t i = 0; i < rand_rects_list.size(); ++i) {
+      cista::rtree<size_t>::coord_t min = rand_rects_list[i].min_;
+      cista::rtree<size_t>::coord_t max = rand_rects_list[i].max_;
+      rt.insert(min, max, i);
+
+    }
+
+    size_t index = 5;
+    cista::rtree<size_t>::coord_t min = rand_rects_list[index].min_;
+    cista::rtree<size_t>::coord_t max = rand_rects_list[index].max_;
+    bool found_correct = false;
+
+    rt.search(min, max, [min, max, index, &found_correct](cista::rtree<size_t>::coord_t const& min_temp, cista::rtree<size_t>::coord_t const& max_temp, size_t data){
+      if (cista::rtree<size_t>::rect::coord_t_equal(min, min_temp) && cista::rtree<size_t>::rect::coord_t_equal(max, max_temp) && data == index) {
+        found_correct = true;
+      }
+      return true;
+    });
+
+    CHECK((found_correct));
+
+    rt.delete_element(min, max, index);
+
+    found_correct = false;
+    rt.search(min, max, [min, max, index, &found_correct](cista::rtree<size_t>::coord_t const& min_temp, cista::rtree<size_t>::coord_t const& max_temp, size_t data){
+      if (cista::rtree<size_t>::rect::coord_t_equal(min, min_temp) && cista::rtree<size_t>::rect::coord_t_equal(max, max_temp) && data == index) {
+        found_correct = true;
+      }
+      return true;
+    });
+
+    CHECK((!found_correct));
+
+  }
+
+  TEST_CASE("simple delete: depth 2") {
+    int N = 70;
+    std::vector<cista::rtree<size_t>::rect> rand_rects_list;
+    srand(static_cast<unsigned>(time(0)));
+
+    if (true) {
+      for (int i = 0; i < N; ++i) {
+        fill_rand_rect(rand_rects_list);
+      }
+    }
+
+    cista::rtree<size_t> rt;
+    for (size_t i = 0; i < rand_rects_list.size(); ++i) {
+      cista::rtree<size_t>::coord_t min = rand_rects_list[i].min_;
+      cista::rtree<size_t>::coord_t max = rand_rects_list[i].max_;
+      rt.insert(min, max, i);
+
+    }
+
+    cista::rtree<size_t>::node_idx_t temp_id;
+    temp_id.v_ = 2;
+    size_t index = rt.get_node(temp_id).data_[1];
+    cista::rtree<size_t>::coord_t min = rand_rects_list[index].min_;
+    cista::rtree<size_t>::coord_t max = rand_rects_list[index].max_;
+    bool found_correct = false;
+
+    rt.search(min, max, [min, max, index, &found_correct](cista::rtree<size_t>::coord_t const& min_temp, cista::rtree<size_t>::coord_t const& max_temp, size_t data){
+      if (cista::rtree<size_t>::rect::coord_t_equal(min, min_temp) && cista::rtree<size_t>::rect::coord_t_equal(max, max_temp) && data == index) {
+        found_correct = true;
+      }
+      return true;
+    });
+
+    CHECK((found_correct));
+
+    //print_visualize(rt, true);
+
+    rt.delete_element(min, max, index);
+
+    //print_visualize(rt, true);
+
+    found_correct = false;
+    rt.search(min, max, [min, max, index, &found_correct](cista::rtree<size_t>::coord_t const& min_temp, cista::rtree<size_t>::coord_t const& max_temp, size_t data){
+      if (cista::rtree<size_t>::rect::coord_t_equal(min, min_temp) && cista::rtree<size_t>::rect::coord_t_equal(max, max_temp) && data == index) {
+        found_correct = true;
+      }
+      return true;
+    });
+
+    CHECK((!found_correct));
+
+  }
+
+  TEST_CASE("delete node") {
+    int N = 70;
+    std::vector<cista::rtree<size_t>::rect> rand_rects_list;
+    srand(static_cast<unsigned>(time(0)));
+
+    if (true) {
+      for (int i = 0; i < N; ++i) {
+        fill_rand_rect(rand_rects_list);
+      }
+    }
+
+    cista::rtree<size_t> rt;
+    for (size_t i = 0; i < rand_rects_list.size(); ++i) {
+      cista::rtree<size_t>::coord_t min = rand_rects_list[i].min_;
+      cista::rtree<size_t>::coord_t max = rand_rects_list[i].max_;
+      rt.insert(min, max, i);
+
+    }
+
+    cista::rtree<size_t>::node_idx_t temp_id;
+    temp_id.v_ = 2;
+    size_t index = rt.get_node(temp_id).data_[1];
+    cista::rtree<size_t>::coord_t min = rand_rects_list[index].min_;
+    cista::rtree<size_t>::coord_t max = rand_rects_list[index].max_;
+
+
+
+
+    //print_visualize(rt, true);
+    for (int i = static_cast<int>(rt.get_node(rt.get_node(rt.root_).children_[0]).count_ - 1); i >= 0; --i) {
+      auto& temp_rect = rt.get_node(rt.get_node(rt.root_).children_[0]).rects_[i];
+      auto& temp_data = rt.get_node(rt.get_node(rt.root_).children_[0]).data_[i];
+
+      bool found_correct = false;
+
+      rt.search(temp_rect.min_, temp_rect.max_, [temp_rect, temp_data, &found_correct](cista::rtree<size_t>::coord_t const& min_temp, cista::rtree<size_t>::coord_t const& max_temp, size_t data){
+        if (cista::rtree<size_t>::rect::coord_t_equal(temp_rect.min_, min_temp) && cista::rtree<size_t>::rect::coord_t_equal(temp_rect.max_, max_temp) && data == temp_data) {
+          found_correct = true;
+        }
+        return true;
+      });
+
+      CHECK((found_correct));
+
+      rt.delete_element(temp_rect.min_, temp_rect.max_, temp_data);
+
+      found_correct = false;
+
+      rt.search(temp_rect.min_, temp_rect.max_, [temp_rect, temp_data, &found_correct](cista::rtree<size_t>::coord_t const& min_temp, cista::rtree<size_t>::coord_t const& max_temp, size_t data){
+        if (cista::rtree<size_t>::rect::coord_t_equal(temp_rect.min_, min_temp) && cista::rtree<size_t>::rect::coord_t_equal(temp_rect.max_, max_temp) && data == temp_data) {
+          found_correct = true;
+        }
+        return true;
+      });
+
+      CHECK((!found_correct));
+    }
+
+    print_visualize(rt, true);
+  }
+
+  TEST_CASE("delete root") {
+    int N = 70;
+    std::vector<cista::rtree<size_t>::rect> rand_rects_list;
+    srand(static_cast<unsigned>(time(0)));
+
+    if (true) {
+      for (int i = 0; i < N; ++i) {
+        fill_rand_rect(rand_rects_list);
+      }
+    }
+
+    cista::rtree<size_t> rt;
+    //print_visualize(rt);
+    for (size_t i = 0; i < rand_rects_list.size(); ++i) {
+      cista::rtree<size_t>::coord_t min = rand_rects_list[i].min_;
+      cista::rtree<size_t>::coord_t max = rand_rects_list[i].max_;
+      rt.insert(min, max, i);
+
+    }
+
+    cista::rtree<size_t>::node_idx_t temp_id;
+    temp_id.v_ = 2;
+    size_t index = rt.get_node(temp_id).data_[1];
+    cista::rtree<size_t>::coord_t min = rand_rects_list[index].min_;
+    cista::rtree<size_t>::coord_t max = rand_rects_list[index].max_;
+
+
+
+
+    //print_visualize(rt, true);
+    for (size_t i = 0; i < rand_rects_list.size(); ++i) {
+      cista::rtree<size_t>::coord_t min = rand_rects_list[i].min_;
+      cista::rtree<size_t>::coord_t max = rand_rects_list[i].max_;
+      bool found_correct = false;
+
+      rt.search(min, max, [min, max, i, &found_correct](cista::rtree<size_t>::coord_t const& min_temp, cista::rtree<size_t>::coord_t const& max_temp, size_t data){
+        if (cista::rtree<size_t>::rect::coord_t_equal(min, min_temp) && cista::rtree<size_t>::rect::coord_t_equal(max, max_temp) && data == i) {
+          found_correct = true;
+        }
+        return true;
+      });
+
+
+      CHECK((found_correct));
+
+      rt.delete_element(rand_rects_list[i].min_, rand_rects_list[i].max_, i);
+
+      found_correct = false;
+
+      rt.search(min, max, [min, max, i, &found_correct](cista::rtree<size_t>::coord_t const& min_temp, cista::rtree<size_t>::coord_t const& max_temp, size_t data){
+        if (cista::rtree<size_t>::rect::coord_t_equal(min, min_temp) && cista::rtree<size_t>::rect::coord_t_equal(max, max_temp) && data == i) {
+          found_correct = true;
+        }
+        return true;
+      });
+
+      CHECK((!found_correct));
+    }
+
+    print_visualize(rt, true);
   }
 }
