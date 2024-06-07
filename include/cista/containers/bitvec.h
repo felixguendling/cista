@@ -63,7 +63,8 @@ struct basic_bitvec {
     assert(std::all_of(begin(s), end(s),
                        [](char const c) { return c == '0' || c == '1'; }));
     resize(s.size());
-    for (auto i = std::size_t{0U}; i != std::min(size_, s.size()); ++i) {
+    for (auto i = std::size_t{0U};
+         i != std::min(static_cast<std::size_t>(size_), s.size()); ++i) {
       set(i, s[s.size() - i - 1] != '0');
     }
   }
