@@ -85,6 +85,9 @@ struct basic_bitvec {
   bool operator[](Key const i) const noexcept { return test(i); }
 
   std::size_t count() const noexcept {
+    if (empty()) {
+      return 0;
+    }
     auto sum = std::size_t{0U};
     for (auto i = size_type{0U}; i != blocks_.size() - 1; ++i) {
       sum += popcount(blocks_[i]);
