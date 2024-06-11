@@ -534,13 +534,21 @@ using string = basic_string<ptr<char const>>;
 using string_view = basic_string_view<ptr<char const>>;
 }  // namespace offset
 
+template <typename Ptr>
+auto format_as(cista::basic_string<Ptr> const& s) {
+  return s.view();
+}
+
 }  // namespace cista
 
-#if __has_include("fmt/ostream.h")
+#if __has_include("fmt/ranges.h")
 
-#include "fmt/ostream.h"
+#include "fmt/ranges.h"
 
-template <typename Ptr>
-struct fmt::formatter<cista::basic_string<Ptr>> : ostream_formatter {};
+namespace fmt {
+template <typename Ptr, typename Char>
+struct range_format_kind<cista::basic_string<Ptr>, Char, void>
+    : std::false_type {};
+}  // namespace fmt
 
 #endif
