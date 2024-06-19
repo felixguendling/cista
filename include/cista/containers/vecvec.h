@@ -48,6 +48,16 @@ struct basic_vecvec {
       return operator[](size() - 1U);
     }
 
+    value_type const& front() const {
+      assert(!empty());
+      return operator[](0);
+    }
+
+    value_type const& back() const {
+      assert(!empty());
+      return operator[](size() - 1U);
+    }
+
     bool empty() const { return begin() == end(); }
 
     template <typename Args>
