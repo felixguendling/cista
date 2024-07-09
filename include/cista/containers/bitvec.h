@@ -227,7 +227,9 @@ struct basic_bitvec {
 
   friend bool operator==(basic_bitvec const& a,
                          basic_bitvec const& b) noexcept {
-    assert(a.size() == b.size());
+    if (a.size() != b.size()) {
+      return false;
+    }
 
     if (a.empty() && b.empty()) {
       return true;
