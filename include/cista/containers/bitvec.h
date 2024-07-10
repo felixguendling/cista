@@ -26,8 +26,9 @@ struct basic_bitvec {
       static_cast<size_type>(sizeof(block_t) * 8);
 
   constexpr basic_bitvec() noexcept {}
-  basic_bitvec(std::string_view s) noexcept { set(s); }
-  constexpr basic_bitvec(Vec&& v) noexcept
+  basic_bitvec(std::string_view s) { set(s); }
+  basic_bitvec(size_type const size) { resize(size); }
+  constexpr basic_bitvec(Vec&& v)
       : size_{v.size() * bits_per_block},  // inaccurate for loading mmap vector
         blocks_{std::move(v)} {}
   static constexpr basic_bitvec max(std::size_t const size) {
@@ -59,7 +60,7 @@ struct basic_bitvec {
     size_ = new_size;
   }
 
-  void set(std::string_view s) noexcept {
+  void set(std::string_view s) {
     assert(std::all_of(begin(s), end(s),
                        [](char const c) { return c == '0' || c == '1'; }));
     resize(s.size());
