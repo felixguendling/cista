@@ -47,6 +47,12 @@ struct basic_bitvec {
                                   (num_bits % bits_per_block == 0 ? 0 : 1));
   }
 
+  void zero_out() {
+    for (auto& b : blocks_) {
+      b = 0U;
+    }
+  }
+
   void resize(size_type const new_size) {
     if (new_size == size_) {
       return;
