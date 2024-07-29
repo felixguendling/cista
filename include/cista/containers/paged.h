@@ -118,6 +118,13 @@ struct paged {
     }
   }
 
+  void clear() {
+    data_.clear();
+    for (auto& n : free_list_) {
+      n.next_ = std::numeric_limits<size_type>::max();
+    }
+  }
+
   struct node {
     bool empty() const {
       return next_ == std::numeric_limits<size_type>::max();

@@ -330,6 +330,11 @@ struct paged_vecvec {
     idx_.resize(size);
   }
 
+  void clear() {
+    paged_.clear();
+    idx_.clear();
+  }
+
   Paged paged_;
   Index idx_;
 };
