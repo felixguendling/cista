@@ -216,6 +216,13 @@ struct basic_vecvec {
     friend const_iterator begin(const_bucket const& b) { return b.begin(); }
     friend const_iterator end(const_bucket const& b) { return b.end(); }
 
+    std::reverse_iterator<const_iterator> rbegin() const {
+      return std::reverse_iterator{begin() + size()};
+    }
+    std::reverse_iterator<const_iterator> rend() const {
+      return std::reverse_iterator{begin()};
+    }
+
     friend bool operator==(const_bucket const& a, const_bucket const& b) {
       assert(a.map_ == b.map_);
       return a.i_ == b.i_;
