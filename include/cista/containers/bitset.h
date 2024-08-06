@@ -95,6 +95,23 @@ struct bitset {
     }
   }
 
+  template <typename Fn>
+  void for_each_set_bit(Fn&& f) const {
+    auto const check_block = [&](std::size_t const i, block_t const block) {
+      if (block != 0U) {
+        for (auto bit = std::size_t{0U}; bit != bits_per_block; ++bit) {
+          if ((block & (block_t{1U} << bit)) != 0U) {
+            f(std::size_t{i * bits_per_block + bit});
+          }
+        }
+      }
+    };
+    for (auto i = std::size_t{0U}; i != blocks_.size() - 1; ++i) {
+      check_block(i, blocks_[i]);
+    }
+    check_block(blocks_.size() - 1, sanitized_last_block());
+  }
+
   std::string to_string() const {
     std::string s{};
     s.resize(Size);
