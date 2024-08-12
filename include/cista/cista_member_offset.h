@@ -1,5 +1,6 @@
 #pragma once
 
+#include <type_traits>
 #include "cista/offset_t.h"
 
 namespace cista {

@@ -8,6 +8,8 @@
 #include "cista/containers/vector.h"
 #include "cista/endian/conversion.h"
 
+
+
 namespace cista {
 
 template <typename Ctx, typename T>
@@ -18,8 +20,7 @@ inline bool feq(NumType a, NumType b) {
   return !(a < b || a > b);
 }
 
-template <typename DataType, uint32_t Dims = 2U, typename NumType = float,
-          uint32_t MaxItems = 64U, typename SizeType = std::uint32_t>
+template <typename DataType, uint32_t Dims = 2U, typename NumType = float, uint32_t MaxItems = 64U, typename SizeType = std::uint32_t, template <typename, typename...> typename VectorType = offset::vector_map>
 struct rtree {
   static constexpr auto const kInfinity = std::numeric_limits<NumType>::max();
 
@@ -169,6 +170,7 @@ struct rtree {
   };
 
   struct node {
+
     /**
      * Sorts rectangles in a node along one axis
      * @param axis The axis to sort for
@@ -289,6 +291,7 @@ struct rtree {
       return temp_rect;
     }
 
+
     template <typename Ctx>
     friend void serialize(Ctx& c, node const* origin, cista::offset_t const pos) {
       using Type = std::decay_t<decltype(*origin)>;
@@ -318,6 +321,7 @@ struct rtree {
     uint32_t count_{0U};
     kind kind_;
     array<rect, MaxItems> rects_;
+
     union {
       node_vector_t children_;
       data_vector_t data_;
@@ -498,17 +502,17 @@ struct rtree {
    * @return The id of the created node
    */
   node_idx_t node_new(kind const node_kind) {
-    if (free_list == node_idx_t::invalid()) {
+    if (free_list_ == node_idx_t::invalid()) {
       auto& new_node = nodes_.emplace_back();
       std::memset(&new_node, 0U, sizeof(node));
       new_node.kind_ = node_kind;
       return node_idx_t{nodes_.size() - 1U};
     } else {
-      node_idx_t recycled_node_id = free_list;
+      node_idx_t recycled_node_id = free_list_;
       if (get_node(recycled_node_id).kind_ == kind::kEndFreeList) {
-        free_list = node_idx_t::invalid();
+        free_list_ = node_idx_t::invalid();
       } else {
-        free_list = node_idx_t(get_node(recycled_node_id).count_);
+        free_list_ = node_idx_t(get_node(recycled_node_id).count_);
         //free_list = reinterpret_cast<node_idx_t>(get_node(recycled_node_id).count_);
       }
       get_node(recycled_node_id).kind_ = node_kind;
@@ -587,14 +591,7 @@ struct rtree {
         if (!input_rect.equals_bin(delete_node.rects_[i])) {
           continue;
         }
-        /**
-         * BIG PROBLEM [solved]
-         * The function memcmp compares two variable based on their bytes in
-         * memory. A struct which got used in this implementation has buffer
-         * bytes which could be set differently at initialization.
-         */
-
-        // Should throw exception if == operator is not defined in DataType
+        // Should throw exception/compiler error if == operator is not defined in DataType
         int cmp = compare ? compare(delete_node.data_[i], item, udata) : !(delete_node.data_[i] == item);
         if (cmp != 0) {
           continue;
@@ -603,6 +600,7 @@ struct rtree {
         // Found the target item to delete.
         if (true) {
           // Free not necessary?
+          delete_node.data_[i].~DataType();
         }
         delete_node.rects_[i] = delete_node.rects_[delete_node.count_ - 1];
         delete_node.data_[i] = delete_node.data_[delete_node.count_ - 1];
@@ -732,22 +730,27 @@ struct rtree {
     return delete_0(min, max, data, compare, udata);
   }
 
+  /**
+   * Adds a no longer used node to a list of nodes. The allocated space by the
+   * nodes in this list will be used up first when ever a new node is created.
+   * @param node_id The node id added to the list
+   */
   void add_to_free_list(node_idx_t node_id) {
-    if (free_list == node_idx_t::invalid()) {
+    if (free_list_ == node_idx_t::invalid()) {
       get_node(node_id).kind_ = kind::kEndFreeList;
     } else {
-      get_node(node_id).count_ = reinterpret_cast<uint32_t>(free_list.v_);
+      get_node(node_id).count_ = to_idx(free_list_);
     }
-    free_list = node_id;
+    free_list_ = node_id;
   }
 
   rect rect_;
   node_idx_t root_{node_idx_t::invalid()};
-  node_idx_t free_list = node_idx_t::invalid();
+  node_idx_t free_list_ = node_idx_t::invalid();
   SizeType count_{0U};
   SizeType height_{0U};
   array<uint32_t, 16U> path_hint_{};
-  offset::vector_map<node_idx_t, node> nodes_;
+  VectorType<node_idx_t, node> nodes_;
 };
 
 }  // namespace cista
