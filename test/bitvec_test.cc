@@ -105,6 +105,7 @@ unsigned long get_random_number() {  // period 2^96-1
   return z;
 }
 
+#if __has_cpp_attribute(__cpp_lib_atomic_ref)
 TEST_CASE("bitvec atomic set") {
   constexpr auto const kBits = 100'000U;
   constexpr auto const kWorkers = 100U;
@@ -133,6 +134,7 @@ TEST_CASE("bitvec atomic set") {
 
   CHECK(b.count() == kBits);
 }
+#endif
 
 TEST_CASE("bitvec parallel") {
   constexpr auto const kBits = 1'000'000U;
