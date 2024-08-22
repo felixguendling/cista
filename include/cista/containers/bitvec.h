@@ -88,6 +88,32 @@ struct basic_bitvec {
     }
   }
 
+#if __has_cpp_attribute(__cpp_lib_atomic_ref)
+  constexpr void atomic_set(
+      Key const i, bool const val = true,
+      memory_order succ = std::memory_order::memory_order_seq_cst,
+      memory_order fail = std::memory_order::memory_order_seq_cst) noexcept {
+    assert(i < size_);
+    assert((to_idx(i) / bits_per_block) < blocks_.size());
+    auto const block = std::atomic_ref{
+        blocks_[static_cast<size_type>(to_idx(i)) / bits_per_block]};
+    auto const bit = to_idx(i) % bits_per_block;
+
+    auto const update_block = [&](block_t const b) -> block_t {
+      if (val) {
+        return block | (block_t{1U} << bit);
+      } else {
+        return block & (~block_t{0U} ^ (block_t{1U} << bit));
+      }
+    };
+
+    auto expected = block.load();
+    while (std::atomic_compare_exchange_weak(
+        &block, &expected, update_block(expected), succ, fail)) {
+    }
+  }
+#endif
+
   void reset() noexcept { blocks_ = {}; }
 
   bool operator[](Key const i) const noexcept { return test(i); }

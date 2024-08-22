@@ -105,6 +105,35 @@ unsigned long get_random_number() {  // period 2^96-1
   return z;
 }
 
+TEST_CASE("bitvec atomic set") {
+  constexpr auto const kBits = 100'000U;
+  constexpr auto const kWorkers = 100U;
+
+  auto start = std::atomic_bool{};
+  auto b = cista::raw::bitvec{};
+  b.resize(kBits);
+  auto workers = std::vector<std::thread>(kWorkers);
+  for (auto i = 0U; i != kWorkers; ++i) {
+    workers[i] = std::thread{[&, i]() {
+      while (!start) {
+        // wait for synchronized start
+      }
+
+      for (auto j = i; j < kBits; j += kBits / kWorkers) {
+        b.atomic_set(j);
+      }
+    }};
+  }
+
+  start.store(true);
+
+  for (auto& w : workers) {
+    w.join();
+  }
+
+  CHECK(b.count() == kBits);
+}
+
 TEST_CASE("bitvec parallel") {
   constexpr auto const kBits = 1'000'000U;
   constexpr auto const kWorkers = 100U;
