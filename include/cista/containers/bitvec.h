@@ -88,11 +88,11 @@ struct basic_bitvec {
     }
   }
 
-#if __has_cpp_attribute(__cpp_lib_atomic_ref)
+#if __cpp_lib_atomic_ref
   constexpr void atomic_set(
       Key const i, bool const val = true,
-      memory_order succ = std::memory_order::memory_order_seq_cst,
-      memory_order fail = std::memory_order::memory_order_seq_cst) noexcept {
+      std::memory_order succ = std::memory_order_seq_cst,
+      std::memory_order fail = std::memory_order_seq_cst) noexcept {
     assert(i < size_);
     assert((to_idx(i) / bits_per_block) < blocks_.size());
     auto const block = std::atomic_ref{
