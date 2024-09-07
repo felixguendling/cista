@@ -198,3 +198,252 @@ TEST_CASE("string ends_with") {
   CHECK(s.ends_with('b') == false);
   CHECK(s.ends_with('\0') == false);
 }
+
+using cista::raw::u16string;
+using cista::raw::u16string_view;
+
+const auto constexpr U16STR_SHORT = u"0123";
+const auto constexpr U16STR_SHORT_CORNER_CASE = u"0123456";
+const auto constexpr U16STR_LONG_CORNER_CASE = u"01234567";
+const auto constexpr U16STR_LONG = u"0123456789ABCDEF\xD83D\xDCBB";
+
+TEST_CASE("u16string long short") {
+  u16string s[] = {u"", U16STR_SHORT, U16STR_SHORT_CORNER_CASE,
+                   U16STR_LONG_CORNER_CASE, U16STR_LONG};
+
+  CHECK(!s[0].is_short());
+  CHECK(s[0].size() == 0);
+  CHECK(s[0].data() == nullptr);
+
+  CHECK(s[1].is_short());
+  CHECK(s[1].size() == 4);
+  CHECK(s[1].view() == U16STR_SHORT);
+
+  CHECK(s[2].is_short());
+  CHECK(s[2].size() == 7);
+  CHECK(s[2].view() == U16STR_SHORT_CORNER_CASE);
+
+  CHECK(!s[3].is_short());
+  CHECK(s[3].size() == 8);
+  CHECK(s[3].view() == U16STR_LONG_CORNER_CASE);
+
+  CHECK(!s[4].is_short());
+  CHECK(s[4].size() == 18);
+  CHECK(s[4].view() == U16STR_LONG);
+}
+
+TEST_CASE("u16string copy") {
+  u16string s, s_s{U16STR_SHORT}, s_l{U16STR_LONG};
+  u16string_view sv_s{U16STR_SHORT}, sv_l{U16STR_LONG};
+
+  s = U16STR_SHORT;
+  CHECK(s.view() == U16STR_SHORT);
+
+  s = U16STR_LONG;
+  CHECK(s.view() == U16STR_LONG);
+
+  s = s_s;
+  CHECK(s == s_s);
+  CHECK(s.view() == U16STR_SHORT);
+
+  s = s_l;
+  CHECK(s == s_l);
+  CHECK(s.view() == U16STR_LONG);
+
+  s = sv_s;
+  CHECK(s == sv_s);
+  CHECK(s.view() == U16STR_SHORT);
+
+  s = sv_l;
+  CHECK(s == sv_l);
+  CHECK(s.view() == U16STR_LONG);
+}
+
+TEST_CASE("u16string erase") {
+  u16string s[] = {U16STR_SHORT, U16STR_SHORT_CORNER_CASE,
+                   U16STR_LONG_CORNER_CASE, U16STR_LONG};
+  std::u16string ref[] = {U16STR_SHORT, U16STR_SHORT_CORNER_CASE,
+                          U16STR_LONG_CORNER_CASE, U16STR_LONG};
+
+  for (auto i = 0; i < 4; ++i) {
+    s[i].erase(1, i + 2);
+    ref[i].erase(1, i + 2);
+  }
+
+  for (auto i = 0; i < 4; ++i) {
+    CHECK(s[i] == ref[i]);
+  }
+
+  for (auto i = 0; i < 4; ++i) {
+    s[i].erase(0, s[i].size());
+    CHECK(s[i].empty());
+  }
+}
+
+TEST_CASE("u16string starts_with") {
+  u16string s[] = {U16STR_SHORT, U16STR_SHORT_CORNER_CASE,
+                   U16STR_LONG_CORNER_CASE, U16STR_LONG};
+
+  for (auto i = 1; i < 4; ++i) {
+    CHECK(s[i].starts_with(s[i - 1]));
+  }
+  for (auto i = 1; i < 4; ++i) {
+    CHECK(!s[i - 1].starts_with(s[i]));
+  }
+  for (auto i = 0; i < 4; ++i) {
+    CHECK(s[i].starts_with(u'0'));
+    CHECK(!s[i].starts_with(u'A'));
+  }
+}
+
+TEST_CASE("u16string ends_with") {
+  u16string s[] = {U16STR_SHORT, U16STR_SHORT_CORNER_CASE,
+                   U16STR_LONG_CORNER_CASE, U16STR_LONG};
+
+  CHECK(s[0].ends_with(U16STR_SHORT));
+  CHECK(s[0].ends_with(u"123"));
+  CHECK(s[0].ends_with(u'3'));
+  CHECK(!s[0].ends_with(u"01234"));
+  CHECK(!s[0].ends_with(u'A'));
+
+  CHECK(s[1].ends_with(U16STR_SHORT_CORNER_CASE));
+  CHECK(s[1].ends_with(u"456"));
+  CHECK(s[1].ends_with(u'6'));
+  CHECK(!s[1].ends_with(u"01234567"));
+  CHECK(!s[1].ends_with(u'A'));
+
+  CHECK(s[2].ends_with(U16STR_LONG_CORNER_CASE));
+  CHECK(s[2].ends_with(u"567"));
+  CHECK(s[2].ends_with(u'7'));
+  CHECK(!s[2].ends_with(u"012345677"));
+  CHECK(!s[2].ends_with(u'A'));
+
+  CHECK(s[3].ends_with(U16STR_LONG));
+  CHECK(s[3].ends_with(u"F\xD83D\xDCBB"));
+  CHECK(s[3].ends_with(u'\xDCBB'));
+  CHECK(!s[3].ends_with(u'A'));
+}
+
+using cista::raw::u32string;
+using cista::raw::u32string_view;
+
+const auto constexpr U32STR_SHORT = U"01";
+const auto constexpr U32STR_SHORT_CORNER_CASE = U"012";
+const auto constexpr U32STR_LONG_CORNER_CASE = U"0123";
+const auto constexpr U32STR_LONG = U"0123456789ABCDEF\U0001F4BB";
+
+TEST_CASE("u32string long short") {
+  u32string s[] = {U"", U32STR_SHORT, U32STR_SHORT_CORNER_CASE,
+                   U32STR_LONG_CORNER_CASE, U32STR_LONG};
+
+  CHECK(!s[0].is_short());
+  CHECK(s[0].size() == 0);
+  CHECK(s[0].data() == nullptr);
+
+  CHECK(s[1].is_short());
+  CHECK(s[1].size() == 2);
+  CHECK(s[1].view() == U32STR_SHORT);
+
+  CHECK(s[2].is_short());
+  CHECK(s[2].size() == 3);
+  CHECK(s[2].view() == U32STR_SHORT_CORNER_CASE);
+
+  CHECK(!s[3].is_short());
+  CHECK(s[3].size() == 4);
+  CHECK(s[3].view() == U32STR_LONG_CORNER_CASE);
+
+  CHECK(!s[4].is_short());
+  CHECK(s[4].size() == 17);
+  CHECK(s[4].view() == U32STR_LONG);
+}
+
+TEST_CASE("u32string copy") {
+  u32string s, s_s{U32STR_SHORT}, s_l{U32STR_LONG};
+  u32string_view sv_s{U32STR_SHORT}, sv_l{U32STR_LONG};
+
+  s = U32STR_SHORT;
+  CHECK(s.view() == U32STR_SHORT);
+
+  s = U32STR_LONG;
+  CHECK(s.view() == U32STR_LONG);
+
+  s = s_s;
+  CHECK(s == s_s);
+  CHECK(s.view() == U32STR_SHORT);
+
+  s = s_l;
+  CHECK(s == s_l);
+  CHECK(s.view() == U32STR_LONG);
+
+  s = sv_s;
+  CHECK(s == sv_s);
+  CHECK(s.view() == U32STR_SHORT);
+
+  s = sv_l;
+  CHECK(s == sv_l);
+  CHECK(s.view() == U32STR_LONG);
+}
+
+TEST_CASE("u32string erase") {
+  u32string s[] = {U32STR_SHORT, U32STR_SHORT_CORNER_CASE,
+                   U32STR_LONG_CORNER_CASE, U32STR_LONG};
+  std::u32string ref[] = {U32STR_SHORT, U32STR_SHORT_CORNER_CASE,
+                          U32STR_LONG_CORNER_CASE, U32STR_LONG};
+
+  for (auto i = 0; i < 4; ++i) {
+    s[i].erase(1, i + 1);
+    ref[i].erase(1, i + 1);
+  }
+
+  for (auto i = 0; i < 4; ++i) {
+    CHECK(s[i] == ref[i]);
+  }
+
+  for (auto i = 0; i < 4; ++i) {
+    s[i].erase(0, s[i].size());
+    CHECK(s[i].empty());
+  }
+}
+
+TEST_CASE("u32string starts_with") {
+  u32string s[] = {U32STR_SHORT, U32STR_SHORT_CORNER_CASE,
+                   U32STR_LONG_CORNER_CASE, U32STR_LONG};
+
+  for (auto i = 1; i < 4; ++i) {
+    CHECK(s[i].starts_with(s[i - 1]));
+  }
+  for (auto i = 1; i < 4; ++i) {
+    CHECK(!s[i - 1].starts_with(s[i]));
+  }
+  for (auto i = 0; i < 4; ++i) {
+    CHECK(s[i].starts_with(U'0'));
+    CHECK(!s[i].starts_with(U'A'));
+  }
+}
+
+TEST_CASE("u32string ends_with") {
+  u32string s[] = {U32STR_SHORT, U32STR_SHORT_CORNER_CASE,
+                   U32STR_LONG_CORNER_CASE, U32STR_LONG};
+
+  CHECK(s[0].ends_with(U32STR_SHORT));
+  CHECK(s[0].ends_with(U'1'));
+  CHECK(!s[0].ends_with(U"012"));
+  CHECK(!s[0].ends_with(U'A'));
+
+  CHECK(s[1].ends_with(U32STR_SHORT_CORNER_CASE));
+  CHECK(s[1].ends_with(U"12"));
+  CHECK(s[1].ends_with(U'2'));
+  CHECK(!s[1].ends_with(U"0123"));
+  CHECK(!s[1].ends_with(U'A'));
+
+  CHECK(s[2].ends_with(U32STR_LONG_CORNER_CASE));
+  CHECK(s[2].ends_with(U"123"));
+  CHECK(s[2].ends_with(U'3'));
+  CHECK(!s[2].ends_with(U"01234"));
+  CHECK(!s[2].ends_with(U'A'));
+
+  CHECK(s[3].ends_with(U32STR_LONG));
+  CHECK(s[3].ends_with(U"EF\U0001F4BB"));
+  CHECK(s[3].ends_with(U'\U0001F4BB'));
+  CHECK(!s[3].ends_with(U'A'));
+}
