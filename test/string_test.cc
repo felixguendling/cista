@@ -265,16 +265,13 @@ TEST_CASE("u16string erase") {
   std::u16string ref[] = {U16STR_SHORT, U16STR_SHORT_CORNER_CASE,
                           U16STR_LONG_CORNER_CASE, U16STR_LONG};
 
-  for (auto i = 0; i < 4; ++i) {
+  for (u16string::msize_t i = 0; i < 4; ++i) {
     s[i].erase(1, i + 2);
     ref[i].erase(1, i + 2);
-  }
-
-  for (auto i = 0; i < 4; ++i) {
     CHECK(s[i] == ref[i]);
   }
 
-  for (auto i = 0; i < 4; ++i) {
+  for (u16string::msize_t i = 0; i < 4; ++i) {
     s[i].erase(0, s[i].size());
     CHECK(s[i].empty());
   }
@@ -390,16 +387,13 @@ TEST_CASE("u32string erase") {
   std::u32string ref[] = {U32STR_SHORT, U32STR_SHORT_CORNER_CASE,
                           U32STR_LONG_CORNER_CASE, U32STR_LONG};
 
-  for (auto i = 0; i < 4; ++i) {
+  for (u32string::msize_t i = 0; i < 4; ++i) {
     s[i].erase(1, i + 1);
     ref[i].erase(1, i + 1);
-  }
-
-  for (auto i = 0; i < 4; ++i) {
     CHECK(s[i] == ref[i]);
   }
 
-  for (auto i = 0; i < 4; ++i) {
+  for (u32string::msize_t i = 0; i < 4; ++i) {
     s[i].erase(0, s[i].size());
     CHECK(s[i].empty());
   }
