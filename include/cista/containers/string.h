@@ -445,7 +445,7 @@ struct generic_string {
 template <typename Ptr>
 struct basic_string : public generic_string<Ptr> {
   using base = generic_string<Ptr>;
-  using CharT = base::CharT;
+  using CharT = typename base::CharT;
 
   using base::base;
   using base::operator std::basic_string_view<CharT>;
@@ -498,7 +498,7 @@ struct basic_string : public generic_string<Ptr> {
 template <typename Ptr>
 struct basic_string_view : public generic_string<Ptr> {
   using base = generic_string<Ptr>;
-  using CharT = base::CharT;
+  using CharT = typename base::CharT;
 
   using base::base;
   using base::operator std::basic_string_view<CharT>;
