@@ -2,9 +2,11 @@
 
 #include <cassert>
 #include <cinttypes>
+#include <atomic>
 #include <iosfwd>
 #include <limits>
 #include <numeric>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <tuple>
@@ -24,8 +26,9 @@ struct basic_bitvec {
       static_cast<size_type>(sizeof(block_t) * 8);
 
   constexpr basic_bitvec() noexcept {}
-  constexpr basic_bitvec(std::string_view s) noexcept { set(s); }
-  constexpr basic_bitvec(Vec&& v) noexcept
+  basic_bitvec(std::string_view s) { set(s); }
+  basic_bitvec(size_type const size) { resize(size); }
+  constexpr basic_bitvec(Vec&& v)
       : size_{v.size() * bits_per_block},  // inaccurate for loading mmap vector
         blocks_{std::move(v)} {}
   static constexpr basic_bitvec max(std::size_t const size) {
@@ -44,6 +47,12 @@ struct basic_bitvec {
                                   (num_bits % bits_per_block == 0 ? 0 : 1));
   }
 
+  void zero_out() {
+    for (auto& b : blocks_) {
+      b = 0U;
+    }
+  }
+
   void resize(size_type const new_size) {
     if (new_size == size_) {
       return;
@@ -57,11 +66,12 @@ struct basic_bitvec {
     size_ = new_size;
   }
 
-  constexpr void set(std::string_view s) noexcept {
+  void set(std::string_view s) {
     assert(std::all_of(begin(s), end(s),
                        [](char const c) { return c == '0' || c == '1'; }));
     resize(s.size());
-    for (auto i = std::size_t{0U}; i != std::min(size_, s.size()); ++i) {
+    for (auto i = std::size_t{0U};
+         i != std::min(static_cast<std::size_t>(size_), s.size()); ++i) {
       set(i, s[s.size() - i - 1] != '0');
     }
   }
@@ -78,11 +88,40 @@ struct basic_bitvec {
     }
   }
 
+#if __cpp_lib_atomic_ref
+  constexpr void atomic_set(
+      Key const i, bool const val = true,
+      std::memory_order succ = std::memory_order_seq_cst,
+      std::memory_order fail = std::memory_order_seq_cst) noexcept {
+    assert(i < size_);
+    assert((to_idx(i) / bits_per_block) < blocks_.size());
+    auto const block = std::atomic_ref{
+        blocks_[static_cast<size_type>(to_idx(i)) / bits_per_block]};
+    auto const bit = to_idx(i) % bits_per_block;
+
+    auto const update_block = [&](block_t const b) -> block_t {
+      if (val) {
+        return block | (block_t{1U} << bit);
+      } else {
+        return block & (~block_t{0U} ^ (block_t{1U} << bit));
+      }
+    };
+
+    auto expected = block.load();
+    while (std::atomic_compare_exchange_weak(
+        &block, &expected, update_block(expected), succ, fail)) {
+    }
+  }
+#endif
+
   void reset() noexcept { blocks_ = {}; }
 
   bool operator[](Key const i) const noexcept { return test(i); }
 
   std::size_t count() const noexcept {
+    if (empty()) {
+      return 0;
+    }
     auto sum = std::size_t{0U};
     for (auto i = size_type{0U}; i != blocks_.size() - 1; ++i) {
       sum += popcount(blocks_[i]);
@@ -119,6 +158,69 @@ struct basic_bitvec {
       check_block(i, blocks_[i]);
     }
     check_block(blocks_.size() - 1, sanitized_last_block());
+  }
+
+  std::optional<Key> next_set_bit(size_type const i) const {
+    if (i >= size()) {
+      return std::nullopt;
+    }
+
+    auto const first_block_idx = i / bits_per_block;
+    auto const first_block = blocks_[first_block_idx];
+    if (first_block != 0U) {
+      auto const first_bit = i % bits_per_block;
+      auto const n = std::min(size(), bits_per_block);
+      for (auto bit = first_bit; bit != n; ++bit) {
+        if ((first_block & (block_t{1U} << bit)) != 0U) {
+          return Key{first_block_idx * bits_per_block + bit};
+        }
+      }
+    }
+
+    if (first_block_idx + 1U == blocks_.size()) {
+      return std::nullopt;
+    }
+
+    auto const check_block = [&](size_type const block_idx,
+                                 block_t const block) -> std::optional<Key> {
+      if (block != 0U) {
+        for (auto bit = size_type{0U}; bit != bits_per_block; ++bit) {
+          if ((block & (block_t{1U} << bit)) != 0U) {
+            return Key{block_idx * bits_per_block + bit};
+          }
+        }
+      }
+      return std::nullopt;
+    };
+
+    for (auto block_idx = first_block_idx + 1U; block_idx != blocks_.size() - 1;
+         ++block_idx) {
+      if (auto const set_bit_idx = check_block(block_idx, blocks_[block_idx]);
+          set_bit_idx.has_value()) {
+        return set_bit_idx;
+      }
+    }
+
+    if (auto const set_bit_idx =
+            check_block(blocks_.size() - 1, sanitized_last_block());
+        set_bit_idx.has_value()) {
+      return set_bit_idx;
+    }
+
+    return std::nullopt;
+  }
+
+  std::optional<Key> get_next(std::atomic_size_t& next) const {
+    while (true) {
+      auto expected = next.load();
+      auto idx = next_set_bit(Key{static_cast<base_t<Key>>(expected)});
+      if (!idx.has_value()) {
+        return std::nullopt;
+      }
+      if (next.compare_exchange_weak(expected, *idx + 1U)) {
+        return idx;
+      }
+    }
   }
 
   size_type size() const noexcept { return size_; }
@@ -158,7 +260,9 @@ struct basic_bitvec {
 
   friend bool operator==(basic_bitvec const& a,
                          basic_bitvec const& b) noexcept {
-    assert(a.size() == b.size());
+    if (a.size() != b.size()) {
+      return false;
+    }
 
     if (a.empty() && b.empty()) {
       return true;

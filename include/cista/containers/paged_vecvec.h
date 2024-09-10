@@ -55,9 +55,20 @@ struct paged_vecvec {
       return *(begin() + i);
     }
 
+    value_type const& front() const {
+      assert(!empty());
+      return (*this)[0];
+    }
+
+    value_type const& back() const {
+      assert(!empty());
+      return (*this)[size() - 1U];
+    }
+
     reference operator*() const { return *this; }
 
     size_type size() const { return pv_->page(i_).size_; }
+    bool empty() const { return size() == 0U; }
 
     friend bool operator==(const_bucket const& a, const_bucket const& b) {
       assert(a.pv_ == b.pv_);
@@ -124,6 +135,26 @@ struct paged_vecvec {
 
     bucket(paged_vecvec* pv, Key const i) : pv_{pv}, i_{i} {}
 
+    value_type& front() {
+      assert(!empty());
+      return (*this)[0];
+    }
+
+    value_type& back() {
+      assert(!empty());
+      return (*this)[size() - 1U];
+    }
+
+    value_type const& front() const {
+      assert(!empty());
+      return (*this)[0];
+    }
+
+    value_type const& back() const {
+      assert(!empty());
+      return (*this)[size() - 1U];
+    }
+
     void push_back(data_value_type const& x) {
       auto& p = pv_->page(i_);
       p = pv_->paged_.resize_page(p, p.size_ + 1U);
@@ -170,6 +201,7 @@ struct paged_vecvec {
     operator const_bucket() const { return {pv_, i_}; }
 
     size_type size() const { return pv_->page(i_).size_; }
+    bool empty() const { return size() == 0U; }
 
     friend bool operator==(bucket const& a, bucket const& b) {
       assert(a.pv_ == b.pv_);
@@ -277,6 +309,12 @@ struct paged_vecvec {
     idx_.emplace_back(p);
   }
 
+  template <typename X>
+  std::enable_if_t<std::is_convertible_v<std::decay_t<X>, data_value_type>>
+  emplace_back(std::initializer_list<X>&& x) {
+    emplace_back(x);
+  }
+
   void emplace_back_empty() { idx_.emplace_back(paged_.create_page(0U)); }
 
   template <typename T = data_value_type,
@@ -290,6 +328,11 @@ struct paged_vecvec {
       paged_.free_page(idx_[i]);
     }
     idx_.resize(size);
+  }
+
+  void clear() {
+    paged_.clear();
+    idx_.clear();
   }
 
   Paged paged_;

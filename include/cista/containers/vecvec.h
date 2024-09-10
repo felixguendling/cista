@@ -48,6 +48,16 @@ struct basic_vecvec {
       return operator[](size() - 1U);
     }
 
+    value_type const& front() const {
+      assert(!empty());
+      return operator[](0);
+    }
+
+    value_type const& back() const {
+      assert(!empty());
+      return operator[](size() - 1U);
+    }
+
     bool empty() const { return begin() == end(); }
 
     template <typename Args>
@@ -205,6 +215,13 @@ struct basic_vecvec {
     }
     friend const_iterator begin(const_bucket const& b) { return b.begin(); }
     friend const_iterator end(const_bucket const& b) { return b.end(); }
+
+    std::reverse_iterator<const_iterator> rbegin() const {
+      return std::reverse_iterator{begin() + size()};
+    }
+    std::reverse_iterator<const_iterator> rend() const {
+      return std::reverse_iterator{begin()};
+    }
 
     friend bool operator==(const_bucket const& a, const_bucket const& b) {
       assert(a.map_ == b.map_);

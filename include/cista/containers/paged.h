@@ -113,7 +113,16 @@ struct paged {
   template <typename ItA, typename ItB>
   void copy(page_t const& to, ItA begin, ItB end) {
     auto const n = static_cast<std::size_t>(std::distance(begin, end));
-    std::memcpy(data(to), &*begin, n * sizeof(value_type));
+    if (n != 0U) {
+      std::memcpy(data(to), &*begin, n * sizeof(value_type));
+    }
+  }
+
+  void clear() {
+    data_.clear();
+    for (auto& n : free_list_) {
+      n.next_ = std::numeric_limits<size_type>::max();
+    }
   }
 
   struct node {
