@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "cista/aligned_alloc.h"
+#include "cista/cista_member_offset.h"
 #include "cista/containers.h"
 #include "cista/decay.h"
 #include "cista/endian/conversion.h"
@@ -25,32 +26,7 @@
 #include "cista/unused_param.h"
 #include "cista/verify.h"
 
-#ifndef cista_member_offset
-#define cista_member_offset(Type, Member)                            \
-  ([]() {                                                            \
-    if constexpr (std::is_standard_layout_v<Type>) {                 \
-      return static_cast<::cista::offset_t>(offsetof(Type, Member)); \
-    } else {                                                         \
-      return ::cista::member_offset(null<Type>(), &Type::Member);    \
-    }                                                                \
-  }())
-#endif
-
 namespace cista {
-
-template <typename T, typename Member>
-cista::offset_t member_offset(T const* t, Member const* m) {
-  static_assert(std::is_trivially_copyable_v<T>);
-  return (reinterpret_cast<std::uint8_t const*>(m) -
-          reinterpret_cast<std::uint8_t const*>(t));
-}
-
-template <typename T, typename Member>
-offset_t member_offset(T const* t, Member T::*m) {
-  static_assert(std::is_trivially_copyable_v<T>);
-  return (reinterpret_cast<std::uint8_t const*>(&(t->*m)) -
-          reinterpret_cast<std::uint8_t const*>(t));
-}
 
 // =============================================================================
 // SERIALIZE
@@ -1149,5 +1125,3 @@ using cista::unchecked_deserialize;
 }  // namespace offset
 
 }  // namespace cista
-
-#undef cista_member_offset
