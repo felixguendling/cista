@@ -231,16 +231,16 @@ void serialize(Ctx& c, generic_string<Ptr> const* origin, offset_t const pos) {
                                offset_t const size) -> void {
     if constexpr (sizeof(typename Type::CharT) > 1) {
       for (offset_t i = 0; i < size; ++i) {
-        ctx.write(start + i * static_cast<offset_t>(sizeof(typename Type::CharT)),
-                  convert_endian<Ctx::MODE>(str[i]));
+        ctx.write(
+            start + i * static_cast<offset_t>(sizeof(typename Type::CharT)),
+            convert_endian<Ctx::MODE>(str[i]));
       }
     }
   };
 
   if (origin->is_short()) {
-    str_convert_endian(
-        c, pos + cista_member_offset(Type, s_.s_),
-        origin->s_.s_, static_cast<offset_t>(Type::short_length_limit));
+    str_convert_endian(c, pos + cista_member_offset(Type, s_.s_), origin->s_.s_,
+                       static_cast<offset_t>(Type::short_length_limit));
     return;
   }
 
@@ -863,7 +863,8 @@ void convert_endian_and_ptr(Ctx const& c, generic_string<Ptr>* el) {
     } catch (...) {
     }
   } else {
-    str_convert_endian(c, el->s_.s_, static_cast<std::size_t>(Type::short_length_limit));
+    str_convert_endian(c, el->s_.s_,
+                       static_cast<std::size_t>(Type::short_length_limit));
   }
 }
 
