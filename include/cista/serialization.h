@@ -861,7 +861,7 @@ void check_state(Ctx const& c, generic_string<Ptr>* el) {
 }
 
 template <typename Ctx, typename Ptr, typename Fn>
-void recurse(Ctx& c, generic_string<Ptr>* el, Fn&& fn) {
+void recurse(Ctx&, generic_string<Ptr>* el, Fn&& fn) {
   using Type = generic_string<Ptr>;
   if constexpr (sizeof(typename Type::CharT) > 1) {
     typename Type::CharT* s = el->data();
