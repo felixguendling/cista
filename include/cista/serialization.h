@@ -226,11 +226,11 @@ void serialize(Ctx& c,
 template <typename Ctx, typename Ptr>
 void serialize(Ctx& c, generic_string<Ptr> const* origin, offset_t const pos) {
   using Type = generic_string<Ptr>;
-  auto str_convert_endian = [](Ctx& ctx, offset_t const start,
+  auto str_convert_endian = [](Ctx& ctx, std::size_t const start,
                                typename Type::CharT const* str,
-                               offset_t const size) -> void {
+                               std::size_t const size) -> void {
     if constexpr (sizeof(typename Type::CharT) > 1) {
-      for (offset_t i = 0; i < size; ++i) {
+      for (std::size_t i = 0; i < size; ++i) {
         ctx.write(start + i * sizeof(typename Type::CharT),
                   convert_endian<Ctx::MODE>(str[i]));
       }
@@ -238,8 +238,9 @@ void serialize(Ctx& c, generic_string<Ptr> const* origin, offset_t const pos) {
   };
 
   if (origin->is_short()) {
-    str_convert_endian(c, pos + cista_member_offset(Type, s_.s_), origin->s_.s_,
-                       Type::short_length_limit);
+    str_convert_endian(
+        c, static_cast<std::size_t>(pos + cista_member_offset(Type, s_.s_)),
+        origin->s_.s_, static_cast<std::size_t>(Type::short_length_limit));
     return;
   }
 
@@ -249,7 +250,8 @@ void serialize(Ctx& c, generic_string<Ptr> const* origin, offset_t const pos) {
           : c.write(origin->data(),
                     origin->size() * sizeof(typename Type::CharT));
   if (start != NULLPTR_OFFSET) {
-    str_convert_endian(c, start, origin->data(), origin->size());
+    str_convert_endian(c, static_cast<std::size_t>(start), origin->data(),
+                       static_cast<std::size_t>(origin->size()));
   }
   c.write(pos + cista_member_offset(Type, h_.ptr_),
           convert_endian<Ctx::MODE>(
