@@ -250,8 +250,8 @@ void serialize(Ctx& c, generic_string<Ptr> const* origin, offset_t const pos) {
           : c.write(origin->data(),
                     origin->size() * sizeof(typename Type::CharT));
   if (start != NULLPTR_OFFSET) {
-    str_convert_endian(c, static_cast<std::size_t>(start), origin->data(),
-                       static_cast<std::size_t>(origin->size()));
+    str_convert_endian(c, start, origin->data(),
+                       static_cast<offset_t>(origin->size()));
   }
   c.write(pos + cista_member_offset(Type, h_.ptr_),
           convert_endian<Ctx::MODE>(
