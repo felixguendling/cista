@@ -226,8 +226,20 @@ void serialize(Ctx& c,
 template <typename Ctx, typename Ptr>
 void serialize(Ctx& c, generic_string<Ptr> const* origin, offset_t const pos) {
   using Type = generic_string<Ptr>;
+  auto str_convert_endian = [](Ctx& c, offset_t const pos,
+                               typename Type::CharT const* str,
+                               offset_t const size) -> void {
+    if constexpr (sizeof(typename Type::CharT) > 1) {
+      for (offset_t i = 0; i < size; ++i) {
+        c.write(pos + i * sizeof(typename Type::CharT),
+                convert_endian<Ctx::MODE>(str[i]));
+      }
+    }
+  };
 
   if (origin->is_short()) {
+    str_convert_endian(c, pos + cista_member_offset(Type, s_.s_), origin->s_.s_,
+                       Type::short_length_limit);
     return;
   }
 
@@ -236,6 +248,9 @@ void serialize(Ctx& c, generic_string<Ptr> const* origin, offset_t const pos) {
           ? NULLPTR_OFFSET
           : c.write(origin->data(),
                     origin->size() * sizeof(typename Type::CharT));
+  if (start != NULLPTR_OFFSET) {
+    str_convert_endian(c, start, origin->data(), origin->size());
+  }
   c.write(pos + cista_member_offset(Type, h_.ptr_),
           convert_endian<Ctx::MODE>(
               start == NULLPTR_OFFSET
@@ -824,9 +839,29 @@ void recurse(Ctx&, basic_vector<T, Ptr, Indexed, TemplateSizeType>* el,
 // --- STRING ---
 template <typename Ctx, typename Ptr>
 void convert_endian_and_ptr(Ctx const& c, generic_string<Ptr>* el) {
+  using Type = generic_string<Ptr>;
+  auto str_convert_endian = [](Ctx const& c, typename Type::CharT* str,
+                               offset_t const size) -> void {
+    if constexpr (sizeof(typename Type::CharT) > 1) {
+      for (offset_t i = 0; i < size; ++i) {
+        c.convert_endian(str[i]);
+      }
+    }
+  };
+
   if (*reinterpret_cast<std::uint8_t const*>(&el->s_.is_short_) == 0U) {
     deserialize(c, &el->h_.ptr_);
     c.convert_endian(el->h_.size_);
+    try {
+      if constexpr (is_mode_disabled(Ctx::MODE, mode::UNCHECKED)) {
+        c.check_ptr(el->h_.ptr_,
+                    el->h_.size_ * sizeof(typename generic_string<Ptr>::CharT));
+      }
+      str_convert_endian(c, el->data(), el->h_.size_);
+    } catch (...) {
+    }
+  } else {
+    str_convert_endian(c, el->s_.s_, Type::short_length_limit);
   }
 }
 
