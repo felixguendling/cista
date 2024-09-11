@@ -137,7 +137,7 @@ jobs:
       # ==== DISTRIBUTION ====
       - name: Upload Distribution
         if: matrix.config.mode == 'Release' && matrix.config.cc == 'gcc-12'
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: cista.h
           path: build/cista.h
