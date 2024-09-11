@@ -841,30 +841,9 @@ void recurse(Ctx&, basic_vector<T, Ptr, Indexed, TemplateSizeType>* el,
 // --- STRING ---
 template <typename Ctx, typename Ptr>
 void convert_endian_and_ptr(Ctx const& c, generic_string<Ptr>* el) {
-  using Type = generic_string<Ptr>;
-  auto str_convert_endian = [](Ctx const& ctx, typename Type::CharT* str,
-                               std::size_t const size) -> void {
-    if constexpr (sizeof(typename Type::CharT) > 1) {
-      for (std::size_t i = 0; i < size; ++i) {
-        ctx.convert_endian(str[i]);
-      }
-    }
-  };
-
   if (*reinterpret_cast<std::uint8_t const*>(&el->s_.is_short_) == 0U) {
     deserialize(c, &el->h_.ptr_);
     c.convert_endian(el->h_.size_);
-    try {
-      if constexpr (is_mode_disabled(Ctx::MODE, mode::UNCHECKED)) {
-        c.check_ptr(el->h_.ptr_,
-                    el->h_.size_ * sizeof(typename generic_string<Ptr>::CharT));
-      }
-      str_convert_endian(c, el->data(), static_cast<std::size_t>(el->h_.size_));
-    } catch (...) {
-    }
-  } else {
-    str_convert_endian(c, el->s_.s_,
-                       static_cast<std::size_t>(Type::short_length_limit));
   }
 }
 
@@ -882,7 +861,16 @@ void check_state(Ctx const& c, generic_string<Ptr>* el) {
 }
 
 template <typename Ctx, typename Ptr, typename Fn>
-void recurse(Ctx&, generic_string<Ptr>*, Fn&&) {}
+void recurse(Ctx& c, generic_string<Ptr>* el, Fn&& fn) {
+  using Type = generic_string<Ptr>;
+  if constexpr (sizeof(typename Type::CharT) > 1) {
+    typename Type::CharT* s = el->data();
+    std::size_t const size = static_cast<std::size_t>(el->size());
+    for (std::size_t i = 0; i < size; ++i) {
+      fn(&s[i]);
+    }
+  }
+}
 
 template <typename Ctx, typename Ptr>
 void convert_endian_and_ptr(Ctx const& c, basic_string<Ptr>* el) {
@@ -895,7 +883,9 @@ void check_state(Ctx const& c, basic_string<Ptr>* el) {
 }
 
 template <typename Ctx, typename Ptr, typename Fn>
-void recurse(Ctx&, basic_string<Ptr>*, Fn&&) {}
+void recurse(Ctx& c, basic_string<Ptr>* el, Fn&& fn) {
+  recurse(c, static_cast<generic_string<Ptr>*>(el), fn);
+}
 
 template <typename Ctx, typename Ptr>
 void convert_endian_and_ptr(Ctx const& c, basic_string_view<Ptr>* el) {
@@ -908,7 +898,9 @@ void check_state(Ctx const& c, basic_string_view<Ptr>* el) {
 }
 
 template <typename Ctx, typename Ptr, typename Fn>
-void recurse(Ctx&, basic_string_view<Ptr>*, Fn&&) {}
+void recurse(Ctx& c, basic_string_view<Ptr>* el, Fn&& fn) {
+  recurse(c, static_cast<generic_string<Ptr>*>(el), fn);
+}
 
 // --- UNIQUE_PTR<T> ---
 template <typename Ctx, typename T, typename Ptr>
