@@ -226,13 +226,13 @@ void serialize(Ctx& c,
 template <typename Ctx, typename Ptr>
 void serialize(Ctx& c, generic_string<Ptr> const* origin, offset_t const pos) {
   using Type = generic_string<Ptr>;
-  auto str_convert_endian = [](Ctx& c, offset_t const pos,
+  auto str_convert_endian = [](Ctx& ctx, offset_t const start,
                                typename Type::CharT const* str,
                                offset_t const size) -> void {
     if constexpr (sizeof(typename Type::CharT) > 1) {
       for (offset_t i = 0; i < size; ++i) {
-        c.write(pos + i * sizeof(typename Type::CharT),
-                convert_endian<Ctx::MODE>(str[i]));
+        ctx.write(start + i * sizeof(typename Type::CharT),
+                  convert_endian<Ctx::MODE>(str[i]));
       }
     }
   };
@@ -840,11 +840,11 @@ void recurse(Ctx&, basic_vector<T, Ptr, Indexed, TemplateSizeType>* el,
 template <typename Ctx, typename Ptr>
 void convert_endian_and_ptr(Ctx const& c, generic_string<Ptr>* el) {
   using Type = generic_string<Ptr>;
-  auto str_convert_endian = [](Ctx const& c, typename Type::CharT* str,
+  auto str_convert_endian = [](Ctx const& ctx, typename Type::CharT* str,
                                offset_t const size) -> void {
     if constexpr (sizeof(typename Type::CharT) > 1) {
       for (offset_t i = 0; i < size; ++i) {
-        c.convert_endian(str[i]);
+        ctx.convert_endian(str[i]);
       }
     }
   };
