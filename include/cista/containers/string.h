@@ -432,7 +432,10 @@ struct generic_string {
   };
 
   struct stack {
-    bool is_short_{true};
+    union {
+      bool is_short_{true};
+      CharT __fill__;
+    };
     CharT s_[short_length_limit]{0};
   };
 
