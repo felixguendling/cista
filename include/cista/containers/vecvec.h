@@ -33,9 +33,9 @@ struct basic_vecvec {
     data_value_type const* data() const { return empty() ? nullptr : &front(); }
 
     template <typename T = std::decay_t<data_value_type>,
-              typename = std::enable_if_t<std::is_same_v<T, char>>>
-    std::string_view view() const {
-      return std::string_view{begin(), size()};
+              typename Traits = std::char_traits<T>>
+    std::basic_string_view<T, Traits> view() const {
+      return std::basic_string_view<T, Traits>{begin(), size()};
     }
 
     value_type& front() {
