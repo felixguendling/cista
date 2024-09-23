@@ -72,6 +72,50 @@ TEST_CASE("u16string serialization with additional checks") {
   CHECK(*serialized_l == U16STR_LONG_CORNER_CASE);
 }
 
+TEST_CASE("u16string serialization endian short") {
+  cista::byte_buf str_le = {0x30, 0x00, 0x31, 0x00, 0x32, 0x00, 0x33,
+                            0x00, 0x34, 0x00, 0x35, 0x00, 0x36, 0x00};
+  cista::byte_buf str_be = {0x00, 0x30, 0x00, 0x31, 0x00, 0x32, 0x00,
+                            0x33, 0x00, 0x34, 0x00, 0x35, 0x00, 0x36};
+  u16string s = U16STR_SHORT_CORNER_CASE;
+
+  cista::byte_buf buf_le = cista::serialize(s);
+  cista::byte_buf buf_be =
+      cista::serialize<cista::mode::SERIALIZE_BIG_ENDIAN>(s);
+
+  CHECK(std::equal(buf_le.begin() + offsetof(u16string, s_.s_), buf_le.end(),
+                   str_le.begin()));
+  CHECK(std::equal(buf_be.begin() + offsetof(u16string, s_.s_), buf_be.end(),
+                   str_be.begin()));
+
+  auto const serialized_be =
+      cista::deserialize<u16string, cista::mode::SERIALIZE_BIG_ENDIAN>(buf_be);
+
+  CHECK(*serialized_be == U16STR_SHORT_CORNER_CASE);
+}
+
+TEST_CASE("u16string serialization endian long") {
+  cista::byte_buf str_le = {0x30, 0x00, 0x31, 0x00, 0x32, 0x00, 0x33, 0x00,
+                            0x34, 0x00, 0x35, 0x00, 0x36, 0x00, 0x37, 0x00};
+  cista::byte_buf str_be = {0x00, 0x30, 0x00, 0x31, 0x00, 0x32, 0x00, 0x33,
+                            0x00, 0x34, 0x00, 0x35, 0x00, 0x36, 0x00, 0x37};
+  u16string s = U16STR_LONG_CORNER_CASE;
+
+  cista::byte_buf buf_le = cista::serialize(s);
+  cista::byte_buf buf_be =
+      cista::serialize<cista::mode::SERIALIZE_BIG_ENDIAN>(s);
+
+  CHECK(std::equal(buf_le.begin() + sizeof(u16string), buf_le.end(),
+                   str_le.begin()));
+  CHECK(std::equal(buf_be.begin() + sizeof(u16string), buf_be.end(),
+                   str_be.begin()));
+
+  auto const serialized_be =
+      cista::deserialize<u16string, cista::mode::SERIALIZE_BIG_ENDIAN>(buf_be);
+
+  CHECK(*serialized_be == U16STR_LONG_CORNER_CASE);
+}
+
 using cista::raw::u32string;
 using cista::raw::u32string_view;
 
@@ -114,4 +158,48 @@ TEST_CASE("u32string serialization with additional checks") {
   CHECK(*serialized_s == U32STR_SHORT_CORNER_CASE);
   CHECK_NOTHROW(serialized_l = cista::deserialize<u32string, mode>(buf_l));
   CHECK(*serialized_l == U32STR_LONG_CORNER_CASE);
+}
+
+TEST_CASE("u32string serialization endian short") {
+  cista::byte_buf str_le = {0x30, 0x00, 0x00, 0x00, 0x31, 0x00,
+                            0x00, 0x00, 0x32, 0x00, 0x00, 0x00};
+  cista::byte_buf str_be = {0x00, 0x00, 0x00, 0x30, 0x00, 0x00,
+                            0x00, 0x31, 0x00, 0x00, 0x00, 0x32};
+  u32string s = U32STR_SHORT_CORNER_CASE;
+
+  cista::byte_buf buf_le = cista::serialize(s);
+  cista::byte_buf buf_be =
+      cista::serialize<cista::mode::SERIALIZE_BIG_ENDIAN>(s);
+
+  CHECK(std::equal(buf_le.begin() + offsetof(u32string, s_.s_), buf_le.end(),
+                   str_le.begin()));
+  CHECK(std::equal(buf_be.begin() + offsetof(u32string, s_.s_), buf_be.end(),
+                   str_be.begin()));
+
+  auto const serialized_be =
+      cista::deserialize<u32string, cista::mode::SERIALIZE_BIG_ENDIAN>(buf_be);
+
+  CHECK(*serialized_be == U32STR_SHORT_CORNER_CASE);
+}
+
+TEST_CASE("u32string serialization endian long") {
+  cista::byte_buf str_le = {0x30, 0x00, 0x00, 0x00, 0x31, 0x00, 0x00, 0x00,
+                            0x32, 0x00, 0x00, 0x00, 0x33, 0x00, 0x00, 0x00};
+  cista::byte_buf str_be = {0x00, 0x00, 0x00, 0x30, 0x00, 0x00, 0x00, 0x31,
+                            0x00, 0x00, 0x00, 0x32, 0x00, 0x00, 0x00, 0x33};
+  u32string s = U32STR_LONG_CORNER_CASE;
+
+  cista::byte_buf buf_le = cista::serialize(s);
+  cista::byte_buf buf_be =
+      cista::serialize<cista::mode::SERIALIZE_BIG_ENDIAN>(s);
+
+  CHECK(std::equal(buf_le.begin() + sizeof(u32string), buf_le.end(),
+                   str_le.begin()));
+  CHECK(std::equal(buf_be.begin() + sizeof(u32string), buf_be.end(),
+                   str_be.begin()));
+
+  auto const serialized_be =
+      cista::deserialize<u32string, cista::mode::SERIALIZE_BIG_ENDIAN>(buf_be);
+
+  CHECK(*serialized_be == U32STR_LONG_CORNER_CASE);
 }
