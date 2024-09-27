@@ -217,7 +217,7 @@ struct variant {
   }
 
   template <typename F>
-  auto apply(F&& f) -> decltype(f(std::declval<type_at_index_t<0U, T...>>())) {
+  auto apply(F&& f) -> decltype(f(std::declval<type_at_index_t<0U, T...>&>())) {
     if (idx_ == NO_VALUE) {
       throw_exception(std::runtime_error{"variant::apply: no value"});
     }
@@ -239,7 +239,7 @@ struct variant {
 
   template <typename F, std::size_t B = 0U, typename... Vs>
   static auto apply(F&& f, index_t const idx, Vs&&... vs)
-      -> decltype(f((vs, std::declval<type_at_index_t<0U, T...>>())...)) {
+      -> decltype(f((vs, std::declval<type_at_index_t<0U, T...>&>())...)) {
     switch (idx) {
       case B + 0U:
         if constexpr (B + 0U < sizeof...(T)) {
