@@ -13,6 +13,7 @@
 #include "cista/containers/optional.h"
 #include "cista/containers/paged.h"
 #include "cista/containers/paged_vecvec.h"
+#include "cista/containers/rtree.h"
 #include "cista/containers/string.h"
 #include "cista/containers/tuple.h"
 #include "cista/containers/unique_ptr.h"
