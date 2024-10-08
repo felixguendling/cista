@@ -1,6 +1,7 @@
 #include <array>
 #include <memory>
 #include <set>
+#include <stdexcept>
 
 #include "doctest.h"
 
@@ -75,6 +76,30 @@ TEST_CASE("vecvec bucket emplace_back test") {
   CHECK_EQ("hellox", d[key{0}].view());
   CHECK_EQ("worldx", d[key{1}].view());
   CHECK_EQ("testx", d[key{2}].view());
+}
+
+TEST_CASE("vecvec bucket grow test") {
+  using key = cista::strong<unsigned, struct x_>;
+  using data = cista::raw::vecvec<key, char>;
+  using std::literals::operator""sv;
+
+  data d;
+  d.emplace_back("hello");
+  d.emplace_back("world");
+
+  {
+    d[key{0}].grow(10);
+
+    CHECK_EQ("hello\0\0\0\0\0"sv, d[key{0}].view());
+    CHECK_EQ("world", d[key{1}].view());
+  }
+  {
+    d[key{0}].grow(13, ' ');
+
+    CHECK_EQ("hello\0\0\0\0\0   "sv, d[key{0}].view());
+    CHECK_EQ("world", d[key{1}].view());
+  }
+  { CHECK_THROWS_AS(d[key{0}].grow(5), std::runtime_error); }
 }
 
 TEST_CASE("vecvec resize test") {
