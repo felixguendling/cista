@@ -70,13 +70,12 @@ struct basic_vecvec {
       }
     }
 
-    void grow(std::size_t const n, value_type const fill = value_type{}) {
+    void grow(std::size_t const n, value_type const& value = value_type{}) {
       verify(n >= size(), "bucket::grow: new size < old size");
       auto const growth = n - size();
-      auto const elements = std::vector(growth, fill);
 
       map_->data_.insert(std::next(std::begin(map_->data_), bucket_end_idx()),
-                         elements.begin(), elements.end());
+                         growth, value);
       for (auto i = i_ + 1; i != map_->bucket_starts_.size(); ++i) {
         map_->bucket_starts_[i] += growth;
       }

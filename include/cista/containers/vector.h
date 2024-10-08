@@ -217,6 +217,20 @@ struct basic_vector {
     return std::rotate(begin() + old_offset, begin() + old_size, end());
   }
 
+  template <typename El, typename Size = std::size_t>
+  constexpr T* insert(T* it, Size const count, El const& value) {
+    auto const old_offset = std::distance(begin(), it);
+    auto const old_size = used_size_;
+
+    reserve(used_size_ + count);
+    for (auto i = Size{0U}; i < count; ++i) {
+      new (el_ + used_size_) T{value};
+      ++used_size_;
+    }
+
+    return std::rotate(begin() + old_offset, begin() + old_size, end());
+  }
+
   template <class InputIt>
   T* insert(T* pos, InputIt first, InputIt last, std::input_iterator_tag) {
     auto const old_offset = std::distance(begin(), pos);
