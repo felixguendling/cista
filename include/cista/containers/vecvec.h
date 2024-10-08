@@ -3,6 +3,7 @@
 #include <cassert>
 #include <iterator>
 #include <type_traits>
+#include <vector>
 
 #include "cista/containers/vector.h"
 #include "cista/verify.h"
@@ -66,6 +67,18 @@ struct basic_vecvec {
                          std::forward<Args>(args));
       for (auto i = i_ + 1; i != map_->bucket_starts_.size(); ++i) {
         ++map_->bucket_starts_[i];
+      }
+    }
+
+    void grow(std::size_t const n, value_type const fill = value_type{}) {
+      verify(n >= size(), "bucket::grow: new size < old size");
+      auto const growth = n - size();
+      auto const elements = std::vector(growth, fill);
+
+      map_->data_.insert(std::next(std::begin(map_->data_), bucket_end_idx()),
+                         elements.begin(), elements.end());
+      for (auto i = i_ + 1; i != map_->bucket_starts_.size(); ++i) {
+        map_->bucket_starts_[i] += growth;
       }
     }
 
