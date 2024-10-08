@@ -74,8 +74,10 @@ struct basic_vecvec {
       verify(n >= size(), "bucket::grow: new size < old size");
       auto const growth = n - size();
 
-      map_->data_.insert(std::next(std::begin(map_->data_), bucket_end_idx()),
-                         growth, value);
+      map_->data_.insert(
+          std::next(std::begin(map_->data_), bucket_end_idx()),
+          static_cast<typename decltype(map_->data_)::size_type>(growth),
+          value);
       for (auto i = i_ + 1; i != map_->bucket_starts_.size(); ++i) {
         map_->bucket_starts_[i] += growth;
       }
