@@ -356,6 +356,7 @@ struct meta_bucket {
       Depth == 1U, const_bucket<DataVec, IndexVec, SizeType>,
       const_meta_bucket<Depth - 1U, DataVec, IndexVec, SizeType>>;
 
+  using value_type = iterator;
   using iterator_category = std::random_access_iterator_tag;
   using reference = meta_bucket;
   using const_reference = const_meta_bucket<Depth, DataVec, IndexVec, SizeType>;

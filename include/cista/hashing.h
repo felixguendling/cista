@@ -37,6 +37,12 @@ struct has_std_hash<
     T, std::void_t<decltype(std::declval<std::hash<T>>()(std::declval<T>()))>>
     : std::true_type {};
 
+template <typename T, typename = void>
+struct is_optional : std::false_type {};
+
+template <typename T>
+struct is_optional<std::optional<T>> : std::true_type {};
+
 }  // namespace detail
 
 template <typename T>
@@ -116,6 +122,8 @@ struct hashing {
       return h;
     } else if constexpr (is_strong_v<Type>) {
       return hashing<typename Type::value_t>{}(el.v_, seed);
+    } else if constexpr (detail::is_optional<Type>::value) {
+      return el.has_value() ? hashing<typename Type::value_type>{}(*el) : 0U;
     } else {
       static_assert(has_hash_v<Type> || std::is_scalar_v<Type> ||
                         has_std_hash_v<Type> || is_iterable_v<Type> ||

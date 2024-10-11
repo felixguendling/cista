@@ -23,6 +23,7 @@ struct wrapped {
     return x.el_ == nullptr;
   }
 
+  operator bool() const { return el_.get() != nullptr; }
   T* get() const noexcept { return el_.get(); }
   T* operator->() noexcept { return el_.get(); }
   T const* operator->() const noexcept { return el_.get(); }
