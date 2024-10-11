@@ -1,13 +1,13 @@
 #pragma once
 
 #include <cinttypes>
+#include <fstream>
 
 #include "cista/cista_member_offset.h"
 #include "cista/containers/array.h"
 #include "cista/containers/variant.h"
 #include "cista/containers/vector.h"
 #include "cista/endian/conversion.h"
-
 
 
 namespace cista {
@@ -464,7 +464,7 @@ struct rtree {
    * Chooses the node to insert the rectangle and its data into
    * @param search_node The node to search in
    * @param search_rect The rectangle to search for
-   * @param depth
+   * @param depth The current node depth of the search
    * @return A fitting node to place the rectangle into
    */
   uint32_t node_choose(node const& search_node, rect const& search_rect, uint32_t const depth) {
@@ -555,8 +555,8 @@ struct rtree {
   /**
    * Searches the rtree for rectangles intersecting (min, max) and executes a function for each hit
    * @tparam Fn The function type of the handed function
-   * @param min The lower vertex of the rectangle
-   * @param max The upper vertex of the rectangle
+   * @param min The lower left vertex of the rectangle
+   * @param max The upper right vertex of the rectangle
    * @param fn The function to execute
    */
   template <typename Fn>
@@ -573,33 +573,28 @@ struct rtree {
    * @param delete_node_id The current node id to check for deletion
    * @param input_rect The rectangle to search for
    * @param item The data to compare to the found deletion entry
-   * @param depth Bhe current tree depth
+   * @param depth The current tree depth
    * @param removed Bool reference to indicate if a node was deleted
    * @param shrunk Bool reference to indicate if the tree has shrunk
    * @param compare A comparator to compare data
    * @param udata User defined data used in comparator
    */
-  void node_delete(rect& node_rect, node_idx_t delete_node_id, rect& input_rect, DataType item,
+  template <typename Fn>
+  void node_delete(rect& node_rect, node_idx_t delete_node_id, rect& input_rect,
                    uint32_t const depth, bool& removed, bool& shrunk,
-                   int compare(const DataType a, const DataType b, void* udata),
-                   void* udata) {
+                   Fn&& fn) {
     removed = false;
     shrunk = false;
     auto& delete_node = get_node(delete_node_id);
     if (delete_node.kind_ == kind::kLeaf) {
       for (size_t i = 0; i < delete_node.count_; ++i) {
-        if (!input_rect.equals_bin(delete_node.rects_[i])) {
-          continue;
-        }
-        // Should throw exception/compiler error if == operator is not defined in DataType
-        int cmp = compare ? compare(delete_node.data_[i], item, udata) : !(delete_node.data_[i] == item);
-        if (cmp != 0) {
+        // Skip to next loop iteration if function evaluate to false
+        if (!fn(delete_node.rects_[i].min_, delete_node.rects_[i].max_, delete_node.data_[i])) {
           continue;
         }
 
         // Found the target item to delete.
         if (true) {
-          // Free not necessary?
           delete_node.data_[i].~DataType();
         }
         delete_node.rects_[i] = delete_node.rects_[delete_node.count_ - 1];
@@ -623,7 +618,7 @@ struct rtree {
     rect crect;
     if (h < delete_node.count_) {
       if (delete_node.rects_[h].contains(input_rect)) {
-        node_delete(delete_node.rects_[h], delete_node.children_[h], input_rect,item, depth + 1, removed, shrunk, compare, udata);
+        node_delete(delete_node.rects_[h], delete_node.children_[h], input_rect, depth + 1, removed, shrunk, fn);
         if (removed) {
           goto removed;
         }
@@ -636,7 +631,7 @@ struct rtree {
         continue;
       }
       crect = delete_node.rects_[h];
-      node_delete(delete_node.rects_[h], delete_node.children_[h], input_rect, item, depth + 1, removed, shrunk, compare, udata);
+      node_delete(delete_node.rects_[h], delete_node.children_[h], input_rect, depth + 1, removed, shrunk, fn);
       if (!removed) {
         continue;
       }
@@ -665,14 +660,14 @@ struct rtree {
 
   /**
    * Deletes an element from the rtree
-   * @param min The lower vertex of the rectangle
-   * @param max The upper vertex of the rectangle
+   * @param min The lower left vertex of the rectangle
+   * @param max The upper right vertex of the rectangle
    * @param item The data to insert
    * @param compare A comparator for comparing data items
    * @param udata User defined data used in comparator
    */
-  void delete_0(coord_t const& min, coord_t const& max, DataType const item, int compare(const DataType a, const DataType b, void* udata),
-                void* udata) {
+  template <typename Fn>
+  void delete_0(coord_t const& min, coord_t const& max, Fn&& fn) {
     rect input_rect = {min,max};
 
     if (root_ == node_idx_t::invalid()) {
@@ -680,7 +675,7 @@ struct rtree {
     }
     auto removed = false;
     auto shrunk = false;
-    node_delete(rect_, root_, input_rect, item, 0, removed, shrunk, compare, udata);
+    node_delete(rect_, root_, input_rect, 0, removed, shrunk, std::forward<Fn>(fn));
     if (!removed) {
       return;
     }
@@ -707,27 +702,33 @@ struct rtree {
   }
 
   /**
-   * Deletes an element from the rtree. Proxy function without comparator for delete_0
-   * @param min The lower vertex of the rectangle
-   * @param max The upper vertex of the rectangle
-   * @param data The data to insert
+   * Deletes an element from the rtree. Proxy function without function parameter for delete_0
+   * @param min The lower left vertex of the rectangle
+   * @param max The upper right vertex of the rectangle
+   * @param data The data to delete
    */
-  void delete_element(coord_t const& min, coord_t const& max, DataType const data) {
-    return delete_0(min, max, data, NULL, NULL);
+  void delete_element(coord_t const& min, coord_t const& max, DataType data) {
+    using r_tree_instance = cista::rtree<DataType, Dims, NumType, MaxItems, SizeType, VectorType>;
+    return delete_0(min, max, [min, max, &data](r_tree_instance::coord_t const& min_temp, r_tree_instance::coord_t const& max_temp, DataType search_data){
+      if (r_tree_instance::rect::coord_t_equal(min, min_temp) && r_tree_instance::rect::coord_t_equal(max, max_temp) && data == search_data) {
+        return true;
+      } else {
+        return false;
+      }
+    });
   }
 
   /**
-   * Deletes an element from the rtree. Proxy function with comparator for delete_0
-   * Note: Comparator has to return 0 if equal!
-   * @param min The lower vertex of the rectangle
-   * @param max The upper vertex of the rectangle
+   * Deletes an element from the rtree. Proxy function with function parameter for delete_0
+   * Note: Function has to return true for the entry to delete!
+   * @param min The lower left vertex of the rectangle
+   * @param max The upper right vertex of the rectangle
    * @param data The data to insert
-   * @param compare comparator for comparing data items (See Note!)
-   * @param udata User defined data used in comparator
+   * @param fn Function for selecting data entries
    */
-  void delete_element_with_comparator(coord_t const& min, coord_t const& max, DataType const data, int compare(const DataType a, const DataType b, void* udata),
-                                      void* udata) {
-    return delete_0(min, max, data, compare, udata);
+  template <typename Fn>
+  void delete_element_with_function(coord_t const& min, coord_t const& max, Fn&& fn) {
+    return delete_0(min, max, std::forward<Fn>(fn));
   }
 
   /**
@@ -742,6 +743,36 @@ struct rtree {
       get_node(node_id).count_ = to_idx(free_list_);
     }
     free_list_ = node_id;
+  }
+
+  /**
+   * Writes all rtree parameters except nodes_ into the given output stream.
+   * @param f The output stream to write to
+   */
+  void write_header_bin(std::ostream &f) {
+    f.write((char*)&rect_, sizeof rect_);
+    f.write((char*)&root_, sizeof root_);
+    f.write((char*)&free_list_, sizeof free_list_);
+    f.write((char*)&count_, sizeof count_);
+    f.write((char*)&height_, sizeof height_);
+    for (int i = 0; i < path_hint_.size(); ++i) {
+      f.write((char*)&path_hint_[i], sizeof path_hint_[i]);
+    }
+  }
+
+  /**
+   * Reads all rtree parameters except nodes_ from a given input stream
+   * @param f The input stream to read from
+   */
+  void read_header_bin(std::istream &f) {
+    f.read((char*)&rect_, sizeof rect_);
+    f.read((char*)&root_, sizeof root_);
+    f.read((char*)&free_list_, sizeof free_list_);
+    f.read((char*)&count_, sizeof count_);
+    f.read((char*)&height_, sizeof height_);
+    for (int i = 0; i < path_hint_.size(); ++i) {
+      f.read((char*)&path_hint_[i], sizeof path_hint_[i]);
+    }
   }
 
   rect rect_;
