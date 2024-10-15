@@ -197,7 +197,7 @@ struct hash<cista::strong<T, Tag>> {
 
 }  // namespace std
 
-#if __has_include("fmt/ostream.h")
+#if defined(CISTA_FMT)
 
 #include "fmt/ostream.h"
 

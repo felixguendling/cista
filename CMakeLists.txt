@@ -42,6 +42,7 @@ elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(cista-compile-flags -Wall -Wextra)
 endif()
 
+option(CISTA_FMT "add libfmt support" ON)
 option(CISTA_ZERO_OUT "zero out fresh memory for valgrind" OFF)
 option(CISTA_COVERAGE "generate coverage report" OFF)
 option(CISTA_GENERATE_TO_TUPLE "generate include/cista/reflection/to_tuple.h" OFF)
@@ -62,6 +63,9 @@ if (CISTA_ZERO_OUT)
 endif()
 if (CISTA_USE_MIMALLOC)
   target_compile_definitions(cista INTERFACE CISTA_USE_MIMALLOC=1)
+endif()
+if (CISTA_FMT)
+  target_compile_definitions(cista INTERFACE CISTA_FMT)
 endif()
 target_include_directories(cista SYSTEM INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>

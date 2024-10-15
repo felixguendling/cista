@@ -22,7 +22,7 @@ constexpr bool is_indexed_v = is_indexed_helper<std::remove_cv_t<T>>::value;
 
 }  // namespace cista
 
-#if __has_include("fmt/ostream.h")
+#if defined(CISTA_FMT)
 
 #include "fmt/ostream.h"
 
