@@ -10,6 +10,7 @@ extern "C" {
 struct iter_ref_ctx {
   size_t count;
   uint32_t expected_value;
+  std::vector<cista::rtree<uint32_t>::coord_t> found_coords;
 };
 
 bool iter_ref(const double *min, const double *max, const void *data,
@@ -17,6 +18,18 @@ bool iter_ref(const double *min, const double *max, const void *data,
 {
   (void)min; (void)max; (void)data;
   auto *ctx = static_cast<iter_ref_ctx*>(udata);
+  cista::rtree<uint32_t>::coord_t search_coord_min;
+  search_coord_min[0] = static_cast<float>(min[0]);
+  search_coord_min[1] = static_cast<float>(min[1]);
+  if (std::find(ctx->found_coords.begin(), ctx->found_coords.end(), search_coord_min) == ctx->found_coords.end()) {
+    return false;
+  }
+  cista::rtree<uint32_t>::coord_t search_coord_max;
+  search_coord_max[0] = static_cast<float>(max[0]);
+  search_coord_max[1] = static_cast<float>(max[1]);
+  if (std::find(ctx->found_coords.begin(), ctx->found_coords.end(), search_coord_max) == ctx->found_coords.end()) {
+    return false;
+  }
   ctx->count++;
   return true;
 }
@@ -67,6 +80,8 @@ int test_bench(uint8_t const* data, size_t size) {
       uut_tree.search(coord_min, coord_max, [coord_min, coord_max, &ctx](cista::rtree<size_t>::coord_t const& min_temp, cista::rtree<size_t>::coord_t const& max_temp, uint32_t data){
         if (cista::rtree<int>::rect::coord_t_equal(coord_min, min_temp) && cista::rtree<int>::rect::coord_t_equal(coord_max, max_temp)) {
           ctx.expected_value++;
+          ctx.found_coords.emplace_back(coord_min);
+          ctx.found_coords.emplace_back(coord_max);
         }
         return true;
       });
