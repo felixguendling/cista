@@ -318,7 +318,7 @@ struct bitset {
 
 }  // namespace cista
 
-#if __has_include("fmt/ostream.h")
+#if defined(CISTA_FMT)
 
 #include "fmt/ostream.h"
 

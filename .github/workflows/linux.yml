@@ -84,6 +84,7 @@ jobs:
         run: |
           cmake \
             -G Ninja -S . -B build \
+            -DCISTA_FMT=OFF \
             -DCMAKE_C_COMPILER=${{ matrix.config.cc }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.config.cxx }} \
             -DCMAKE_C_FLAGS="${{ matrix.config.cflags }}" \

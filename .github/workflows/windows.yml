@@ -35,7 +35,7 @@ jobs:
 
       - name: Build
         run: |
-          cmake -GNinja -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.mode }}
+          cmake -GNinja -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.mode }} -DCISTA_FMT=OFF
           cmake --build build --target cista-test cista-test-single-header
 
       # ==== TESTS ====
