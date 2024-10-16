@@ -214,39 +214,39 @@ TEST_SUITE("tuple") {
     cista::byte_buf buf;
     {
       serialize_me obj;
-      std::get<0>(obj).emplace_back(
+      cista::get<0>(obj).emplace_back(
           cista::tuple{data::string{"hello"},
                        data::hash_set<data::string>{
                            data::string{"1"},
                            data::string{"this is a very very very long string"},
                            data::string{"3"}}});
-      std::get<0>(obj).emplace_back(
+      cista::get<0>(obj).emplace_back(
           cista::tuple{data::string{"world"},
                        data::hash_set<data::string>{
                            data::string{"4"},
                            data::string{"this is a very very very long string"},
                            data::string{"6"}}});
-      std::get<1>(obj) = 55;
+      cista::get<1>(obj) = 55;
       buf = cista::serialize<MODE>(obj);
     }  // EOL obj
 
     auto const& serialized =
         *cista::unchecked_deserialize<serialize_me, MODE>(buf);
     CHECK(
-        (std::get<0>(serialized).at(0) ==
+        (cista::get<0>(serialized).at(0) ==
          cista::tuple{data::string{"hello"},
                       data::hash_set<data::string>{
                           data::string{"1"},
                           data::string{"this is a very very very long string"},
                           data::string{"3"}}}));
     CHECK(
-        (std::get<0>(serialized).at(1) ==
+        (cista::get<0>(serialized).at(1) ==
          cista::tuple{data::string{"world"},
                       data::hash_set<data::string>{
                           data::string{"4"},
                           data::string{"this is a very very very long string"},
                           data::string{"6"}}}));
-    CHECK((std::get<1>(serialized) == 55));
+    CHECK((cista::get<1>(serialized) == 55));
   }
 
 #ifndef _WIN32
