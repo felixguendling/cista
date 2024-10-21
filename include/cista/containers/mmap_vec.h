@@ -178,6 +178,6 @@ template <typename T>
 using mmap_vec = basic_mmap_vec<T>;
 
 template <typename Key, typename T>
-using mmap_vec_map = basic_mmap_vec<Key, T>;
+using mmap_vec_map = basic_mmap_vec<T, Key>;
 
 }  // namespace cista
