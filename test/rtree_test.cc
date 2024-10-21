@@ -493,7 +493,7 @@ TEST_SUITE("rtree") {
       uint32_t *int_array_data;
 
 
-      bool operator==(custom_data_type& other_struct){
+      bool operator==(custom_data_type const& other_struct){
         bool result;
         result = (other_struct.integer_data == integer_data);
 

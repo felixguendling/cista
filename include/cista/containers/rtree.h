@@ -335,7 +335,7 @@ struct rtree {
    * @param max Max coordinates of the new rectangle
    * @param data The data to store
    */
-  void insert(coord_t const& min, coord_t const& max, DataType data) {
+  void insert(coord_t const& min, coord_t const& max, DataType const& data) {
     auto const insert_rect = rect{min, max};
     while (true) {
       if (root_ == node_idx_t::invalid()) {
@@ -707,9 +707,9 @@ struct rtree {
    * @param max The upper right vertex of the rectangle
    * @param data The data to delete
    */
-  void delete_element(coord_t const& min, coord_t const& max, DataType data) {
+  void delete_element(coord_t const& min, coord_t const& max, DataType& data) {
     using r_tree_instance = cista::rtree<DataType, Dims, NumType, MaxItems, SizeType, VectorType>;
-    return delete_0(min, max, [min, max, &data](r_tree_instance::coord_t const& min_temp, r_tree_instance::coord_t const& max_temp, DataType search_data){
+    return delete_0(min, max, [min, max, &data](r_tree_instance::coord_t const& min_temp, r_tree_instance::coord_t const& max_temp, DataType& search_data){
       if (r_tree_instance::rect::coord_t_equal(min, min_temp) && r_tree_instance::rect::coord_t_equal(max, max_temp) && data == search_data) {
         return true;
       } else {
