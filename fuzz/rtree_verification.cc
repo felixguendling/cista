@@ -28,7 +28,9 @@ struct ctx_entry {
 struct iter_ref_ctx {
   size_t count;
   uint32_t expected_value;
+  uint32_t expected_value_mm;
   std::vector<ctx_entry> found_entries;
+  std::vector<ctx_entry> found_entries_mm;
 };
 
 bool iter_ref(const double *min, const double *max, const void *data,
@@ -40,8 +42,12 @@ bool iter_ref(const double *min, const double *max, const void *data,
 
   for (auto & found_entrie : ctx->found_entries) {
     if (found_entrie == search_entry) {
-      ctx->count++;
-      return true;
+      for (auto & found_entrie_mm : ctx->found_entries_mm) {
+        if (found_entrie_mm == search_entry) {
+          ctx->count++;
+          return true;
+        }
+      }
     }
   }
   return true;
@@ -65,7 +71,7 @@ int test_bench(uint8_t const* data, size_t size) {
     SAVE_LOAD = 3,
   };
 
-  auto f = cista::mmap{"./mmap.bin", cista::mmap::protection::WRITE};
+  auto f = cista::mmap{"./mmap_rtree_nodes.bin", cista::mmap::protection::WRITE};
 
 
   auto ref_tree = rtree_new_with_allocator(malloc, free);
@@ -118,24 +124,50 @@ int test_bench(uint8_t const* data, size_t size) {
         }
         return true;
       });
+
+      ctx.expected_value_mm = 0;
+      cista_mm_rtree.search(coord_min, coord_max, [coord_min, coord_max, &ctx](cista_rtree::coord_t const& min_temp, cista_rtree::coord_t const& max_temp, uint32_t data){
+        if (cista_rtree::rect::coord_t_equal(coord_min, min_temp) && cista_rtree::rect::coord_t_equal(coord_max, max_temp)) {
+          ctx.expected_value_mm++;
+          ctx_entry input_entry{};
+          input_entry.min = min_temp;
+          input_entry.max = max_temp;
+          input_entry.data = data;
+          ctx.found_entries_mm.emplace_back(input_entry);
+        }
+        return true;
+      });
+
       rtree_search(ref_tree, rect_min, rect_max, iter_ref, &ctx);
 
-      if (ctx.count != ctx.expected_value) {
+      if (ctx.count != ctx.expected_value || ctx.count != ctx.expected_value_mm || ctx.expected_value != ctx.expected_value_mm) {
         rtree_free(ref_tree);
         abort();
       }
     }
     if (op == INSERT) {
       uut_tree.insert(coord_min, coord_max, input_data);
+      cista_mm_rtree.insert(coord_min, coord_max, input_data);
       rtree_insert(ref_tree, rect_min, rect_max,reinterpret_cast<uintptr_t*>(static_cast<uint64_t>(input_data)));
     }
     if (op == DELETE) {
       uut_tree.delete_element(coord_min, coord_max, input_data);
+      cista_mm_rtree.delete_element(coord_min, coord_max, input_data);
       rtree_delete(ref_tree, rect_min, rect_max, reinterpret_cast<uintptr_t*>(static_cast<uint64_t>(input_data)));
     }
 
     if (op == SAVE_LOAD) {
+      std::fstream file;
+      file.open("mmap_rtree_header.bin", std::ios::binary | std::ios::out);
+      cista_mm_rtree.write_header_bin(file);
+      file.close();
 
+      auto save_load_file = cista::mmap{"./mmap_rtree_nodes.bin", cista::mmap::protection::MODIFY};
+      cista_mm_rtree.nodes_ = cista::mmap_vec_map<mm_rtree::node_idx_t, mm_rtree::node>{std::move(save_load_file)};
+
+      file.open("mmap_rtree_header.bin", std::ios::binary | std::ios::in);
+      cista_mm_rtree.read_header_bin(file);
+      file.close();
     }
 
     current_position = current_position + 21;
