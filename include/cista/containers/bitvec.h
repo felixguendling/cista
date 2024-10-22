@@ -53,6 +53,12 @@ struct basic_bitvec {
     }
   }
 
+  void one_out() {
+    for (auto& b : blocks_) {
+      b = ~block_t{0};
+    }
+  }
+
   void resize(size_type const new_size) {
     if (new_size == size_) {
       return;
