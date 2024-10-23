@@ -9,7 +9,6 @@
 #include "cista/containers/vector.h"
 #include "cista/endian/conversion.h"
 
-
 namespace cista {
 
 template <typename Ctx, typename T>
@@ -20,13 +19,17 @@ inline bool feq(NumType a, NumType b) {
   return !(a < b || a > b);
 }
 
-template <typename DataType, uint32_t Dims = 2U, typename NumType = float, uint32_t MaxItems = 64U, typename SizeType = std::uint32_t, template <typename, typename...> typename VectorType = offset::vector_map>
+template <typename DataType, uint32_t Dims = 2U, typename NumType = float,
+          uint32_t MaxItems = 64U, typename SizeType = std::uint32_t,
+          template <typename, typename...> typename VectorType =
+              offset::vector_map>
 struct rtree {
   static constexpr auto const kInfinity = std::numeric_limits<NumType>::max();
 
   // used for splits
   static constexpr auto const kMinItemsPercentage = 10U;
-  static constexpr auto const kMinItems = ((MaxItems * kMinItemsPercentage) / 100) + 1;
+  static constexpr auto const kMinItems =
+      ((MaxItems * kMinItemsPercentage) / 100) + 1;
 
   enum class kind : std::uint8_t { kLeaf, kBranch, kEndFreeList };
 
@@ -42,7 +45,8 @@ struct rtree {
     NumType united_area(rect const& other_rect) const noexcept {
       auto result = NumType{1};
       for (auto i = 0U; i != Dims; ++i) {
-        result *= (std::max(max_[i], other_rect.max_[i]) - std::min(min_[i], other_rect.min_[i]));
+        result *= (std::max(max_[i], other_rect.max_[i]) -
+                   std::min(min_[i], other_rect.min_[i]));
       }
       return result;
     }
@@ -90,11 +94,13 @@ struct rtree {
     /**
      * Checks if at least one edge of rect is touching other_rect
      * @param other_rect The rectangle to check with
-     * @return True if the at least one of the edges of the rectangles are touching
+     * @return True if the at least one of the edges of the rectangles are
+     * touching
      */
     bool onedge(rect const& other_rect) const noexcept {
       for (auto i = 0U; i < Dims; i++) {
-        if (feq(min_[i], other_rect.min_[i]) || feq(max_[i], other_rect.max_[i])) {
+        if (feq(min_[i], other_rect.min_[i]) ||
+            feq(max_[i], other_rect.max_[i])) {
           return true;
         }
       }
@@ -135,17 +141,16 @@ struct rtree {
      * @return True if they are equal
      */
     bool equals(rect const& other_rect) {
-       if (!coord_t_equal(min_, other_rect.min_) ||
+      if (!coord_t_equal(min_, other_rect.min_) ||
           !coord_t_equal(max_, other_rect.max_)) {
-         return false;
-       }
-       return true;
+        return false;
+      }
+      return true;
     }
 
     bool equals_bin(rect const& other_rect) {
       for (size_t i = 0; i < Dims; ++i) {
-        if (min_[i] != other_rect.min_[i] ||
-            max_[i] != other_rect.max_[i]) {
+        if (min_[i] != other_rect.min_[i] || max_[i] != other_rect.max_[i]) {
           return false;
         }
       }
@@ -160,7 +165,7 @@ struct rtree {
      */
     static bool coord_t_equal(coord_t const& coord_1, coord_t const& coord_2) {
       for (size_t i = 0; i < Dims; ++i) {
-        if (!feq(coord_1[i], coord_2[i])){
+        if (!feq(coord_1[i], coord_2[i])) {
           return false;
         }
       }
@@ -183,7 +188,8 @@ struct rtree {
     }
 
     /**
-     * Quicksort implementation for sorting rectangles (and its attached data) inside of a node
+     * Quicksort implementation for sorting rectangles (and its attached data)
+     * inside of a node
      * @param start Start index of this partition
      * @param end End index + 1 of this partition
      * @param index Index for choosing the sorting axis of the rectangles
@@ -225,7 +231,8 @@ struct rtree {
     }
 
     /**
-     * Finds the index of the rect in this node with the least bounding area with insert_rect
+     * Finds the index of the rect in this node with the least bounding area
+     * with insert_rect
      * @param insert_rect The rectangle to check the bounding area with
      * @return The index of th rect of this node with the least bounding area
      */
@@ -291,18 +298,23 @@ struct rtree {
       return temp_rect;
     }
 
-
     template <typename Ctx>
-    friend void serialize(Ctx& c, node const* origin, cista::offset_t const pos) {
+    friend void serialize(Ctx& c, node const* origin,
+                          cista::offset_t const pos) {
       using Type = std::decay_t<decltype(*origin)>;
-      c.write(pos + cista_member_offset(Type, count_), convert_endian<Ctx::MODE>(origin->count_));
-      c.write(pos + cista_member_offset(Type, kind_), convert_endian<Ctx::MODE>(origin->kind_));
-      c.write(pos + cista_member_offset(Type, rects_), convert_endian<Ctx::MODE>(origin->rects_));
+      c.write(pos + cista_member_offset(Type, count_),
+              convert_endian<Ctx::MODE>(origin->count_));
+      c.write(pos + cista_member_offset(Type, kind_),
+              convert_endian<Ctx::MODE>(origin->kind_));
+      c.write(pos + cista_member_offset(Type, rects_),
+              convert_endian<Ctx::MODE>(origin->rects_));
       if (origin->kind_ == kind::kLeaf) {
-        auto const size = static_cast<offset_t>(sizeof(DataType) * origin->data_.size());
+        auto const size =
+            static_cast<offset_t>(sizeof(DataType) * origin->data_.size());
         auto const data_start = pos + cista_member_offset(Type, data_);
         auto i = 0U;
-        for (auto it = data_start; it != data_start + size; it += sizeof(DataType)) {
+        for (auto it = data_start; it != data_start + size;
+             it += sizeof(DataType)) {
           serialize(c, &(origin->data_[i++]), it);
         }
       }
@@ -326,7 +338,6 @@ struct rtree {
       node_vector_t children_;
       data_vector_t data_;
     };
-
   };
 
   /**
@@ -378,7 +389,9 @@ struct rtree {
    * @param depth The depth of the current node
    * @param split True if this or a subsequent node had to be split
    */
-  void node_insert(rect const& nr, node_idx_t const n_idx, rect const& insert_rect, DataType data, uint32_t depth, bool& split) {
+  void node_insert(rect const& nr, node_idx_t const n_idx,
+                   rect const& insert_rect, DataType data, uint32_t depth,
+                   bool& split) {
     auto& current_node = get_node(n_idx);
     if (current_node.kind_ == kind::kLeaf) {
       if (current_node.count_ == MaxItems) {
@@ -396,7 +409,8 @@ struct rtree {
 
     // Choose a subtree for inserting the rectangle.
     auto const i = node_choose(current_node, insert_rect, depth);
-    node_insert(current_node.rects_[i], current_node.children_[i], insert_rect, data, depth + 1U, split);
+    node_insert(current_node.rects_[i], current_node.children_[i], insert_rect,
+                data, depth + 1U, split);
     if (!split) {
       get_node(n_idx).rects_[i].expand(insert_rect);
       return;
@@ -425,14 +439,17 @@ struct rtree {
    * @param n_idx The node id of the overflowing node
    * @param right_out The newly added node
    */
-  void node_split(rect node_rect, node_idx_t const n_idx, node_idx_t& right_out) {
+  void node_split(rect node_rect, node_idx_t const n_idx,
+                  node_idx_t& right_out) {
     auto const axis = node_rect.largest_axis();
     right_out = node_new(get_node(n_idx).kind_);
     auto& old_node = get_node(n_idx);
     auto& right = get_node(right_out);
     for (auto i = 0U; i < old_node.count_; ++i) {
-      auto const min_dist = old_node.rects_[i].min_[axis] - node_rect.min_[axis];
-      auto const max_dist = node_rect.max_[axis] - old_node.rects_[i].max_[axis];
+      auto const min_dist =
+          old_node.rects_[i].min_[axis] - node_rect.min_[axis];
+      auto const max_dist =
+          node_rect.max_[axis] - old_node.rects_[i].max_[axis];
       if (max_dist < min_dist) {
         // move to right
         old_node.move_rect_at_index_into(i, right);
@@ -456,7 +473,7 @@ struct rtree {
     }
     if (old_node.kind_ == kind::kBranch) {
       old_node.sort_by_axis(0, true, false);
-      right.sort_by_axis(0,true, false);
+      right.sort_by_axis(0, true, false);
     }
   }
 
@@ -467,7 +484,8 @@ struct rtree {
    * @param depth The current node depth of the search
    * @return A fitting node to place the rectangle into
    */
-  uint32_t node_choose(node const& search_node, rect const& search_rect, uint32_t const depth) {
+  uint32_t node_choose(node const& search_node, rect const& search_rect,
+                       uint32_t const depth) {
     auto const h = path_hint_[depth];
     if (h < search_node.count_) {
       if (search_node.rects_[h].contains(search_rect)) {
@@ -513,7 +531,6 @@ struct rtree {
         free_list_ = node_idx_t::invalid();
       } else {
         free_list_ = node_idx_t(get_node(recycled_node_id).count_);
-        //free_list = reinterpret_cast<node_idx_t>(get_node(recycled_node_id).count_);
       }
       get_node(recycled_node_id).kind_ = node_kind;
       get_node(recycled_node_id).count_ = 0U;
@@ -527,7 +544,8 @@ struct rtree {
    * @param current_node The current node to search in
    * @param search_rect The rectangle to search for intersects
    * @param fn The function to execute
-   * @return True if the function fn returns true for every found intersection hit
+   * @return True if the function fn returns true for every found intersection
+   * hit
    */
   template <typename Fn>
   bool node_search(node const& current_node, rect const& search_rect, Fn&& fn) {
@@ -544,7 +562,8 @@ struct rtree {
     }
     for (auto i = 0U; i != current_node.count_; ++i) {
       if (current_node.rects_[i].intersects(search_rect)) {
-        if (!node_search(get_node(current_node.children_[i]), search_rect, fn)) {
+        if (!node_search(get_node(current_node.children_[i]), search_rect,
+                         fn)) {
           return false;
         }
       }
@@ -553,7 +572,8 @@ struct rtree {
   }
 
   /**
-   * Searches the rtree for rectangles intersecting (min, max) and executes a function for each hit
+   * Searches the rtree for rectangles intersecting (min, max) and executes a
+   * function for each hit
    * @tparam Fn The function type of the handed function
    * @param min The lower left vertex of the rectangle
    * @param max The upper right vertex of the rectangle
@@ -581,15 +601,15 @@ struct rtree {
    */
   template <typename Fn>
   void node_delete(rect& node_rect, node_idx_t delete_node_id, rect& input_rect,
-                   uint32_t const depth, bool& removed, bool& shrunk,
-                   Fn&& fn) {
+                   uint32_t const depth, bool& removed, bool& shrunk, Fn&& fn) {
     removed = false;
     shrunk = false;
     auto& delete_node = get_node(delete_node_id);
     if (delete_node.kind_ == kind::kLeaf) {
       for (size_t i = 0; i < delete_node.count_; ++i) {
         // Skip to next loop iteration if function evaluate to false
-        if (!fn(delete_node.rects_[i].min_, delete_node.rects_[i].max_, delete_node.data_[i])) {
+        if (!fn(delete_node.rects_[i].min_, delete_node.rects_[i].max_,
+                delete_node.data_[i])) {
           continue;
         }
 
@@ -618,11 +638,11 @@ struct rtree {
     rect crect;
     if (h < delete_node.count_) {
       if (delete_node.rects_[h].contains(input_rect)) {
-        node_delete(delete_node.rects_[h], delete_node.children_[h], input_rect, depth + 1, removed, shrunk, fn);
+        node_delete(delete_node.rects_[h], delete_node.children_[h], input_rect,
+                    depth + 1, removed, shrunk, fn);
         if (removed) {
           goto removed;
         }
-
       }
     }
     h = 0;
@@ -631,7 +651,8 @@ struct rtree {
         continue;
       }
       crect = delete_node.rects_[h];
-      node_delete(delete_node.rects_[h], delete_node.children_[h], input_rect, depth + 1, removed, shrunk, fn);
+      node_delete(delete_node.rects_[h], delete_node.children_[h], input_rect,
+                  depth + 1, removed, shrunk, fn);
       if (!removed) {
         continue;
       }
@@ -641,7 +662,8 @@ struct rtree {
         // free the node, planned with a free_list: delete_node.children_[h]
         add_to_free_list(delete_node.children_[h]);
         delete_node.rects_[h] = delete_node.rects_[delete_node.count_ - 1];
-        delete_node.children_[h] = delete_node.children_[delete_node.count_ - 1];
+        delete_node.children_[h] =
+            delete_node.children_[delete_node.count_ - 1];
         delete_node.count_--;
         node_rect = delete_node.rect_calc();
         shrunk = true;
@@ -668,14 +690,15 @@ struct rtree {
    */
   template <typename Fn>
   void delete_0(coord_t const& min, coord_t const& max, Fn&& fn) {
-    rect input_rect = {min,max};
+    rect input_rect = {min, max};
 
     if (root_ == node_idx_t::invalid()) {
       return;
     }
     auto removed = false;
     auto shrunk = false;
-    node_delete(rect_, root_, input_rect, 0, removed, shrunk, std::forward<Fn>(fn));
+    node_delete(rect_, root_, input_rect, 0, removed, shrunk,
+                std::forward<Fn>(fn));
     if (!removed) {
       return;
     }
@@ -702,32 +725,40 @@ struct rtree {
   }
 
   /**
-   * Deletes an element from the rtree. Proxy function without function parameter for delete_0
+   * Deletes an element from the rtree. Proxy function without function
+   * parameter for delete_0
    * @param min The lower left vertex of the rectangle
    * @param max The upper right vertex of the rectangle
    * @param data The data to delete
    */
   void delete_element(coord_t const& min, coord_t const& max, DataType& data) {
-    using r_tree_instance = cista::rtree<DataType, Dims, NumType, MaxItems, SizeType, VectorType>;
-    return delete_0(min, max, [min, max, &data](r_tree_instance::coord_t const& min_temp, r_tree_instance::coord_t const& max_temp, DataType& search_data){
-      if (r_tree_instance::rect::coord_t_equal(min, min_temp) && r_tree_instance::rect::coord_t_equal(max, max_temp) && data == search_data) {
-        return true;
-      } else {
-        return false;
-      }
-    });
+    using r_tree_instance =
+        cista::rtree<DataType, Dims, NumType, MaxItems, SizeType, VectorType>;
+    return delete_0(min, max,
+                    [min, max, &data](r_tree_instance::coord_t const& min_temp,
+                                      r_tree_instance::coord_t const& max_temp,
+                                      DataType& search_data) {
+                      if (r_tree_instance::rect::coord_t_equal(min, min_temp) &&
+                          r_tree_instance::rect::coord_t_equal(max, max_temp) &&
+                          data == search_data) {
+                        return true;
+                      } else {
+                        return false;
+                      }
+                    });
   }
 
   /**
-   * Deletes an element from the rtree. Proxy function with function parameter for delete_0
-   * Note: Function has to return true for the entry to delete!
+   * Deletes an element from the rtree. Proxy function with function parameter
+   * for delete_0 Note: Function has to return true for the entry to delete!
    * @param min The lower left vertex of the rectangle
    * @param max The upper right vertex of the rectangle
    * @param data The data to insert
    * @param fn Function for selecting data entries
    */
   template <typename Fn>
-  void delete_element_with_function(coord_t const& min, coord_t const& max, Fn&& fn) {
+  void delete_element_with_function(coord_t const& min, coord_t const& max,
+                                    Fn&& fn) {
     return delete_0(min, max, std::forward<Fn>(fn));
   }
 
@@ -749,7 +780,7 @@ struct rtree {
    * Writes all rtree parameters except nodes_ into the given output stream.
    * @param f The output stream to write to
    */
-  void write_header_bin(std::ostream &f) {
+  void write_header_bin(std::ostream& f) {
     f.write((char*)&rect_, sizeof rect_);
     f.write((char*)&root_, sizeof root_);
     f.write((char*)&free_list_, sizeof free_list_);
@@ -764,7 +795,7 @@ struct rtree {
    * Reads all rtree parameters except nodes_ from a given input stream
    * @param f The input stream to read from
    */
-  void read_header_bin(std::istream &f) {
+  void read_header_bin(std::istream& f) {
     f.read((char*)&rect_, sizeof rect_);
     f.read((char*)&root_, sizeof root_);
     f.read((char*)&free_list_, sizeof free_list_);
