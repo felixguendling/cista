@@ -10,6 +10,7 @@
 #include <io.h>
 #include <windows.h>
 #include <string>
+#include <system_error>
 #endif
 
 #include <cinttypes>
@@ -27,27 +28,7 @@
 namespace cista {
 
 inline std::string last_error_str() {
-  auto const err = ::GetLastError();
-  if (err == 0) {
-    return "no error";
-  }
-
-  struct buf {
-    ~buf() {
-      if (b_ != nullptr) {
-        LocalFree(b_);
-        b_ = nullptr;
-      }
-    }
-    LPSTR b_ = nullptr;
-  } b;
-  auto const size = FormatMessageA(
-      FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
-          FORMAT_MESSAGE_IGNORE_INSERTS,
-      nullptr, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), b.b_, 0,
-      nullptr);
-
-  return size == 0 ? std::to_string(err) : std::string{b.b_, size};
+  return std::system_category().message(static_cast<int>(::GetLastError()));
 }
 
 inline HANDLE open_file(char const* path, char const* mode) {
