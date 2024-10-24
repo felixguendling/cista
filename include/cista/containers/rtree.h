@@ -596,8 +596,7 @@ struct rtree {
    * @param depth The current tree depth
    * @param removed Bool reference to indicate if a node was deleted
    * @param shrunk Bool reference to indicate if the tree has shrunk
-   * @param compare A comparator to compare data
-   * @param udata User defined data used in comparator
+   * @param fn A function to evaluate the current entry
    */
   template <typename Fn>
   void node_delete(rect& node_rect, node_idx_t delete_node_id, rect& input_rect,
@@ -685,8 +684,7 @@ struct rtree {
    * @param min The lower left vertex of the rectangle
    * @param max The upper right vertex of the rectangle
    * @param item The data to insert
-   * @param compare A comparator for comparing data items
-   * @param udata User defined data used in comparator
+   * @param fn A function to evaluate the current entry
    */
   template <typename Fn>
   void delete_0(coord_t const& min, coord_t const& max, Fn&& fn) {
@@ -753,7 +751,6 @@ struct rtree {
    * for delete_0 Note: Function has to return true for the entry to delete!
    * @param min The lower left vertex of the rectangle
    * @param max The upper right vertex of the rectangle
-   * @param data The data to insert
    * @param fn Function for selecting data entries
    */
   template <typename Fn>
@@ -781,13 +778,13 @@ struct rtree {
    * @param f The output stream to write to
    */
   void write_header_bin(std::ostream& f) {
-    f.write((char*)&rect_, sizeof rect_);
-    f.write((char*)&root_, sizeof root_);
-    f.write((char*)&free_list_, sizeof free_list_);
-    f.write((char*)&count_, sizeof count_);
-    f.write((char*)&height_, sizeof height_);
+    f.write(static_cast<char*>(static_cast<void*>(&rect_)), sizeof rect_);
+    f.write(static_cast<char*>(static_cast<void*>(&root_)), sizeof root_);
+    f.write(static_cast<char*>(static_cast<void*>(&free_list_)), sizeof free_list_);
+    f.write(static_cast<char*>(static_cast<void*>(&count_)), sizeof count_);
+    f.write(static_cast<char*>(static_cast<void*>(&height_)), sizeof height_);
     for (int i = 0; i < path_hint_.size(); ++i) {
-      f.write((char*)&path_hint_[i], sizeof path_hint_[i]);
+      f.write(static_cast<char*>(static_cast<void*>(&path_hint_[i])), sizeof path_hint_[i]);
     }
   }
 
@@ -796,13 +793,13 @@ struct rtree {
    * @param f The input stream to read from
    */
   void read_header_bin(std::istream& f) {
-    f.read((char*)&rect_, sizeof rect_);
-    f.read((char*)&root_, sizeof root_);
-    f.read((char*)&free_list_, sizeof free_list_);
-    f.read((char*)&count_, sizeof count_);
-    f.read((char*)&height_, sizeof height_);
+    f.read(static_cast<char*>(static_cast<void*>(&rect_)), sizeof rect_);
+    f.read(static_cast<char*>(static_cast<void*>(&root_)), sizeof root_);
+    f.read(static_cast<char*>(static_cast<void*>(&free_list_)), sizeof free_list_);
+    f.read(static_cast<char*>(static_cast<void*>(&count_)), sizeof count_);
+    f.read(static_cast<char*>(static_cast<void*>(&height_)), sizeof height_);
     for (int i = 0; i < path_hint_.size(); ++i) {
-      f.read((char*)&path_hint_[i], sizeof path_hint_[i]);
+      f.read(static_cast<char*>(static_cast<void*>(&path_hint_[i])), sizeof path_hint_[i]);
     }
   }
 
