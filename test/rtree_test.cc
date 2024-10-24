@@ -592,14 +592,14 @@ TEST_SUITE("rtree") {
 
     cista::rtree<size_t, dims_1D> rt_1D;
     for (size_t i = 0; i < rand_rects_list_1D.size(); ++i) {
-      cista::rtree<size_t, dims_1D>::coord_t min = rand_rects_list_1D[i].min_;
-      cista::rtree<size_t, dims_1D>::coord_t max = rand_rects_list_1D[i].max_;
+      cista::rtree<size_t, dims_1D>::coord_t const min = rand_rects_list_1D[i].min_;
+      cista::rtree<size_t, dims_1D>::coord_t const max = rand_rects_list_1D[i].max_;
       rt_1D.insert(min, max, i);
     }
 
     for (size_t i = 0; i < rand_rects_list_1D.size(); ++i) {
-      cista::rtree<size_t, dims_1D>::coord_t min = rand_rects_list_1D[i].min_;
-      cista::rtree<size_t, dims_1D>::coord_t max = rand_rects_list_1D[i].max_;
+      cista::rtree<size_t, dims_1D>::coord_t const min = rand_rects_list_1D[i].min_;
+      cista::rtree<size_t, dims_1D>::coord_t const max = rand_rects_list_1D[i].max_;
       bool found_correct = false;
 
       rt_1D.search(min, max,
@@ -658,14 +658,14 @@ TEST_SUITE("rtree") {
 
     cista::rtree<size_t, dims_3D> rt_3D;
     for (size_t i = 0; i < rand_rects_list_1D.size(); ++i) {
-      cista::rtree<size_t, dims_3D>::coord_t min = rand_rects_list_3D[i].min_;
-      cista::rtree<size_t, dims_3D>::coord_t max = rand_rects_list_3D[i].max_;
+      cista::rtree<size_t, dims_3D>::coord_t const min = rand_rects_list_3D[i].min_;
+      cista::rtree<size_t, dims_3D>::coord_t const max = rand_rects_list_3D[i].max_;
       rt_3D.insert(min, max, i);
     }
 
     for (size_t i = 0; i < rand_rects_list_1D.size(); ++i) {
-      cista::rtree<size_t, dims_3D>::coord_t min = rand_rects_list_3D[i].min_;
-      cista::rtree<size_t, dims_3D>::coord_t max = rand_rects_list_3D[i].max_;
+      cista::rtree<size_t, dims_3D>::coord_t const min = rand_rects_list_3D[i].min_;
+      cista::rtree<size_t, dims_3D>::coord_t const max = rand_rects_list_3D[i].max_;
       bool found_correct = false;
 
       rt_3D.search(min, max,
@@ -724,14 +724,14 @@ TEST_SUITE("rtree") {
 
     cista::rtree<size_t, dims_8D> rt_8D;
     for (size_t i = 0; i < rand_rects_list_1D.size(); ++i) {
-      cista::rtree<size_t, dims_8D>::coord_t min = rand_rects_list_8D[i].min_;
-      cista::rtree<size_t, dims_8D>::coord_t max = rand_rects_list_8D[i].max_;
+      cista::rtree<size_t, dims_8D>::coord_t const min = rand_rects_list_8D[i].min_;
+      cista::rtree<size_t, dims_8D>::coord_t const max = rand_rects_list_8D[i].max_;
       rt_8D.insert(min, max, i);
     }
 
     for (size_t i = 0; i < rand_rects_list_1D.size(); ++i) {
-      cista::rtree<size_t, dims_8D>::coord_t min = rand_rects_list_8D[i].min_;
-      cista::rtree<size_t, dims_8D>::coord_t max = rand_rects_list_8D[i].max_;
+      cista::rtree<size_t, dims_8D>::coord_t const min = rand_rects_list_8D[i].min_;
+      cista::rtree<size_t, dims_8D>::coord_t const max = rand_rects_list_8D[i].max_;
       bool found_correct = false;
 
       rt_8D.search(min, max,
