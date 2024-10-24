@@ -578,10 +578,11 @@ TEST_SUITE("rtree") {
 
     // 1D
     const uint32_t dims_1D = 1;
-    std::vector<cista::rtree<size_t, dims_1D>::rect> rand_rects_list_1D;
+    using rt_1D_t = cista::rtree<size_t, dims_1D>;
+    std::vector<rt_1D_t::rect> rand_rects_list_1D;
 
     for (int i = 0; i < N; ++i) {
-      cista::rtree<size_t, dims_1D>::rect rand_rect{};
+      rt_1D_t::rect rand_rect{};
       for (uint32_t j = 0; j < dims_1D; j++) {
         rand_rect.min_[j] = (float(rand()) / float((RAND_MAX)) * 100) - 50;
         rand_rect.max_[j] =
@@ -590,36 +591,28 @@ TEST_SUITE("rtree") {
       rand_rects_list_1D.emplace_back(rand_rect);
     }
 
-    cista::rtree<size_t, dims_1D> rt_1D;
+    rt_1D_t rt_1D;
     for (size_t i = 0; i < rand_rects_list_1D.size(); ++i) {
-      cista::rtree<size_t, dims_1D>::coord_t const min =
-          rand_rects_list_1D[i].min_;
-      cista::rtree<size_t, dims_1D>::coord_t const max =
-          rand_rects_list_1D[i].max_;
+      rt_1D_t::coord_t const min = rand_rects_list_1D[i].min_;
+      rt_1D_t::coord_t const max = rand_rects_list_1D[i].max_;
       rt_1D.insert(min, max, i);
     }
 
     for (size_t i = 0; i < rand_rects_list_1D.size(); ++i) {
-      cista::rtree<size_t, dims_1D>::coord_t const min =
-          rand_rects_list_1D[i].min_;
-      cista::rtree<size_t, dims_1D>::coord_t const max =
-          rand_rects_list_1D[i].max_;
+      rt_1D_t::coord_t const min = rand_rects_list_1D[i].min_;
+      rt_1D_t::coord_t const max = rand_rects_list_1D[i].max_;
       bool found_correct = false;
 
-      rt_1D.search(min, max,
-                   [=, &found_correct](
-                       cista::rtree<size_t, dims_1D>::coord_t const& min_temp,
-                       cista::rtree<size_t, dims_1D>::coord_t const& max_temp,
-                       size_t data) {
-                     if (cista::rtree<size_t, dims_1D>::rect::coord_t_equal(
-                             min, min_temp) &&
-                         cista::rtree<size_t, dims_1D>::rect::coord_t_equal(
-                             max, max_temp) &&
-                         data == i) {
-                       found_correct = true;
-                     }
-                     return true;
-                   });
+      rt_1D.search(
+          min, max,
+          [=, &found_correct](rt_1D_t::coord_t const& min_temp,
+                              rt_1D_t::coord_t const& max_temp, size_t data) {
+            if (rt_1D_t::rect::coord_t_equal(min, min_temp) &&
+                rt_1D_t::rect::coord_t_equal(max, max_temp) && data == i) {
+              found_correct = true;
+            }
+            return true;
+          });
 
       CHECK(found_correct);
 
@@ -628,30 +621,27 @@ TEST_SUITE("rtree") {
 
       found_correct = false;
 
-      rt_1D.search(min, max,
-                   [=, &found_correct](
-                       cista::rtree<size_t, dims_1D>::coord_t const& min_temp,
-                       cista::rtree<size_t, dims_1D>::coord_t const& max_temp,
-                       size_t data) {
-                     if (cista::rtree<size_t, dims_1D>::rect::coord_t_equal(
-                             min, min_temp) &&
-                         cista::rtree<size_t, dims_1D>::rect::coord_t_equal(
-                             max, max_temp) &&
-                         data == i) {
-                       found_correct = true;
-                     }
-                     return true;
-                   });
+      rt_1D.search(
+          min, max,
+          [=, &found_correct](rt_1D_t::coord_t const& min_temp,
+                              rt_1D_t::coord_t const& max_temp, size_t data) {
+            if (rt_1D_t::rect::coord_t_equal(min, min_temp) &&
+                rt_1D_t::rect::coord_t_equal(max, max_temp) && data == i) {
+              found_correct = true;
+            }
+            return true;
+          });
 
       CHECK((!found_correct));
     }
 
     // 3D
     const uint32_t dims_3D = 3;
-    std::vector<cista::rtree<size_t, dims_3D>::rect> rand_rects_list_3D;
+    using rt_3D_t = cista::rtree<size_t, dims_3D>;
+    std::vector<rt_3D_t::rect> rand_rects_list_3D;
 
     for (int i = 0; i < N; ++i) {
-      cista::rtree<size_t, dims_3D>::rect rand_rect{};
+      rt_3D_t::rect rand_rect{};
       for (uint32_t j = 0; j < dims_3D; j++) {
         rand_rect.min_[j] = (float(rand()) / float((RAND_MAX)) * 100) - 50;
         rand_rect.max_[j] =
@@ -660,36 +650,28 @@ TEST_SUITE("rtree") {
       rand_rects_list_3D.emplace_back(rand_rect);
     }
 
-    cista::rtree<size_t, dims_3D> rt_3D;
+    rt_3D_t rt_3D;
     for (size_t i = 0; i < rand_rects_list_1D.size(); ++i) {
-      cista::rtree<size_t, dims_3D>::coord_t const min =
-          rand_rects_list_3D[i].min_;
-      cista::rtree<size_t, dims_3D>::coord_t const max =
-          rand_rects_list_3D[i].max_;
+      rt_3D_t::coord_t const min = rand_rects_list_3D[i].min_;
+      rt_3D_t::coord_t const max = rand_rects_list_3D[i].max_;
       rt_3D.insert(min, max, i);
     }
 
     for (size_t i = 0; i < rand_rects_list_1D.size(); ++i) {
-      cista::rtree<size_t, dims_3D>::coord_t const min =
-          rand_rects_list_3D[i].min_;
-      cista::rtree<size_t, dims_3D>::coord_t const max =
-          rand_rects_list_3D[i].max_;
+      rt_3D_t::coord_t const min = rand_rects_list_3D[i].min_;
+      rt_3D_t::coord_t const max = rand_rects_list_3D[i].max_;
       bool found_correct = false;
 
-      rt_3D.search(min, max,
-                   [=, &found_correct](
-                       cista::rtree<size_t, dims_3D>::coord_t const& min_temp,
-                       cista::rtree<size_t, dims_3D>::coord_t const& max_temp,
-                       size_t data) {
-                     if (cista::rtree<size_t, dims_3D>::rect::coord_t_equal(
-                             min, min_temp) &&
-                         cista::rtree<size_t, dims_3D>::rect::coord_t_equal(
-                             max, max_temp) &&
-                         data == i) {
-                       found_correct = true;
-                     }
-                     return true;
-                   });
+      rt_3D.search(
+          min, max,
+          [=, &found_correct](rt_3D_t::coord_t const& min_temp,
+                              rt_3D_t::coord_t const& max_temp, size_t data) {
+            if (rt_3D_t::rect::coord_t_equal(min, min_temp) &&
+                rt_3D_t::rect::coord_t_equal(max, max_temp) && data == i) {
+              found_correct = true;
+            }
+            return true;
+          });
 
       CHECK(found_correct);
 
@@ -698,30 +680,27 @@ TEST_SUITE("rtree") {
 
       found_correct = false;
 
-      rt_3D.search(min, max,
-                   [=, &found_correct](
-                       cista::rtree<size_t, dims_3D>::coord_t const& min_temp,
-                       cista::rtree<size_t, dims_3D>::coord_t const& max_temp,
-                       size_t data) {
-                     if (cista::rtree<size_t, dims_3D>::rect::coord_t_equal(
-                             min, min_temp) &&
-                         cista::rtree<size_t, dims_3D>::rect::coord_t_equal(
-                             max, max_temp) &&
-                         data == i) {
-                       found_correct = true;
-                     }
-                     return true;
-                   });
+      rt_3D.search(
+          min, max,
+          [=, &found_correct](rt_3D_t::coord_t const& min_temp,
+                              rt_3D_t::coord_t const& max_temp, size_t data) {
+            if (rt_3D_t::rect::coord_t_equal(min, min_temp) &&
+                rt_3D_t::rect::coord_t_equal(max, max_temp) && data == i) {
+              found_correct = true;
+            }
+            return true;
+          });
 
       CHECK((!found_correct));
     }
 
     // 8D
     const uint32_t dims_8D = 8;
-    std::vector<cista::rtree<size_t, dims_8D>::rect> rand_rects_list_8D;
+    using rt_8D_t = cista::rtree<size_t, dims_8D>;
+    std::vector<rt_8D_t::rect> rand_rects_list_8D;
 
     for (int i = 0; i < N; ++i) {
-      cista::rtree<size_t, dims_8D>::rect rand_rect{};
+      rt_8D_t::rect rand_rect{};
       for (uint32_t j = 0; j < dims_8D; j++) {
         rand_rect.min_[j] = (float(rand()) / float((RAND_MAX)) * 100) - 50;
         rand_rect.max_[j] =
@@ -730,36 +709,28 @@ TEST_SUITE("rtree") {
       rand_rects_list_8D.emplace_back(rand_rect);
     }
 
-    cista::rtree<size_t, dims_8D> rt_8D;
+    rt_8D_t rt_8D;
     for (size_t i = 0; i < rand_rects_list_1D.size(); ++i) {
-      cista::rtree<size_t, dims_8D>::coord_t const min =
-          rand_rects_list_8D[i].min_;
-      cista::rtree<size_t, dims_8D>::coord_t const max =
-          rand_rects_list_8D[i].max_;
+      rt_8D_t::coord_t const min = rand_rects_list_8D[i].min_;
+      rt_8D_t::coord_t const max = rand_rects_list_8D[i].max_;
       rt_8D.insert(min, max, i);
     }
 
     for (size_t i = 0; i < rand_rects_list_1D.size(); ++i) {
-      cista::rtree<size_t, dims_8D>::coord_t const min =
-          rand_rects_list_8D[i].min_;
-      cista::rtree<size_t, dims_8D>::coord_t const max =
-          rand_rects_list_8D[i].max_;
+      rt_8D_t::coord_t const min = rand_rects_list_8D[i].min_;
+      rt_8D_t::coord_t const max = rand_rects_list_8D[i].max_;
       bool found_correct = false;
 
-      rt_8D.search(min, max,
-                   [=, &found_correct](
-                       cista::rtree<size_t, dims_8D>::coord_t const& min_temp,
-                       cista::rtree<size_t, dims_8D>::coord_t const& max_temp,
-                       size_t data) {
-                     if (cista::rtree<size_t, dims_8D>::rect::coord_t_equal(
-                             min, min_temp) &&
-                         cista::rtree<size_t, dims_8D>::rect::coord_t_equal(
-                             max, max_temp) &&
-                         data == i) {
-                       found_correct = true;
-                     }
-                     return true;
-                   });
+      rt_8D.search(
+          min, max,
+          [=, &found_correct](rt_8D_t::coord_t const& min_temp,
+                              rt_8D_t::coord_t const& max_temp, size_t data) {
+            if (rt_8D_t::rect::coord_t_equal(min, min_temp) &&
+                rt_8D_t::rect::coord_t_equal(max, max_temp) && data == i) {
+              found_correct = true;
+            }
+            return true;
+          });
 
       CHECK(found_correct);
 
@@ -768,20 +739,16 @@ TEST_SUITE("rtree") {
 
       found_correct = false;
 
-      rt_8D.search(min, max,
-                   [=, &found_correct](
-                       cista::rtree<size_t, dims_8D>::coord_t const& min_temp,
-                       cista::rtree<size_t, dims_8D>::coord_t const& max_temp,
-                       size_t data) {
-                     if (cista::rtree<size_t, dims_8D>::rect::coord_t_equal(
-                             min, min_temp) &&
-                         cista::rtree<size_t, dims_8D>::rect::coord_t_equal(
-                             max, max_temp) &&
-                         data == i) {
-                       found_correct = true;
-                     }
-                     return true;
-                   });
+      rt_8D.search(
+          min, max,
+          [=, &found_correct](rt_8D_t::coord_t const& min_temp,
+                              rt_8D_t::coord_t const& max_temp, size_t data) {
+            if (rt_8D_t::rect::coord_t_equal(min, min_temp) &&
+                rt_8D_t::rect::coord_t_equal(max, max_temp) && data == i) {
+              found_correct = true;
+            }
+            return true;
+          });
 
       CHECK((!found_correct));
     }
