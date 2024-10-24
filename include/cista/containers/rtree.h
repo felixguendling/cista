@@ -592,7 +592,6 @@ struct rtree {
    * @param node_rect The bounding rectangle of the current node
    * @param delete_node_id The current node id to check for deletion
    * @param input_rect The rectangle to search for
-   * @param item The data to compare to the found deletion entry
    * @param depth The current tree depth
    * @param removed Bool reference to indicate if a node was deleted
    * @param shrunk Bool reference to indicate if the tree has shrunk
@@ -683,7 +682,6 @@ struct rtree {
    * Deletes an element from the rtree
    * @param min The lower left vertex of the rectangle
    * @param max The upper right vertex of the rectangle
-   * @param item The data to insert
    * @param fn A function to evaluate the current entry
    */
   template <typename Fn>
