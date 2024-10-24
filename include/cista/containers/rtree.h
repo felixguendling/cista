@@ -778,13 +778,13 @@ struct rtree {
    * @param f The output stream to write to
    */
   void write_header_bin(std::ostream& f) {
-    f.write(static_cast<char*>(static_cast<void*>(&rect_)), sizeof rect_);
-    f.write(static_cast<char*>(static_cast<void*>(&root_)), sizeof root_);
-    f.write(static_cast<char*>(static_cast<void*>(&free_list_)), sizeof free_list_);
-    f.write(static_cast<char*>(static_cast<void*>(&count_)), sizeof count_);
-    f.write(static_cast<char*>(static_cast<void*>(&height_)), sizeof height_);
+    f.write(reinterpret_cast<char*>(&rect_), sizeof rect_);
+    f.write(reinterpret_cast<char*>(&root_), sizeof root_);
+    f.write(reinterpret_cast<char*>(&free_list_), sizeof free_list_);
+    f.write(reinterpret_cast<char*>(&count_), sizeof count_);
+    f.write(reinterpret_cast<char*>(&height_), sizeof height_);
     for (int i = 0; i < path_hint_.size(); ++i) {
-      f.write(static_cast<char*>(static_cast<void*>(&path_hint_[i])), sizeof path_hint_[i]);
+      f.write(reinterpret_cast<char*>(&path_hint_[i]), sizeof path_hint_[i]);
     }
   }
 
@@ -793,13 +793,13 @@ struct rtree {
    * @param f The input stream to read from
    */
   void read_header_bin(std::istream& f) {
-    f.read(static_cast<char*>(static_cast<void*>(&rect_)), sizeof rect_);
-    f.read(static_cast<char*>(static_cast<void*>(&root_)), sizeof root_);
-    f.read(static_cast<char*>(static_cast<void*>(&free_list_)), sizeof free_list_);
-    f.read(static_cast<char*>(static_cast<void*>(&count_)), sizeof count_);
-    f.read(static_cast<char*>(static_cast<void*>(&height_)), sizeof height_);
+    f.read(reinterpret_cast<char*>(&rect_), sizeof rect_);
+    f.read(reinterpret_cast<char*>(&root_), sizeof root_);
+    f.read(reinterpret_cast<char*>(&free_list_), sizeof free_list_);
+    f.read(reinterpret_cast<char*>(&count_), sizeof count_);
+    f.read(reinterpret_cast<char*>(&height_), sizeof height_);
     for (int i = 0; i < path_hint_.size(); ++i) {
-      f.read(static_cast<char*>(static_cast<void*>(&path_hint_[i])), sizeof path_hint_[i]);
+      f.read(reinterpret_cast<char*>(&path_hint_[i]), sizeof path_hint_[i]);
     }
   }
 
