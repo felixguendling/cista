@@ -603,7 +603,7 @@ TEST_SUITE("rtree") {
       bool found_correct = false;
 
       rt_1D.search(min, max,
-                   [min, max, i, &found_correct](
+                   [=, &found_correct](
                        cista::rtree<size_t, dims_1D>::coord_t const& min_temp,
                        cista::rtree<size_t, dims_1D>::coord_t const& max_temp,
                        size_t data) {
@@ -625,7 +625,7 @@ TEST_SUITE("rtree") {
       found_correct = false;
 
       rt_1D.search(min, max,
-                   [min, max, i, &found_correct](
+                   [=, &found_correct](
                        cista::rtree<size_t, dims_1D>::coord_t const& min_temp,
                        cista::rtree<size_t, dims_1D>::coord_t const& max_temp,
                        size_t data) {
@@ -669,7 +669,7 @@ TEST_SUITE("rtree") {
       bool found_correct = false;
 
       rt_3D.search(min, max,
-                   [min, max, i, &found_correct](
+                   [=, &found_correct](
                        cista::rtree<size_t, dims_3D>::coord_t const& min_temp,
                        cista::rtree<size_t, dims_3D>::coord_t const& max_temp,
                        size_t data) {
@@ -691,7 +691,7 @@ TEST_SUITE("rtree") {
       found_correct = false;
 
       rt_3D.search(min, max,
-                   [min, max, i, &found_correct](
+                   [=, &found_correct](
                        cista::rtree<size_t, dims_3D>::coord_t const& min_temp,
                        cista::rtree<size_t, dims_3D>::coord_t const& max_temp,
                        size_t data) {
@@ -735,7 +735,7 @@ TEST_SUITE("rtree") {
       bool found_correct = false;
 
       rt_8D.search(min, max,
-                   [min, max, i, &found_correct](
+                   [=, &found_correct](
                        cista::rtree<size_t, dims_8D>::coord_t const& min_temp,
                        cista::rtree<size_t, dims_8D>::coord_t const& max_temp,
                        size_t data) {
@@ -757,7 +757,7 @@ TEST_SUITE("rtree") {
       found_correct = false;
 
       rt_8D.search(min, max,
-                   [min, max, i, &found_correct](
+                   [=, &found_correct](
                        cista::rtree<size_t, dims_8D>::coord_t const& min_temp,
                        cista::rtree<size_t, dims_8D>::coord_t const& max_temp,
                        size_t data) {
