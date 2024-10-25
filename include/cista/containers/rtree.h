@@ -631,7 +631,7 @@ struct rtree {
       return;
     }
 
-    size_t h = 0;
+    uint32_t h = 0;
     h = path_hint_[depth];
     rect crect;
     if (h < delete_node.count_) {
