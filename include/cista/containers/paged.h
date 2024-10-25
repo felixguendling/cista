@@ -27,7 +27,7 @@ template <typename DataVec, typename SizeType = typename DataVec::size_type,
               std::max(std::size_t{2U},
                        next_power_of_two(sizeof(page<SizeType, PageSizeType>) /
                                          sizeof(typename DataVec::value_type))),
-          PageSizeType MaxPageSize = 4096>
+          PageSizeType MaxPageSize = (1 << 15)>
 struct paged {
   using value_type = typename DataVec::value_type;
   using iterator = typename DataVec::iterator;
