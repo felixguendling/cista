@@ -1,5 +1,4 @@
 #include <fstream>
-#include <iomanip>
 #include "doctest.h"
 
 #ifdef SINGLE_HEADER
@@ -567,6 +566,10 @@ TEST_SUITE("rtree") {
                 });
 
       CHECK((found_correct));
+    }
+
+    for (auto& i : data_input_list) {
+      free(i.int_array_data);
     }
 
     CHECK((tree_size_after_deletion == rt.nodes_.size()));
