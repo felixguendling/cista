@@ -14,11 +14,6 @@ namespace cista {
 template <typename Ctx, typename T>
 void serialize(Ctx& c, T const* origin, offset_t const pos);
 
-template <typename NumType>
-inline bool feq(NumType a, NumType b) {
-  return !(a < b || a > b);
-}
-
 template <typename DataType, uint32_t Dims = 2U, typename NumType = float,
           uint32_t MaxItems = 64U, typename SizeType = std::uint32_t,
           template <typename, typename...> typename VectorType =
@@ -37,6 +32,14 @@ struct rtree {
   using coord_t = array<NumType, Dims>;
 
   struct rect {
+    /**
+     * Checks if two numbers are equal without using ==
+     * @param a First number
+     * @param b Second number
+     * @return True if equal
+     */
+    static inline bool feq(NumType a, NumType b) { return !(a < b || a > b); }
+
     /**
      * The area of the bounding rectangle of this rect and other_rect
      * @param other_rect The second rectangle to calculate with
