@@ -781,8 +781,8 @@ struct rtree {
     f.write(reinterpret_cast<char*>(&free_list_), sizeof free_list_);
     f.write(reinterpret_cast<char*>(&count_), sizeof count_);
     f.write(reinterpret_cast<char*>(&height_), sizeof height_);
-    for (int i = 0; i < path_hint_.size(); ++i) {
-      f.write(reinterpret_cast<char*>(&path_hint_[i]), sizeof path_hint_[i]);
+    for (unsigned int & i : path_hint_) {
+      f.write(reinterpret_cast<char*>(&i), sizeof i);
     }
   }
 
@@ -796,8 +796,8 @@ struct rtree {
     f.read(reinterpret_cast<char*>(&free_list_), sizeof free_list_);
     f.read(reinterpret_cast<char*>(&count_), sizeof count_);
     f.read(reinterpret_cast<char*>(&height_), sizeof height_);
-    for (int i = 0; i < path_hint_.size(); ++i) {
-      f.read(reinterpret_cast<char*>(&path_hint_[i]), sizeof path_hint_[i]);
+    for (unsigned int & i : path_hint_) {
+      f.read(reinterpret_cast<char*>(&i), sizeof i);
     }
   }
 
