@@ -102,8 +102,8 @@ struct rtree {
      */
     bool onedge(rect const& other_rect) noexcept {
       for (auto i = 0U; i < Dims; i++) {
-        if (feq(min_[i], other_rect.min_[i]) ||
-            feq(max_[i], other_rect.max_[i])) {
+        if (this->feq(min_[i], other_rect.min_[i]) ||
+            this->feq(max_[i], other_rect.max_[i])) {
           return true;
         }
       }
@@ -144,8 +144,8 @@ struct rtree {
      * @return True if they are equal
      */
     bool equals(rect const& other_rect) {
-      if (!coord_t_equal(min_, other_rect.min_) ||
-          !coord_t_equal(max_, other_rect.max_)) {
+      if (!this->coord_t_equal(min_, other_rect.min_) ||
+          !this->coord_t_equal(max_, other_rect.max_)) {
         return false;
       }
       return true;
@@ -168,7 +168,7 @@ struct rtree {
      */
     bool coord_t_equal(coord_t const& coord_1, coord_t const& coord_2) {
       for (size_t i = 0; i < Dims; ++i) {
-        if (!feq(coord_1[i], coord_2[i])) {
+        if (!this->feq(coord_1[i], coord_2[i])) {
           return false;
         }
       }
@@ -731,20 +731,18 @@ struct rtree {
    * @param data The data to delete
    */
   void delete_element(coord_t const& min, coord_t const& max, DataType& data) {
-    using r_tree_instance =
-        cista::rtree<DataType, Dims, NumType, MaxItems, SizeType, VectorType>;
-    return delete_0(
-        min, max,
-        [min, max, &data, this](r_tree_instance::coord_t const& min_temp,
-                                r_tree_instance::coord_t const& max_temp,
-                                DataType& search_data) {
-          if (this->rect_.coord_t_equal(min, min_temp) &&
-              this->rect_.coord_t_equal(max, max_temp) && data == search_data) {
-            return true;
-          } else {
-            return false;
-          }
-        });
+    return delete_0(min, max,
+                    [min, max, &data, this](coord_t const& min_temp,
+                                            coord_t const& max_temp,
+                                            DataType& search_data) {
+                      if (this->rect_.coord_t_equal(min, min_temp) &&
+                          this->rect_.coord_t_equal(max, max_temp) &&
+                          data == search_data) {
+                        return true;
+                      } else {
+                        return false;
+                      }
+                    });
   }
 
   /**
