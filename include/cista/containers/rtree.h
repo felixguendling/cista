@@ -38,7 +38,7 @@ struct rtree {
      * @param b Second number
      * @return True if equal
      */
-    static inline bool feq(NumType a, NumType b) { return !(a < b || a > b); }
+    inline bool feq(NumType a, NumType b) { return !(a < b || a > b); }
 
     /**
      * The area of the bounding rectangle of this rect and other_rect
@@ -100,7 +100,7 @@ struct rtree {
      * @return True if the at least one of the edges of the rectangles are
      * touching
      */
-    bool onedge(rect const& other_rect) const noexcept {
+    bool onedge(rect const& other_rect) noexcept {
       for (auto i = 0U; i < Dims; i++) {
         if (feq(min_[i], other_rect.min_[i]) ||
             feq(max_[i], other_rect.max_[i])) {
@@ -166,7 +166,7 @@ struct rtree {
      * @param coord_2 Second coordinate
      * @return True if they are the same
      */
-    static bool coord_t_equal(coord_t const& coord_1, coord_t const& coord_2) {
+    bool coord_t_equal(coord_t const& coord_1, coord_t const& coord_2) {
       for (size_t i = 0; i < Dims; ++i) {
         if (!feq(coord_1[i], coord_2[i])) {
           return false;
@@ -733,18 +733,18 @@ struct rtree {
   void delete_element(coord_t const& min, coord_t const& max, DataType& data) {
     using r_tree_instance =
         cista::rtree<DataType, Dims, NumType, MaxItems, SizeType, VectorType>;
-    return delete_0(min, max,
-                    [min, max, &data](r_tree_instance::coord_t const& min_temp,
-                                      r_tree_instance::coord_t const& max_temp,
-                                      DataType& search_data) {
-                      if (r_tree_instance::rect::coord_t_equal(min, min_temp) &&
-                          r_tree_instance::rect::coord_t_equal(max, max_temp) &&
-                          data == search_data) {
-                        return true;
-                      } else {
-                        return false;
-                      }
-                    });
+    return delete_0(
+        min, max,
+        [min, max, &data, this](r_tree_instance::coord_t const& min_temp,
+                                r_tree_instance::coord_t const& max_temp,
+                                DataType& search_data) {
+          if (this->rect_.coord_t_equal(min, min_temp) &&
+              this->rect_.coord_t_equal(max, max_temp) && data == search_data) {
+            return true;
+          } else {
+            return false;
+          }
+        });
   }
 
   /**

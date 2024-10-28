@@ -18,9 +18,11 @@ using mm_rtree =
 struct ctx_entry {
   cista_rtree::coord_t min, max;
   uint32_t data;
+
   bool operator==(ctx_entry other) const {
-    return cista_rtree::rect::coord_t_equal(this->min, other.min) &&
-           cista_rtree::rect::coord_t_equal(this->max, other.max) &&
+    cista_rtree rt;
+    return rt.rect_.coord_t_equal(this->min, other.min) &&
+           rt.rect_.coord_t_equal(this->max, other.max) &&
            this->data == other.data;
   }
 };
@@ -147,31 +149,30 @@ int test_bench(uint8_t const* data, size_t size) {
       iter_ref_ctx ctx{};
       ctx.count = 0;
       ctx.expected_value = 0;
-      uut_tree.search(
-          coord_min, coord_max,
-          [coord_min, coord_max, &ctx](cista_rtree::coord_t const& min_temp,
-                                       cista_rtree::coord_t const& max_temp,
-                                       uint32_t data) {
-            if (cista_rtree::rect::coord_t_equal(coord_min, min_temp) &&
-                cista_rtree::rect::coord_t_equal(coord_max, max_temp)) {
-              ctx.expected_value++;
-              ctx_entry input_entry{};
-              input_entry.min = min_temp;
-              input_entry.max = max_temp;
-              input_entry.data = data;
-              ctx.found_entries.emplace_back(input_entry);
-            }
-            return true;
-          });
+      uut_tree.search(coord_min, coord_max,
+                      [coord_min, coord_max, &ctx, &uut_tree](
+                          cista_rtree::coord_t const& min_temp,
+                          cista_rtree::coord_t const& max_temp, uint32_t data) {
+                        if (uut_tree.rect_.coord_t_equal(coord_min, min_temp) &&
+                            uut_tree.rect_.coord_t_equal(coord_max, max_temp)) {
+                          ctx.expected_value++;
+                          ctx_entry input_entry{};
+                          input_entry.min = min_temp;
+                          input_entry.max = max_temp;
+                          input_entry.data = data;
+                          ctx.found_entries.emplace_back(input_entry);
+                        }
+                        return true;
+                      });
 
       ctx.expected_value_mm = 0;
       cista_mm_rtree.search(
           coord_min, coord_max,
-          [coord_min, coord_max, &ctx](cista_rtree::coord_t const& min_temp,
-                                       cista_rtree::coord_t const& max_temp,
-                                       uint32_t data) {
-            if (cista_rtree::rect::coord_t_equal(coord_min, min_temp) &&
-                cista_rtree::rect::coord_t_equal(coord_max, max_temp)) {
+          [coord_min, coord_max, &ctx, &cista_mm_rtree](
+              cista_rtree::coord_t const& min_temp,
+              cista_rtree::coord_t const& max_temp, uint32_t data) {
+            if (cista_mm_rtree.rect_.coord_t_equal(coord_min, min_temp) &&
+                cista_mm_rtree.rect_.coord_t_equal(coord_max, max_temp)) {
               ctx.expected_value_mm++;
               ctx_entry input_entry{};
               input_entry.min = min_temp;

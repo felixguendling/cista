@@ -112,12 +112,11 @@ TEST_SUITE("rtree") {
 
       rt.search(
           min, max,
-          [min, max, i, &found_correct](
+          [min, max, i, &found_correct, &rt](
               cista::rtree<size_t>::coord_t const& min_temp,
               cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-            if (cista::rtree<size_t>::rect::coord_t_equal(min, min_temp) &&
-                cista::rtree<size_t>::rect::coord_t_equal(max, max_temp) &&
-                data == i) {
+            if (rt.rect_.coord_t_equal(min, min_temp) &&
+                rt.rect_.coord_t_equal(max, max_temp) && data == i) {
               found_correct = true;
             }
             return true;
@@ -149,12 +148,11 @@ TEST_SUITE("rtree") {
     bool found_correct = false;
 
     rt.search(min, max,
-              [min, max, index, &found_correct](
+              [min, max, index, &found_correct, &rt](
                   cista::rtree<size_t>::coord_t const& min_temp,
                   cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-                if (cista::rtree<size_t>::rect::coord_t_equal(min, min_temp) &&
-                    cista::rtree<size_t>::rect::coord_t_equal(max, max_temp) &&
-                    data == index) {
+                if (rt.rect_.coord_t_equal(min, min_temp) &&
+                    rt.rect_.coord_t_equal(max, max_temp) && data == index) {
                   found_correct = true;
                 }
                 return true;
@@ -166,12 +164,11 @@ TEST_SUITE("rtree") {
 
     found_correct = false;
     rt.search(min, max,
-              [min, max, index, &found_correct](
+              [min, max, index, &found_correct, &rt](
                   cista::rtree<size_t>::coord_t const& min_temp,
                   cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-                if (cista::rtree<size_t>::rect::coord_t_equal(min, min_temp) &&
-                    cista::rtree<size_t>::rect::coord_t_equal(max, max_temp) &&
-                    data == index) {
+                if (rt.rect_.coord_t_equal(min, min_temp) &&
+                    rt.rect_.coord_t_equal(max, max_temp) && data == index) {
                   found_correct = true;
                 }
                 return true;
@@ -206,12 +203,11 @@ TEST_SUITE("rtree") {
     bool found_correct = false;
 
     rt.search(min, max,
-              [min, max, index, &found_correct](
+              [min, max, index, &found_correct, &rt](
                   cista::rtree<size_t>::coord_t const& min_temp,
                   cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-                if (cista::rtree<size_t>::rect::coord_t_equal(min, min_temp) &&
-                    cista::rtree<size_t>::rect::coord_t_equal(max, max_temp) &&
-                    data == index) {
+                if (rt.rect_.coord_t_equal(min, min_temp) &&
+                    rt.rect_.coord_t_equal(max, max_temp) && data == index) {
                   found_correct = true;
                 }
                 return true;
@@ -223,12 +219,11 @@ TEST_SUITE("rtree") {
 
     found_correct = false;
     rt.search(min, max,
-              [min, max, index, &found_correct](
+              [min, max, index, &found_correct, &rt](
                   cista::rtree<size_t>::coord_t const& min_temp,
                   cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-                if (cista::rtree<size_t>::rect::coord_t_equal(min, min_temp) &&
-                    cista::rtree<size_t>::rect::coord_t_equal(max, max_temp) &&
-                    data == index) {
+                if (rt.rect_.coord_t_equal(min, min_temp) &&
+                    rt.rect_.coord_t_equal(max, max_temp) && data == index) {
                   found_correct = true;
                 }
                 return true;
@@ -265,13 +260,11 @@ TEST_SUITE("rtree") {
 
       rt.search(
           temp_rect.min_, temp_rect.max_,
-          [temp_rect, temp_data, &found_correct](
+          [temp_rect, temp_data, &found_correct, &rt](
               cista::rtree<size_t>::coord_t const& min_temp,
               cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-            if (cista::rtree<size_t>::rect::coord_t_equal(temp_rect.min_,
-                                                          min_temp) &&
-                cista::rtree<size_t>::rect::coord_t_equal(temp_rect.max_,
-                                                          max_temp) &&
+            if (rt.rect_.coord_t_equal(temp_rect.min_, min_temp) &&
+                rt.rect_.coord_t_equal(temp_rect.max_, max_temp) &&
                 data == temp_data) {
               found_correct = true;
             }
@@ -286,13 +279,11 @@ TEST_SUITE("rtree") {
 
       rt.search(
           temp_rect.min_, temp_rect.max_,
-          [temp_rect, temp_data, &found_correct](
+          [temp_rect, temp_data, &found_correct, &rt](
               cista::rtree<size_t>::coord_t const& min_temp,
               cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-            if (cista::rtree<size_t>::rect::coord_t_equal(temp_rect.min_,
-                                                          min_temp) &&
-                cista::rtree<size_t>::rect::coord_t_equal(temp_rect.max_,
-                                                          max_temp) &&
+            if (rt.rect_.coord_t_equal(temp_rect.min_, min_temp) &&
+                rt.rect_.coord_t_equal(temp_rect.max_, max_temp) &&
                 data == temp_data) {
               found_correct = true;
             }
@@ -328,12 +319,11 @@ TEST_SUITE("rtree") {
 
       rt.search(
           min, max,
-          [min, max, i, &found_correct](
+          [min, max, i, &found_correct, &rt](
               cista::rtree<size_t>::coord_t const& min_temp,
               cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-            if (cista::rtree<size_t>::rect::coord_t_equal(min, min_temp) &&
-                cista::rtree<size_t>::rect::coord_t_equal(max, max_temp) &&
-                data == i) {
+            if (rt.rect_.coord_t_equal(min, min_temp) &&
+                rt.rect_.coord_t_equal(max, max_temp) && data == i) {
               found_correct = true;
             }
             return true;
@@ -347,12 +337,11 @@ TEST_SUITE("rtree") {
 
       rt.search(
           min, max,
-          [min, max, i, &found_correct](
+          [min, max, i, &found_correct, &rt](
               cista::rtree<size_t>::coord_t const& min_temp,
               cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-            if (cista::rtree<size_t>::rect::coord_t_equal(min, min_temp) &&
-                cista::rtree<size_t>::rect::coord_t_equal(max, max_temp) &&
-                data == i) {
+            if (rt.rect_.coord_t_equal(min, min_temp) &&
+                rt.rect_.coord_t_equal(max, max_temp) && data == i) {
               found_correct = true;
             }
             return true;
@@ -387,12 +376,11 @@ TEST_SUITE("rtree") {
 
       rt.search(
           min, max,
-          [min, max, i, &found_correct](
+          [min, max, i, &found_correct, &rt](
               cista::rtree<size_t>::coord_t const& min_temp,
               cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-            if (cista::rtree<size_t>::rect::coord_t_equal(min, min_temp) &&
-                cista::rtree<size_t>::rect::coord_t_equal(max, max_temp) &&
-                data == i) {
+            if (rt.rect_.coord_t_equal(min, min_temp) &&
+                rt.rect_.coord_t_equal(max, max_temp) && data == i) {
               found_correct = true;
             }
             return true;
@@ -406,12 +394,11 @@ TEST_SUITE("rtree") {
 
       rt.search(
           min, max,
-          [min, max, i, &found_correct](
+          [min, max, i, &found_correct, &rt](
               cista::rtree<size_t>::coord_t const& min_temp,
               cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-            if (cista::rtree<size_t>::rect::coord_t_equal(min, min_temp) &&
-                cista::rtree<size_t>::rect::coord_t_equal(max, max_temp) &&
-                data == i) {
+            if (rt.rect_.coord_t_equal(min, min_temp) &&
+                rt.rect_.coord_t_equal(max, max_temp) && data == i) {
               found_correct = true;
             }
             return true;
@@ -431,12 +418,11 @@ TEST_SUITE("rtree") {
 
       rt.search(
           min, max,
-          [min, max, i, &found_correct](
+          [min, max, i, &found_correct, &rt](
               cista::rtree<size_t>::coord_t const& min_temp,
               cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-            if (cista::rtree<size_t>::rect::coord_t_equal(min, min_temp) &&
-                cista::rtree<size_t>::rect::coord_t_equal(max, max_temp) &&
-                data == i) {
+            if (rt.rect_.coord_t_equal(min, min_temp) &&
+                rt.rect_.coord_t_equal(max, max_temp) && data == i) {
               found_correct = true;
             }
             return true;
@@ -499,14 +485,12 @@ TEST_SUITE("rtree") {
       bool found_correct = false;
 
       rt.search(min, max,
-                [min, max, i, &data_input_list, &found_correct](
+                [min, max, i, &data_input_list, &found_correct, &rt](
                     cista::rtree<custom_data_type>::coord_t const& min_temp,
                     cista::rtree<custom_data_type>::coord_t const& max_temp,
                     custom_data_type data) {
-                  if (cista::rtree<custom_data_type>::rect::coord_t_equal(
-                          min, min_temp) &&
-                      cista::rtree<custom_data_type>::rect::coord_t_equal(
-                          max, max_temp) &&
+                  if (rt.rect_.coord_t_equal(min, min_temp) &&
+                      rt.rect_.coord_t_equal(max, max_temp) &&
                       data == data_input_list[i]) {
                     found_correct = true;
                   }
@@ -524,14 +508,12 @@ TEST_SUITE("rtree") {
       found_correct = false;
 
       rt.search(min, max,
-                [min, max, i, &data_input_list, &found_correct](
+                [min, max, i, &data_input_list, &found_correct, &rt](
                     cista::rtree<custom_data_type>::coord_t const& min_temp,
                     cista::rtree<custom_data_type>::coord_t const& max_temp,
                     custom_data_type data) {
-                  if (cista::rtree<custom_data_type>::rect::coord_t_equal(
-                          min, min_temp) &&
-                      cista::rtree<custom_data_type>::rect::coord_t_equal(
-                          max, max_temp) &&
+                  if (rt.rect_.coord_t_equal(min, min_temp) &&
+                      rt.rect_.coord_t_equal(max, max_temp) &&
                       data == data_input_list[i]) {
                     found_correct = true;
                   }
@@ -551,14 +533,12 @@ TEST_SUITE("rtree") {
       bool found_correct = false;
 
       rt.search(min, max,
-                [min, max, i, &data_input_list, &found_correct](
+                [min, max, i, &data_input_list, &found_correct, &rt](
                     cista::rtree<custom_data_type>::coord_t const& min_temp,
                     cista::rtree<custom_data_type>::coord_t const& max_temp,
                     custom_data_type data) {
-                  if (cista::rtree<custom_data_type>::rect::coord_t_equal(
-                          min, min_temp) &&
-                      cista::rtree<custom_data_type>::rect::coord_t_equal(
-                          max, max_temp) &&
+                  if (rt.rect_.coord_t_equal(min, min_temp) &&
+                      rt.rect_.coord_t_equal(max, max_temp) &&
                       data == data_input_list[i]) {
                     found_correct = true;
                   }
@@ -606,16 +586,17 @@ TEST_SUITE("rtree") {
       rt_1D_t::coord_t const max = rand_rects_list_1D[i].max_;
       bool found_correct = false;
 
-      rt_1D.search(
-          min, max,
-          [=, &found_correct](rt_1D_t::coord_t const& min_temp,
-                              rt_1D_t::coord_t const& max_temp, size_t data) {
-            if (rt_1D_t::rect::coord_t_equal(min, min_temp) &&
-                rt_1D_t::rect::coord_t_equal(max, max_temp) && data == i) {
-              found_correct = true;
-            }
-            return true;
-          });
+      rt_1D.search(min, max,
+                   [=, &found_correct, &rt_1D](rt_1D_t::coord_t const& min_temp,
+                                               rt_1D_t::coord_t const& max_temp,
+                                               size_t data) {
+                     if (rt_1D.rect_.coord_t_equal(min, min_temp) &&
+                         rt_1D.rect_.coord_t_equal(max, max_temp) &&
+                         data == i) {
+                       found_correct = true;
+                     }
+                     return true;
+                   });
 
       CHECK(found_correct);
 
@@ -624,16 +605,17 @@ TEST_SUITE("rtree") {
 
       found_correct = false;
 
-      rt_1D.search(
-          min, max,
-          [=, &found_correct](rt_1D_t::coord_t const& min_temp,
-                              rt_1D_t::coord_t const& max_temp, size_t data) {
-            if (rt_1D_t::rect::coord_t_equal(min, min_temp) &&
-                rt_1D_t::rect::coord_t_equal(max, max_temp) && data == i) {
-              found_correct = true;
-            }
-            return true;
-          });
+      rt_1D.search(min, max,
+                   [=, &found_correct, &rt_1D](rt_1D_t::coord_t const& min_temp,
+                                               rt_1D_t::coord_t const& max_temp,
+                                               size_t data) {
+                     if (rt_1D.rect_.coord_t_equal(min, min_temp) &&
+                         rt_1D.rect_.coord_t_equal(max, max_temp) &&
+                         data == i) {
+                       found_correct = true;
+                     }
+                     return true;
+                   });
 
       CHECK((!found_correct));
     }
@@ -665,16 +647,17 @@ TEST_SUITE("rtree") {
       rt_3D_t::coord_t const max = rand_rects_list_3D[i].max_;
       bool found_correct = false;
 
-      rt_3D.search(
-          min, max,
-          [=, &found_correct](rt_3D_t::coord_t const& min_temp,
-                              rt_3D_t::coord_t const& max_temp, size_t data) {
-            if (rt_3D_t::rect::coord_t_equal(min, min_temp) &&
-                rt_3D_t::rect::coord_t_equal(max, max_temp) && data == i) {
-              found_correct = true;
-            }
-            return true;
-          });
+      rt_3D.search(min, max,
+                   [=, &found_correct, &rt_3D](rt_3D_t::coord_t const& min_temp,
+                                               rt_3D_t::coord_t const& max_temp,
+                                               size_t data) {
+                     if (rt_3D.rect_.coord_t_equal(min, min_temp) &&
+                         rt_3D.rect_.coord_t_equal(max, max_temp) &&
+                         data == i) {
+                       found_correct = true;
+                     }
+                     return true;
+                   });
 
       CHECK(found_correct);
 
@@ -683,16 +666,17 @@ TEST_SUITE("rtree") {
 
       found_correct = false;
 
-      rt_3D.search(
-          min, max,
-          [=, &found_correct](rt_3D_t::coord_t const& min_temp,
-                              rt_3D_t::coord_t const& max_temp, size_t data) {
-            if (rt_3D_t::rect::coord_t_equal(min, min_temp) &&
-                rt_3D_t::rect::coord_t_equal(max, max_temp) && data == i) {
-              found_correct = true;
-            }
-            return true;
-          });
+      rt_3D.search(min, max,
+                   [=, &found_correct, &rt_3D](rt_3D_t::coord_t const& min_temp,
+                                               rt_3D_t::coord_t const& max_temp,
+                                               size_t data) {
+                     if (rt_3D.rect_.coord_t_equal(min, min_temp) &&
+                         rt_3D.rect_.coord_t_equal(max, max_temp) &&
+                         data == i) {
+                       found_correct = true;
+                     }
+                     return true;
+                   });
 
       CHECK((!found_correct));
     }
@@ -724,16 +708,17 @@ TEST_SUITE("rtree") {
       rt_8D_t::coord_t const max = rand_rects_list_8D[i].max_;
       bool found_correct = false;
 
-      rt_8D.search(
-          min, max,
-          [=, &found_correct](rt_8D_t::coord_t const& min_temp,
-                              rt_8D_t::coord_t const& max_temp, size_t data) {
-            if (rt_8D_t::rect::coord_t_equal(min, min_temp) &&
-                rt_8D_t::rect::coord_t_equal(max, max_temp) && data == i) {
-              found_correct = true;
-            }
-            return true;
-          });
+      rt_8D.search(min, max,
+                   [=, &found_correct, &rt_8D](rt_8D_t::coord_t const& min_temp,
+                                               rt_8D_t::coord_t const& max_temp,
+                                               size_t data) {
+                     if (rt_8D.rect_.coord_t_equal(min, min_temp) &&
+                         rt_8D.rect_.coord_t_equal(max, max_temp) &&
+                         data == i) {
+                       found_correct = true;
+                     }
+                     return true;
+                   });
 
       CHECK(found_correct);
 
@@ -742,16 +727,17 @@ TEST_SUITE("rtree") {
 
       found_correct = false;
 
-      rt_8D.search(
-          min, max,
-          [=, &found_correct](rt_8D_t::coord_t const& min_temp,
-                              rt_8D_t::coord_t const& max_temp, size_t data) {
-            if (rt_8D_t::rect::coord_t_equal(min, min_temp) &&
-                rt_8D_t::rect::coord_t_equal(max, max_temp) && data == i) {
-              found_correct = true;
-            }
-            return true;
-          });
+      rt_8D.search(min, max,
+                   [=, &found_correct, &rt_8D](rt_8D_t::coord_t const& min_temp,
+                                               rt_8D_t::coord_t const& max_temp,
+                                               size_t data) {
+                     if (rt_8D.rect_.coord_t_equal(min, min_temp) &&
+                         rt_8D.rect_.coord_t_equal(max, max_temp) &&
+                         data == i) {
+                       found_correct = true;
+                     }
+                     return true;
+                   });
 
       CHECK((!found_correct));
     }
@@ -780,12 +766,11 @@ TEST_SUITE("rtree") {
 
       rt.search(
           min, max,
-          [min, max, i, &found_correct](
+          [min, max, i, &found_correct, &rt](
               cista::rtree<size_t>::coord_t const& min_temp,
               cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-            if (cista::rtree<size_t>::rect::coord_t_equal(min, min_temp) &&
-                cista::rtree<size_t>::rect::coord_t_equal(max, max_temp) &&
-                data == i) {
+            if (rt.rect_.coord_t_equal(min, min_temp) &&
+                rt.rect_.coord_t_equal(max, max_temp) && data == i) {
               found_correct = true;
             }
             return true;
