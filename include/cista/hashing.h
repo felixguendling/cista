@@ -142,6 +142,14 @@ struct hashing<std::chrono::duration<Rep, Period>> {
   }
 };
 
+template <typename Clock, typename Duration>
+struct hashing<std::chrono::time_point<Clock, Duration>> {
+  hash_t operator()(std::chrono::time_point<Clock, Duration> const& el,
+                    hash_t const seed = BASE_HASH) {
+    return hashing<Duration>{}(el.time_since_epoch(), seed);
+  }
+};
+
 template <typename T1, typename T2>
 struct hashing<std::pair<T1, T2>> {
   constexpr hash_t operator()(std::pair<T1, T2> const& el,
