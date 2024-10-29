@@ -179,7 +179,7 @@ struct hashing<std::tuple<Args...>> {
     hash_t h = seed;
     std::apply(
         [&h](auto&&... args) {
-          ((h = hashing<decltype(args)>{}(args, h)), ...);
+          ((h = hashing<std::decay_t<decltype(args)>>{}(args, h)), ...);
         },
         el);
     return h;
