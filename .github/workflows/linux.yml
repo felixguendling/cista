@@ -112,7 +112,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends valgrind
       - name: Run Single Header Tests Valgrind
         if: matrix.config.valgrind
-        run: valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full ./build/cista-test
+        run: valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full --track-origins=true ./build/cista-test
       - name: Run Single Header Tests Tests Valgrind
         if: matrix.config.valgrind
         run: valgrind --error-exitcode=1 --show-reachable=yes --leak-check=full ./build/cista-test-single-header
