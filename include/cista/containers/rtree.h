@@ -102,8 +102,8 @@ struct rtree {
      */
     bool onedge(rect const& other_rect) noexcept {
       for (auto i = 0U; i < Dims; i++) {
-        if (this->feq(min_[i], other_rect.min_[i]) ||
-            this->feq(max_[i], other_rect.max_[i])) {
+        if (feq(min_[i], other_rect.min_[i]) ||
+            feq(max_[i], other_rect.max_[i])) {
           return true;
         }
       }
@@ -144,18 +144,9 @@ struct rtree {
      * @return True if they are equal
      */
     bool equals(rect const& other_rect) {
-      if (!this->coord_t_equal(min_, other_rect.min_) ||
-          !this->coord_t_equal(max_, other_rect.max_)) {
+      if (!coord_t_equal(min_, other_rect.min_) ||
+          !coord_t_equal(max_, other_rect.max_)) {
         return false;
-      }
-      return true;
-    }
-
-    bool equals_bin(rect const& other_rect) {
-      for (size_t i = 0; i < Dims; ++i) {
-        if (min_[i] != other_rect.min_[i] || max_[i] != other_rect.max_[i]) {
-          return false;
-        }
       }
       return true;
     }
@@ -168,7 +159,7 @@ struct rtree {
      */
     bool coord_t_equal(coord_t const& coord_1, coord_t const& coord_2) {
       for (size_t i = 0; i < Dims; ++i) {
-        if (!this->feq(coord_1[i], coord_2[i])) {
+        if (!feq(coord_1[i], coord_2[i])) {
           return false;
         }
       }
@@ -735,8 +726,8 @@ struct rtree {
                     [min, max, &data, this](coord_t const& min_temp,
                                             coord_t const& max_temp,
                                             DataType& search_data) {
-                      if (this->rect_.coord_t_equal(min, min_temp) &&
-                          this->rect_.coord_t_equal(max, max_temp) &&
+                      if (rect_.coord_t_equal(min, min_temp) &&
+                          rect_.coord_t_equal(max, max_temp) &&
                           data == search_data) {
                         return true;
                       } else {
