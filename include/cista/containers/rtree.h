@@ -38,7 +38,7 @@ struct rtree {
      * @param b Second number
      * @return True if equal
      */
-    bool feq(NumType a, NumType b) { return !(a < b || a > b); }
+    inline bool feq(NumType a, NumType b) { return !(a < b || a > b); }
 
     /**
      * The area of the bounding rectangle of this rect and other_rect
@@ -689,7 +689,7 @@ struct rtree {
    */
   template <typename Fn>
   void delete_0(coord_t const& min, coord_t const& max, Fn&& fn) {
-    rtree<DataType, Dims, NumType, MaxItems, SizeType, VectorType>::rect input_rect = {min, max};
+    rect input_rect = {min, max};
 
     if (root_ == node_idx_t::invalid()) {
       return;
