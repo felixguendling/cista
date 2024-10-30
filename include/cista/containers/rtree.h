@@ -174,7 +174,7 @@ struct rtree {
       }
       return true;
     }
-    coord_t min_, max_;
+    coord_t min_{0}, max_{0};
   };
 
   struct node {
