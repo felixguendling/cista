@@ -32,9 +32,19 @@ struct buffer final {
   buffer(buffer const&) = delete;
   buffer& operator=(buffer const&) = delete;
 
-  buffer(buffer&& o) noexcept : buf_(o.buf_), size_(o.size_) { o.reset(); }
+  buffer(buffer&& o) noexcept : buf_(o.buf_), size_(o.size_) {
+    if (&o != this) {
+      o.reset();
+    }
+  }
 
   buffer& operator=(buffer&& o) noexcept {
+    if (&o == this) {
+      return *this;
+    }
+    if (buf_ != nullptr) {
+      std::free(buf_);
+    }
     buf_ = o.buf_;
     size_ = o.size_;
     o.reset();
