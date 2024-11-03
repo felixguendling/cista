@@ -3,12 +3,17 @@
 #include <filesystem>
 
 #include "cista/memory_holder.h"
-#include "cista/serialization.h"
 
 namespace cista {
 
 constexpr auto const kDefaultMode =
     mode::WITH_STATIC_VERSION | mode::WITH_INTEGRITY;
+
+template <mode const Mode, typename Target, typename T>
+void serialize(Target& t, T& value);
+
+template <typename T, mode const Mode, typename Container>
+auto deserialize(Container& c);
 
 template <mode Mode = kDefaultMode, typename T>
 void write(std::filesystem::path const& p, T const& w) {

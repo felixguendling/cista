@@ -5,6 +5,7 @@
 #include "cista.h"
 #else
 #include "cista/containers/rtree.h"
+#include "cista/serialization.h"
 #endif
 
 // HELPER FUNCTIONS
@@ -36,11 +37,11 @@ TEST_SUITE("rtree") {
       rt.insert(min, max, i);
     }
 
-    rt.get_node(rt.root_).sort_by_axis(0, true, true);
+    rt.get_node(rt.m_.root_).sort_by_axis(0, true, true);
     bool sorted = true;
-    for (size_t i = 0; i < rt.get_node(rt.root_).count_ - 1; ++i) {
-      if (rt.get_node(rt.root_).rects_[i].min_[0] <
-          rt.get_node(rt.root_).rects_[i + 1].min_[0]) {
+    for (size_t i = 0; i < rt.get_node(rt.m_.root_).count_ - 1; ++i) {
+      if (rt.get_node(rt.m_.root_).rects_[i].min_[0] <
+          rt.get_node(rt.m_.root_).rects_[i + 1].min_[0]) {
         sorted = false;
       }
     }
@@ -82,11 +83,14 @@ TEST_SUITE("rtree") {
 
     cista::rtree<size_t>::node_idx_t other_node;
     other_node = rt.node_new(cista::rtree<size_t>::kind::kLeaf);
-    rt.get_node(rt.root_).move_rect_at_index_into(5, rt.get_node(other_node));
-    rt.get_node(rt.root_).move_rect_at_index_into(5, rt.get_node(other_node));
-    rt.get_node(rt.root_).move_rect_at_index_into(5, rt.get_node(other_node));
+    rt.get_node(rt.m_.root_)
+        .move_rect_at_index_into(5, rt.get_node(other_node));
+    rt.get_node(rt.m_.root_)
+        .move_rect_at_index_into(5, rt.get_node(other_node));
+    rt.get_node(rt.m_.root_)
+        .move_rect_at_index_into(5, rt.get_node(other_node));
     CHECK((rt.get_node(other_node).count_ == 3));
-    CHECK((rt.get_node(rt.root_).count_ == 7));
+    CHECK((rt.get_node(rt.m_.root_).count_ == 7));
   }
 
   TEST_CASE("random insert") {
@@ -115,8 +119,8 @@ TEST_SUITE("rtree") {
           [min, max, i, &found_correct, &rt](
               cista::rtree<size_t>::coord_t const& min_temp,
               cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-            if (rt.rect_.coord_t_equal(min, min_temp) &&
-                rt.rect_.coord_t_equal(max, max_temp) && data == i) {
+            if (rt.m_.rect_.coord_t_equal(min, min_temp) &&
+                rt.m_.rect_.coord_t_equal(max, max_temp) && data == i) {
               found_correct = true;
             }
             return true;
@@ -151,8 +155,8 @@ TEST_SUITE("rtree") {
               [min, max, index, &found_correct, &rt](
                   cista::rtree<size_t>::coord_t const& min_temp,
                   cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-                if (rt.rect_.coord_t_equal(min, min_temp) &&
-                    rt.rect_.coord_t_equal(max, max_temp) && data == index) {
+                if (rt.m_.rect_.coord_t_equal(min, min_temp) &&
+                    rt.m_.rect_.coord_t_equal(max, max_temp) && data == index) {
                   found_correct = true;
                 }
                 return true;
@@ -167,8 +171,8 @@ TEST_SUITE("rtree") {
               [min, max, index, &found_correct, &rt](
                   cista::rtree<size_t>::coord_t const& min_temp,
                   cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-                if (rt.rect_.coord_t_equal(min, min_temp) &&
-                    rt.rect_.coord_t_equal(max, max_temp) && data == index) {
+                if (rt.m_.rect_.coord_t_equal(min, min_temp) &&
+                    rt.m_.rect_.coord_t_equal(max, max_temp) && data == index) {
                   found_correct = true;
                 }
                 return true;
@@ -206,8 +210,8 @@ TEST_SUITE("rtree") {
               [min, max, index, &found_correct, &rt](
                   cista::rtree<size_t>::coord_t const& min_temp,
                   cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-                if (rt.rect_.coord_t_equal(min, min_temp) &&
-                    rt.rect_.coord_t_equal(max, max_temp) && data == index) {
+                if (rt.m_.rect_.coord_t_equal(min, min_temp) &&
+                    rt.m_.rect_.coord_t_equal(max, max_temp) && data == index) {
                   found_correct = true;
                 }
                 return true;
@@ -222,8 +226,8 @@ TEST_SUITE("rtree") {
               [min, max, index, &found_correct, &rt](
                   cista::rtree<size_t>::coord_t const& min_temp,
                   cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-                if (rt.rect_.coord_t_equal(min, min_temp) &&
-                    rt.rect_.coord_t_equal(max, max_temp) && data == index) {
+                if (rt.m_.rect_.coord_t_equal(min, min_temp) &&
+                    rt.m_.rect_.coord_t_equal(max, max_temp) && data == index) {
                   found_correct = true;
                 }
                 return true;
@@ -249,11 +253,11 @@ TEST_SUITE("rtree") {
     }
 
     for (int i = static_cast<int>(
-             rt.get_node(rt.get_node(rt.root_).children_[0]).count_ - 1);
+             rt.get_node(rt.get_node(rt.m_.root_).children_[0]).count_ - 1);
          i >= 0; --i) {
-      auto& temp_rect = rt.get_node(rt.get_node(rt.root_).children_[0])
+      auto& temp_rect = rt.get_node(rt.get_node(rt.m_.root_).children_[0])
                             .rects_[static_cast<size_t>(i)];
-      auto& temp_data = rt.get_node(rt.get_node(rt.root_).children_[0])
+      auto& temp_data = rt.get_node(rt.get_node(rt.m_.root_).children_[0])
                             .data_[static_cast<size_t>(i)];
 
       bool found_correct = false;
@@ -263,8 +267,8 @@ TEST_SUITE("rtree") {
           [temp_rect, temp_data, &found_correct, &rt](
               cista::rtree<size_t>::coord_t const& min_temp,
               cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-            if (rt.rect_.coord_t_equal(temp_rect.min_, min_temp) &&
-                rt.rect_.coord_t_equal(temp_rect.max_, max_temp) &&
+            if (rt.m_.rect_.coord_t_equal(temp_rect.min_, min_temp) &&
+                rt.m_.rect_.coord_t_equal(temp_rect.max_, max_temp) &&
                 data == temp_data) {
               found_correct = true;
             }
@@ -282,8 +286,8 @@ TEST_SUITE("rtree") {
           [temp_rect, temp_data, &found_correct, &rt](
               cista::rtree<size_t>::coord_t const& min_temp,
               cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-            if (rt.rect_.coord_t_equal(temp_rect.min_, min_temp) &&
-                rt.rect_.coord_t_equal(temp_rect.max_, max_temp) &&
+            if (rt.m_.rect_.coord_t_equal(temp_rect.min_, min_temp) &&
+                rt.m_.rect_.coord_t_equal(temp_rect.max_, max_temp) &&
                 data == temp_data) {
               found_correct = true;
             }
@@ -322,8 +326,8 @@ TEST_SUITE("rtree") {
           [min, max, i, &found_correct, &rt](
               cista::rtree<size_t>::coord_t const& min_temp,
               cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-            if (rt.rect_.coord_t_equal(min, min_temp) &&
-                rt.rect_.coord_t_equal(max, max_temp) && data == i) {
+            if (rt.m_.rect_.coord_t_equal(min, min_temp) &&
+                rt.m_.rect_.coord_t_equal(max, max_temp) && data == i) {
               found_correct = true;
             }
             return true;
@@ -340,8 +344,8 @@ TEST_SUITE("rtree") {
           [min, max, i, &found_correct, &rt](
               cista::rtree<size_t>::coord_t const& min_temp,
               cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-            if (rt.rect_.coord_t_equal(min, min_temp) &&
-                rt.rect_.coord_t_equal(max, max_temp) && data == i) {
+            if (rt.m_.rect_.coord_t_equal(min, min_temp) &&
+                rt.m_.rect_.coord_t_equal(max, max_temp) && data == i) {
               found_correct = true;
             }
             return true;
@@ -379,8 +383,8 @@ TEST_SUITE("rtree") {
           [min, max, i, &found_correct, &rt](
               cista::rtree<size_t>::coord_t const& min_temp,
               cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-            if (rt.rect_.coord_t_equal(min, min_temp) &&
-                rt.rect_.coord_t_equal(max, max_temp) && data == i) {
+            if (rt.m_.rect_.coord_t_equal(min, min_temp) &&
+                rt.m_.rect_.coord_t_equal(max, max_temp) && data == i) {
               found_correct = true;
             }
             return true;
@@ -397,8 +401,8 @@ TEST_SUITE("rtree") {
           [min, max, i, &found_correct, &rt](
               cista::rtree<size_t>::coord_t const& min_temp,
               cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-            if (rt.rect_.coord_t_equal(min, min_temp) &&
-                rt.rect_.coord_t_equal(max, max_temp) && data == i) {
+            if (rt.m_.rect_.coord_t_equal(min, min_temp) &&
+                rt.m_.rect_.coord_t_equal(max, max_temp) && data == i) {
               found_correct = true;
             }
             return true;
@@ -421,8 +425,8 @@ TEST_SUITE("rtree") {
           [min, max, i, &found_correct, &rt](
               cista::rtree<size_t>::coord_t const& min_temp,
               cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-            if (rt.rect_.coord_t_equal(min, min_temp) &&
-                rt.rect_.coord_t_equal(max, max_temp) && data == i) {
+            if (rt.m_.rect_.coord_t_equal(min, min_temp) &&
+                rt.m_.rect_.coord_t_equal(max, max_temp) && data == i) {
               found_correct = true;
             }
             return true;
@@ -439,19 +443,17 @@ TEST_SUITE("rtree") {
     srand(static_cast<unsigned>(time(nullptr)));
 
     struct custom_data_type {
-      uint32_t integer_data;
-      std::array<uint32_t, 10> array_data;
-      uint32_t* int_array_data;
-
-      bool operator==(custom_data_type const& other_struct) {
-        bool result;
-        result = (other_struct.integer_data == integer_data);
-
-        for (size_t i = 0; i < array_data.size(); ++i) {
+      bool operator==(custom_data_type const& other_struct) const {
+        auto result = (other_struct.integer_data == integer_data);
+        for (auto i = 0U; i != array_data.size(); ++i) {
           result = result && (array_data[i] == other_struct.array_data[i]);
         }
         return result;
       }
+
+      uint32_t integer_data;
+      std::array<uint32_t, 10> array_data;
+      uint32_t* int_array_data;
     };
 
     std::vector<cista::rtree<size_t>::rect> rand_rects_list;
@@ -489,8 +491,8 @@ TEST_SUITE("rtree") {
                     cista::rtree<custom_data_type>::coord_t const& min_temp,
                     cista::rtree<custom_data_type>::coord_t const& max_temp,
                     custom_data_type data) {
-                  if (rt.rect_.coord_t_equal(min, min_temp) &&
-                      rt.rect_.coord_t_equal(max, max_temp) &&
+                  if (rt.m_.rect_.coord_t_equal(min, min_temp) &&
+                      rt.m_.rect_.coord_t_equal(max, max_temp) &&
                       data == data_input_list[i]) {
                     found_correct = true;
                   }
@@ -512,8 +514,8 @@ TEST_SUITE("rtree") {
                     cista::rtree<custom_data_type>::coord_t const& min_temp,
                     cista::rtree<custom_data_type>::coord_t const& max_temp,
                     custom_data_type data) {
-                  if (rt.rect_.coord_t_equal(min, min_temp) &&
-                      rt.rect_.coord_t_equal(max, max_temp) &&
+                  if (rt.m_.rect_.coord_t_equal(min, min_temp) &&
+                      rt.m_.rect_.coord_t_equal(max, max_temp) &&
                       data == data_input_list[i]) {
                     found_correct = true;
                   }
@@ -537,8 +539,8 @@ TEST_SUITE("rtree") {
                     cista::rtree<custom_data_type>::coord_t const& min_temp,
                     cista::rtree<custom_data_type>::coord_t const& max_temp,
                     custom_data_type data) {
-                  if (rt.rect_.coord_t_equal(min, min_temp) &&
-                      rt.rect_.coord_t_equal(max, max_temp) &&
+                  if (rt.m_.rect_.coord_t_equal(min, min_temp) &&
+                      rt.m_.rect_.coord_t_equal(max, max_temp) &&
                       data == data_input_list[i]) {
                     found_correct = true;
                   }
@@ -590,8 +592,8 @@ TEST_SUITE("rtree") {
                    [=, &found_correct, &rt_1D](rt_1D_t::coord_t const& min_temp,
                                                rt_1D_t::coord_t const& max_temp,
                                                size_t data) {
-                     if (rt_1D.rect_.coord_t_equal(min, min_temp) &&
-                         rt_1D.rect_.coord_t_equal(max, max_temp) &&
+                     if (rt_1D.m_.rect_.coord_t_equal(min, min_temp) &&
+                         rt_1D.m_.rect_.coord_t_equal(max, max_temp) &&
                          data == i) {
                        found_correct = true;
                      }
@@ -609,8 +611,8 @@ TEST_SUITE("rtree") {
                    [=, &found_correct, &rt_1D](rt_1D_t::coord_t const& min_temp,
                                                rt_1D_t::coord_t const& max_temp,
                                                size_t data) {
-                     if (rt_1D.rect_.coord_t_equal(min, min_temp) &&
-                         rt_1D.rect_.coord_t_equal(max, max_temp) &&
+                     if (rt_1D.m_.rect_.coord_t_equal(min, min_temp) &&
+                         rt_1D.m_.rect_.coord_t_equal(max, max_temp) &&
                          data == i) {
                        found_correct = true;
                      }
@@ -651,8 +653,8 @@ TEST_SUITE("rtree") {
                    [=, &found_correct, &rt_3D](rt_3D_t::coord_t const& min_temp,
                                                rt_3D_t::coord_t const& max_temp,
                                                size_t data) {
-                     if (rt_3D.rect_.coord_t_equal(min, min_temp) &&
-                         rt_3D.rect_.coord_t_equal(max, max_temp) &&
+                     if (rt_3D.m_.rect_.coord_t_equal(min, min_temp) &&
+                         rt_3D.m_.rect_.coord_t_equal(max, max_temp) &&
                          data == i) {
                        found_correct = true;
                      }
@@ -670,8 +672,8 @@ TEST_SUITE("rtree") {
                    [=, &found_correct, &rt_3D](rt_3D_t::coord_t const& min_temp,
                                                rt_3D_t::coord_t const& max_temp,
                                                size_t data) {
-                     if (rt_3D.rect_.coord_t_equal(min, min_temp) &&
-                         rt_3D.rect_.coord_t_equal(max, max_temp) &&
+                     if (rt_3D.m_.rect_.coord_t_equal(min, min_temp) &&
+                         rt_3D.m_.rect_.coord_t_equal(max, max_temp) &&
                          data == i) {
                        found_correct = true;
                      }
@@ -712,8 +714,8 @@ TEST_SUITE("rtree") {
                    [=, &found_correct, &rt_8D](rt_8D_t::coord_t const& min_temp,
                                                rt_8D_t::coord_t const& max_temp,
                                                size_t data) {
-                     if (rt_8D.rect_.coord_t_equal(min, min_temp) &&
-                         rt_8D.rect_.coord_t_equal(max, max_temp) &&
+                     if (rt_8D.m_.rect_.coord_t_equal(min, min_temp) &&
+                         rt_8D.m_.rect_.coord_t_equal(max, max_temp) &&
                          data == i) {
                        found_correct = true;
                      }
@@ -731,8 +733,8 @@ TEST_SUITE("rtree") {
                    [=, &found_correct, &rt_8D](rt_8D_t::coord_t const& min_temp,
                                                rt_8D_t::coord_t const& max_temp,
                                                size_t data) {
-                     if (rt_8D.rect_.coord_t_equal(min, min_temp) &&
-                         rt_8D.rect_.coord_t_equal(max, max_temp) &&
+                     if (rt_8D.m_.rect_.coord_t_equal(min, min_temp) &&
+                         rt_8D.m_.rect_.coord_t_equal(max, max_temp) &&
                          data == i) {
                        found_correct = true;
                      }
@@ -769,8 +771,8 @@ TEST_SUITE("rtree") {
           [min, max, i, &found_correct, &rt](
               cista::rtree<size_t>::coord_t const& min_temp,
               cista::rtree<size_t>::coord_t const& max_temp, size_t data) {
-            if (rt.rect_.coord_t_equal(min, min_temp) &&
-                rt.rect_.coord_t_equal(max, max_temp) && data == i) {
+            if (rt.m_.rect_.coord_t_equal(min, min_temp) &&
+                rt.m_.rect_.coord_t_equal(max, max_temp) && data == i) {
               found_correct = true;
             }
             return true;
@@ -778,24 +780,18 @@ TEST_SUITE("rtree") {
 
       CHECK((found_correct));
     }
-    std::fstream file;
-    file.open("header.bin", std::ios::binary | std::ios::out);
-    rt.write_header_bin(file);
-    file.close();
+    rt.write_meta("header.bin");
 
     cista::rtree<size_t> rt_uut;
-
-    file.open("header.bin", std::ios::binary | std::ios::in);
-    rt_uut.read_header_bin(file);
-    file.close();
+    rt_uut.read_meta("header.bin");
 
     std::remove("header.bin");
 
-    CHECK((rt.rect_.equals(rt_uut.rect_)));
-    CHECK((rt.root_.v_ == rt_uut.root_.v_));
-    CHECK((rt.free_list_.v_ == rt_uut.free_list_.v_));
-    CHECK((rt.count_ == rt_uut.count_));
-    CHECK((rt.height_ == rt_uut.height_));
-    CHECK((rt.path_hint_ == rt_uut.path_hint_));
+    CHECK((rt.m_.rect_.equals(rt_uut.m_.rect_)));
+    CHECK((rt.m_.root_.v_ == rt_uut.m_.root_.v_));
+    CHECK((rt.m_.free_list_.v_ == rt_uut.m_.free_list_.v_));
+    CHECK((rt.m_.count_ == rt_uut.m_.count_));
+    CHECK((rt.m_.height_ == rt_uut.m_.height_));
+    CHECK((rt.m_.path_hint_ == rt_uut.m_.path_hint_));
   }
 }

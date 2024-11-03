@@ -1,12 +1,13 @@
-#include <cista/containers/mmap_vec.h>
-#include <cista/mmap.h>
 #include <cinttypes>
 #include <cstring>
 #include <iostream>
 
+#include "cista/containers/mmap_vec.h"
 #include "cista/containers/rtree.h"
+#include "cista/mmap.h"
+#include "cista/serialization.h"
+
 extern "C" {
-#include <stdatomic.h>
 #include "dependencies/rtree_c/rtree_c.h"
 }
 
@@ -21,8 +22,8 @@ struct ctx_entry {
 
   bool operator==(ctx_entry other) const {
     cista_rtree rt;
-    return rt.rect_.coord_t_equal(this->min, other.min) &&
-           rt.rect_.coord_t_equal(this->max, other.max) &&
+    return rt.m_.rect_.coord_t_equal(this->min, other.min) &&
+           rt.m_.rect_.coord_t_equal(this->max, other.max) &&
            this->data == other.data;
   }
 };
@@ -149,21 +150,22 @@ int test_bench(uint8_t const* data, size_t size) {
       iter_ref_ctx ctx{};
       ctx.count = 0;
       ctx.expected_value = 0;
-      uut_tree.search(coord_min, coord_max,
-                      [coord_min, coord_max, &ctx, &uut_tree](
-                          cista_rtree::coord_t const& min_temp,
-                          cista_rtree::coord_t const& max_temp, uint32_t data) {
-                        if (uut_tree.rect_.coord_t_equal(coord_min, min_temp) &&
-                            uut_tree.rect_.coord_t_equal(coord_max, max_temp)) {
-                          ctx.expected_value++;
-                          ctx_entry input_entry{};
-                          input_entry.min = min_temp;
-                          input_entry.max = max_temp;
-                          input_entry.data = data;
-                          ctx.found_entries.emplace_back(input_entry);
-                        }
-                        return true;
-                      });
+      uut_tree.search(
+          coord_min, coord_max,
+          [coord_min, coord_max, &ctx, &uut_tree](
+              cista_rtree::coord_t const& min_temp,
+              cista_rtree::coord_t const& max_temp, uint32_t data) {
+            if (uut_tree.m_.rect_.coord_t_equal(coord_min, min_temp) &&
+                uut_tree.m_.rect_.coord_t_equal(coord_max, max_temp)) {
+              ctx.expected_value++;
+              ctx_entry input_entry{};
+              input_entry.min = min_temp;
+              input_entry.max = max_temp;
+              input_entry.data = data;
+              ctx.found_entries.emplace_back(input_entry);
+            }
+            return true;
+          });
 
       ctx.expected_value_mm = 0;
       cista_mm_rtree.search(
@@ -171,8 +173,8 @@ int test_bench(uint8_t const* data, size_t size) {
           [coord_min, coord_max, &ctx, &cista_mm_rtree](
               cista_rtree::coord_t const& min_temp,
               cista_rtree::coord_t const& max_temp, uint32_t data) {
-            if (cista_mm_rtree.rect_.coord_t_equal(coord_min, min_temp) &&
-                cista_mm_rtree.rect_.coord_t_equal(coord_max, max_temp)) {
+            if (cista_mm_rtree.m_.rect_.coord_t_equal(coord_min, min_temp) &&
+                cista_mm_rtree.m_.rect_.coord_t_equal(coord_max, max_temp)) {
               ctx.expected_value_mm++;
               ctx_entry input_entry{};
               input_entry.min = min_temp;
@@ -210,10 +212,7 @@ int test_bench(uint8_t const* data, size_t size) {
     }
 
     if (op == SAVE_LOAD) {
-      std::fstream file;
-      file.open("mmap_rtree_header.bin", std::ios::binary | std::ios::out);
-      cista_mm_rtree.write_header_bin(file);
-      file.close();
+      cista_mm_rtree.write_meta("mmap_rtree_header.bin");
 
       auto save_load_file = cista::mmap{"./mmap_rtree_nodes.bin",
                                         cista::mmap::protection::MODIFY};
@@ -221,9 +220,7 @@ int test_bench(uint8_t const* data, size_t size) {
           cista::mmap_vec_map<mm_rtree::node_idx_t, mm_rtree::node>{
               std::move(save_load_file)};
 
-      file.open("mmap_rtree_header.bin", std::ios::binary | std::ios::in);
-      cista_mm_rtree.read_header_bin(file);
-      file.close();
+      cista_mm_rtree.read_meta("mmap_rtree_header.bin");
     }
 
     current_position = current_position + 21;
