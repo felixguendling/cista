@@ -1,11 +1,10 @@
 #pragma once
 
 #include <cinttypes>
-#include <fstream>
+#include <filesystem>
 
 #include "cista/cista_member_offset.h"
 #include "cista/containers/array.h"
-#include "cista/containers/variant.h"
 #include "cista/containers/vector.h"
 #include "cista/endian/conversion.h"
 #include "cista/io.h"
