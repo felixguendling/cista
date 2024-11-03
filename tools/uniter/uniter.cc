@@ -17,15 +17,16 @@ void write_file(std::string const& include_path, std::string const& path,
       constexpr auto const include_start = R"(#include ")";
       auto const include_start_len = std::strlen(include_start);
       if (starts_with(line, include_start)) {
+        auto const include_end = line.find_last_of("\"");
         auto const include_file =
-            line.substr(include_start_len, line.size() - include_start_len - 1);
+            line.substr(include_start_len, include_end - include_start_len);
+
         auto const path = include_path + "/" + include_file;
-        ;
         if (included.insert(path).second) {
           try {
             write_file(include_path, path, included);
           } catch (std::exception const& e) {
-            std::cout << "// " << include_file << ": " << e.what() << "\n";
+            std::cout << "// " << path << ": " << e.what() << "\n";
           }
         }
       } else if (starts_with(line, "#pragma once")) {
@@ -41,7 +42,8 @@ void write_file(std::string const& include_path, std::string const& path,
 
 int main(int argc, char const** argv) {
   if (argc < 4) {
-    printf("usage: %s license include_path file0, [file1, [file2, ...]]\n", argv[0]);
+    printf("usage: %s license include_path file0, [file1, [file2, ...]]\n",
+           argv[0]);
     return 1;
   }
 
