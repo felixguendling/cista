@@ -3,6 +3,7 @@
 #include <filesystem>
 
 #include "cista/memory_holder.h"
+#include "cista/mode.h"
 
 namespace cista {
 

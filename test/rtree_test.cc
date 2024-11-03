@@ -10,7 +10,6 @@
 
 // HELPER FUNCTIONS
 void fill_rand_rect(std::vector<cista::rtree<size_t>::rect>& rand_vector) {
-
   float min_x = (float(rand()) / float((RAND_MAX)) * 360) - 180;
   float min_y = (float(rand()) / float((RAND_MAX)) * 180) - 90;
   cista::rtree<size_t>::rect rand_rect = {

@@ -5,6 +5,7 @@
 
 #include "cista/cista_member_offset.h"
 #include "cista/containers/array.h"
+#include "cista/containers/mmap_vec.h"
 #include "cista/containers/vector.h"
 #include "cista/endian/conversion.h"
 #include "cista/io.h"
@@ -30,7 +31,10 @@ struct rtree {
 
   enum class kind : std::uint8_t { kLeaf, kBranch, kEndFreeList };
 
+  struct node;
+
   using node_idx_t = strong<SizeType, struct node_idx_>;
+  using vector_t = VectorType<node_idx_t, node>;
   using coord_t = array<NumType, Dims>;
 
   struct rect {
@@ -399,6 +403,9 @@ struct rtree {
   }
 
   node& get_node(node_idx_t const node_id) { return nodes_[node_id]; }
+  node const& get_node(node_idx_t const node_id) const {
+    return nodes_[node_id];
+  }
 
   node_idx_t node_new(kind const node_kind) {
     if (m_.free_list_ == node_idx_t::invalid()) {
@@ -420,7 +427,8 @@ struct rtree {
   }
 
   template <typename Fn>
-  bool node_search(node const& current_node, rect const& search_rect, Fn&& fn) {
+  bool node_search(node const& current_node, rect const& search_rect,
+                   Fn&& fn) const {
     if (current_node.kind_ == kind::kLeaf) {
       for (auto i = 0U; i != current_node.count_; ++i) {
         if (current_node.rects_[i].intersects(search_rect)) {
@@ -444,7 +452,7 @@ struct rtree {
   }
 
   template <typename Fn>
-  void search(coord_t const& min, coord_t const& max, Fn&& fn) {
+  void search(coord_t const& min, coord_t const& max, Fn&& fn) const {
     auto const r = rect{min, max};
     if (m_.root_ != node_idx_t::invalid()) {
       node_search(get_node(m_.root_), r, std::forward<Fn>(fn));
@@ -622,5 +630,10 @@ struct rtree {
 
   VectorType<node_idx_t, node> nodes_;
 };
+
+template <typename DataType, std::uint32_t Dims = 2U, typename NumType = float,
+          std::uint32_t MaxItems = 64U, typename SizeType = std::uint32_t>
+using mm_rtree = cista::rtree<DataType, Dims, NumType, MaxItems, SizeType,
+                              cista::mmap_vec_map>;
 
 }  // namespace cista
