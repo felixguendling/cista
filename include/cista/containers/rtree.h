@@ -288,7 +288,7 @@ struct rtree {
       new_root.rects_[1] = get_node(right).bounding_box();
       new_root.children_[0] = m_.root_;
       new_root.children_[1] = right;
-      m_.root_ = m_.root_idx;
+      m_.root_ = new_root_idx;
       new_root.count_ = 2;
       ++m_.height_;
     }
@@ -544,7 +544,7 @@ struct rtree {
 
   template <typename Fn>
   void delete_0(coord_t const& min, coord_t const& max, Fn&& fn) {
-    auto const input_rect = rect{min, max};
+    auto input_rect = rect{min, max};
 
     if (m_.root_ == node_idx_t::invalid()) {
       return;
@@ -610,7 +610,7 @@ struct rtree {
   }
 
   void write_meta(std::filesystem::path const& p) { write(p, m_); }
-  void read_meta(std::filesystem::path const& p) { m_ = *read(p); }
+  void read_meta(std::filesystem::path const& p) { m_ = *read<meta>(p); }
 
   struct meta {
     rect rect_;
