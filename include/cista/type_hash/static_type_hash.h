@@ -265,12 +265,15 @@ template <typename T, std::size_t NMaxTypes = 128U>
 constexpr hash_t static_type_hash() noexcept {
   return static_type_hash(null<T>(), hash_data<NMaxTypes>{}).h_;
 }
-template <typename DataType, unsigned Dims, typename NumType, unsigned MaxItems,
-          typename SizeType, std::size_t NMaxTypes>
+template <typename DataType, std::uint32_t Dims, typename NumType,
+          unsigned MaxItems, typename SizeType, std::size_t NMaxTypes,
+          template <typename, typename...> typename VectorType>
 constexpr auto static_type_hash(
-    typename rtree<DataType, Dims, NumType, MaxItems, SizeType>::node const*,
+    typename basic_rtree<DataType, VectorType, Dims, NumType, MaxItems,
+                         SizeType>::node const*,
     hash_data<NMaxTypes> h) noexcept {
-  using rtree_t = rtree<DataType, Dims, NumType, MaxItems, SizeType>;
+  using rtree_t =
+      basic_rtree<DataType, VectorType, Dims, NumType, MaxItems, SizeType>;
   h = h.combine(hash("rtree"));
   h = h.combine(MaxItems);
   h = static_type_hash(null<rtree_t::node_idx_t>(), h);

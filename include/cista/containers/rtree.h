@@ -16,13 +16,12 @@ template <typename Ctx, typename T>
 void serialize(Ctx& c, T const* origin, offset_t const pos);
 
 template <typename DataType,  //
-          std::uint32_t Dims = 2U,  //
-          typename NumType = float,  //
-          std::uint32_t MaxItems = 64U,  //
-          typename SizeType = std::uint32_t,  //
-          template <typename, typename...> typename VectorType =
-              offset::vector_map>
-struct rtree {
+          template <typename, typename...> typename VectorType,  //
+          std::uint32_t Dims,  //
+          typename NumType,  //
+          std::uint32_t MaxItems,  //
+          typename SizeType>
+struct basic_rtree {
   static constexpr auto const kInfinity = std::numeric_limits<NumType>::max();
 
   static constexpr auto const kSplitMinItemsPercentage = 10U;
@@ -631,9 +630,25 @@ struct rtree {
   VectorType<node_idx_t, node> nodes_;
 };
 
-template <typename DataType, std::uint32_t Dims = 2U, typename NumType = float,
+template <typename T, std::uint32_t Dims = 2U, typename NumType = float,
           std::uint32_t MaxItems = 64U, typename SizeType = std::uint32_t>
-using mm_rtree = cista::rtree<DataType, Dims, NumType, MaxItems, SizeType,
-                              cista::mmap_vec_map>;
+using mm_rtree = cista::basic_rtree<T, cista::mmap_vec_map, Dims, NumType,
+                                    MaxItems, SizeType>;
+
+namespace raw {
+
+template <typename T, std::uint32_t Dims = 2U, typename NumType = float,
+          std::uint32_t MaxItems = 64U, typename SizeType = std::uint32_t>
+using rtree = basic_rtree<T, vector_map, Dims, NumType, MaxItems, SizeType>;
+
+}
+
+namespace offset {
+
+template <typename T, std::uint32_t Dims = 2U, typename NumType = float,
+          std::uint32_t MaxItems = 64U, typename SizeType = std::uint32_t>
+using rtree = basic_rtree<T, vector_map, Dims, NumType, MaxItems, SizeType>;
+
+}
 
 }  // namespace cista
