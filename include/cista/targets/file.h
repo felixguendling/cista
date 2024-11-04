@@ -206,8 +206,8 @@ struct file {
 
   file(char const* path, char const* mode)
       : f_{std::fopen(path, mode)}, size_{size()} {
-    verify(f_ != nullptr, std::string{"unable to open file: "} + path +
-                              " [mode=" + mode + "]");
+    verify_str(f_ != nullptr, std::string{"unable to open file: "} + path +
+                                  " [mode=" + mode + "]");
   }
 
   ~file() {
