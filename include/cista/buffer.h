@@ -24,10 +24,7 @@ struct buffer final {
     std::memcpy(buf_, str, size_);
   }
 
-  ~buffer() {
-    std::free(buf_);
-    buf_ = nullptr;
-  }
+  ~buffer() { free(); }
 
   buffer(buffer const&) = delete;
   buffer& operator=(buffer const&) = delete;
@@ -43,7 +40,7 @@ struct buffer final {
       return *this;
     }
     if (buf_ != nullptr) {
-      std::free(buf_);
+      free();
     }
     buf_ = o.buf_;
     size_ = o.size_;
@@ -72,6 +69,13 @@ struct buffer final {
   void reset() noexcept {
     buf_ = nullptr;
     size_ = 0U;
+  }
+
+  void free() noexcept {
+    if (buf_ != nullptr) {
+      std::free(buf_);
+      reset();
+    }
   }
 
   void* buf_;
