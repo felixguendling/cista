@@ -8,6 +8,11 @@
 #include "cista/serialization.h"
 #endif
 
+namespace cista {
+template <typename T, std::uint32_t Dims = 2U>
+using rtree = cista::raw::rtree<T, Dims>;
+}
+
 // HELPER FUNCTIONS
 void fill_rand_rect(std::vector<cista::rtree<size_t>::rect>& rand_vector) {
   float min_x = (float(rand()) / float((RAND_MAX)) * 360) - 180;

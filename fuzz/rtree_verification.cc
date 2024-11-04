@@ -11,9 +11,8 @@ extern "C" {
 #include "dependencies/rtree_c/rtree_c.h"
 }
 
-using cista_rtree = cista::rtree<uint32_t, 2, double>;
-using mm_rtree =
-    cista::rtree<uint32_t, 2, double, 64, uint32_t, cista::mmap_vec_map>;
+using cista_rtree = cista::raw::rtree<std::uint32_t, 2, double>;
+using mm_rtree = cista::mm_rtree<std::uint32_t, 2, double>;
 
 // Struct for tracking found entities
 struct ctx_entry {
