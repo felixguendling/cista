@@ -8,7 +8,7 @@
 namespace cista {
 
 constexpr auto const kDefaultMode =
-    mode::WITH_STATIC_VERSION | mode::WITH_INTEGRITY;
+    mode::WITH_STATIC_VERSION | mode::WITH_INTEGRITY | mode::UNCHECKED;
 
 template <mode const Mode, typename Target, typename T>
 void serialize(Target& t, T& value);
