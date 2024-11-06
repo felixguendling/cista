@@ -297,6 +297,8 @@ struct generic_cstring {
   char* data() noexcept { return const_cast<char*>(internal_data()); }
   char const* data() const noexcept { return internal_data(); }
 
+  char const* c_str() const noexcept { return data(); }
+
   msize_t size() const noexcept { return is_short() ? s_.size() : h_.size(); }
 
   struct heap {
