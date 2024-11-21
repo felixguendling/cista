@@ -40,7 +40,13 @@ struct basic_vector {
   explicit basic_vector(allocator_type const&) noexcept {}
   basic_vector() noexcept = default;
 
-  explicit basic_vector(size_type const size, T init = T{},
+  explicit basic_vector(size_type const size,
+                        Allocator const& alloc = Allocator{}) {
+    CISTA_UNUSED_PARAM(alloc)
+    resize(size);
+  }
+
+  explicit basic_vector(size_type const size, T init,
                         Allocator const& alloc = Allocator{}) {
     CISTA_UNUSED_PARAM(alloc)
     resize(size, std::move(init));
@@ -300,7 +306,15 @@ struct basic_vector {
     return *ptr;
   }
 
-  void resize(size_type const size, T init = T{}) {
+  void resize(size_type const size) {
+    reserve(size);
+    for (auto i = used_size_; i < size; ++i) {
+      new (el_ + i) T{};
+    }
+    used_size_ = size;
+  }
+
+  void resize(size_type const size, T init) {
     reserve(size);
     for (auto i = used_size_; i < size; ++i) {
       new (el_ + i) T{init};
