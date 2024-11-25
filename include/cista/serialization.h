@@ -1042,9 +1042,9 @@ void recurse(Ctx&, optional<T>* el, Fn&& fn) {
 }
 
 // --- TUPLE<T...> ---
-template <typename Ctx, typename... T>
-void recurse(Ctx const& c, tuple<T...>* el) {
-  apply([&](auto&&... args) { (deserialize(c, &args), ...); }, *el);
+template <typename Ctx, typename Fn, typename... T>
+void recurse(Ctx&, tuple<T...>* el, Fn&& fn) {
+  cista::apply([&](auto&&... args) { (fn(&args), ...); }, *el);
 }
 
 // --- TIMEPOINT ---

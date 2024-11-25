@@ -91,3 +91,29 @@ TEST_CASE("vector test") {
   }
   serialized.~vector();
 }
+
+TEST_CASE("vector tuple test") {
+  namespace data = cista::offset;
+
+  using T = cista::tuple<data::string, data::vector<char>,
+                         data::vector<data::vector<char>>, std::vector<char>,
+                         data::vector<std::vector<char>>,
+                         std::vector<data::vector<char>>, double>;
+
+  auto buf = cista::byte_buf{};
+  {
+    auto const value = T{
+        {"Hello, World!"},
+        {'w', 'h', 'a', 't', '?'},
+        {{'a'}, {'v', 'a', 'l', 'u', 'e'}},
+        {'w', 'h', 'a', 't', '?'},
+        {{'a'}, {'v', 'a', 'l', 'u', 'e'}},
+        {{'a'}, {'v', 'a', 'l', 'u', 'e'}},
+        3.14,
+    };
+    buf = cista::serialize(value);
+  }
+
+  auto tuple = cista::deserialize<T>(buf);
+  CHECK_EQ(0, std::strncmp("what?", cista::get<3>(*tuple).data(), 5));
+}
