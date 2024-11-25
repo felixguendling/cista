@@ -116,4 +116,6 @@ TEST_CASE("vector tuple test") {
 
   auto tuple = cista::deserialize<T>(buf);
   CHECK_EQ(0, std::strncmp("what?", cista::get<3>(*tuple).data(), 5));
+
+  tuple->~T();
 }
