@@ -37,7 +37,7 @@ struct basic_rtree {
   using coord_t = array<NumType, Dims>;
 
   struct rect {
-    inline bool feq(NumType a, NumType b) { return !(a < b || a > b); }
+    static inline bool feq(NumType a, NumType b) { return !(a < b || a > b); }
 
     NumType united_area(rect const& other_rect) const noexcept {
       auto result = NumType{1};
@@ -112,7 +112,7 @@ struct basic_rtree {
       return true;
     }
 
-    bool coord_t_equal(coord_t const& coord_1, coord_t const& coord_2) {
+    bool coord_t_equal(coord_t const& coord_1, coord_t const& coord_2) const {
       for (size_t i = 0; i < Dims; ++i) {
         if (!feq(coord_1[i], coord_2[i])) {
           return false;

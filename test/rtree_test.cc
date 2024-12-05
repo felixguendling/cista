@@ -102,17 +102,24 @@ TEST_SUITE("rtree") {
     std::vector<cista::rtree<size_t>::rect> rand_rects_list;
     srand(static_cast<unsigned>(time(nullptr)));
 
-    for (int i = 0; i < N; ++i) {
-      fill_rand_rect(rand_rects_list);
+    auto buf = cista::byte_buf{};
+
+    {
+      for (int i = 0; i < N; ++i) {
+        fill_rand_rect(rand_rects_list);
+      }
+
+      cista::rtree<size_t> rt;
+      for (size_t i = 0; i < rand_rects_list.size(); ++i) {
+        cista::rtree<size_t>::coord_t min = rand_rects_list[i].min_;
+        cista::rtree<size_t>::coord_t max = rand_rects_list[i].max_;
+        rt.insert(min, max, i);
+      }
+
+      buf = cista::serialize(rt);
     }
 
-    cista::rtree<size_t> rt;
-    for (size_t i = 0; i < rand_rects_list.size(); ++i) {
-      cista::rtree<size_t>::coord_t min = rand_rects_list[i].min_;
-      cista::rtree<size_t>::coord_t max = rand_rects_list[i].max_;
-      rt.insert(min, max, i);
-    }
-
+    auto const& rt = *cista::deserialize<cista::rtree<size_t>>(buf);
     for (size_t i = 0; i < rand_rects_list.size(); ++i) {
       cista::rtree<size_t>::coord_t min = rand_rects_list[i].min_;
       cista::rtree<size_t>::coord_t max = rand_rects_list[i].max_;
