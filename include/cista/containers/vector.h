@@ -297,6 +297,12 @@ struct basic_vector {
     ++used_size_;
   }
 
+  void push_back(T&& el) {
+    reserve(used_size_ + 1U);
+    new (el_ + used_size_) T(std::move(el));
+    ++used_size_;
+  }
+
   template <typename... Args>
   T& emplace_back(Args&&... el) {
     reserve(used_size_ + 1U);
@@ -321,6 +327,8 @@ struct basic_vector {
     }
     used_size_ = size;
   }
+
+  void shrink_to_fit() {}
 
   void pop_back() noexcept(noexcept(std::declval<T>().~T())) {
     --used_size_;
