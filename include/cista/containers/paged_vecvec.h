@@ -323,6 +323,16 @@ struct paged_vecvec {
     return emplace_back(std::string_view{s});
   }
 
+  template <typename Container,
+            typename = std::enable_if_t<std::is_convertible_v<
+                decltype(*std::declval<Container>().begin()), data_value_type>>>
+  void insert(Key const& k, Container&& bucket) {
+    auto p = paged_.create_page(
+        static_cast<typename Paged::page_size_type>(bucket.size()));
+    paged_.copy(p, std::begin(bucket), std::end(bucket));
+    idx_.insert(idx_.begin() + to_idx(k), p);
+  }
+
   void resize(size_type const size) {
     for (auto i = size; i < idx_.size(); ++i) {
       paged_.free_page(idx_[i]);
