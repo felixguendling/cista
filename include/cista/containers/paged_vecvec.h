@@ -65,7 +65,7 @@ struct paged_vecvec {
       return (*this)[size() - 1U];
     }
 
-    reference operator*() const { return *this; }
+    const_bucket operator*() const { return *this; }
 
     size_type size() const { return pv_->page(i_).size_; }
     bool empty() const { return size() == 0U; }
@@ -161,6 +161,14 @@ struct paged_vecvec {
       (*this)[size() - 1U] = x;
     }
 
+    template <typename Arg>
+    iterator insert(iterator const it, Arg&& el) {
+      auto const old_offset = std::distance(begin(), it);
+      auto const old_size = size();
+      push_back(data_value_type{el});
+      return std::rotate(begin() + old_offset, begin() + old_size, end());
+    }
+
     template <typename T = std::decay_t<data_value_type>,
               typename = std::enable_if_t<std::is_same_v<T, char>>>
     std::string_view view() const {
@@ -196,7 +204,7 @@ struct paged_vecvec {
       return *(begin() + i);
     }
 
-    reference operator*() const { return *this; }
+    bucket operator*() const { return *this; }
 
     operator const_bucket() const { return {pv_, i_}; }
 
@@ -286,7 +294,7 @@ struct paged_vecvec {
   const_bucket front() const { return at(Key{0}); }
   const_bucket back() const { return at(Key{size() - 1}); }
 
-  size_type size() const { return idx_.size(); }
+  base_t<Key> size() const { return idx_.size(); }
   bool empty() const { return idx_.empty(); }
 
   bucket begin() { return front(); }

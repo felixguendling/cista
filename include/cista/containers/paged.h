@@ -97,8 +97,12 @@ struct paged {
     std::memcpy(&data_[offset], &x, sizeof(T));
   }
 
-  value_type* data(page_t const& p) { return &data_[p.start_]; }
-  value_type const* data(page_t const& p) const { return &data_[p.start_]; }
+  value_type* data(page_t const& p) {
+    return data_.empty() ? nullptr : &data_[p.start_];
+  }
+  value_type const* data(page_t const& p) const {
+    return data_.empty() ? nullptr : &data_[p.start_];
+  }
 
   value_type* begin(page_t const& p) { return data(p); }
   value_type const* begin(page_t const& p) const { return data(p); }
