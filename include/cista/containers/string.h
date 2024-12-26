@@ -513,6 +513,7 @@ struct generic_string {
 template <typename Ptr>
 struct basic_string : public generic_string<Ptr> {
   using base = generic_string<Ptr>;
+  using msize_t = typename base::msize_t;
   using CharT = typename base::CharT;
 
   using base::base;
@@ -563,24 +564,25 @@ struct basic_string : public generic_string<Ptr> {
   }
 
   void resize(msize_t new_size) {
-    if (new_size <= short_length_limit) {
-      internal_change_capacity(new_size);
+    if (new_size <= base::short_length_limit) {
+      base::internal_change_capacity(new_size);
       return;
     }
-    if (new_size > capacity()) {
-      internal_change_capacity(new_size);
+    if (new_size > base::capacity()) {
+      base::internal_change_capacity(new_size);
     }
-    if (new_size < h_.size_) {
-      std::memset(data() + new_size, 0, (h_.size_ - new_size) * sizeof(CharT));
+    if (new_size < base::h_.size_) {
+      std::memset(data() + new_size, 0,
+                  (base::h_.size_ - new_size) * sizeof(CharT));
     }
-    h_.size_ = new_size;
+    base::h_.size_ = new_size;
   }
   void reserve(msize_t cap) {
-    if (cap > capacity()) {
-      internal_change_capacity(cap);
+    if (cap > base::capacity()) {
+      base::internal_change_capacity(cap);
     }
   }
-  void shrink_to_fit() { internal_change_capacity(size()); }
+  void shrink_to_fit() { base::internal_change_capacity(size()); }
 };
 
 template <typename Ptr>
