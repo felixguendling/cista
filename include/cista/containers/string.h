@@ -572,7 +572,7 @@ struct basic_string : public generic_string<Ptr> {
       base::internal_change_capacity(new_size);
     }
     if (new_size < base::h_.size_) {
-      std::memset(data() + new_size, 0,
+      std::memset(base::data() + new_size, 0,
                   (base::h_.size_ - new_size) * sizeof(CharT));
     }
     base::h_.size_ = new_size;
@@ -582,7 +582,7 @@ struct basic_string : public generic_string<Ptr> {
       base::internal_change_capacity(cap);
     }
   }
-  void shrink_to_fit() { base::internal_change_capacity(size()); }
+  void shrink_to_fit() { base::internal_change_capacity(base::size()); }
 };
 
 template <typename Ptr>
