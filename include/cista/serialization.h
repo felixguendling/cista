@@ -236,7 +236,7 @@ void serialize(Ctx& c, generic_string<Ptr> const* origin, offset_t const pos) {
                   : start - cista_member_offset(Type, h_.ptr_) - pos));
   c.write(pos + cista_member_offset(Type, h_.size_),
           convert_endian<Ctx::MODE>(origin->h_.size_));
-  c.write(pos + cista_member_offset(Type, h_.self_allocated_), false);
+  c.write(pos + cista_member_offset(Type, h_.reserved_), 0ul);
 }
 
 template <typename Ctx, typename T, typename SizeType,
@@ -829,8 +829,7 @@ void check_state(Ctx const& c, generic_string<Ptr>* el) {
   if (!el->is_short()) {
     c.check_ptr(el->h_.ptr_,
                 el->h_.size_ * sizeof(typename generic_string<Ptr>::CharT));
-    c.check_bool(el->h_.self_allocated_);
-    c.require(!el->h_.self_allocated_, "string self-allocated");
+    c.require(!el->is_self_allocated(), "string self-allocated");
     c.require((el->h_.size_ == 0) == (el->h_.ptr_ == nullptr),
               "str size=0 <=> ptr=0");
   }

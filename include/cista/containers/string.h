@@ -8,6 +8,7 @@
 #include <string_view>
 
 #include "cista/containers/ptr.h"
+#include "cista/endian/detection.h"
 #include "cista/exception.h"
 #include "cista/type_traits.h"
 
@@ -75,9 +76,12 @@ struct generic_string {
   friend CharT* end(generic_string& s) { return s.end(); }
 
   bool is_short() const noexcept { return s_.is_short_; }
+  bool is_self_allocated() const noexcept {
+    return !is_short() && (h_.reserved_ != 0);
+  }
 
   void reset() noexcept {
-    if (!h_.is_short_ && h_.ptr_ != nullptr && h_.self_allocated_) {
+    if (is_self_allocated()) {
       std::free(data());
     }
     h_ = heap{};
@@ -100,21 +104,11 @@ struct generic_string {
     if (str == nullptr || len == 0U) {
       return;
     }
-    s_.is_short_ = (len <= short_length_limit);
-    if (s_.is_short_) {
-      std::memcpy(s_.s_, str, len * sizeof(CharT));
-      for (auto i = len; i < short_length_limit; ++i) {
-        s_.s_[i] = 0;
-      }
-    } else {
-      h_.ptr_ = static_cast<CharT*>(std::malloc(len * sizeof(CharT)));
-      if (h_.ptr_ == nullptr) {
-        throw_exception(std::bad_alloc{});
-      }
+    internal_change_capacity(len);
+    if (!is_short()) {
       h_.size_ = len;
-      h_.self_allocated_ = true;
-      std::memcpy(data(), str, len * sizeof(CharT));
     }
+    std::memcpy(data(), str, len * sizeof(CharT));
   }
 
   void set_non_owning(std::basic_string<CharT> const& v) {
@@ -137,8 +131,7 @@ struct generic_string {
       return set_owning(str, len);
     }
 
-    h_.is_short_ = false;
-    h_.self_allocated_ = false;
+    h_ = heap{};
     h_.ptr_ = str;
     h_.size_ = len;
   }
@@ -167,11 +160,82 @@ struct generic_string {
     reset();
     if (s.is_short()) {
       std::memcpy(static_cast<void*>(this), &s, sizeof(s));
-    } else if (s.h_.self_allocated_) {
+    } else if (s.is_self_allocated()) {
       set_owning(s.data(), s.size());
     } else {
       set_non_owning(s.data(), s.size());
     }
+  }
+
+  void internal_change_capacity(msize_t new_capacity) {
+    auto initialize_buffer = [](CharT* dest, msize_t capacity, CharT const* src,
+                                msize_t size) -> void {
+      if (size && dest != src) {
+        std::memcpy(dest, src, size * sizeof(CharT));
+      }
+      std::memset(dest + size, 0, (capacity - size) * sizeof(CharT));
+    };
+    auto make_heap = [](CharT* cur_buf, msize_t new_cap) -> heap {
+      heap h{};
+      new_cap = (new_cap + 0xFFul) & 0xFF'FF'FF'00ul;
+#ifdef CISTA_LITTLE_ENDIAN
+      h.reserved_ = new_cap;
+#else
+      h.reserved_ = new_cap >> 8;
+#endif
+      if (cur_buf) {
+        h.ptr_ =
+            static_cast<CharT*>(std::realloc(cur_buf, new_cap * sizeof(CharT)));
+      } else {
+        h.ptr_ = static_cast<CharT*>(std::malloc(new_cap * sizeof(CharT)));
+      }
+      if (!h.ptr_) {
+        throw_exception(std::bad_alloc{});
+      }
+      return h;
+    };
+    auto heap_ptr = [](heap& h) -> CharT* {
+      if constexpr (std::is_pointer_v<Ptr>) {
+        return const_cast<CharT*>(h.ptr_);
+      } else {
+        return const_cast<CharT*>(h.ptr_.get());
+      }
+    };
+
+    if (new_capacity == 0) {
+      reset();
+      return;
+    }
+    msize_t new_size = std::min(size(), new_capacity);
+    if (new_capacity <= short_length_limit) {
+      stack s{};
+      initialize_buffer(s.s_, short_length_limit, data(), new_size);
+      if (!is_short()) {
+        reset();
+      }
+      s_ = s;
+    } else {
+      heap h{};
+      if (is_self_allocated()) {
+        h = make_heap(data(), new_capacity);
+        initialize_buffer(heap_ptr(h), h.reserved_, h.ptr_, new_size);
+      } else {
+        h = make_heap(nullptr, new_capacity);
+        initialize_buffer(heap_ptr(h), h.reserved_, data(), new_size);
+      }
+      h.size_ = new_size;
+      h_ = h;
+    }
+  }
+  constexpr msize_t capacity() const noexcept {
+    if (is_short()) {
+      return short_length_limit;
+    }
+#ifdef CISTA_LITTLE_ENDIAN
+    return h_.reserved_;
+#else
+    return h_.reserved_ << 8;
+#endif
   }
 
   bool empty() const noexcept { return size() == 0U; }
@@ -352,7 +416,7 @@ struct generic_string {
   }
 
   generic_string& erase(msize_t const pos, msize_t const n) {
-    if (!is_short() && !h_.self_allocated_) {
+    if (!is_short() && !is_self_allocated()) {
       set_owning(view());
     }
     auto const size_before = size();
@@ -424,9 +488,10 @@ struct generic_string {
   }
 
   struct heap {
-    bool is_short_{false};
-    bool self_allocated_{false};
-    std::uint16_t __fill__{0};
+    union {
+      bool is_short_;
+      std::uint32_t reserved_{0};
+    };
     std::uint32_t size_{0};
     Ptr ptr_{nullptr};
   };
@@ -496,6 +561,26 @@ struct basic_string : public generic_string<Ptr> {
     base::set_owning(s);
     return *this;
   }
+
+  void resize(msize_t new_size) {
+    if (new_size <= short_length_limit) {
+      internal_change_capacity(new_size);
+      return;
+    }
+    if (new_size > capacity()) {
+      internal_change_capacity(new_size);
+    }
+    if (new_size < h_.size_) {
+      std::memset(data() + new_size, 0, (h_.size_ - new_size) * sizeof(CharT));
+    }
+    h_.size_ = new_size;
+  }
+  void reserve(msize_t cap) {
+    if (cap > capacity()) {
+      internal_change_capacity(cap);
+    }
+  }
+  void shrink_to_fit() { internal_change_capacity(size()); }
 };
 
 template <typename Ptr>

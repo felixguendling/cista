@@ -1,4 +1,6 @@
+#include <algorithm>
 #include <iostream>
+#include <utility>
 #include <vector>
 
 #include "doctest.h"
@@ -440,4 +442,199 @@ TEST_CASE("u32string ends_with") {
   CHECK(s[3].ends_with(U"EF\U0001F4BB"));
   CHECK(s[3].ends_with(U'\U0001F4BB'));
   CHECK(!s[3].ends_with(U'A'));
+}
+
+TEST_SUITE("string internal_change_capacity") {
+  TEST_CASE("string internal_change_capacity") {
+    string s{};
+    std::vector<std::pair<uint32_t, uint32_t>> cap = {
+        {0, 0},     {1, 15},    {14, 15},   {15, 15},   {16, 256}, {128, 256},
+        {255, 256}, {256, 256}, {257, 512}, {256, 256}, {15, 15},  {10, 15}};
+
+    for (auto c : cap) {
+      s.internal_change_capacity(c.first);
+      std::fill(s.data(), s.data() + c.first, 'A');
+      CHECK(s.capacity() == c.second);
+      CHECK(std::all_of(s.data() + c.first, s.data() + c.second,
+                        [](char a) { return a == 0; }));
+    }
+  }
+
+  TEST_CASE("u16string internal_change_capacity") {
+    u16string s{};
+    std::vector<std::pair<uint32_t, uint32_t>> cap = {
+        {0, 0},     {1, 7},     {6, 7},     {7, 7},     {8, 256}, {128, 256},
+        {255, 256}, {256, 256}, {257, 512}, {256, 256}, {7, 7},   {3, 7}};
+
+    for (auto c : cap) {
+      s.internal_change_capacity(c.first);
+      std::fill(s.data(), s.data() + c.first, u'A');
+      CHECK(s.capacity() == c.second);
+      CHECK(std::all_of(s.data() + c.first, s.data() + c.second,
+                        [](char16_t a) { return a == 0; }));
+    }
+  }
+
+  TEST_CASE("u32string internal_change_capacity") {
+    u32string s{};
+    std::vector<std::pair<uint32_t, uint32_t>> cap = {
+        {0, 0},     {1, 3},     {2, 3},     {3, 3},     {4, 256}, {128, 256},
+        {255, 256}, {256, 256}, {257, 512}, {256, 256}, {3, 3},   {1, 3}};
+
+    for (auto c : cap) {
+      s.internal_change_capacity(c.first);
+      std::fill(s.data(), s.data() + c.first, U'A');
+      CHECK(s.capacity() == c.second);
+      CHECK(std::all_of(s.data() + c.first, s.data() + c.second,
+                        [](char32_t a) { return a == 0; }));
+    }
+  }
+}
+
+TEST_SUITE("string resize") {
+  TEST_CASE("string resize") {
+    string str{};
+    std::vector<uint32_t> size = {0,   1,   14,  15,  16, 128,
+                                  255, 256, 257, 256, 15, 10};
+
+    for (auto s : size) {
+      auto old_size = str.size();
+      str.resize(s);
+      if (s > 15) {
+        CHECK(str.size() == s);
+      }
+      if (s > old_size) {
+        CHECK(std::all_of(str.begin(), str.begin() + old_size,
+                          [](char a) { return a == 'A'; }));
+      }
+      CHECK(std::all_of(str.data() + str.size(), str.data() + str.capacity(),
+                        [](char a) { return a == 0; }));
+      std::fill(str.begin(), str.begin() + s, 'A');
+    }
+  }
+
+  TEST_CASE("u16string resize") {
+    u16string str{};
+    std::vector<uint32_t> size = {0, 1, 6, 7, 8, 128, 255, 256, 257, 256, 7, 3};
+
+    for (auto s : size) {
+      auto old_size = str.size();
+      str.resize(s);
+      if (s > 7) {
+        CHECK(str.size() == s);
+      }
+      if (s > old_size) {
+        CHECK(std::all_of(str.begin(), str.begin() + old_size,
+                          [](char16_t a) { return a == u'A'; }));
+      }
+      CHECK(std::all_of(str.data() + str.size(), str.data() + str.capacity(),
+                        [](char16_t a) { return a == 0; }));
+      std::fill(str.begin(), str.begin() + s, u'A');
+    }
+  }
+
+  TEST_CASE("u32string resize") {
+    u32string str{};
+    std::vector<uint32_t> size = {0, 1, 2, 3, 4, 128, 255, 256, 257, 256, 3, 1};
+
+    for (auto s : size) {
+      auto old_size = str.size();
+      str.resize(s);
+      if (s > 3) {
+        CHECK(str.size() == s);
+      }
+      if (s > old_size) {
+        CHECK(std::all_of(str.begin(), str.begin() + old_size,
+                          [](char32_t a) { return a == U'A'; }));
+      }
+      CHECK(std::all_of(str.data() + str.size(), str.data() + str.capacity(),
+                        [](char32_t a) { return a == 0; }));
+      std::fill(str.begin(), str.begin() + s, U'A');
+    }
+  }
+}
+
+TEST_SUITE("string reserve") {
+  TEST_CASE("string reserve") {
+    string str{};
+    std::vector<std::pair<uint32_t, uint32_t>> cap = {
+        {0, 0},     {1, 15},    {14, 15},   {15, 15},   {16, 256}, {128, 256},
+        {255, 256}, {256, 256}, {257, 512}, {256, 512}, {15, 512}, {10, 512}};
+
+    for (auto c : cap) {
+      str.reserve(c.first);
+      CHECK(str.capacity() == c.second);
+    }
+  }
+
+  TEST_CASE("u16string reserve") {
+    u16string str{};
+    std::vector<std::pair<uint32_t, uint32_t>> cap = {
+        {0, 0},     {1, 7},     {6, 7},     {7, 7},     {8, 256}, {128, 256},
+        {255, 256}, {256, 256}, {257, 512}, {256, 512}, {7, 512}, {3, 512}};
+
+    for (auto c : cap) {
+      str.reserve(c.first);
+      CHECK(str.capacity() == c.second);
+    }
+  }
+
+  TEST_CASE("u32string reserve") {
+    u32string str{};
+    std::vector<std::pair<uint32_t, uint32_t>> cap = {
+        {0, 0},     {1, 3},     {2, 3},     {3, 3},     {4, 256}, {128, 256},
+        {255, 256}, {256, 256}, {257, 512}, {256, 512}, {3, 512}, {1, 512}};
+
+    for (auto c : cap) {
+      str.reserve(c.first);
+      CHECK(str.capacity() == c.second);
+    }
+  }
+}
+
+TEST_SUITE("string shrink_to_fit") {
+  TEST_CASE("string shrink_to_fit") {
+    string str{};
+    std::vector<std::pair<uint32_t, uint32_t>> cap = {
+        {0, 0},     {1, 15},    {14, 15},   {15, 15},   {16, 256}, {128, 256},
+        {255, 256}, {256, 256}, {257, 512}, {256, 256}, {15, 15},  {10, 15}};
+
+    for (auto c : cap) {
+      str.reserve(1024);
+      str.resize(c.first);
+      std::fill(str.data(), str.data() + c.first, 'A');
+      str.shrink_to_fit();
+      CHECK(str.capacity() == c.second);
+    }
+  }
+
+  TEST_CASE("u16string shrink_to_fit") {
+    u16string str{};
+    std::vector<std::pair<uint32_t, uint32_t>> cap = {
+        {0, 0},     {1, 7},     {6, 7},     {7, 7},     {8, 256}, {128, 256},
+        {255, 256}, {256, 256}, {257, 512}, {256, 256}, {7, 7},   {3, 7}};
+
+    for (auto c : cap) {
+      str.reserve(1024);
+      str.resize(c.first);
+      std::fill(str.data(), str.data() + c.first, u'A');
+      str.shrink_to_fit();
+      CHECK(str.capacity() == c.second);
+    }
+  }
+
+  TEST_CASE("u32string shrink_to_fit") {
+    u32string str{};
+    std::vector<std::pair<uint32_t, uint32_t>> cap = {
+        {0, 0},     {1, 3},     {2, 3},     {3, 3},     {4, 256}, {128, 256},
+        {255, 256}, {256, 256}, {257, 512}, {256, 256}, {3, 3},   {1, 3}};
+
+    for (auto c : cap) {
+      str.reserve(1024);
+      str.resize(c.first);
+      std::fill(str.data(), str.data() + c.first, U'A');
+      str.shrink_to_fit();
+      CHECK(str.capacity() == c.second);
+    }
+  }
 }
