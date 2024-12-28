@@ -177,7 +177,7 @@ struct generic_string {
     };
     auto make_heap = [](CharT* cur_buf, msize_t new_cap) -> heap {
       heap h{};
-      new_cap = (new_cap + 0xFFul) & 0xFF'FF'FF'00ul;
+      new_cap = (new_cap + msize_t{0xFF}) & msize_t{0xFF'FF'FF'00};
 #ifdef CISTA_LITTLE_ENDIAN
       h.reserved_ = new_cap;
 #else
