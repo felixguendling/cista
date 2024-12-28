@@ -503,10 +503,8 @@ TEST_SUITE("string resize") {
       if (s > 15) {
         CHECK(str.size() == s);
       }
-      if (s > old_size) {
-        CHECK(std::all_of(str.begin(), str.begin() + old_size,
-                          [](char a) { return a == 'A'; }));
-      }
+      CHECK(std::all_of(str.begin(), str.begin() + std::min(old_size, s),
+                        [](char a) { return a == 'A'; }));
       CHECK(std::all_of(str.data() + str.size(), str.data() + str.capacity(),
                         [](char a) { return a == 0; }));
       std::fill(str.begin(), str.begin() + s, 'A');
@@ -523,10 +521,8 @@ TEST_SUITE("string resize") {
       if (s > 7) {
         CHECK(str.size() == s);
       }
-      if (s > old_size) {
-        CHECK(std::all_of(str.begin(), str.begin() + old_size,
-                          [](char16_t a) { return a == u'A'; }));
-      }
+      CHECK(std::all_of(str.begin(), str.begin() + std::min(old_size, s),
+                        [](char16_t a) { return a == u'A'; }));
       CHECK(std::all_of(str.data() + str.size(), str.data() + str.capacity(),
                         [](char16_t a) { return a == 0; }));
       std::fill(str.begin(), str.begin() + s, u'A');
@@ -543,10 +539,8 @@ TEST_SUITE("string resize") {
       if (s > 3) {
         CHECK(str.size() == s);
       }
-      if (s > old_size) {
-        CHECK(std::all_of(str.begin(), str.begin() + old_size,
-                          [](char32_t a) { return a == U'A'; }));
-      }
+      CHECK(std::all_of(str.begin(), str.begin() + std::min(old_size, s),
+                        [](char32_t a) { return a == U'A'; }));
       CHECK(std::all_of(str.data() + str.size(), str.data() + str.capacity(),
                         [](char32_t a) { return a == 0; }));
       std::fill(str.begin(), str.begin() + s, U'A');
