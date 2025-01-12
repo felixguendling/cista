@@ -159,10 +159,12 @@ struct basic_vecvec {
 
   private:
     index_value_type bucket_begin_idx() const {
-      return to_idx(map_->bucket_starts_[i_]);
+      return map_->empty() ? index_value_type{}
+                           : to_idx(map_->bucket_starts_[i_]);
     }
     index_value_type bucket_end_idx() const {
-      return to_idx(map_->bucket_starts_[i_ + 1U]);
+      return map_->empty() ? index_value_type{}
+                           : to_idx(map_->bucket_starts_[i_ + 1U]);
     }
     bool is_inside_bucket(std::size_t const i) const {
       return bucket_begin_idx() + i < bucket_end_idx();
@@ -335,11 +337,10 @@ struct basic_vecvec {
     if (bucket_starts_.empty()) {
       bucket_starts_.emplace_back(index_value_type{0U});
     }
-    bucket_starts_.emplace_back(
-        static_cast<index_value_type>(data_.size() + bucket.size()));
     data_.insert(std::end(data_),  //
                  std::make_move_iterator(std::begin(bucket)),
                  std::make_move_iterator(std::end(bucket)));
+    bucket_starts_.emplace_back(data_.size());
   }
 
   bucket add_back_sized(std::size_t const bucket_size) {
