@@ -451,7 +451,7 @@ struct basic_string : public generic_string<Ptr> {
   using CharT = typename base::CharT;
 
   using base::base;
-  using base::operator std::basic_string_view<CharT>;
+  operator std::basic_string_view<CharT>() const { return base::view(); }
 
   friend std::basic_ostream<CharT>& operator<<(std::basic_ostream<CharT>& out,
                                                basic_string const& s) {
@@ -504,7 +504,7 @@ struct basic_string_view : public generic_string<Ptr> {
   using CharT = typename base::CharT;
 
   using base::base;
-  using base::operator std::basic_string_view<CharT>;
+  operator std::basic_string_view<CharT>() const { return base::view(); }
 
   friend std::basic_ostream<CharT>& operator<<(std::basic_ostream<CharT>& out,
                                                basic_string_view const& s) {
