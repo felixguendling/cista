@@ -31,6 +31,9 @@ struct basic_bitvec {
   constexpr basic_bitvec(Vec&& v)
       : size_{v.size() * bits_per_block},  // inaccurate for loading mmap vector
         blocks_{std::move(v)} {}
+  constexpr basic_bitvec(Vec&& v, size_type const size)
+      : size_{size},  // inaccurate for loading mmap vector
+        blocks_{std::move(v)} {}
   static constexpr basic_bitvec max(std::size_t const size) {
     basic_bitvec ret;
     ret.resize(size);
