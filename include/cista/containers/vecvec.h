@@ -12,6 +12,7 @@ namespace cista {
 
 template <typename Key, typename DataVec, typename IndexVec>
 struct basic_vecvec {
+  using key = Key;
   using data_value_type = typename DataVec::value_type;
   using index_value_type = typename IndexVec::value_type;
 
