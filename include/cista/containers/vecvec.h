@@ -31,10 +31,14 @@ struct basic_vecvec {
     bucket(basic_vecvec* map, index_value_type const i)
         : map_{map}, i_{to_idx(i)} {}
 
-    friend data_value_type* data(bucket b) { return &b[0]; }
-    friend index_value_type size(bucket b) { return b.size(); }
+    friend CISTA_CUDA_COMPAT data_value_type* data(bucket b) { return &b[0]; }
+    friend CISTA_CUDA_COMPAT index_value_type size(bucket b) {
+      return b.size();
+    }
 
-    data_value_type const* data() const { return empty() ? nullptr : &front(); }
+    CISTA_CUDA_COMPAT data_value_type const* data() const {
+      return empty() ? nullptr : &front();
+    }
 
     template <typename T = std::decay_t<data_value_type>,
               typename = std::enable_if_t<std::is_trivially_copyable_v<T>>>
@@ -42,27 +46,27 @@ struct basic_vecvec {
       return {begin(), size()};
     }
 
-    value_type& front() {
+    CISTA_CUDA_COMPAT value_type& front() {
       assert(!empty());
       return operator[](0);
     }
 
-    value_type& back() {
+    CISTA_CUDA_COMPAT value_type& back() {
       assert(!empty());
       return operator[](size() - 1U);
     }
 
-    value_type const& front() const {
+    CISTA_CUDA_COMPAT value_type const& front() const {
       assert(!empty());
       return operator[](0);
     }
 
-    value_type const& back() const {
+    CISTA_CUDA_COMPAT value_type const& back() const {
       assert(!empty());
       return operator[](size() - 1U);
     }
 
-    bool empty() const { return begin() == end(); }
+    CISTA_CUDA_COMPAT bool empty() const { return begin() == end(); }
 
     template <typename Args>
     void push_back(Args&& args) {
@@ -86,39 +90,47 @@ struct basic_vecvec {
       }
     }
 
-    value_type& operator[](std::size_t const i) {
+    CISTA_CUDA_COMPAT value_type& operator[](std::size_t const i) {
       assert(is_inside_bucket(i));
       return map_->data_[to_idx(map_->bucket_starts_[i_] + i)];
     }
 
-    value_type const& operator[](std::size_t const i) const {
+    CISTA_CUDA_COMPAT value_type const& operator[](std::size_t const i) const {
       assert(is_inside_bucket(i));
       return map_->data_[to_idx(map_->bucket_starts_[i_] + i)];
     }
 
-    value_type const& at(std::size_t const i) const {
+    CISTA_CUDA_COMPAT value_type const& at(std::size_t const i) const {
       verify(i < size(), "bucket::at: index out of range");
       return *(begin() + i);
     }
 
-    value_type& at(std::size_t const i) {
+    CISTA_CUDA_COMPAT value_type& at(std::size_t const i) {
       verify(i < size(), "bucket::at: index out of range");
       return *(begin() + i);
     }
 
-    std::size_t size() const { return bucket_end_idx() - bucket_begin_idx(); }
-    iterator begin() { return map_->data_.begin() + bucket_begin_idx(); }
-    iterator end() { return map_->data_.begin() + bucket_end_idx(); }
-    const_iterator begin() const {
+    CISTA_CUDA_COMPAT std::size_t size() const {
+      return bucket_end_idx() - bucket_begin_idx();
+    }
+    CISTA_CUDA_COMPAT iterator begin() {
       return map_->data_.begin() + bucket_begin_idx();
     }
-    const_iterator end() const {
+    CISTA_CUDA_COMPAT iterator end() {
       return map_->data_.begin() + bucket_end_idx();
     }
-    friend iterator begin(bucket const& b) { return b.begin(); }
-    friend iterator end(bucket const& b) { return b.end(); }
-    friend iterator begin(bucket& b) { return b.begin(); }
-    friend iterator end(bucket& b) { return b.end(); }
+    CISTA_CUDA_COMPAT const_iterator begin() const {
+      return map_->data_.begin() + bucket_begin_idx();
+    }
+    CISTA_CUDA_COMPAT const_iterator end() const {
+      return map_->data_.begin() + bucket_end_idx();
+    }
+    CISTA_CUDA_COMPAT friend iterator begin(bucket const& b) {
+      return b.begin();
+    }
+    CISTA_CUDA_COMPAT friend iterator end(bucket const& b) { return b.end(); }
+    CISTA_CUDA_COMPAT friend iterator begin(bucket& b) { return b.begin(); }
+    CISTA_CUDA_COMPAT friend iterator end(bucket& b) { return b.end(); }
 
     friend bool operator==(bucket const& a, bucket const& b) {
       assert(a.map_ == b.map_);
@@ -128,48 +140,49 @@ struct basic_vecvec {
       assert(a.map_ == b.map_);
       return a.i_ != b.i_;
     }
-    bucket& operator++() {
+    CISTA_CUDA_COMPAT bucket& operator++() {
       ++i_;
       return *this;
     }
-    bucket& operator--() {
+    CISTA_CUDA_COMPAT bucket& operator--() {
       --i_;
       return *this;
     }
-    bucket operator*() const { return *this; }
-    bucket& operator+=(difference_type const n) {
+    CISTA_CUDA_COMPAT bucket operator*() const { return *this; }
+    CISTA_CUDA_COMPAT bucket& operator+=(difference_type const n) {
       i_ += n;
       return *this;
     }
-    bucket& operator-=(difference_type const n) {
+    CISTA_CUDA_COMPAT bucket& operator-=(difference_type const n) {
       i_ -= n;
       return *this;
     }
-    bucket operator+(difference_type const n) const {
+    CISTA_CUDA_COMPAT bucket operator+(difference_type const n) const {
       auto tmp = *this;
       tmp += n;
       return tmp;
     }
-    bucket operator-(difference_type const n) const {
+    CISTA_CUDA_COMPAT bucket operator-(difference_type const n) const {
       auto tmp = *this;
       tmp -= n;
       return tmp;
     }
-    friend difference_type operator-(bucket const& a, bucket const& b) {
+    CISTA_CUDA_COMPAT friend difference_type operator-(bucket const& a,
+                                                       bucket const& b) {
       assert(a.map_ == b.map_);
       return a.i_ - b.i_;
     }
 
   private:
-    index_value_type bucket_begin_idx() const {
+    CISTA_CUDA_COMPAT index_value_type bucket_begin_idx() const {
       return map_->empty() ? index_value_type{}
                            : to_idx(map_->bucket_starts_[i_]);
     }
-    index_value_type bucket_end_idx() const {
+    CISTA_CUDA_COMPAT index_value_type bucket_end_idx() const {
       return map_->empty() ? index_value_type{}
                            : to_idx(map_->bucket_starts_[i_ + 1U]);
     }
-    bool is_inside_bucket(std::size_t const i) const {
+    CISTA_CUDA_COMPAT bool is_inside_bucket(std::size_t const i) const {
       return bucket_begin_idx() + i < bucket_end_idx();
     }
 
@@ -306,7 +319,7 @@ struct basic_vecvec {
   using iterator = bucket;
   using const_iterator = const_bucket;
 
-  bucket operator[](Key const i) { return {this, to_idx(i)}; }
+  CISTA_CUDA_COMPAT bucket operator[](Key const i) { return {this, to_idx(i)}; }
   CISTA_CUDA_COMPAT const_bucket operator[](Key const i) const {
     return {this, to_idx(i)};
   }
@@ -389,14 +402,22 @@ struct basic_vecvec {
     }
   }
 
+  CISTA_CUDA_COMPAT
   bucket begin() { return bucket{this, 0U}; }
+  CISTA_CUDA_COMPAT
   bucket end() { return bucket{this, size()}; }
+  CISTA_CUDA_COMPAT
   const_bucket begin() const { return const_bucket{this, 0U}; }
+  CISTA_CUDA_COMPAT
   const_bucket end() const { return const_bucket{this, size()}; }
 
+  CISTA_CUDA_COMPAT
   friend bucket begin(basic_vecvec& m) { return m.begin(); }
+  CISTA_CUDA_COMPAT
   friend bucket end(basic_vecvec& m) { return m.end(); }
+  CISTA_CUDA_COMPAT
   friend const_bucket begin(basic_vecvec const& m) { return m.begin(); }
+  CISTA_CUDA_COMPAT
   friend const_bucket end(basic_vecvec const& m) { return m.end(); }
 
   DataVec data_;
