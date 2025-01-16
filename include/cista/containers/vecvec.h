@@ -5,7 +5,9 @@
 #include <type_traits>
 #include <vector>
 
+#include "cista/const_iterator.h"
 #include "cista/containers/vector.h"
+#include "cista/cuda_check.h"
 #include "cista/verify.h"
 
 namespace cista {
@@ -177,8 +179,8 @@ struct basic_vecvec {
 
   struct const_bucket final {
     using value_type = data_value_type;
-    using iterator = typename DataVec::const_iterator;
-    using const_iterator = typename DataVec::const_iterator;
+    using iterator = const_iterator_t<DataVec>;
+    using const_iterator = iterator;
 
     using iterator_category = std::random_access_iterator_tag;
     using difference_type = std::ptrdiff_t;
@@ -224,14 +226,18 @@ struct basic_vecvec {
     index_value_type size() const {
       return bucket_end_idx() - bucket_begin_idx();
     }
-    const_iterator begin() const {
+    CISTA_CUDA_COMPAT const_iterator begin() const {
       return map_->data_.begin() + bucket_begin_idx();
     }
-    const_iterator end() const {
+    CISTA_CUDA_COMPAT const_iterator end() const {
       return map_->data_.begin() + bucket_end_idx();
     }
-    friend const_iterator begin(const_bucket const& b) { return b.begin(); }
-    friend const_iterator end(const_bucket const& b) { return b.end(); }
+    friend CISTA_CUDA_COMPAT const_iterator begin(const_bucket const& b) {
+      return b.begin();
+    }
+    friend CISTA_CUDA_COMPAT const_iterator end(const_bucket const& b) {
+      return b.end();
+    }
 
     std::reverse_iterator<const_iterator> rbegin() const {
       return std::reverse_iterator{begin() + size()};
@@ -301,7 +307,9 @@ struct basic_vecvec {
   using const_iterator = const_bucket;
 
   bucket operator[](Key const i) { return {this, to_idx(i)}; }
-  const_bucket operator[](Key const i) const { return {this, to_idx(i)}; }
+  CISTA_CUDA_COMPAT const_bucket operator[](Key const i) const {
+    return {this, to_idx(i)};
+  }
 
   const_bucket at(Key const i) const {
     verify(to_idx(i) < bucket_starts_.size(),

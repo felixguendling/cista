@@ -14,6 +14,7 @@
 
 #include "cista/bit_counting.h"
 #include "cista/containers/vector.h"
+#include "cista/cuda_check.h"
 #include "cista/strong.h"
 
 namespace cista {
@@ -125,7 +126,9 @@ struct basic_bitvec {
 
   void reset() noexcept { blocks_ = {}; }
 
-  bool operator[](Key const i) const noexcept { return test(i); }
+  CISTA_CUDA_COMPAT bool operator[](Key const i) const noexcept {
+    return test(i);
+  }
 
   std::size_t count() const noexcept {
     if (empty()) {
