@@ -77,7 +77,7 @@ struct generic_string {
 
   bool is_short() const noexcept { return s_.is_short_; }
   bool is_self_allocated() const noexcept {
-    return !is_short() && (h_.reserved_ != 0);
+    return !is_short() && (h_.capacity_ != 0);
   }
 
   void reset() noexcept {
@@ -176,30 +176,19 @@ struct generic_string {
       std::memset(dest + size, 0, (capacity - size) * sizeof(CharT));
     };
     auto make_heap = [](CharT* cur_buf, msize_t new_cap) -> heap {
+      new_cap = (new_cap + msize_t{0xFF}) & ~msize_t{0xFF};
       heap h{};
-      new_cap = (new_cap + msize_t{0xFF}) & msize_t{0xFF'FF'FF'00};
 #ifdef CISTA_LITTLE_ENDIAN
-      h.reserved_ = new_cap;
+      h.capacity_ = new_cap;
 #else
-      h.reserved_ = new_cap >> 8;
+      h.capacity_ = new_cap >> 8;
 #endif
-      if (cur_buf) {
-        h.ptr_ =
-            static_cast<CharT*>(std::realloc(cur_buf, new_cap * sizeof(CharT)));
-      } else {
-        h.ptr_ = static_cast<CharT*>(std::malloc(new_cap * sizeof(CharT)));
-      }
+      h.ptr_ =
+          static_cast<CharT*>(std::realloc(cur_buf, new_cap * sizeof(CharT)));
       if (!h.ptr_) {
         throw_exception(std::bad_alloc{});
       }
       return h;
-    };
-    auto heap_ptr = [](heap& h) -> CharT* {
-      if constexpr (std::is_pointer_v<Ptr>) {
-        return const_cast<CharT*>(h.ptr_);
-      } else {
-        return const_cast<CharT*>(h.ptr_.get());
-      }
     };
 
     if (new_capacity == 0) {
@@ -218,10 +207,12 @@ struct generic_string {
       heap h{};
       if (is_self_allocated()) {
         h = make_heap(data(), new_capacity);
-        initialize_buffer(heap_ptr(h), h.capacity(), h.ptr_, new_size);
+        initialize_buffer(const_cast<CharT*>(h.ptr()), h.capacity(), h.ptr(),
+                          new_size);
       } else {
         h = make_heap(nullptr, new_capacity);
-        initialize_buffer(heap_ptr(h), h.capacity(), data(), new_size);
+        initialize_buffer(const_cast<CharT*>(h.ptr()), h.capacity(), data(),
+                          new_size);
       }
       h.size_ = new_size;
       h_ = h;
@@ -231,11 +222,7 @@ struct generic_string {
     if (is_short()) {
       return short_length_limit;
     }
-#ifdef CISTA_LITTLE_ENDIAN
-    return h_.reserved_;
-#else
-    return h_.reserved_ << 8;
-#endif
+    return h_.capacity();
   }
 
   bool empty() const noexcept { return size() == 0U; }
@@ -395,11 +382,7 @@ struct generic_string {
   }
 
   CharT const* internal_data() const noexcept {
-    if constexpr (std::is_pointer_v<Ptr>) {
-      return is_short() ? s_.s_ : h_.ptr_;
-    } else {
-      return is_short() ? s_.s_ : h_.ptr_.get();
-    }
+    return is_short() ? s_.s_ : h_.ptr();
   }
 
   CharT* data() noexcept { return const_cast<CharT*>(internal_data()); }
@@ -490,17 +473,24 @@ struct generic_string {
   struct heap {
     union {
       bool is_short_;
-      std::uint32_t reserved_{0};
+      std::uint32_t capacity_{0};
     };
     std::uint32_t size_{0};
     Ptr ptr_{nullptr};
 
     std::uint32_t capacity() const noexcept {
 #ifdef CISTA_LITTLE_ENDIAN
-      return reserved_;
+      return capacity_;
 #else
-      return reserved_ << 8;
+      return capacity_ << 8;
 #endif
+    }
+    CharT const* ptr() const noexcept {
+      if constexpr (std::is_pointer_v<Ptr>) {
+        return ptr_;
+      } else {
+        return ptr_.get();
+      }
     }
   };
 

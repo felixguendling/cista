@@ -236,7 +236,7 @@ void serialize(Ctx& c, generic_string<Ptr> const* origin, offset_t const pos) {
                   : start - cista_member_offset(Type, h_.ptr_) - pos));
   c.write(pos + cista_member_offset(Type, h_.size_),
           convert_endian<Ctx::MODE>(origin->h_.size_));
-  c.write(pos + cista_member_offset(Type, h_.reserved_), std::uint32_t{0});
+  c.write(pos + cista_member_offset(Type, h_.capacity_), std::uint32_t{0});
 }
 
 template <typename Ctx, typename T, typename SizeType,
