@@ -218,10 +218,10 @@ struct generic_string {
       heap h{};
       if (is_self_allocated()) {
         h = make_heap(data(), new_capacity);
-        initialize_buffer(heap_ptr(h), h.reserved_, h.ptr_, new_size);
+        initialize_buffer(heap_ptr(h), h.capacity(), h.ptr_, new_size);
       } else {
         h = make_heap(nullptr, new_capacity);
-        initialize_buffer(heap_ptr(h), h.reserved_, data(), new_size);
+        initialize_buffer(heap_ptr(h), h.capacity(), data(), new_size);
       }
       h.size_ = new_size;
       h_ = h;
@@ -494,6 +494,14 @@ struct generic_string {
     };
     std::uint32_t size_{0};
     Ptr ptr_{nullptr};
+
+    std::uint32_t capacity() const noexcept {
+#ifdef CISTA_LITTLE_ENDIAN
+      return reserved_;
+#else
+      return reserved_ << 8;
+#endif
+    }
   };
 
   struct stack {
