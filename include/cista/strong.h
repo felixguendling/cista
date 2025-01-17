@@ -5,6 +5,8 @@
 #include <type_traits>
 #include <utility>
 
+#include "cista/cuda_check.h"
+
 namespace cista {
 
 template <typename T, typename Tag>
@@ -128,7 +130,7 @@ struct strong {
   constexpr bool operator<(T const& o) const { return v_ < o; }
   constexpr bool operator>(T const& o) const { return v_ > o; }
 
-  explicit operator T const&() const& noexcept { return v_; }
+  constexpr explicit operator T const&() const& noexcept { return v_; }
 
   friend std::ostream& operator<<(std::ostream& o, strong const& t) {
     return o << t.v_;
@@ -147,7 +149,7 @@ template <typename T>
 constexpr auto const is_strong_v = is_strong<T>::value;
 
 template <typename T, typename Tag>
-inline constexpr typename strong<T, Tag>::value_t to_idx(
+CISTA_CUDA_COMPAT inline constexpr typename strong<T, Tag>::value_t to_idx(
     strong<T, Tag> const& s) {
   return s.v_;
 }
@@ -166,7 +168,7 @@ template <typename T>
 using base_t = typename base_type<T>::type;
 
 template <typename T>
-T to_idx(T const& t) {
+CISTA_CUDA_COMPAT constexpr T to_idx(T const& t) {
   return t;
 }
 

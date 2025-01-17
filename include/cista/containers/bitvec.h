@@ -235,7 +235,7 @@ struct basic_bitvec {
     }
   }
 
-  size_type size() const noexcept { return size_; }
+  CISTA_CUDA_COMPAT size_type size() const noexcept { return size_; }
   bool empty() const noexcept { return size() == 0U; }
 
   bool any() const noexcept {

@@ -28,7 +28,7 @@ struct basic_vecvec {
     using pointer = std::add_pointer_t<value_type>;
     using reference = bucket;
 
-    bucket(basic_vecvec* map, index_value_type const i)
+    CISTA_CUDA_COMPAT bucket(basic_vecvec* map, index_value_type const i)
         : map_{map}, i_{to_idx(i)} {}
 
     friend CISTA_CUDA_COMPAT data_value_type* data(bucket b) { return &b[0]; }
@@ -200,13 +200,20 @@ struct basic_vecvec {
     using pointer = std::add_pointer_t<value_type>;
     using reference = std::add_lvalue_reference<value_type>;
 
-    const_bucket(basic_vecvec const* map, index_value_type const i)
+    CISTA_CUDA_COMPAT const_bucket(basic_vecvec const* map,
+                                   index_value_type const i)
         : map_{map}, i_{to_idx(i)} {}
 
-    friend data_value_type const* data(const_bucket b) { return b.data(); }
-    friend index_value_type size(const_bucket b) { return b.size(); }
+    friend CISTA_CUDA_COMPAT data_value_type const* data(const_bucket b) {
+      return b.data();
+    }
+    friend CISTA_CUDA_COMPAT index_value_type size(const_bucket b) {
+      return b.size();
+    }
 
-    data_value_type const* data() const { return empty() ? nullptr : &front(); }
+    CISTA_CUDA_COMPAT data_value_type const* data() const {
+      return empty() ? nullptr : &front();
+    }
 
     template <typename T = std::decay_t<data_value_type>,
               typename = std::enable_if_t<std::is_trivially_copyable_v<T>>>
@@ -214,29 +221,29 @@ struct basic_vecvec {
       return {begin(), size()};
     }
 
-    value_type const& front() const {
+    CISTA_CUDA_COMPAT value_type const& front() const {
       assert(!empty());
       return operator[](0);
     }
 
-    value_type const& back() const {
+    CISTA_CUDA_COMPAT value_type const& back() const {
       assert(!empty());
       return operator[](size() - 1U);
     }
 
-    bool empty() const { return begin() == end(); }
+    CISTA_CUDA_COMPAT bool empty() const { return begin() == end(); }
 
-    value_type const& at(std::size_t const i) const {
+    CISTA_CUDA_COMPAT value_type const& at(std::size_t const i) const {
       verify(i < size(), "bucket::at: index out of range");
       return *(begin() + i);
     }
 
-    value_type const& operator[](std::size_t const i) const {
+    CISTA_CUDA_COMPAT value_type const& operator[](std::size_t const i) const {
       assert(is_inside_bucket(i));
       return map_->data_[map_->bucket_starts_[i_] + i];
     }
 
-    index_value_type size() const {
+    CISTA_CUDA_COMPAT index_value_type size() const {
       return bucket_end_idx() - bucket_begin_idx();
     }
     CISTA_CUDA_COMPAT const_iterator begin() const {
@@ -267,47 +274,47 @@ struct basic_vecvec {
       assert(a.map_ == b.map_);
       return a.i_ != b.i_;
     }
-    const_bucket& operator++() {
+    CISTA_CUDA_COMPAT const_bucket& operator++() {
       ++i_;
       return *this;
     }
-    const_bucket& operator--() {
+    CISTA_CUDA_COMPAT const_bucket& operator--() {
       --i_;
       return *this;
     }
-    const_bucket operator*() const { return *this; }
-    const_bucket& operator+=(difference_type const n) {
+    CISTA_CUDA_COMPAT const_bucket operator*() const { return *this; }
+    CISTA_CUDA_COMPAT const_bucket& operator+=(difference_type const n) {
       i_ += n;
       return *this;
     }
-    const_bucket& operator-=(difference_type const n) {
+    CISTA_CUDA_COMPAT const_bucket& operator-=(difference_type const n) {
       i_ -= n;
       return *this;
     }
-    const_bucket operator+(difference_type const n) const {
+    CISTA_CUDA_COMPAT const_bucket operator+(difference_type const n) const {
       auto tmp = *this;
       tmp += n;
       return tmp;
     }
-    const_bucket operator-(difference_type const n) const {
+    CISTA_CUDA_COMPAT const_bucket operator-(difference_type const n) const {
       auto tmp = *this;
       tmp -= n;
       return tmp;
     }
-    friend difference_type operator-(const_bucket const& a,
-                                     const_bucket const& b) {
+    friend CISTA_CUDA_COMPAT difference_type operator-(const_bucket const& a,
+                                                       const_bucket const& b) {
       assert(a.map_ == b.map_);
       return a.i_ - b.i_;
     }
 
   private:
-    std::size_t bucket_begin_idx() const {
+    CISTA_CUDA_COMPAT std::size_t bucket_begin_idx() const {
       return to_idx(map_->bucket_starts_[i_]);
     }
-    std::size_t bucket_end_idx() const {
+    CISTA_CUDA_COMPAT std::size_t bucket_end_idx() const {
       return to_idx(map_->bucket_starts_[i_ + 1]);
     }
-    bool is_inside_bucket(std::size_t const i) const {
+    CISTA_CUDA_COMPAT bool is_inside_bucket(std::size_t const i) const {
       return bucket_begin_idx() + i < bucket_end_idx();
     }
 
@@ -319,33 +326,35 @@ struct basic_vecvec {
   using iterator = bucket;
   using const_iterator = const_bucket;
 
-  CISTA_CUDA_COMPAT bucket operator[](Key const i) { return {this, to_idx(i)}; }
+  CISTA_CUDA_COMPAT bucket operator[](Key const i) {
+    return bucket{this, to_idx(i)};
+  }
   CISTA_CUDA_COMPAT const_bucket operator[](Key const i) const {
-    return {this, to_idx(i)};
+    return const_bucket{this, to_idx(i)};
   }
 
-  const_bucket at(Key const i) const {
+  CISTA_CUDA_COMPAT const_bucket at(Key const i) const {
     verify(to_idx(i) < bucket_starts_.size(),
            "basic_vecvec::at: index out of range");
     return {this, to_idx(i)};
   }
 
-  bucket at(Key const i) {
+  CISTA_CUDA_COMPAT bucket at(Key const i) {
     verify(to_idx(i) < bucket_starts_.size(),
            "basic_vecvec::at: index out of range");
     return {this, to_idx(i)};
   }
 
-  bucket front() { return at(Key{0}); }
-  bucket back() { return at(Key{size() - 1}); }
+  CISTA_CUDA_COMPAT bucket front() { return at(Key{0}); }
+  CISTA_CUDA_COMPAT bucket back() { return at(Key{size() - 1}); }
 
-  const_bucket front() const { return at(Key{0}); }
-  const_bucket back() const { return at(Key{size() - 1}); }
+  CISTA_CUDA_COMPAT const_bucket front() const { return at(Key{0}); }
+  CISTA_CUDA_COMPAT const_bucket back() const { return at(Key{size() - 1}); }
 
-  index_value_type size() const {
+  CISTA_CUDA_COMPAT index_value_type size() const {
     return empty() ? 0U : bucket_starts_.size() - 1;
   }
-  bool empty() const { return bucket_starts_.empty(); }
+  CISTA_CUDA_COMPAT bool empty() const { return bucket_starts_.empty(); }
 
   void clear() {
     bucket_starts_.clear();
