@@ -203,3 +203,45 @@ TEST_CASE("u32string serialization endian long") {
 
   CHECK(*serialized_be == U32STR_LONG_CORNER_CASE);
 }
+
+TEST_CASE_TEMPLATE("string serialization capacity", StrT, cista::raw::string,
+                   u16string, u32string) {
+  using CharT = typename StrT::CharT;
+  auto get_short = []() -> CharT const* {
+    void const* ptr;
+    switch (sizeof(CharT)) {
+      case sizeof(char): ptr = SHORT_STR; break;
+      case sizeof(char16_t): ptr = U16STR_SHORT; break;
+      case sizeof(char32_t): ptr = U32STR_SHORT; break;
+    }
+    return static_cast<CharT const*>(ptr);
+  };
+  auto get_long = []() -> CharT const* {
+    void const* ptr;
+    switch (sizeof(CharT)) {
+      case sizeof(char): ptr = LONG_STR; break;
+      case sizeof(char16_t): ptr = U16STR_LONG; break;
+      case sizeof(char32_t): ptr = U32STR_LONG; break;
+    }
+    return static_cast<CharT const*>(ptr);
+  };
+
+  StrT s_s = get_short(), s_l = get_long();
+  cista::byte_buf buf_s = cista::serialize(s_s), buf_l = cista::serialize(s_l);
+  StrT *serialized_s = cista::deserialize<StrT>(buf_s),
+       *serialized_l = cista::deserialize<StrT>(buf_l);
+  CharT const *ptr_s = serialized_s->data(), *ptr_l = serialized_l->data();
+
+  CHECK(serialized_s->capacity() == StrT::short_length_limit);
+  CHECK(serialized_l->capacity() == 0);
+
+  serialized_s->shrink_to_fit();
+  serialized_l->shrink_to_fit();
+
+  CHECK(serialized_s->capacity() == StrT::short_length_limit);
+  CHECK(serialized_l->capacity() == 256);
+  CHECK(ptr_s == serialized_s->data());
+  CHECK(ptr_l != serialized_l->data());
+  CHECK(*serialized_s == get_short());
+  CHECK(*serialized_l == get_long());
+}
