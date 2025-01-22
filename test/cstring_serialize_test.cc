@@ -244,4 +244,7 @@ TEST_CASE_TEMPLATE("string serialization capacity", StrT, cista::raw::string,
   CHECK(ptr_l != serialized_l->data());
   CHECK(*serialized_s == get_short());
   CHECK(*serialized_l == get_long());
+
+  serialized_s->~StrT();
+  serialized_l->~StrT();
 }
