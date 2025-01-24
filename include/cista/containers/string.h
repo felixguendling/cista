@@ -100,11 +100,12 @@ struct generic_string {
   static constexpr msize_t short_length_limit = 15U / sizeof(CharT);
 
   void set_owning(CharT const* str, msize_t const len) {
-    reset();
     if (str == nullptr || len == 0U) {
-      return;
+      return reset();
     }
-    internal_change_capacity(len);
+    if (capacity() < len) {
+      internal_change_capacity(len);
+    }
     if (!is_short()) {
       h_.size_ = len;
     }
@@ -157,8 +158,8 @@ struct generic_string {
     if (&s == this) {
       return;
     }
-    reset();
     if (s.is_short()) {
+      reset();
       std::memcpy(static_cast<void*>(this), &s, sizeof(s));
     } else if (s.is_self_allocated()) {
       set_owning(s.data(), s.size());
