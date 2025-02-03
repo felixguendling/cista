@@ -563,18 +563,16 @@ struct basic_string : public generic_string<Ptr> {
   }
 
   void resize(msize_t new_size) {
-    if (new_size <= base::short_length_limit) {
-      base::internal_change_capacity(new_size);
-      return;
-    }
     if (new_size > base::capacity()) {
       base::internal_change_capacity(new_size);
     }
-    if (new_size < base::h_.size_) {
+    if (new_size < base::size()) {
       std::memset(base::data() + new_size, 0,
-                  (base::h_.size_ - new_size) * sizeof(CharT));
+                  (base::size() - new_size) * sizeof(CharT));
     }
-    base::h_.size_ = new_size;
+    if (!base::is_short()) {
+      base::h_.size_ = new_size;
+    }
   }
   void reserve(msize_t cap) {
     if (cap > base::capacity()) {

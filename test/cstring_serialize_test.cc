@@ -248,3 +248,33 @@ TEST_CASE_TEMPLATE("string serialization capacity", StrT, cista::raw::string,
   serialized_s->~StrT();
   serialized_l->~StrT();
 }
+
+TEST_CASE_TEMPLATE("string serialization long as short", StrT,
+                   cista::raw::string, u16string, u32string) {
+  using CharT = typename StrT::CharT;
+  auto get_short = []() -> CharT const* {
+    void const* ptr;
+    switch (sizeof(CharT)) {
+      case sizeof(char): ptr = SHORT_STR; break;
+      case sizeof(char16_t): ptr = U16STR_SHORT; break;
+      case sizeof(char32_t): ptr = U32STR_SHORT; break;
+    }
+    return static_cast<CharT const*>(ptr);
+  };
+
+  auto short_str = get_short();
+  auto short_len = StrT::mstrlen(short_str);
+
+  StrT s;
+  s.resize(256);
+  s = short_str;
+  cista::byte_buf buf = cista::serialize(s);
+  StrT* serialized = cista::deserialize<StrT>(buf);
+
+  CHECK(!s.is_short());
+  CHECK(serialized->is_short());
+  CHECK(s == short_str);
+  CHECK(*serialized == short_str);
+  CHECK(s.size() == short_len);
+  CHECK(serialized->size() == short_len);
+}
