@@ -158,10 +158,7 @@ struct generic_string {
     if (&s == this) {
       return;
     }
-    if (s.is_short()) {
-      reset();
-      std::memcpy(static_cast<void*>(this), &s, sizeof(s));
-    } else if (s.is_self_allocated()) {
+    if (s.is_short() || s.is_self_allocated()) {
       set_owning(s.data(), s.size());
     } else {
       set_non_owning(s.data(), s.size());
