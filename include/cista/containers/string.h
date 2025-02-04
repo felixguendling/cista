@@ -148,8 +148,7 @@ struct generic_string {
     } else {
       if (!s.is_short()) {
         h_.ptr_ = s.h_.ptr_;
-        s.h_.ptr_ = nullptr;
-        s.h_.size_ = 0U;
+        s.h_ = heap{};
       }
     }
   }

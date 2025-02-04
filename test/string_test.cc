@@ -119,6 +119,15 @@ TEST_CASE("string copy assign and copy construct") {
   CHECK(s2.view() == LONG_STR);
 }
 
+TEST_CASE_TEMPLATE("string move", StrT, cista::raw::string,
+                   cista::offset::string) {
+  StrT src = LONG_STR;
+  StrT dst = std::move(src);
+  CHECK(src.data() == nullptr);
+  CHECK(src.size() == 0);
+  CHECK(src.capacity() == 0);
+}
+
 TEST_CASE("string hash") {
   auto str = string{""};
   auto h = cista::hash(str, cista::BASE_HASH);
