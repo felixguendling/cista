@@ -371,7 +371,7 @@ struct basic_vecvec {
     data_.insert(std::end(data_),  //
                  std::make_move_iterator(std::begin(bucket)),
                  std::make_move_iterator(std::end(bucket)));
-    bucket_starts_.emplace_back(data_.size());
+    bucket_starts_.emplace_back(static_cast<index_value_type>(data_.size()));
   }
 
   bucket add_back_sized(std::size_t const bucket_size) {
