@@ -202,20 +202,23 @@ void serialize(Ctx& c,
 template <typename Ctx, typename Ptr>
 void serialize(Ctx& c, generic_string<Ptr> const* origin, offset_t const pos) {
   using Type = generic_string<Ptr>;
-  auto str_convert_endian = [](Ctx& ctx, offset_t const start,
-                               typename Type::CharT const* str,
+  using CharT = typename Type::CharT;
+  auto str_convert_endian = [](Ctx& ctx, offset_t const start, CharT const* str,
                                offset_t const size) -> void {
-    if constexpr (sizeof(typename Type::CharT) > 1) {
+    if constexpr (sizeof(CharT) > 1) {
       for (offset_t i = 0; i < size; ++i) {
-        ctx.write(
-            start + i * static_cast<offset_t>(sizeof(typename Type::CharT)),
-            convert_endian<Ctx::MODE>(str[i]));
+        ctx.write(start + i * static_cast<offset_t>(sizeof(CharT)),
+                  convert_endian<Ctx::MODE>(str[i]));
       }
     }
   };
 
-  if (origin->is_short()) {
-    str_convert_endian(c, pos + cista_member_offset(Type, s_.s_), origin->s_.s_,
+  if (origin->size() <= Type::short_length_limit) {
+    Type short_str;
+    short_str.set_owning(origin->data(), origin->size());
+    c.write(pos, short_str);
+    str_convert_endian(c, pos + cista_member_offset(Type, s_.s_),
+                       origin->data(),
                        static_cast<offset_t>(Type::short_length_limit));
     return;
   }
@@ -236,7 +239,7 @@ void serialize(Ctx& c, generic_string<Ptr> const* origin, offset_t const pos) {
                   : start - cista_member_offset(Type, h_.ptr_) - pos));
   c.write(pos + cista_member_offset(Type, h_.size_),
           convert_endian<Ctx::MODE>(origin->h_.size_));
-  c.write(pos + cista_member_offset(Type, h_.self_allocated_), false);
+  c.write(pos + cista_member_offset(Type, h_.capacity_), std::uint32_t{0});
 }
 
 template <typename Ctx, typename T, typename SizeType,
@@ -829,8 +832,7 @@ void check_state(Ctx const& c, generic_string<Ptr>* el) {
   if (!el->is_short()) {
     c.check_ptr(el->h_.ptr_,
                 el->h_.size_ * sizeof(typename generic_string<Ptr>::CharT));
-    c.check_bool(el->h_.self_allocated_);
-    c.require(!el->h_.self_allocated_, "string self-allocated");
+    c.require(!el->is_self_allocated(), "string self-allocated");
     c.require((el->h_.size_ == 0) == (el->h_.ptr_ == nullptr),
               "str size=0 <=> ptr=0");
   }
