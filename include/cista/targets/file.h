@@ -39,7 +39,7 @@ inline HANDLE open_file(char const* path, char const* mode) {
   verify(read || write, "open file mode not supported");
 
   DWORD access = read ? GENERIC_READ : GENERIC_READ | GENERIC_WRITE;
-  DWORD create_mode = modify ? OPEN_ALWAYS : read ? OPEN_EXISTING : CREATE_ALWAYS;
+  DWORD create_mode = (read || modify) ? OPEN_EXISTING : CREATE_ALWAYS;
 
   auto const f = CreateFileA(path, access, FILE_SHARE_READ, nullptr,
                              create_mode, FILE_ATTRIBUTE_NORMAL, nullptr);
