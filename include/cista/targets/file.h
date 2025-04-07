@@ -32,13 +32,14 @@ inline std::string last_error_str() {
 }
 
 inline HANDLE open_file(char const* path, char const* mode) {
+  bool modify = std::strcmp(mode, "r+") == 0;
   bool read = std::strcmp(mode, "r") == 0;
-  bool write = std::strcmp(mode, "w+") == 0 || std::strcmp(mode, "r+") == 0;
+  bool write = std::strcmp(mode, "w+") == 0 || modify;
 
   verify(read || write, "open file mode not supported");
 
   DWORD access = read ? GENERIC_READ : GENERIC_READ | GENERIC_WRITE;
-  DWORD create_mode = read ? OPEN_EXISTING : CREATE_ALWAYS;
+  DWORD create_mode = (read || modify) ? OPEN_EXISTING : CREATE_ALWAYS;
 
   auto const f = CreateFileA(path, access, FILE_SHARE_READ, nullptr,
                              create_mode, FILE_ATTRIBUTE_NORMAL, nullptr);
