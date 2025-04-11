@@ -187,6 +187,18 @@ struct hashing<std::tuple<Args...>> {
   }
 };
 
+template <typename... Args>
+struct hashing<std::variant<Args...>> {
+  constexpr hash_t operator()(std::variant<Args...> const& el,
+                              hash_t const seed = BASE_HASH) {
+    hash_t h = hash_combine(seed, el.index());
+    std::visit(
+        [&](auto&& arg) { h = hashing<std::decay_t<decltype(arg)>>{}(arg, h); },
+        el);
+    return h;
+  }
+};
+
 template <>
 struct hashing<char const*> {
   hash_t operator()(char const* el, hash_t const seed = BASE_HASH) {
