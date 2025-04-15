@@ -105,7 +105,6 @@ unsigned long get_random_number() {  // period 2^96-1
   return z;
 }
 
-#if __has_cpp_attribute(__cpp_lib_atomic_ref)
 TEST_CASE("bitvec atomic set") {
   constexpr auto const kBits = 100'000U;
   constexpr auto const kWorkers = 100U;
@@ -121,7 +120,7 @@ TEST_CASE("bitvec atomic set") {
       }
 
       for (auto j = i; j < kBits; j += kBits / kWorkers) {
-        b.atomic_set(j);
+        b.set<true>(j);
       }
     }};
   }
@@ -134,7 +133,6 @@ TEST_CASE("bitvec atomic set") {
 
   CHECK(b.count() == kBits);
 }
-#endif
 
 TEST_CASE("bitvec parallel") {
   constexpr auto const kBits = 1'000'000U;
@@ -180,4 +178,45 @@ TEST_CASE("bitvec parallel") {
   check.erase(std::unique(begin(check), end(check)), end(check));
 
   CHECK_EQ(bits, check);
+}
+
+TEST_CASE("bitvec parallel mark store") {
+  constexpr auto const kBits = 1'000'000;
+  constexpr auto const kWorkers = 100U;
+
+  auto bits = std::vector<std::size_t>{};
+  bits.resize(kBits * 0.5);
+  std::generate(begin(bits), end(bits), [&]() {
+    return static_cast<std::uint32_t>(get_random_number() % kBits);
+  });
+  std::sort(begin(bits), end(bits));
+  bits.erase(std::unique(begin(bits), end(bits)), end(bits));
+
+  auto b = cista::raw::bitvec{};
+  b.resize(kBits);
+
+  auto workers = std::vector<std::thread>(kWorkers);
+  auto next = std::atomic_size_t{0U};
+  for (auto i = 0U; i != kWorkers; ++i) {
+    workers[i] = std::thread{[&]() {
+      while (true) {
+        auto idx = next++;
+        if (idx > bits.size()) {
+          return;
+        }
+        b.template set<true>(static_cast<std::uint32_t>(bits[idx]), true);
+      }
+    }};
+  }
+
+  for (auto& w : workers) {
+    w.join();
+  }
+
+  auto check = std::vector<std::size_t>{};
+
+  std::atomic_thread_fence(std::memory_order_acquire);
+  b.for_each_set_bit([&](auto i) { check.emplace_back(i); });
+
+  CHECK(bits == check);
 }
