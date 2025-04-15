@@ -1,6 +1,7 @@
 #include "doctest.h"
 
 #include <thread>
+#include <vector>
 
 #ifdef SINGLE_HEADER
 #include "cista.h"
