@@ -35,7 +35,7 @@ TEST_CASE("atomic min test") {
 
       while (true) {
         auto idx = next++;
-        if (idx > values.size()) {
+        if (idx >= values.size()) {
           return;
         }
         for (auto j = 0U; j != min.size(); ++j) {
