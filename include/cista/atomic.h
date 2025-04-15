@@ -38,7 +38,6 @@ inline std::int16_t fetch_min(std::int16_t& block, std::int16_t const val) {
     while (!a->compare_exchange_weak(old, std::min(old, val),
                                      std::memory_order_release,
                                      std::memory_order_relaxed)) {
-      ;
     }
   }
   return old;
