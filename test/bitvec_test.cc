@@ -119,7 +119,7 @@ TEST_CASE("bitvec atomic set") {
         // wait for synchronized start
       }
 
-      for (auto j = i; j < kBits; j += kBits / kWorkers) {
+      for (auto j = i; j < kBits; j += kWorkers) {
         b.set<true>(j);
       }
     }};
