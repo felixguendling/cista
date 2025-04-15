@@ -12,10 +12,10 @@
 #include <tuple>
 #include <type_traits>
 
+#include "cista/atomic.h"
 #include "cista/bit_counting.h"
 #include "cista/containers/vector.h"
 #include "cista/strong.h"
-#include "cista/atomic.h"
 
 namespace cista {
 
