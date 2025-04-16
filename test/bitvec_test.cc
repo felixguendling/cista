@@ -201,7 +201,7 @@ TEST_CASE("bitvec parallel mark store") {
     workers[i] = std::thread{[&]() {
       while (true) {
         auto idx = next++;
-        if (idx > bits.size()) {
+        if (idx >= bits.size()) {
           return;
         }
         b.template set<true>(static_cast<std::uint32_t>(bits[idx]), true);
