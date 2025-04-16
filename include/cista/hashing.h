@@ -8,6 +8,7 @@
 #include <string_view>
 #include <tuple>
 #include <type_traits>
+#include <variant>
 
 #include "cista/containers/cstring.h"
 #include "cista/containers/offset_ptr.h"

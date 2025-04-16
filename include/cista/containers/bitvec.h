@@ -12,9 +12,9 @@
 #include <tuple>
 #include <type_traits>
 
+#include "cista/atomic.h"
 #include "cista/bit_counting.h"
 #include "cista/containers/vector.h"
-#include "cista/cuda_check.h"
 #include "cista/strong.h"
 
 namespace cista {
@@ -98,37 +98,31 @@ struct basic_bitvec {
     }
   }
 
-#if __cpp_lib_atomic_ref
-  constexpr void atomic_set(
-      Key const i, bool const val = true,
-      std::memory_order succ = std::memory_order_seq_cst,
-      std::memory_order fail = std::memory_order_seq_cst) noexcept {
+  template <bool IsAtomic = false>
+  void set(Key const i, bool const val = true) noexcept {
     assert(i < size_);
     assert((to_idx(i) / bits_per_block) < blocks_.size());
-    auto const block = std::atomic_ref{
-        blocks_[static_cast<size_type>(to_idx(i)) / bits_per_block]};
+
     auto const bit = to_idx(i) % bits_per_block;
-
-    auto const update_block = [&](block_t const b) -> block_t {
+    auto& block = blocks_[static_cast<size_type>(to_idx(i)) / bits_per_block];
+    if constexpr (IsAtomic) {
       if (val) {
-        return block | (block_t{1U} << bit);
+        fetch_or(block, block_t{1U} << bit);
       } else {
-        return block & (~block_t{0U} ^ (block_t{1U} << bit));
+        fetch_and(block, (~block_t{0U} ^ (block_t{1U} << bit)));
       }
-    };
-
-    auto expected = block.load();
-    while (std::atomic_compare_exchange_weak(
-        &block, &expected, update_block(expected), succ, fail)) {
+    } else {
+      if (val) {
+        block |= (block_t{1U} << bit);
+      } else {
+        block &= (~block_t{0U} ^ (block_t{1U} << bit));
+      }
     }
   }
-#endif
 
   void reset() noexcept { blocks_ = {}; }
 
-  CISTA_CUDA_COMPAT bool operator[](Key const i) const noexcept {
-    return test(i);
-  }
+  bool operator[](Key const i) const noexcept { return test(i); }
 
   std::size_t count() const noexcept {
     if (empty()) {
@@ -235,7 +229,7 @@ struct basic_bitvec {
     }
   }
 
-  CISTA_CUDA_COMPAT size_type size() const noexcept { return size_; }
+  size_type size() const noexcept { return size_; }
   bool empty() const noexcept { return size() == 0U; }
 
   bool any() const noexcept {
