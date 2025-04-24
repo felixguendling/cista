@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <vector>
 
+#include "cista/char_traits.h"
 #include "cista/const_iterator.h"
 #include "cista/containers/vector.h"
 #include "cista/cuda_check.h"
@@ -17,6 +18,9 @@ struct basic_vecvec {
   using key = Key;
   using data_value_type = typename DataVec::value_type;
   using index_value_type = typename IndexVec::value_type;
+  using char_traits = std::conditional_t<std::is_same_v<data_value_type, char>,
+                                         ::std::char_traits<data_value_type>,
+                                         ::cista::char_traits<data_value_type>>;
 
   struct bucket final {
     using value_type = data_value_type;
@@ -42,7 +46,7 @@ struct basic_vecvec {
 
     template <typename T = std::decay_t<data_value_type>,
               typename = std::enable_if_t<std::is_trivially_copyable_v<T>>>
-    std::basic_string_view<T> view() const {
+    std::basic_string_view<T, char_traits> view() const {
       return {begin(), size()};
     }
 
@@ -217,7 +221,7 @@ struct basic_vecvec {
 
     template <typename T = std::decay_t<data_value_type>,
               typename = std::enable_if_t<std::is_trivially_copyable_v<T>>>
-    std::basic_string_view<T> view() const {
+    std::basic_string_view<T, char_traits> view() const {
       return {begin(), size()};
     }
 
