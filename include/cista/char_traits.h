@@ -5,7 +5,7 @@
 namespace cista {
 
 template <typename CharT>
-struct char_traits {
+struct generic_char_traits {
   using char_type = CharT;
   using int_type = int;
   using off_type = std::streamoff;
@@ -115,5 +115,23 @@ struct char_traits {
 
   static inline int_type eof() { return static_cast<int_type>(EOF); }
 };
+
+template <typename CharT>
+struct gen_char_traits_helper {
+  using value_type = generic_char_traits<CharT>;
+};
+
+template <typename CharT>
+struct std_char_traits_helper {
+  using value_type = std::char_traits<CharT>;
+};
+
+template <typename CharT>
+using char_traits = std::conditional_t<
+    std::disjunction_v<std::is_same<CharT, char>, std::is_same<CharT, wchar_t>,
+                       std::is_same<CharT, char8_t>,
+                       std::is_same<CharT, char16_t>,
+                       std::is_same<CharT, char32_t>>,
+    std_char_traits_helper<CharT>, gen_char_traits_helper<CharT>>::value_type;
 
 }  // namespace cista
