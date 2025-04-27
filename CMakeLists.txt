@@ -77,7 +77,7 @@ if (${CISTA_GENERATE_TO_TUPLE})
   add_subdirectory(tools/to_tuple_generator EXCLUDE_FROM_ALL)
   add_custom_target(generate_to_tuple
     COMMAND to_tuple_generator
-      64  # max number of supported member fields
+      128  # max number of supported member fields
     > ${CMAKE_CURRENT_SOURCE_DIR}/include/cista/reflection/to_tuple.h
   )
   add_dependencies(cista generate_to_tuple)
