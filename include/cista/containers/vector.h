@@ -177,6 +177,7 @@ struct basic_vector {
         range_size >= 0 && range_size <= std::numeric_limits<size_type>::max(),
         "cista::vector::set: invalid range");
 
+    clear();
     reserve(static_cast<size_type>(range_size));
 
     auto copy_source = begin_it;
