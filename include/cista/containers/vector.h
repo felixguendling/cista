@@ -78,14 +78,16 @@ struct basic_vector {
   }
 
   basic_vector& operator=(basic_vector&& arr) noexcept {
-    deallocate();
+    if (&arr != this) {
+      deallocate();
 
-    el_ = arr.el_;
-    used_size_ = arr.used_size_;
-    self_allocated_ = arr.self_allocated_;
-    allocated_size_ = arr.allocated_size_;
+      el_ = arr.el_;
+      used_size_ = arr.used_size_;
+      self_allocated_ = arr.self_allocated_;
+      allocated_size_ = arr.allocated_size_;
 
-    arr.reset();
+      arr.reset();
+    }
     return *this;
   }
 
