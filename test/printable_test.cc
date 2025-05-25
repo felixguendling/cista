@@ -13,7 +13,7 @@ namespace {
 enum class Color : int { RED, BLUE, GREEN };
 
 struct a {
-  CISTA_PRINTABLE(a)
+  CISTA_PRINTABLE(a, )
   int i_ = 1;
   int j_ = 2;
   double d_ = 100.0;

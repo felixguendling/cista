@@ -41,7 +41,7 @@ namespace cista_members_printable {
 
 struct x {};
 struct a : public x {
-  CISTA_PRINTABLE(a)
+  CISTA_PRINTABLE(a, )
   auto cista_members() noexcept { return std::tie(a_, b_, c_); }
   int a_{1}, b_{2}, c_{3};
 };
