@@ -129,7 +129,7 @@ struct std_char_traits_helper {
 template <typename CharT>
 using char_traits = typename std::conditional_t<
     std::disjunction_v<std::is_same<CharT, char>, std::is_same<CharT, wchar_t>,
-#if __cplusplus >= 201811L
+#if defined(__cpp_lib_char8_t)
                        std::is_same<CharT, char8_t>,
 #endif
                        std::is_same<CharT, char16_t>,
