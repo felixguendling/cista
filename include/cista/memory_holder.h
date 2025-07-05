@@ -20,7 +20,12 @@ struct wrapped {
   explicit wrapped(raw::unique_ptr<T> el) : el_{std::move(el)} {}
 
   void reset() {
-    el_.reset();
+    if (!el_.self_allocated_) {
+      el_->~T();
+      el_.el_ = nullptr;
+    } else {
+      el_.reset();
+    }
     if (std::holds_alternative<buffer>(mem_)) {
       std::get<buffer>(mem_) = buffer{};
     } else if (std::holds_alternative<byte_buf>(mem_)) {
