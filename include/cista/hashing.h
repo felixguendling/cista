@@ -104,23 +104,23 @@ struct hashing {
       using std::begin;
       using std::end;
       return el.size() == 0U
-                 ? seed
+                 ? hash_combine(seed, 4103837467515670910ULL)
                  : hash(std::string_view{&(*begin(el)), el.size()}, seed);
     } else if constexpr (std::is_scalar_v<Type>) {
       return hash_combine(seed, el);
     } else if constexpr (detail::is_optional<Type>::value) {
       return el.has_value() ? hashing<typename Type::value_type>{}(*el, seed)
-                            : seed;
+                            : hash_combine(seed, 5867927371045383952ULL);
     } else if constexpr (has_std_hash_v<Type>) {
       return hash_combine(std::hash<Type>()(el), seed);
     } else if constexpr (is_iterable_v<Type>) {
-      auto h = seed;
+      auto h = hash_combine(seed, 13000815972264588554ULL);
       for (auto const& v : el) {
         h = hashing<std::decay_t<decltype(v)>>()(v, h);
       }
       return h;
     } else if constexpr (to_tuple_works_v<Type>) {
-      auto h = seed;
+      auto h = hash_combine(seed, 5544890468987666331ULL);
       for_each_field(el, [&h](auto&& f) {
         h = hashing<std::decay_t<decltype(f)>>{}(f, h);
       });
@@ -210,6 +210,13 @@ struct hashing<char const*> {
 template <typename... Args>
 hash_t build_hash(Args const&... args) {
   hash_t h = BASE_HASH;
+  ((h = hashing<decltype(args)>{}(args, h)), ...);
+  return h;
+}
+
+template <typename... Args>
+hash_t build_seeded_hash(hash_t const seed = BASE_HASH, Args const&... args) {
+  hash_t h = seed;
   ((h = hashing<decltype(args)>{}(args, h)), ...);
   return h;
 }
