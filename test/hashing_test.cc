@@ -50,7 +50,10 @@ TEST_CASE("hashing std::string member") {
   CHECK(cista::hashing<my_type>{}(k) ==
         cista::hash(std::string{"1234"},
                     cista::hash(std::string{"4321"},
-                                cista::hash_combine(cista::BASE_HASH, 3))));
+                                cista::hash_combine(
+                                    cista::hash_combine(cista::BASE_HASH,
+                                                        5544890468987666331ULL),
+                                    3))));
 }
 
 TEST_CASE("hash() override") {
@@ -62,8 +65,11 @@ TEST_CASE("hash() override") {
 TEST_CASE("automatic hash validation") {
   key k{3U, data::string{"1234"}};
   CHECK(cista::hashing<key>{}(k) ==
-        cista::hash(data::string{"1234"},
-                    cista::hash_combine(cista::BASE_HASH, 3U)));
+        cista::hash(
+            data::string{"1234"},
+            cista::hash_combine(
+                cista::hash_combine(cista::BASE_HASH, 5544890468987666331ULL),
+                3U)));
 }
 
 TEST_CASE("automatic hashing and equality check") {
