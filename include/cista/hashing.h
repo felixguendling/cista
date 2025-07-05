@@ -108,6 +108,9 @@ struct hashing {
                  : hash(std::string_view{&(*begin(el)), el.size()}, seed);
     } else if constexpr (std::is_scalar_v<Type>) {
       return hash_combine(seed, el);
+    } else if constexpr (detail::is_optional<Type>::value) {
+      return el.has_value() ? hashing<typename Type::value_type>{}(*el, seed)
+                            : seed;
     } else if constexpr (has_std_hash_v<Type>) {
       return hash_combine(std::hash<Type>()(el), seed);
     } else if constexpr (is_iterable_v<Type>) {
@@ -124,9 +127,6 @@ struct hashing {
       return h;
     } else if constexpr (is_strong_v<Type>) {
       return hashing<typename Type::value_t>{}(el.v_, seed);
-    } else if constexpr (detail::is_optional<Type>::value) {
-      return el.has_value() ? hashing<typename Type::value_type>{}(*el, seed)
-                            : seed;
     } else {
       static_assert(has_hash_v<Type> || std::is_scalar_v<Type> ||
                         has_std_hash_v<Type> || is_iterable_v<Type> ||
