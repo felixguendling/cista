@@ -120,7 +120,7 @@ struct hashing {
       }
       return h;
     } else if constexpr (to_tuple_works_v<Type>) {
-      auto h = hash_combine(seed, 5544890468987666331ULL);
+      auto h = seed;
       for_each_field(el, [&h](auto&& f) {
         h = hashing<std::decay_t<decltype(f)>>{}(f, h);
       });
