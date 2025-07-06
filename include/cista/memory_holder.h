@@ -20,7 +20,7 @@ struct wrapped {
   explicit wrapped(raw::unique_ptr<T> el) : el_{std::move(el)} {}
 
   void reset() {
-    if (!el_.self_allocated_) {
+    if (!el_.self_allocated_ && el_.el_ != nullptr) {
       el_->~T();
       el_.el_ = nullptr;
     } else {
