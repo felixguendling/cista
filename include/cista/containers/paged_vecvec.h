@@ -161,6 +161,11 @@ struct paged_vecvec {
       (*this)[size() - 1U] = x;
     }
 
+    template <typename... Ts>
+    void emplace_back(Ts... args) {
+      push_back(data_value_type{std::forward<Ts>(args)...});
+    }
+
     template <typename Arg>
     iterator insert(iterator const it, Arg&& el) {
       auto const old_offset = std::distance(begin(), it);
@@ -321,6 +326,10 @@ struct paged_vecvec {
   std::enable_if_t<std::is_convertible_v<std::decay_t<X>, data_value_type>>
   emplace_back(std::initializer_list<X>&& x) {
     emplace_back(x);
+  }
+
+  void emplace_back() {
+    emplace_back(std::initializer_list<data_value_type>{});
   }
 
   void emplace_back_empty() { idx_.emplace_back(paged_.create_page(0U)); }
