@@ -96,7 +96,7 @@ struct file {
     auto b = buffer(file_size);
 
     chunk(block_size, size(), [&](std::size_t const from, unsigned block_size) {
-      OVERLAPPED overlapped = {0};
+      OVERLAPPED overlapped{};
       overlapped.Offset = static_cast<DWORD>(from);
 #ifdef _WIN64
       overlapped.OffsetHigh = static_cast<DWORD>(from >> 32u);
@@ -114,7 +114,7 @@ struct file {
     char buf[block_size];
     chunk(block_size, size_ - static_cast<std::size_t>(start),
           [&](auto const from, auto const size) {
-            OVERLAPPED overlapped = {0};
+            OVERLAPPED overlapped{};
             overlapped.Offset = static_cast<DWORD>(start + from);
 #ifdef _WIN64
             overlapped.OffsetHigh = static_cast<DWORD>((start + from) >> 32U);
@@ -131,7 +131,7 @@ struct file {
 
   template <typename T>
   void write(std::size_t const pos, T const& val) {
-    OVERLAPPED overlapped = {0};
+    OVERLAPPED overlapped{};
     overlapped.Offset = static_cast<DWORD>(pos);
 #ifdef _WIN64
     overlapped.OffsetHigh = pos >> 32u;
@@ -159,7 +159,7 @@ struct file {
     auto const num_padding_bytes = static_cast<DWORD>(curr_offset - size_);
     if (num_padding_bytes != 0U) {
       verify(num_padding_bytes < 16U, "invalid padding size");
-      OVERLAPPED overlapped = {0};
+      OVERLAPPED overlapped{};
       overlapped.Offset = static_cast<std::uint32_t>(size_);
 #ifdef _WIN64
       overlapped.OffsetHigh = static_cast<std::uint32_t>(size_ >> 32u);
@@ -174,7 +174,7 @@ struct file {
 
     constexpr auto block_size = 8192u;
     chunk(block_size, size, [&](std::size_t const from, unsigned block_size) {
-      OVERLAPPED overlapped = {0};
+      OVERLAPPED overlapped{};
       overlapped.Offset = 0xFFFFFFFF;
       overlapped.OffsetHigh = 0xFFFFFFFF;
       DWORD bytes_written = {0};

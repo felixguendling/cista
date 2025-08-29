@@ -179,10 +179,10 @@ private:
     }
 
 #ifdef _WIN32
-    LARGE_INTEGER Size = {0};
+    LARGE_INTEGER Size{};
     verify(::GetFileSizeEx(f_.f_, &Size), "resize: get file size error");
 
-    LARGE_INTEGER Distance = {0};
+    LARGE_INTEGER Distance{};
     Distance.QuadPart = size_ - Size.QuadPart;
     verify(::SetFilePointerEx(f_.f_, Distance, nullptr, FILE_END),
            "resize error");
