@@ -8,8 +8,6 @@
 
 #if defined(__APPLE__)
 #include <machine/endian.h>
-#elif defined(__GNUC__)
-#include <endian.h>
 #elif defined(_WIN32)
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -18,6 +16,8 @@
 #define NOMINMAX
 #endif
 #include <windows.h>
+#elif defined(__GNUC__)
+#include <endian.h>
 #endif
 
 #if defined(REG_DWORD) && REG_DWORD == REG_DWORD_BIG_ENDIAN ||               \
