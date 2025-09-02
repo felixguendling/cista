@@ -106,6 +106,8 @@ struct hashing {
       return el.size() == 0U
                  ? hash_combine(seed, 4103837467515670910ULL)
                  : hash(std::string_view{&(*begin(el)), el.size()}, seed);
+    } else if constexpr (std::is_signed_v<Type>) {
+      return hash_combine(seed, static_cast<std::int64_t>(el));
     } else if constexpr (std::is_scalar_v<Type>) {
       return hash_combine(seed, el);
     } else if constexpr (detail::is_optional<Type>::value) {
