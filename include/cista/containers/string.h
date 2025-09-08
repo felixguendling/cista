@@ -604,7 +604,7 @@ auto format_as(cista::basic_string<Ptr> const& s) {
 
 }  // namespace cista
 
-#if __has_include("fmt/ranges.h")
+#if defined(CISTA_FMT)
 
 #include "fmt/ranges.h"
 
