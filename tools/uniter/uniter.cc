@@ -16,7 +16,8 @@ void write_file(std::string const& include_path, std::string const& path,
     while (!f.eof() && f.peek() != EOF && std::getline(f, line)) {
       constexpr auto const include_start = R"(#include ")";
       auto const include_start_len = std::strlen(include_start);
-      if (starts_with(line, include_start)) {
+      if (starts_with(line, include_start) &&
+          line.find("fmt/") == std::string::npos) {
         auto const include_end = line.find_last_of("\"");
         auto const include_file =
             line.substr(include_start_len, include_end - include_start_len);
