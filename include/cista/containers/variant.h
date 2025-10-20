@@ -445,10 +445,9 @@ constexpr auto visit(Visitor&& vis, cista::variant<T...>&& v) {
 
 template <typename Visitor, typename... T>
 constexpr auto visit(Visitor&& vis, cista::variant<T...> const& v) {
-    return v.apply(vis);
+  return v.apply(vis);
 }
-    
+
 using cista::get;
 
 }  // namespace std
-
