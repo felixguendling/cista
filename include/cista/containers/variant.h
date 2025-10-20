@@ -443,6 +443,11 @@ constexpr auto visit(Visitor&& vis, cista::variant<T...>&& v) {
   return v.apply(std::forward<Visitor>(vis));
 }
 
+template <typename Visitor, typename... T>
+constexpr auto visit(Visitor&& vis, cista::variant<T...> const& v) {
+  return v.apply(vis);
+}
+
 using cista::get;
 
 }  // namespace std
