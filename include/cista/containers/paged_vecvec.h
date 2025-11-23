@@ -302,10 +302,16 @@ struct paged_vecvec {
   base_t<Key> size() const { return idx_.size(); }
   bool empty() const { return idx_.empty(); }
 
-  bucket begin() { return front(); }
-  bucket end() { return operator[](Key{size()}); }
-  const_bucket begin() const { return front(); }
-  const_bucket end() const { return operator[](Key{size()}); }
+  bucket begin() { return empty() ? bucket{nullptr, Key{}} : front(); }
+  bucket end() {
+    return empty() ? bucket{nullptr, Key{}} : operator[](Key{size()});
+  }
+  const_bucket begin() const {
+    return empty() ? const_bucket{nullptr, Key{}} : front();
+  }
+  const_bucket end() const {
+    return empty() ? const_bucket{nullptr, Key{}} : operator[](Key{size()});
+  }
 
   friend bucket begin(paged_vecvec& m) { return m.begin(); }
   friend bucket end(paged_vecvec& m) { return m.end(); }
