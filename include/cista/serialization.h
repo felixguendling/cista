@@ -499,7 +499,8 @@ void serialize(Target& t, T& value) {
   }
 
   auto integrity_offset = offset_t{0};
-  if constexpr (is_mode_enabled(Mode, mode::WITH_INTEGRITY)) {
+  if constexpr (is_mode_enabled(Mode, mode::WITH_INTEGRITY) ||
+                is_mode_enabled(Mode, mode::SKIP_INTEGRITY)) {
     auto const h = hash_t{};
     integrity_offset = c.write(&h, sizeof(h));
   }
