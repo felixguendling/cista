@@ -172,7 +172,9 @@ struct basic_bitvec {
     }
 
     auto const first_block_idx = i / bits_per_block;
-    auto const first_block = blocks_[first_block_idx];
+    auto const first_block = first_block_idx == blocks_.size() - 1
+                                 ? sanitized_last_block()
+                                 : blocks_[first_block_idx];
     if (first_block != 0U) {
       auto const first_bit = i % bits_per_block;
       auto const n = std::min(size(), bits_per_block);

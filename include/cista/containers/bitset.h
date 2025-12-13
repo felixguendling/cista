@@ -34,6 +34,18 @@ struct bitset {
 
   auto cista_members() noexcept { return std::tie(blocks_); }
 
+  void zero_out() {
+    for (auto& b : blocks_) {
+      b = 0U;
+    }
+  }
+
+  void one_out() {
+    for (auto& b : blocks_) {
+      b = ~block_t{0};
+    }
+  }
+
   constexpr void set(std::string_view s) noexcept {
     for (std::size_t i = 0U; i != std::min(Size, s.size()); ++i) {
       set(i, s[s.size() - i - 1U] != '0');

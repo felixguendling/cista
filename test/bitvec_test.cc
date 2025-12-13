@@ -221,6 +221,23 @@ TEST_CASE("bitvec parallel mark store") {
   CHECK(bits == check);
 }
 
+TEST_CASE("bitvec uneven next bit") {
+  auto b = cista::raw::bitvec{};
+  b.resize(65);
+  CHECK(!b.next_set_bit(0).has_value());
+
+  b.one_out();
+  auto last = 0U;
+  auto x = b.next_set_bit(0U);
+  while (x.has_value()) {
+    b.set(*x, false);
+    last = *x;
+    x = b.next_set_bit(*x);
+  }
+  CHECK(64 == last);
+}
+
+
 TEST_CASE("bitvec next set bit same as before") {
   auto b = cista::raw::bitvec{};
   b.resize(64);
