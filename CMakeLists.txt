@@ -120,6 +120,11 @@ if(CISTA_COVERAGE)
   set_target_properties(cista-test PROPERTIES LINK_FLAGS --coverage)
 endif()
 
+add_executable(cista-test-23 EXCLUDE_FROM_ALL ${cista-test-files})
+target_compile_options(cista-test-23 PRIVATE ${cista-compile-flags})
+target_link_libraries(cista-test-23 cista-doctest cista)
+target_compile_features(cista-test-23 PRIVATE cxx_std_23)
+
 add_custom_target(cista-coverage
   rm -rf *.info &&
   find . -name "*.gcda" -delete &&

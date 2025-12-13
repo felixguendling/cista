@@ -1,6 +1,10 @@
 #include <memory>
 #include <set>
 
+#if __has_include(<ranges>)
+#include <ranges>
+#endif
+
 #include "doctest.h"
 
 #ifdef SINGLE_HEADER
@@ -100,3 +104,44 @@ TEST_CASE("nvec test") {
   CHECK_EQ(3U, v[2U][1U].size());
   CHECK_EQ(1U, v[2U][2U].size());
 }
+
+#if defined(__cpp_lib_ranges)
+TEST_CASE("nvec ranges test") {
+  auto x = cista::raw::nvec<unsigned, unsigned, 3U>{};
+  auto y = cista::raw::nvec<unsigned, unsigned, 2U>{};
+
+  auto const expected_lhs =
+      std::vector<std::vector<std::vector<unsigned>>>{
+          {{1U, 2U}, {3U}},
+          {{4U}},
+      };
+  auto const expected_rhs =
+      std::vector<std::vector<unsigned>>{{10U, 20U}, {30U}};
+
+  x.emplace_back(expected_lhs);
+  y.emplace_back(expected_rhs);
+
+  auto zipped = std::views::zip(x[0], y[0]);
+  auto expected_zip = std::views::zip(expected_lhs, expected_rhs);
+
+  auto const rows_match =
+      std::ranges::equal(zipped, expected_zip,
+                         [](auto const& actual_pair,
+                            auto const& expected_pair) {
+                           auto const& [lhs_rows, rhs_bucket] = actual_pair;
+                           auto const& [lhs_expected_rows, rhs_expected_bucket] =
+                               expected_pair;
+                           auto const lhs_match = std::ranges::equal(
+                               lhs_rows, lhs_expected_rows,
+                               [](auto const& lhs_row_bucket,
+                                  auto const& rhs_row_bucket) {
+                                 return std::ranges::equal(lhs_row_bucket,
+                                                           rhs_row_bucket);
+                               });
+                           auto const rhs_match = std::ranges::equal(
+                               rhs_bucket, rhs_expected_bucket);
+                           return lhs_match && rhs_match;
+                         });
+  CHECK(rows_match);
+}
+#endif

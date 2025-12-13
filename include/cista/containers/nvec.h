@@ -25,9 +25,11 @@ struct const_bucket final {
   using difference_type = std::ptrdiff_t;
   using pointer = std::add_pointer_t<value_type>;
 
+  const_bucket() = default;
+
   const_bucket(DataVec const* data, IndexVec const* index,
                index_value_type const i)
-      : data_{data}, index_{index}, i_{to_idx(i)} {}
+      : data_{data}, index_{index}, i_{static_cast<size_type>(to_idx(i))} {}
 
   friend data_value_type* data(const_bucket b) { return &b[0]; }
   friend index_value_type size(const_bucket b) { return b.size(); }
@@ -84,9 +86,19 @@ struct const_bucket final {
     ++i_;
     return *this;
   }
+  const_bucket operator++(int) {
+    auto tmp = *this;
+    ++(*this);
+    return tmp;
+  }
   const_bucket& operator--() {
     --i_;
     return *this;
+  }
+  const_bucket operator--(int) {
+    auto tmp = *this;
+    --(*this);
+    return tmp;
   }
   const_bucket operator*() { return *this; }
   const_bucket& operator+=(difference_type const n) {
@@ -124,9 +136,9 @@ private:
     return bucket_begin_idx() + i < bucket_end_idx();
   }
 
-  DataVec const* data_;
-  IndexVec const* index_;
-  size_type i_;
+  DataVec const* data_{nullptr};
+  IndexVec const* index_{nullptr};
+  size_type i_{};
 };
 
 template <typename DataVec, typename IndexVec, typename SizeType>
@@ -145,8 +157,10 @@ struct bucket final {
   using difference_type = std::ptrdiff_t;
   using pointer = std::add_pointer_t<value_type>;
 
+  bucket() = default;
+
   bucket(DataVec* data, IndexVec* index, index_value_type const i)
-      : data_{data}, index_{index}, i_{to_idx(i)} {}
+      : i_{static_cast<size_type>(to_idx(i))}, data_{data}, index_{index} {}
 
   friend data_value_type* data(bucket b) { return &b[0]; }
   friend index_value_type size(bucket b) { return b.size(); }
@@ -189,7 +203,7 @@ struct bucket final {
     return *(begin() + i);
   }
 
-  reference operator*() const { return *this; }
+  bucket operator*() const { return *this; }
 
   operator const_bucket<DataVec, IndexVec, SizeType>() const {
     return {data_, index_, i_};
@@ -221,9 +235,19 @@ struct bucket final {
     ++i_;
     return *this;
   }
+  bucket operator++(int) {
+    auto tmp = *this;
+    ++(*this);
+    return tmp;
+  }
   bucket& operator--() {
     --i_;
     return *this;
+  }
+  bucket operator--(int) {
+    auto tmp = *this;
+    --(*this);
+    return tmp;
   }
   bucket operator*() { return *this; }
   bucket& operator+=(difference_type const n) {
@@ -260,9 +284,9 @@ private:
     return bucket_begin_idx() + i < bucket_end_idx();
   }
 
-  size_type i_;
-  DataVec* data_;
-  IndexVec* index_;
+  size_type i_{};
+  DataVec* data_{nullptr};
+  IndexVec* index_{nullptr};
 };
 
 template <std::size_t Depth, typename DataVec, typename IndexVec,
@@ -281,6 +305,8 @@ struct const_meta_bucket {
   using const_reference = const_meta_bucket;
   using iterator_category = std::random_access_iterator_tag;
   using size_type = SizeType;
+
+  const_meta_bucket() = default;
 
   const_meta_bucket(DataVec const* data, IndexVec const* index,
                     index_value_type const i)
@@ -302,9 +328,19 @@ struct const_meta_bucket {
     ++i_;
     return *this;
   }
+  const_meta_bucket operator++(int) {
+    auto tmp = *this;
+    ++(*this);
+    return tmp;
+  }
   const_meta_bucket& operator--() {
     --i_;
     return *this;
+  }
+  const_meta_bucket operator--(int) {
+    auto tmp = *this;
+    --(*this);
+    return tmp;
   }
   const_meta_bucket& operator+=(difference_type const n) {
     i_ += n;
@@ -339,9 +375,9 @@ private:
   IndexVec const& index() const { return *index_; }
   DataVec const& data() const { return *data_; }
 
-  DataVec const* data_;
-  IndexVec const* index_;
-  index_value_type i_;
+  DataVec const* data_{nullptr};
+  IndexVec const* index_{nullptr};
+  index_value_type i_{};
 };
 
 template <std::size_t Depth, typename DataVec, typename IndexVec,
@@ -363,6 +399,8 @@ struct meta_bucket {
   using difference_type = std::ptrdiff_t;
   using size_type = SizeType;
 
+  meta_bucket() = default;
+
   meta_bucket(DataVec* data, IndexVec* index, index_value_type const i)
       : data_{data}, index_{index}, i_{i} {}
 
@@ -380,7 +418,7 @@ struct meta_bucket {
   friend const_iterator begin(meta_bucket const& b) { return b.begin(); }
   friend const_iterator end(meta_bucket const& b) { return b.end(); }
 
-  const_reference operator*() const { return {data_, index_, i_}; }
+  reference operator*() const { return {data_, index_, i_}; }
   reference operator*() { return *this; }
 
   iterator operator[](size_type const i) { return begin() + i; }
@@ -394,10 +432,20 @@ struct meta_bucket {
     ++i_;
     return *this;
   }
+  meta_bucket operator++(int) {
+    auto tmp = *this;
+    ++(*this);
+    return tmp;
+  }
 
   meta_bucket& operator--() {
     --i_;
     return *this;
+  }
+  meta_bucket operator--(int) {
+    auto tmp = *this;
+    --(*this);
+    return tmp;
   }
   meta_bucket& operator+=(difference_type const n) {
     i_ += n;
@@ -430,9 +478,9 @@ private:
   IndexVec& index() const { return *index_; }
   DataVec& data() const { return *data_; }
 
-  DataVec* data_;
-  IndexVec* index_;
-  index_value_type i_;
+  DataVec* data_{nullptr};
+  IndexVec* index_{nullptr};
+  index_value_type i_{};
 };
 
 template <typename Key, typename DataVec, typename IndexVec, std::size_t N,
@@ -588,3 +636,58 @@ using nvec = basic_nvec<K, vector<V>, vector<base_t<K>>, N, SizeType>;
 }  // namespace raw
 
 }  // namespace cista
+
+#if defined(__cpp_lib_ranges)
+// Treat nvec buckets as views so prvalues satisfy viewable_range.
+namespace std {
+namespace ranges {
+template <std::size_t Depth, typename DataVec, typename IndexVec,
+          typename SizeType>
+inline constexpr bool
+    enable_view<cista::meta_bucket<Depth, DataVec, IndexVec, SizeType>> = true;
+
+template <std::size_t Depth, typename DataVec, typename IndexVec,
+          typename SizeType>
+inline constexpr bool
+    enable_view<cista::const_meta_bucket<Depth, DataVec, IndexVec, SizeType>> =
+        true;
+}  // namespace ranges
+
+template <std::size_t Depth, typename DataVec, typename IndexVec,
+          typename SizeType>
+struct indirectly_readable_traits<
+    cista::meta_bucket<Depth, DataVec, IndexVec, SizeType>> {
+  using value_type = cista::meta_bucket<Depth, DataVec, IndexVec, SizeType>;
+  using reference = cista::meta_bucket<Depth, DataVec, IndexVec, SizeType>;
+  using rvalue_reference =
+      cista::meta_bucket<Depth, DataVec, IndexVec, SizeType>;
+};
+
+template <std::size_t Depth, typename DataVec, typename IndexVec,
+          typename SizeType>
+struct indirectly_readable_traits<
+    cista::const_meta_bucket<Depth, DataVec, IndexVec, SizeType>> {
+  using value_type =
+      cista::const_meta_bucket<Depth, DataVec, IndexVec, SizeType>;
+  using reference =
+      cista::const_meta_bucket<Depth, DataVec, IndexVec, SizeType>;
+  using rvalue_reference =
+      cista::const_meta_bucket<Depth, DataVec, IndexVec, SizeType>;
+};
+
+template <typename DataVec, typename IndexVec, typename SizeType>
+struct indirectly_readable_traits<cista::bucket<DataVec, IndexVec, SizeType>> {
+  using value_type = cista::bucket<DataVec, IndexVec, SizeType>;
+  using reference = cista::bucket<DataVec, IndexVec, SizeType>;
+  using rvalue_reference = cista::bucket<DataVec, IndexVec, SizeType>;
+};
+
+template <typename DataVec, typename IndexVec, typename SizeType>
+struct indirectly_readable_traits<
+    cista::const_bucket<DataVec, IndexVec, SizeType>> {
+  using value_type = cista::const_bucket<DataVec, IndexVec, SizeType>;
+  using reference = cista::const_bucket<DataVec, IndexVec, SizeType>;
+  using rvalue_reference = cista::const_bucket<DataVec, IndexVec, SizeType>;
+};
+}  // namespace std
+#endif

@@ -220,3 +220,12 @@ TEST_CASE("bitvec parallel mark store") {
 
   CHECK(bits == check);
 }
+
+TEST_CASE("bitvec next set bit same as before") {
+  auto b = cista::raw::bitvec{};
+  b.resize(64);
+  b.set(10, true);
+
+  CHECK_EQ(10, b.next_set_bit(0U));
+  CHECK_EQ(10, b.next_set_bit(10U));
+}
