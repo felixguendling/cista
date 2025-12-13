@@ -237,7 +237,6 @@ TEST_CASE("bitvec uneven next bit") {
   CHECK(64 == last);
 }
 
-
 TEST_CASE("bitvec next set bit same as before") {
   auto b = cista::raw::bitvec{};
   b.resize(64);
