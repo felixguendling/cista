@@ -323,3 +323,24 @@ TEST_CASE("erase loop") {
     verify_equality();
   }
 }
+
+TEST_CASE("free self allocated deserialized vector") {
+  using cista::raw::vector;
+
+  auto original = vector<int>{1, 2, 3};
+  auto buf = cista::serialize(original);
+  auto* deserialized = cista::deserialize<vector<int>>(buf);
+
+  CHECK(deserialized->data() != nullptr);
+  CHECK(deserialized->size() == 3U);
+
+  deserialized->push_back(4);
+
+  CHECK(deserialized->data() != nullptr);
+  CHECK(deserialized->size() == 4U);
+
+  cista::free_self_allocated(deserialized);
+
+  CHECK(deserialized->data() == nullptr);
+  CHECK(deserialized->size() == 0U);
+}

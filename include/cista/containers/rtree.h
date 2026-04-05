@@ -249,6 +249,15 @@ struct basic_rtree {
       }
     }
 
+    template <typename Ctx, typename Fn>
+    friend void recurse(Ctx&, node* el, Fn&& fn) {
+      if (el->kind_ == kind::kLeaf) {
+        for (auto i = 0U; i != el->count_; ++i) {
+          fn(&el->data_[i]);
+        }
+      }
+    }
+
     using node_vector_t = array<node_idx_t, MaxItems>;
     using data_vector_t = array<DataType, MaxItems>;
 
