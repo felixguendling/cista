@@ -211,6 +211,13 @@ struct file {
                                   " [mode=" + mode + "]");
   }
 
+  // Take ownership of an already-open FILE*. Used by callers that opened the
+  // descriptor via a system call needing flags `fopen` doesn't expose
+  // (e.g. `open(..., O_TMPFILE, ...)` followed by `fdopen`).
+  explicit file(FILE* f) : f_{f}, size_{size()} {
+    verify(f_ != nullptr, "null file pointer");
+  }
+
   ~file() {
     if (f_ != nullptr) {
       std::fclose(f_);

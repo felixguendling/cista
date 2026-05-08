@@ -82,6 +82,15 @@ struct basic_mmap_vec {
     used_size_ = size;
   }
 
+  // Like `resize`, but skips value-initialization of the newly added
+  // elements. Caller must subsequently write into the new slots before
+  // they're observed (e.g. via memcpy). Intended for trivially-copyable T
+  // when the elements are about to be overwritten anyway.
+  void resize_uninitialized(size_type const size) {
+    mmap_.resize(size * sizeof(T));
+    used_size_ = size;
+  }
+
   template <typename It>
   void set(It begin_it, It end_it) {
     using diff_t =
