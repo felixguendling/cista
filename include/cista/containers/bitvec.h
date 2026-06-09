@@ -161,6 +161,52 @@ struct basic_bitvec {
     check_block(blocks_.size() - 1, sanitized_last_block());
   }
 
+  // iterate bits set in (*this & o)
+  template <typename Fn>
+  void for_each_set_bit(basic_bitvec const& o, Fn&& f) const {
+    if (empty() || o.empty()) {
+      return;
+    }
+    assert(blocks_.size() == o.blocks_.size());
+    auto const check_block = [&](size_type const i, block_t block) {
+      while (block != 0U) {
+        auto const bit = trailing_zeros(block);
+        f(Key{i * bits_per_block + bit});
+        block &= block - 1U;
+      }
+    };
+    for (auto i = size_type{0U}; i != blocks_.size() - 1; ++i) {
+      check_block(i, blocks_[i] & o.blocks_[i]);
+    }
+    check_block(blocks_.size() - 1,
+                sanitized_last_block() & o.sanitized_last_block());
+  }
+
+  // iterate bits set in (*this & ~o)
+  template <typename Fn>
+  void for_each_set_bit_and_not(basic_bitvec const& o, Fn&& f) const {
+    if (empty()) {
+      return;
+    }
+    if (o.empty()) {
+      for_each_set_bit(std::forward<Fn>(f));
+      return;
+    }
+    assert(blocks_.size() == o.blocks_.size());
+    auto const check_block = [&](size_type const i, block_t block) {
+      while (block != 0U) {
+        auto const bit = trailing_zeros(block);
+        f(Key{i * bits_per_block + bit});
+        block &= block - 1U;
+      }
+    };
+    for (auto i = size_type{0U}; i != blocks_.size() - 1; ++i) {
+      check_block(i, blocks_[i] & ~o.blocks_[i]);
+    }
+    check_block(blocks_.size() - 1,
+                sanitized_last_block() & ~o.sanitized_last_block());
+  }
+
   std::optional<Key> next_set_bit(size_type const i) const {
     if (i >= size()) {
       return std::nullopt;
