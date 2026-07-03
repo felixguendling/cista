@@ -13,6 +13,7 @@
 #include "cista/containers.h"
 #include "cista/decay.h"
 #include "cista/endian/conversion.h"
+#include "cista/free_self_allocated.h"
 #include "cista/hash.h"
 #include "cista/mode.h"
 #include "cista/offset_t.h"
