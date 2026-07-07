@@ -69,7 +69,9 @@ struct basic_vector {
         allocated_size_(o.allocated_size_),
         self_allocated_(o.self_allocated_) {
     CISTA_UNUSED_PARAM(alloc)
-    o.reset();
+    if (o.self_allocated_) {
+      o.reset();
+    }
   }
 
   basic_vector(basic_vector const& o, Allocator const& alloc = Allocator{}) {
@@ -86,7 +88,9 @@ struct basic_vector {
       self_allocated_ = arr.self_allocated_;
       allocated_size_ = arr.allocated_size_;
 
-      arr.reset();
+      if (arr.self_allocated_) {
+        arr.reset();
+      }
     }
     return *this;
   }

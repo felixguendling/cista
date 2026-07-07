@@ -117,6 +117,19 @@ TEST_CASE("string copy assign and copy construct") {
   CHECK(s2.view() == LONG_STR);
 }
 
+TEST_CASE("offset string move preserves non owning source") {
+  auto const external = std::string{"non owning external string storage"};
+  auto s0 =
+      cista::offset::generic_string{external, cista::offset::string::non_owning};
+
+  auto s1 = std::move(s0);
+
+  CHECK(s0.data() == external.data());
+  CHECK(s0.view() == external);
+  CHECK(s1.data() == external.data());
+  CHECK(s1.view() == external);
+}
+
 TEST_CASE("string hash") {
   auto str = string{""};
   auto h = cista::hash(str, cista::BASE_HASH);
