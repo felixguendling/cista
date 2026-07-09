@@ -6,6 +6,7 @@
 #ifdef SINGLE_HEADER
 #include "cista.h"
 #else
+#include "cista/containers/string.h"
 #include "cista/containers/vector.h"
 #include "cista/equal_to.h"
 #include "cista/is_iterable.h"
@@ -201,6 +202,63 @@ TEST_CASE("iterable comparison") {
   std::set<int> std_s{1, 2, 3};
   CHECK(cista::equal_to<decltype(std_v)>{}(std_v, cista_v));
   CHECK(cista::equal_to<decltype(std_s)>{}(std_s, cista_v));
+}
+
+TEST_CASE("offset vector reallocation keeps nested offset containers valid") {
+  struct item {
+    cista::offset::string name_;
+    cista::offset::vector<uint32_t> values_;
+  };
+
+  cista::offset::vector<item> items;
+  items.reserve(1U);
+
+  auto& first = items.emplace_back();
+  first.name_ = "first item name that is longer than short string storage";
+  first.values_ = cista::offset::vector<uint32_t>{1U, 2U, 3U};
+
+  auto const* name_data = first.name_.data();
+  auto const* values_data = first.values_.data();
+
+  auto& second = items.emplace_back();
+  second.name_ = "second item name that is longer than short string storage";
+  second.values_ = cista::offset::vector<uint32_t>{4U, 5U, 6U};
+
+  CHECK(items[0].name_.view() ==
+        "first item name that is longer than short string storage");
+  CHECK(items[0].name_.data() == name_data);
+  CHECK(items[0].values_.data() == values_data);
+  CHECK(items[0].values_.size() == 3U);
+  CHECK(items[0].values_[0] == 1U);
+  CHECK(items[0].values_[1] == 2U);
+  CHECK(items[0].values_[2] == 3U);
+
+  CHECK(items[1].name_.view() ==
+        "second item name that is longer than short string storage");
+  CHECK(items[1].values_.size() == 3U);
+  CHECK(items[1].values_[0] == 4U);
+  CHECK(items[1].values_[1] == 5U);
+  CHECK(items[1].values_[2] == 6U);
+}
+
+TEST_CASE("offset vector move preserves non owning source") {
+  uint32_t storage[] = {1U, 2U, 3U};
+
+  cista::offset::vector<uint32_t> view;
+  view.el_ = storage;
+  view.used_size_ = 3U;
+  view.allocated_size_ = 3U;
+  view.self_allocated_ = false;
+
+  auto moved = std::move(view);
+
+  CHECK(view.data() == storage);
+  CHECK(view.size() == 3U);
+  CHECK(moved.data() == storage);
+  CHECK(moved.size() == 3U);
+  CHECK(moved[0] == 1U);
+  CHECK(moved[1] == 2U);
+  CHECK(moved[2] == 3U);
 }
 
 TEST_CASE("to_vec") {

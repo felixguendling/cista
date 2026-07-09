@@ -148,15 +148,22 @@ struct generic_string {
       return;
     }
     reset();
-    std::memcpy(static_cast<void*>(this), &s, sizeof(*this));
-    if constexpr (std::is_pointer_v<Ptr>) {
-      std::memset(static_cast<void*>(&s), 0, sizeof(*this));
-    } else {
-      if (!s.is_short()) {
-        h_.ptr_ = s.h_.ptr_;
-        s.h_.ptr_ = nullptr;
-        s.h_.size_ = 0U;
-      }
+
+    if (s.is_short()) {
+      std::memcpy(static_cast<void*>(this), &s, sizeof(*this));
+      return;
+    }
+
+    auto const src_data = s.data();
+    h_.is_short_ = false;
+    h_.self_allocated_ = s.h_.self_allocated_;
+    h_.size_ = s.h_.size_;
+    h_.ptr_ = src_data;
+
+    if (s.h_.self_allocated_) {
+      s.h_.ptr_ = nullptr;
+      s.h_.size_ = 0U;
+      s.h_.self_allocated_ = false;
     }
   }
 

@@ -22,10 +22,11 @@ jobs:
       - name: Install clang-format
         uses: ./.github/actions/install-llvm
         with:
-          packages: clang-format-17
+          version: 22
+          packages: clang-format-22
 
       - name: Format files
-        run: find include test -type f -a \( -name "*.cc" -o -name "*.h" \) -print0 | xargs -0  clang-format-17 -i
+        run: find include test -type f -a \( -name "*.cc" -o -name "*.h" \) -print0 | xargs -0  clang-format-22 -i
 
       - name: Check for differences
         run: |

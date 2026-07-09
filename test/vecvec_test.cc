@@ -99,7 +99,9 @@ TEST_CASE("vecvec bucket grow test") {
     CHECK_EQ("hello\0\0\0\0\0   "sv, d[key{0}].view());
     CHECK_EQ("world", d[key{1}].view());
   }
-  { CHECK_THROWS_AS(d[key{0}].grow(5), std::runtime_error); }
+  {
+    CHECK_THROWS_AS(d[key{0}].grow(5), std::runtime_error);
+  }
 }
 
 TEST_CASE("vecvec resize test") {

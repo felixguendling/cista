@@ -118,11 +118,19 @@ struct generic_cstring {
 
   void move_from(generic_cstring&& s) noexcept {
     reset();
-    std::memcpy(static_cast<void*>(this), &s, sizeof(*this));
-    if constexpr (std::is_pointer_v<Ptr>) {
-      std::memset(static_cast<void*>(&s), 0, sizeof(*this));
-    } else if (!s.is_short()) {
-      h_.ptr_ = s.h_.ptr_;
+
+    if (s.is_short()) {
+      std::memcpy(static_cast<void*>(this), &s, sizeof(*this));
+      return;
+    }
+
+    auto const src_data = s.data();
+    h_ = heap{};
+    h_.ptr_ = src_data;
+    h_.size_ = s.h_.size_;
+    h_.self_allocated_ = s.h_.self_allocated_;
+
+    if (s.h_.self_allocated_) {
       s.s_ = stack{};
     }
   }

@@ -13,7 +13,7 @@ cista::offset_t member_offset(T const* t, Member const* m) {
 }
 
 template <typename T, typename Member>
-offset_t member_offset(T const* t, Member T::*m) {
+offset_t member_offset(T const* t, Member T::* m) {
   static_assert(std::is_trivially_copyable_v<T>);
   return (reinterpret_cast<std::uint8_t const*>(&(t->*m)) -
           reinterpret_cast<std::uint8_t const*>(t));
