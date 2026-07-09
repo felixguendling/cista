@@ -109,7 +109,9 @@ TEST_CASE("graph offset serialize file - static version") {
     cista::serialize<MODE>(f, g);
   }  // EOL graph
 
-  { cista::file f{FILENAME, "r"}; }
+  {
+    cista::file f{FILENAME, "r"};
+  }
 
   auto b = cista::file(FILENAME, "r").content();
 

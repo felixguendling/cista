@@ -119,8 +119,8 @@ TEST_CASE("string copy assign and copy construct") {
 
 TEST_CASE("offset string move preserves non owning source") {
   auto const external = std::string{"non owning external string storage"};
-  auto s0 =
-      cista::offset::generic_string{external, cista::offset::string::non_owning};
+  auto s0 = cista::offset::generic_string{external,
+                                          cista::offset::string::non_owning};
 
   auto s1 = std::move(s0);
 
