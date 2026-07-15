@@ -15,7 +15,8 @@
 #include <unistd.h>
 #endif
 
-#include <thread>
+#include <cstdlib>
+#include <string>
 
 #include "cista/next_power_of_2.h"
 #include "cista/targets/file.h"
@@ -30,12 +31,12 @@ struct mmap {
   static constexpr auto const OFFSET = 0ULL;
   static constexpr auto const ENTIRE_FILE =
       std::numeric_limits<std::size_t>::max();
-  // READ / WRITE / MODIFY map a regular path with the obvious semantics.
-  // TMPFILE (Linux only) opens the path as a *directory* and creates an
-  // unnamed file inside it via O_TMPFILE; on close, the kernel reclaims the
-  // file without writeback (no msync required, no ftruncate to free
-  // backing). Use this for throwaway mappings.
-  enum class protection { READ, WRITE, MODIFY, TMPFILE };
+  enum class protection {
+    READ,
+    WRITE,
+    MODIFY,
+    TMPFILE  // requires directory path
+  };
 
   static constexpr bool is_writable(protection const p) noexcept {
     return p == protection::WRITE || p == protection::MODIFY ||
@@ -50,25 +51,9 @@ struct mmap {
     }
   }
 
-  // Open an unnamed file in `dir` via `O_TMPFILE`. The kernel reclaims the
-  // file when the last fd is closed — no path on disk, no writeback, no
-  // teardown cost. Linux only; on other platforms falls back to opening a
-  // regular `w+` file at `dir` (caller is responsible for cleanup).
-  static file open_tmpfile(char const* dir) {
-#if defined(__linux__) && defined(O_TMPFILE)
-    auto const fd = ::open(dir, O_TMPFILE | O_RDWR, 0600);
-    verify(fd != -1, "O_TMPFILE open failed");
-    auto* f = ::fdopen(fd, "w+");
-    verify(f != nullptr, "fdopen failed");
-    return file{f};
-#else
-    // No O_TMPFILE (Windows, macOS/BSD): fall back to a regular w+ file.
-    return file{dir, "w+"};
-#endif
-  }
-
   mmap() = default;
 
+  // note: protection::TMPFILE requires directory as path!
   explicit mmap(char const* path, protection const prot = protection::WRITE)
       : f_{prot == protection::TMPFILE ? open_tmpfile(path)
                                        : file{path, fopen_mode(prot)}},
@@ -82,32 +67,10 @@ struct mmap {
       sync();
       size_ = used_size_;
       unmap();
-      // TMPFILE: skip the shrink — the file is unnamed and reclaimed on
-      // close, no point freeing extents.
       if (size_ != f_.size() && prot_ != protection::TMPFILE) {
         resize_file();
       }
     }
-  }
-
-  // Unmap the region and move the underlying file handle into a detached
-  // thread that closes it asynchronously. Closing a multi-GiB file (even
-  // O_TMPFILE-backed) can take multiple seconds because the kernel walks
-  // the extent tree to free blocks (e.g. `ext4_ext_remove_space`) — that
-  // work is unavoidable but doesn't have to block the caller.
-  //
-  // After this call, the mmap object is empty: `addr_` is null, `f_` has
-  // been moved out, and the destructor is a no-op.
-  void discard() noexcept {
-    if (addr_ != nullptr) {
-      unmap();
-      addr_ = nullptr;
-    }
-    size_ = 0;
-    used_size_ = 0;
-    std::thread{[file = std::move(f_)]() mutable {
-      // ~file() runs here in the background thread.
-    }}.detach();
   }
 
   mmap(mmap const&) = delete;
@@ -138,9 +101,34 @@ struct mmap {
     return *this;
   }
 
+  static file open_tmpfile(char const* dir) {
+#if defined(__linux__) && defined(O_TMPFILE)
+    auto const fd = ::open(dir, O_TMPFILE | O_RDWR, 0600);
+    verify(fd != -1, "O_TMPFILE open failed");
+    auto* f = ::fdopen(fd, "w+");
+    verify(f != nullptr, "fdopen failed");
+    return file{f};
+#elif !defined(_WIN32)
+    // macOS/BSD: no O_TMPFILE. Create + unlink a temp file inside `dir`.
+    auto tmpl = std::string{dir} + "/cista-tmpfile-XXXXXX";
+    auto const fd = ::mkstemp(tmpl.data());
+    verify(fd != -1, "mkstemp failed");
+    ::unlink(tmpl.c_str());
+    auto* f = ::fdopen(fd, "w+");
+    verify(f != nullptr, "fdopen failed");
+    return file{f};
+#else
+    // Windows: create a temp file inside `dir` that is deleted on close.
+    char path[MAX_PATH];
+    verify(::GetTempFileNameA(dir, "cis", 0, path) != 0,
+           "GetTempFileName failed");
+    auto* f = std::fopen(path, "w+TD");  // T = temporary, D = delete on close
+    verify(f != nullptr, "tmpfile open failed");
+    return file{f};
+#endif
+  }
+
   void sync() {
-    // TMPFILE is intentionally throwaway — the file is unnamed and reclaimed
-    // on close, so syncing is wasted work.
     if ((prot_ == protection::WRITE || prot_ == protection::MODIFY) &&
         addr_ != nullptr) {
 #ifdef _WIN32
@@ -153,8 +141,7 @@ struct mmap {
   }
 
   void resize(std::size_t const new_size) {
-    verify(is_writable(prot_),
-           "read-only not resizable");
+    verify(is_writable(prot_), "read-only not resizable");
     if (size_ < new_size) {
       resize_map(next_power_of_two(new_size));
     }
@@ -162,8 +149,7 @@ struct mmap {
   }
 
   void reserve(std::size_t const new_size) {
-    verify(is_writable(prot_),
-           "read-only not resizable");
+    verify(is_writable(prot_), "read-only not resizable");
     if (size_ < new_size) {
       resize_map(next_power_of_two(new_size));
     }
