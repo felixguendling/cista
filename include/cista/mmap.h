@@ -35,16 +35,11 @@ struct mmap {
   // unnamed file inside it via O_TMPFILE; on close, the kernel reclaims the
   // file without writeback (no msync required, no ftruncate to free
   // backing). Use this for throwaway mappings.
-  // ANONYMOUS (POSIX) maps `MAP_ANONYMOUS | MAP_PRIVATE | MAP_NORESERVE` —
-  // no file backing at all. Pages commit lazily on first write and live in
-  // process-anonymous memory. Not subject to `RLIMIT_MEMLOCK`; the kernel
-  // can't write them out to a tmpfile under pressure (only to swap, if
-  // any). Resizing uses `mremap` so growth is O(1) without a data copy.
-  enum class protection { READ, WRITE, MODIFY, TMPFILE, ANONYMOUS };
+  enum class protection { READ, WRITE, MODIFY, TMPFILE };
 
   static constexpr bool is_writable(protection const p) noexcept {
     return p == protection::WRITE || p == protection::MODIFY ||
-           p == protection::TMPFILE || p == protection::ANONYMOUS;
+           p == protection::TMPFILE;
   }
 
   static char const* fopen_mode(protection const p) noexcept {
@@ -60,14 +55,15 @@ struct mmap {
   // teardown cost. Linux only; on other platforms falls back to opening a
   // regular `w+` file at `dir` (caller is responsible for cleanup).
   static file open_tmpfile(char const* dir) {
-#ifdef _WIN32
-    return file{dir, "w+"};
-#else
+#if defined(__linux__) && defined(O_TMPFILE)
     auto const fd = ::open(dir, O_TMPFILE | O_RDWR, 0600);
     verify(fd != -1, "O_TMPFILE open failed");
     auto* f = ::fdopen(fd, "w+");
     verify(f != nullptr, "fdopen failed");
     return file{f};
+#else
+    // No O_TMPFILE (Windows, macOS/BSD): fall back to a regular w+ file.
+    return file{dir, "w+"};
 #endif
   }
 
@@ -81,18 +77,6 @@ struct mmap {
         used_size_{f_.size()},
         addr_{size_ == 0U ? nullptr : map()} {}
 
-  // Anonymous mmap: no file backing, no path. `addr_` is null until the
-  // first `resize`/`reserve`; subsequent grows use `mremap`.
-  explicit mmap(protection const prot)
-      : f_{},
-        prot_{prot},
-        size_{0U},
-        used_size_{0U},
-        addr_{nullptr} {
-    verify(prot == protection::ANONYMOUS,
-           "this constructor only supports ANONYMOUS");
-  }
-
   ~mmap() {
     if (addr_ != nullptr) {
       sync();
@@ -100,9 +84,7 @@ struct mmap {
       unmap();
       // TMPFILE: skip the shrink — the file is unnamed and reclaimed on
       // close, no point freeing extents.
-      // ANONYMOUS: no file at all, nothing to shrink.
-      if (size_ != f_.size() && prot_ != protection::TMPFILE &&
-          prot_ != protection::ANONYMOUS) {
+      if (size_ != f_.size() && prot_ != protection::TMPFILE) {
         resize_file();
       }
     }
@@ -159,7 +141,6 @@ struct mmap {
   void sync() {
     // TMPFILE is intentionally throwaway — the file is unnamed and reclaimed
     // on close, so syncing is wasted work.
-    // ANONYMOUS has no backing file at all.
     if ((prot_ == protection::WRITE || prot_ == protection::MODIFY) &&
         addr_ != nullptr) {
 #ifdef _WIN32
@@ -257,7 +238,7 @@ private:
   }
 
   void resize_file() {
-    if (prot_ == protection::READ || prot_ == protection::ANONYMOUS) {
+    if (prot_ == protection::READ) {
       return;
     }
 
@@ -281,43 +262,11 @@ private:
       return;
     }
 
-    if (prot_ == protection::ANONYMOUS) {
-#ifdef _WIN32
-      verify(false, "ANONYMOUS mmap not supported on Windows");
-#else
-      // First grow: do the initial anonymous mmap.
-      if (addr_ == nullptr) {
-        size_ = new_size;
-        addr_ = map_anonymous(size_);
-        return;
-      }
-      // Subsequent grows: `mremap` extends in place if possible, else
-      // moves the region (allowed by `MREMAP_MAYMOVE`). Existing pages'
-      // contents are preserved — no copy when extending in place.
-      auto* const new_addr =
-          ::mremap(addr_, size_, new_size, MREMAP_MAYMOVE);
-      verify(new_addr != MAP_FAILED, "mremap error");
-      addr_ = new_addr;
-      size_ = new_size;
-#endif
-      return;
-    }
-
     unmap();
     size_ = new_size;
     resize_file();
     addr_ = map();
   }
-
-#ifndef _WIN32
-  static void* map_anonymous(std::size_t const size) {
-    auto* const addr = ::mmap(
-        nullptr, size, PROT_READ | PROT_WRITE,
-        MAP_ANONYMOUS | MAP_PRIVATE | MAP_NORESERVE, -1, 0);
-    verify(addr != MAP_FAILED, "anonymous map error");
-    return addr;
-  }
-#endif
 
   file f_;
   protection prot_;
