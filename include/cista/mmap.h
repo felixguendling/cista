@@ -47,8 +47,10 @@ struct mmap {
     switch (p) {
       case protection::MODIFY: return "r+";
       case protection::READ: return "r";
-      default: return "w+";
+      case protection::WRITE:
+      case protection::TMPFILE: return "w+";
     }
+    return "w+";
   }
 
   mmap() = default;
