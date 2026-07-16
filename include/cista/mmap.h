@@ -102,14 +102,18 @@ struct mmap {
   }
 
   static file open_tmpfile(char const* dir) {
+#if !defined(_WIN32)
 #if defined(__linux__) && defined(O_TMPFILE)
-    auto const fd = ::open(dir, O_TMPFILE | O_RDWR, 0600);
-    verify(fd != -1, "O_TMPFILE open failed");
-    auto* f = ::fdopen(fd, "w+");
-    verify(f != nullptr, "fdopen failed");
-    return file{f};
-#elif !defined(_WIN32)
-    // macOS/BSD: no O_TMPFILE. Create + unlink a temp file inside `dir`.
+    // Unnamed temporary file. Not supported by all filesystems
+    // (e.g. overlayfs in containers) - fall back to mkstemp below.
+    if (auto const fd = ::open(dir, O_TMPFILE | O_RDWR, 0600); fd != -1) {
+      auto* f = ::fdopen(fd, "w+");
+      verify(f != nullptr, "fdopen failed");
+      return file{f};
+    }
+    // Fallback:
+#endif
+    // macOS/BSD or no O_TMPFILE support: create + unlink a temp file in `dir`.
     auto tmpl = std::string{dir} + "/cista-tmpfile-XXXXXX";
     auto const fd = ::mkstemp(tmpl.data());
     verify(fd != -1, "mkstemp failed");
