@@ -118,13 +118,14 @@ struct mmap {
     verify(f != nullptr, "fdopen failed");
     return file{f};
 #else
-    // Windows: create a temp file inside `dir` that is deleted on close.
     char path[MAX_PATH];
     verify(::GetTempFileNameA(dir, "cis", 0, path) != 0,
            "GetTempFileName failed");
-    auto* f = std::fopen(path, "w+TD");  // T = temporary, D = delete on close
-    verify(f != nullptr, "tmpfile open failed");
-    return file{f};
+    auto const h = ::CreateFileA(
+        path, GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
+        FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, nullptr);
+    verify(h != INVALID_HANDLE_VALUE, "tmpfile create failed");
+    return file{h};
 #endif
   }
 
