@@ -57,6 +57,10 @@ struct file {
   file(char const* path, char const* mode)
       : f_(open_file(path, mode)), size_{size()} {}
 
+  explicit file(HANDLE f) : f_{f}, size_{size()} {
+    verify(f_ != nullptr && f_ != INVALID_HANDLE_VALUE, "invalid file handle");
+  }
+
   ~file() {
     if (f_ != nullptr) {
       CloseHandle(f_);
@@ -209,6 +213,10 @@ struct file {
       : f_{std::fopen(path, mode)}, size_{size()} {
     verify_str(f_ != nullptr, std::string{"unable to open file: "} + path +
                                   " [mode=" + mode + "]");
+  }
+
+  explicit file(FILE* f) : f_{f}, size_{size()} {
+    verify(f_ != nullptr, "null file pointer");
   }
 
   ~file() {

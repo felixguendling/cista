@@ -15,8 +15,15 @@
 #include <unistd.h>
 #endif
 
+#include <cstdlib>
+#include <string>
+
 #include "cista/next_power_of_2.h"
 #include "cista/targets/file.h"
+
+#ifndef _WIN32
+#include <fcntl.h>
+#endif
 
 namespace cista {
 
@@ -24,14 +31,34 @@ struct mmap {
   static constexpr auto const OFFSET = 0ULL;
   static constexpr auto const ENTIRE_FILE =
       std::numeric_limits<std::size_t>::max();
-  enum class protection { READ, WRITE, MODIFY };
+  enum class protection {
+    READ,
+    WRITE,
+    MODIFY,
+    TMPFILE  // requires directory path
+  };
+
+  static constexpr bool is_writable(protection const p) noexcept {
+    return p == protection::WRITE || p == protection::MODIFY ||
+           p == protection::TMPFILE;
+  }
+
+  static char const* fopen_mode(protection const p) noexcept {
+    switch (p) {
+      case protection::MODIFY: return "r+";
+      case protection::READ: return "r";
+      case protection::WRITE:
+      case protection::TMPFILE: return "w+";
+    }
+    return "w+";
+  }
 
   mmap() = default;
 
+  // note: protection::TMPFILE requires directory as path!
   explicit mmap(char const* path, protection const prot = protection::WRITE)
-      : f_{path, prot == protection::MODIFY
-                     ? "r+"
-                     : (prot == protection::READ ? "r" : "w+")},
+      : f_{prot == protection::TMPFILE ? open_tmpfile(path)
+                                       : file{path, fopen_mode(prot)}},
         prot_{prot},
         size_{f_.size()},
         used_size_{f_.size()},
@@ -42,7 +69,7 @@ struct mmap {
       sync();
       size_ = used_size_;
       unmap();
-      if (size_ != f_.size()) {
+      if (size_ != f_.size() && prot_ != protection::TMPFILE) {
         resize_file();
       }
     }
@@ -76,6 +103,38 @@ struct mmap {
     return *this;
   }
 
+  static file open_tmpfile(char const* dir) {
+#if !defined(_WIN32)
+#if defined(__linux__) && defined(O_TMPFILE)
+    // Unnamed temporary file. Not supported by all filesystems
+    // (e.g. overlayfs in containers) - fall back to mkstemp below.
+    if (auto const fd = ::open(dir, O_TMPFILE | O_RDWR, 0600); fd != -1) {
+      auto* f = ::fdopen(fd, "w+");
+      verify(f != nullptr, "fdopen failed");
+      return file{f};
+    }
+    // Fallback:
+#endif
+    // macOS/BSD or no O_TMPFILE support: create + unlink a temp file in `dir`.
+    auto tmpl = std::string{dir} + "/cista-tmpfile-XXXXXX";
+    auto const fd = ::mkstemp(tmpl.data());
+    verify(fd != -1, "mkstemp failed");
+    ::unlink(tmpl.c_str());
+    auto* f = ::fdopen(fd, "w+");
+    verify(f != nullptr, "fdopen failed");
+    return file{f};
+#else
+    char path[MAX_PATH];
+    verify(::GetTempFileNameA(dir, "cis", 0, path) != 0,
+           "GetTempFileName failed");
+    auto const h = ::CreateFileA(
+        path, GENERIC_READ | GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
+        FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, nullptr);
+    verify(h != INVALID_HANDLE_VALUE, "tmpfile create failed");
+    return file{h};
+#endif
+  }
+
   void sync() {
     if ((prot_ == protection::WRITE || prot_ == protection::MODIFY) &&
         addr_ != nullptr) {
@@ -89,8 +148,7 @@ struct mmap {
   }
 
   void resize(std::size_t const new_size) {
-    verify(prot_ == protection::WRITE || prot_ == protection::MODIFY,
-           "read-only not resizable");
+    verify(is_writable(prot_), "read-only not resizable");
     if (size_ < new_size) {
       resize_map(next_power_of_two(new_size));
     }
@@ -98,8 +156,7 @@ struct mmap {
   }
 
   void reserve(std::size_t const new_size) {
-    verify(prot_ == protection::WRITE || prot_ == protection::MODIFY,
-           "read-only not resizable");
+    verify(is_writable(prot_), "read-only not resizable");
     if (size_ < new_size) {
       resize_map(next_power_of_two(new_size));
     }

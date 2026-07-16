@@ -82,6 +82,11 @@ struct basic_mmap_vec {
     used_size_ = size;
   }
 
+  void resize_uninitialized(size_type const size) {
+    mmap_.resize(size * sizeof(T));
+    used_size_ = size;
+  }
+
   template <typename It>
   void set(It begin_it, It end_it) {
     using diff_t =

@@ -517,7 +517,8 @@ void serialize(Target& t, T& value) {
     }
   }
 
-  if constexpr (is_mode_enabled(Mode, mode::WITH_INTEGRITY)) {
+  if constexpr (is_mode_enabled(Mode, mode::WITH_INTEGRITY) ||
+                is_mode_enabled(Mode, mode::SKIP_INTEGRITY)) {
     auto const csum =
         c.checksum(integrity_offset + static_cast<offset_t>(sizeof(hash_t)));
     c.write(integrity_offset, convert_endian<Mode>(csum));
