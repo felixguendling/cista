@@ -49,6 +49,7 @@ option(CISTA_ZERO_OUT "zero out fresh memory for valgrind" OFF)
 option(CISTA_COVERAGE "generate coverage report" OFF)
 option(CISTA_GENERATE_TO_TUPLE "generate include/cista/reflection/to_tuple.h" OFF)
 option(CISTA_USE_MIMALLOC "compile with mimalloc support" OFF)
+set(CISTA_CUSTOM_OFFSET_T_UNDERLYING_TYPE "" CACHE STRING "override the underlying type of cista::offset_t for interoperability between 32bits and 64bits archs")
 set(CISTA_HASH "FNV1A" CACHE STRING "Options: FNV1A XXH3 WYHASH WYHASH_FASTEST")
 
 add_library(cista INTERFACE)
@@ -68,6 +69,9 @@ if (CISTA_USE_MIMALLOC)
 endif()
 if (CISTA_FMT)
   target_compile_definitions(cista INTERFACE CISTA_FMT)
+endif()
+if (CISTA_CUSTOM_OFFSET_T_UNDERLYING_TYPE)
+  target_compile_definitions(cista INTERFACE CISTA_CUSTOM_OFFSET_T_UNDERLYING_TYPE=${CISTA_CUSTOM_OFFSET_T_UNDERLYING_TYPE})
 endif()
 target_include_directories(cista SYSTEM INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>
