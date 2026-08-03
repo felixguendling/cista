@@ -19,7 +19,7 @@ inline offset_t to_offset(void const* ptr) noexcept {
 }
 #else
 inline offset_t to_offset(void const* ptr) noexcept {
-  offset_t r;
+  offset_t r{};
   std::memcpy(&r, &ptr, sizeof(ptr));
   return r;
 }
