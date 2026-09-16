@@ -677,8 +677,9 @@ void check(std::uint8_t const* const from, std::uint8_t const* const to) {
            "invalid version");
   } else if constexpr ((Mode & mode::WITH_STATIC_VERSION) ==
                        mode::WITH_STATIC_VERSION) {
+    constexpr auto const expected = static_type_hash<T>();
     verify(convert_endian<Mode>(*reinterpret_cast<hash_t const*>(from)) ==
-               static_type_hash<T>(),
+               expected,
            "invalid static version");
   }
 
