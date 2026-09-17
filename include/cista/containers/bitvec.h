@@ -97,27 +97,26 @@ struct basic_bitvec {
 
   template <bool IsAtomic = false>
   void set(Key const i, bool const val = true) noexcept {
-    assert(i < size_);
-    assert((to_idx(i) / bits_per_block) < blocks_.size());
+    if constexpr (!IsAtomic) {
+      set(i, val);
+    } else {
+      assert(i < size_);
+      assert((to_idx(i) / bits_per_block) < blocks_.size());
 
-    auto const bit = to_idx(i) % bits_per_block;
-    auto& block = blocks_[static_cast<size_type>(to_idx(i)) / bits_per_block];
-    if constexpr (IsAtomic) {
+      auto const bit = to_idx(i) % bits_per_block;
+      auto& block = blocks_[static_cast<size_type>(to_idx(i)) / bits_per_block];
       if (val) {
         fetch_or(block, block_t{1U} << bit);
       } else {
         fetch_and(block, (~block_t{0U} ^ (block_t{1U} << bit)));
       }
-    } else {
-      if (val) {
-        block |= (block_t{1U} << bit);
-      } else {
-        block &= (~block_t{0U} ^ (block_t{1U} << bit));
-      }
     }
   }
 
-  void reset() noexcept { blocks_ = {}; }
+  void reset() noexcept {
+    blocks_ = {};
+    size_ = 0U;
+  }
 
   bool operator[](Key const i) const noexcept { return test(i); }
 
@@ -162,8 +161,8 @@ struct basic_bitvec {
   }
 
   // iterate bits set in (*this & o)
-  template <typename Fn>
-  void for_each_set_bit(basic_bitvec const& o, Fn&& f) const {
+  template <typename OtherKey, typename Fn>
+  void for_each_set_bit(basic_bitvec<Vec, OtherKey> const& o, Fn&& f) const {
     if (empty() || o.empty()) {
       return;
     }
@@ -183,8 +182,9 @@ struct basic_bitvec {
   }
 
   // iterate bits set in (*this & ~o)
-  template <typename Fn>
-  void for_each_set_bit_and_not(basic_bitvec const& o, Fn&& f) const {
+  template <typename OtherKey, typename Fn>
+  void for_each_set_bit_and_not(basic_bitvec<Vec, OtherKey> const& o,
+                                Fn&& f) const {
     if (empty()) {
       return;
     }
@@ -207,7 +207,8 @@ struct basic_bitvec {
                 sanitized_last_block() & ~o.sanitized_last_block());
   }
 
-  std::optional<Key> next_set_bit(size_type const i) const {
+  std::optional<Key> next_set_bit(Key const k) const {
+    auto const i = static_cast<size_type>(to_idx(k));
     if (i >= size()) {
       return std::nullopt;
     }
@@ -238,7 +239,8 @@ struct basic_bitvec {
       if (!idx.has_value()) {
         return std::nullopt;
       }
-      if (next.compare_exchange_weak(expected, *idx + 1U)) {
+      if (next.compare_exchange_weak(
+              expected, static_cast<std::size_t>(to_idx(*idx)) + 1U)) {
         return idx;
       }
     }
@@ -397,7 +399,7 @@ struct basic_bitvec {
 
   basic_bitvec& operator>>=(std::size_t const shift) noexcept {
     if (shift >= size_) {
-      reset();
+      zero_out();
       return *this;
     }
 
@@ -440,7 +442,7 @@ struct basic_bitvec {
 
   basic_bitvec& operator<<=(std::size_t const shift) noexcept {
     if (shift >= size_) {
-      reset();
+      zero_out();
       return *this;
     }
 
