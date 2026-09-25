@@ -2,15 +2,14 @@
 
 #include <cassert>
 #include <cinttypes>
+#include <algorithm>
 #include <atomic>
 #include <iosfwd>
 #include <limits>
-#include <numeric>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <tuple>
-#include <type_traits>
 
 #include "cista/atomic.h"
 #include "cista/bit_counting.h"
@@ -35,7 +34,7 @@ struct basic_bitvec {
   constexpr basic_bitvec(Vec&& v, size_type const size)
       : size_{size},  // inaccurate for loading mmap vector
         blocks_{std::move(v)} {}
-  static constexpr basic_bitvec max(std::size_t const size) {
+  static constexpr basic_bitvec max(size_type const size) {
     basic_bitvec ret;
     ret.resize(size);
     for (auto& b : ret.blocks_) {
@@ -79,10 +78,9 @@ struct basic_bitvec {
   void set(std::string_view s) {
     assert(std::all_of(begin(s), end(s),
                        [](char const c) { return c == '0' || c == '1'; }));
-    resize(s.size());
-    for (auto i = std::size_t{0U};
-         i != std::min(static_cast<std::size_t>(size_), s.size()); ++i) {
-      set(i, s[s.size() - i - 1] != '0');
+    resize(static_cast<size_type>(s.size()));
+    for (auto i = size_type{0U}; i != size_; ++i) {
+      set(Key{i}, s[s.size() - i - 1U] != '0');
     }
   }
 
@@ -97,27 +95,26 @@ struct basic_bitvec {
 
   template <bool IsAtomic = false>
   void set(Key const i, bool const val = true) noexcept {
-    assert(i < size_);
-    assert((to_idx(i) / bits_per_block) < blocks_.size());
+    if constexpr (!IsAtomic) {
+      set(i, val);
+    } else {
+      assert(i < size_);
+      assert((to_idx(i) / bits_per_block) < blocks_.size());
 
-    auto const bit = to_idx(i) % bits_per_block;
-    auto& block = blocks_[static_cast<size_type>(to_idx(i)) / bits_per_block];
-    if constexpr (IsAtomic) {
+      auto const bit = to_idx(i) % bits_per_block;
+      auto& block = blocks_[static_cast<size_type>(to_idx(i)) / bits_per_block];
       if (val) {
         fetch_or(block, block_t{1U} << bit);
       } else {
         fetch_and(block, (~block_t{0U} ^ (block_t{1U} << bit)));
       }
-    } else {
-      if (val) {
-        block |= (block_t{1U} << bit);
-      } else {
-        block &= (~block_t{0U} ^ (block_t{1U} << bit));
-      }
     }
   }
 
-  void reset() noexcept { blocks_ = {}; }
+  void reset() noexcept {
+    blocks_ = {};
+    size_ = 0U;
+  }
 
   bool operator[](Key const i) const noexcept { return test(i); }
 
@@ -207,7 +204,8 @@ struct basic_bitvec {
                 sanitized_last_block() & ~o.sanitized_last_block());
   }
 
-  std::optional<Key> next_set_bit(size_type const i) const {
+  std::optional<Key> next_set_bit(Key const k) const {
+    auto const i = static_cast<size_type>(to_idx(k));
     if (i >= size()) {
       return std::nullopt;
     }
@@ -238,7 +236,8 @@ struct basic_bitvec {
       if (!idx.has_value()) {
         return std::nullopt;
       }
-      if (next.compare_exchange_weak(expected, *idx + 1U)) {
+      if (next.compare_exchange_weak(
+              expected, static_cast<std::size_t>(to_idx(*idx)) + 1U)) {
         return idx;
       }
     }
@@ -310,10 +309,11 @@ struct basic_bitvec {
       return false;
     }
 
-    for (int i = a.blocks_.size() - 2; i != -1; --i) {
-      if (a.blocks_[i] < b.blocks_[i]) {
+    for (auto i = a.blocks_.size() - 1U; i != 0U; --i) {
+      auto const idx = i - 1U;
+      if (a.blocks_[idx] < b.blocks_[idx]) {
         return true;
-      } else if (b.blocks_[i] < a.blocks_[i]) {
+      } else if (b.blocks_[idx] < a.blocks_[idx]) {
         return false;
       }
     }
@@ -342,7 +342,7 @@ struct basic_bitvec {
   basic_bitvec& operator&=(basic_bitvec const& o) noexcept {
     assert(size() == o.size());
 
-    for (auto i = 0U; i < blocks_.size(); ++i) {
+    for (auto i = size_type{0U}; i < blocks_.size(); ++i) {
       blocks_[i] &= o.blocks_[i];
     }
     return *this;
@@ -351,7 +351,7 @@ struct basic_bitvec {
   basic_bitvec& operator|=(basic_bitvec const& o) noexcept {
     assert(size() == o.size());
 
-    for (auto i = 0U; i < blocks_.size(); ++i) {
+    for (auto i = size_type{0U}; i < blocks_.size(); ++i) {
       blocks_[i] |= o.blocks_[i];
     }
     return *this;
@@ -360,7 +360,7 @@ struct basic_bitvec {
   basic_bitvec& operator^=(basic_bitvec const& o) noexcept {
     assert(size() == o.size());
 
-    for (auto i = 0U; i < blocks_.size(); ++i) {
+    for (auto i = size_type{0U}; i < blocks_.size(); ++i) {
       blocks_[i] ^= o.blocks_[i];
     }
     return *this;
@@ -397,7 +397,7 @@ struct basic_bitvec {
 
   basic_bitvec& operator>>=(std::size_t const shift) noexcept {
     if (shift >= size_) {
-      reset();
+      zero_out();
       return *this;
     }
 
@@ -440,7 +440,7 @@ struct basic_bitvec {
 
   basic_bitvec& operator<<=(std::size_t const shift) noexcept {
     if (shift >= size_) {
-      reset();
+      zero_out();
       return *this;
     }
 
@@ -468,7 +468,7 @@ struct basic_bitvec {
         blocks_[shift_blocks] = blocks_[0] << shift_bits;
       }
 
-      for (auto i = 0U; i != shift_blocks; ++i) {
+      for (auto i = std::size_t{0U}; i != shift_blocks; ++i) {
         blocks_[i] = 0U;
       }
 
