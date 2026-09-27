@@ -282,7 +282,7 @@ constexpr auto static_type_hash(
   return h;
 }
 
-template <typename T, std::size_t NMaxTypes = 128U>
+template <typename T, std::size_t NMaxTypes = 256U>
 constexpr hash_t static_type_hash() noexcept {
   return static_type_hash(null<T>(), hash_data<NMaxTypes>{}).h_;
 }
