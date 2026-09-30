@@ -111,9 +111,13 @@ struct generic_string {
       if (h_.ptr_ == nullptr) {
         throw_exception(std::bad_alloc{});
       }
-      h_.size_ = len;
-      h_.self_allocated_ = true;
-      std::memcpy(data(), str, len * sizeof(CharT));
+      {
+        auto const str_len =
+            static_cast<msize_t>(std::char_traits<CharT>::length(str));
+        h_.size_ = str_len < len ? str_len : len;
+        h_.self_allocated_ = true;
+        std::memcpy(data(), str, h_.size_ * sizeof(CharT));
+      }
     }
   }
 
