@@ -33,6 +33,7 @@ struct mmap {
       std::numeric_limits<std::size_t>::max();
   enum class protection {
     READ,
+    COPY_ON_WRITE,  // writable private pages; never changes or resizes the file
     WRITE,
     MODIFY,
     TMPFILE  // requires directory path
@@ -47,6 +48,7 @@ struct mmap {
     switch (p) {
       case protection::MODIFY: return "r+";
       case protection::READ: return "r";
+      case protection::COPY_ON_WRITE: return "r";
       case protection::WRITE:
       case protection::TMPFILE: return "w+";
     }
@@ -209,14 +211,20 @@ private:
     auto const size_high = static_cast<DWORD>(0U);
 #endif
     const auto fm = ::CreateFileMapping(
-        f_.f_, 0, prot_ == protection::READ ? PAGE_READONLY : PAGE_READWRITE,
+        f_.f_, 0,
+        prot_ == protection::READ            ? PAGE_READONLY
+        : prot_ == protection::COPY_ON_WRITE ? PAGE_WRITECOPY
+                                             : PAGE_READWRITE,
         size_high, size_low, 0);
     verify(fm != NULL, "file mapping error");
     file_mapping_ = fm;
 
-    auto const addr = ::MapViewOfFile(
-        fm, prot_ == protection::READ ? FILE_MAP_READ : FILE_MAP_WRITE, OFFSET,
-        OFFSET, size_);
+    auto const addr =
+        ::MapViewOfFile(fm,
+                        prot_ == protection::READ            ? FILE_MAP_READ
+                        : prot_ == protection::COPY_ON_WRITE ? FILE_MAP_COPY
+                                                             : FILE_MAP_WRITE,
+                        OFFSET, OFFSET, size_);
     verify(addr != nullptr, "map error");
 
     return addr;
@@ -224,14 +232,15 @@ private:
     auto const addr =
         ::mmap(nullptr, size_,
                prot_ == protection::READ ? PROT_READ : PROT_READ | PROT_WRITE,
-               MAP_SHARED, f_.fd(), OFFSET);
+               prot_ == protection::COPY_ON_WRITE ? MAP_PRIVATE : MAP_SHARED,
+               f_.fd(), OFFSET);
     verify(addr != MAP_FAILED, "map error");
     return addr;
 #endif
   }
 
   void resize_file() {
-    if (prot_ == protection::READ) {
+    if (!is_writable(prot_)) {
       return;
     }
 
@@ -251,7 +260,7 @@ private:
   }
 
   void resize_map(std::size_t const new_size) {
-    if (prot_ == protection::READ) {
+    if (!is_writable(prot_)) {
       return;
     }
 
