@@ -30,14 +30,15 @@
 namespace cista {
 
 namespace detail {
-template <typename T>
-struct is_byte_integer_vector : std::false_type {};
+template <typename T, mode Mode>
+struct is_verbatim_integer_vector : std::false_type {};
 
 template <typename T, template <typename> typename Ptr, bool Indexed,
-          typename SizeType>
-struct is_byte_integer_vector<basic_vector<T, Ptr, Indexed, SizeType>>
-    : std::bool_constant<std::is_integral_v<T> && sizeof(T) == 1 &&
-                         !std::is_same_v<T, bool>> {};
+          typename SizeType, mode Mode>
+struct is_verbatim_integer_vector<basic_vector<T, Ptr, Indexed, SizeType>, Mode>
+    : std::bool_constant<std::is_integral_v<T> && !std::is_same_v<T, bool> &&
+                         (sizeof(T) == 1 ||
+                          !endian_conversion_necessary<Mode>())> {};
 }  // namespace detail
 
 // =============================================================================
@@ -202,9 +203,9 @@ void serialize(Ctx& c,
     }
   }
 
-  // One-byte integers have no pointers or endian conversion. Their complete
-  // serialized representation was already copied by c.write above.
-  if constexpr (!detail::is_byte_integer_vector<Type>::value) {
+  // Integers that need no endian conversion were already copied in their
+  // complete serialized representation by c.write above.
+  if constexpr (!detail::is_verbatim_integer_vector<Type, Ctx::MODE>::value) {
     if (origin->el_ != nullptr) {
       auto i = 0U;
       for (auto it = start; it != start + static_cast<offset_t>(size);
@@ -761,10 +762,11 @@ void deserialize(Ctx const& c, T* el) {
   if constexpr (is_mode_disabled(Ctx::MODE, mode::UNCHECKED)) {
     check_state(c, el);
   }
-  // The vector's check_state validates the complete byte buffer. Byte integers
-  // have no pointers, endian conversion, or per-element constraints to check.
-  // Keep generic recurse callbacks unchanged for other callers.
-  if constexpr (!detail::is_byte_integer_vector<decay_t<T>>::value) {
+  // The vector's check_state validates the complete buffer and its alignment.
+  // Non-bool integers need no per-element work unless endian conversion is
+  // needed. Keep generic recurse callbacks unchanged for other callers.
+  if constexpr (!detail::is_verbatim_integer_vector<decay_t<T>,
+                                                    Ctx::MODE>::value) {
     recurse(c, el, [&](auto* entry) { deserialize(c, entry); });
   }
 }

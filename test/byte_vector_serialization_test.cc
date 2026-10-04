@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <limits>
 
 #include "doctest.h"
 
@@ -18,6 +19,10 @@ void check_round_trip() {
     for (auto i = 0U; i != size; ++i) {
       source.push_back(static_cast<typename Vector::value_type>(i));
     }
+    if (!source.empty()) {
+      source[0] = std::numeric_limits<typename Vector::value_type>::max();
+      source[1] = std::numeric_limits<typename Vector::value_type>::min();
+    }
     auto bytes = cista::serialize<Mode>(source);
     auto const loaded =
         cista::deserialize<Vector, Mode | cista::mode::DEEP_CHECK>(bytes);
@@ -27,14 +32,34 @@ void check_round_trip() {
 }
 }  // namespace
 
-TEST_CASE_TEMPLATE("byte vector serialization round trips", Vector, byte_vector,
-                   cista::offset::vector<std::int8_t>,
-                   cista::offset::vector<char>, cista::offset::vector<bool>,
-                   cista::raw::vector<std::uint8_t>,
-                   cista::raw::vector<std::int8_t>, cista::raw::vector<char>,
-                   cista::raw::vector<bool>) {
+TEST_CASE_TEMPLATE(
+    "integer vector serialization round trips", Vector, byte_vector,
+    cista::offset::vector<std::int8_t>, cista::offset::vector<std::uint16_t>,
+    cista::offset::vector<std::int16_t>, cista::offset::vector<std::uint32_t>,
+    cista::offset::vector<std::int32_t>, cista::offset::vector<std::uint64_t>,
+    cista::offset::vector<std::int64_t>, cista::offset::vector<char>,
+    cista::offset::vector<bool>, cista::raw::vector<std::uint8_t>,
+    cista::raw::vector<std::int8_t>, cista::raw::vector<std::uint16_t>,
+    cista::raw::vector<std::int16_t>, cista::raw::vector<std::uint32_t>,
+    cista::raw::vector<std::int32_t>, cista::raw::vector<std::uint64_t>,
+    cista::raw::vector<std::int64_t>, cista::raw::vector<char>,
+    cista::raw::vector<bool>) {
   check_round_trip<Vector, cista::mode::NONE>();
   check_round_trip<Vector, cista::mode::SERIALIZE_BIG_ENDIAN>();
+}
+
+TEST_CASE_TEMPLATE("integer vector serialized byte order", T, std::uint16_t,
+                   std::uint32_t, std::uint64_t) {
+  auto const value = static_cast<T>(0x0102030405060708ULL);
+  cista::offset::vector<T> source{value};
+  auto const little = cista::serialize(source);
+  auto const big = cista::serialize<cista::mode::SERIALIZE_BIG_ENDIAN>(source);
+  for (auto i = 0U; i != sizeof(T); ++i) {
+    CHECK(little[little.size() - sizeof(T) + i] ==
+          static_cast<std::uint8_t>(value >> (i * 8U)));
+    CHECK(big[big.size() - sizeof(T) + i] ==
+          static_cast<std::uint8_t>(value >> ((sizeof(T) - 1U - i) * 8U)));
+  }
 }
 
 TEST_CASE("byte vector recurse visits every element") {
@@ -49,15 +74,17 @@ TEST_CASE("byte vector recurse visits every element") {
   CHECK(bytes == byte_vector{2, 3, 4});
 }
 
-TEST_CASE("byte vector deserialization rejects malformed buffers") {
-  byte_vector source{1, 2, 3};
+TEST_CASE_TEMPLATE("integer vector deserialization rejects malformed buffers",
+                   Vector, byte_vector, cista::offset::vector<std::uint16_t>,
+                   cista::offset::vector<std::uint32_t>,
+                   cista::offset::vector<std::uint64_t>) {
+  Vector source{1, 2, 3};
   auto bytes = cista::serialize(source);
   SUBCASE("truncated payload") { bytes.pop_back(); }
   SUBCASE("inconsistent sizes") {
-    reinterpret_cast<byte_vector*>(bytes.data())->used_size_ = 2;
+    reinterpret_cast<Vector*>(bytes.data())->used_size_ = 2;
   }
-  CHECK_THROWS(
-      (cista::deserialize<byte_vector, cista::mode::DEEP_CHECK>(bytes)));
+  CHECK_THROWS((cista::deserialize<Vector, cista::mode::DEEP_CHECK>(bytes)));
 }
 
 TEST_CASE("indexed byte vector preserves borrowed element pointers") {
