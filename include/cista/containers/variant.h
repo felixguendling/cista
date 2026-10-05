@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cinttypes>
+#include <cstddef>
 #include <algorithm>
 #include <array>
 #include <limits>
@@ -354,7 +355,11 @@ struct variant {
   }
 
   index_t idx_{NO_VALUE};
-  std::aligned_union_t<0, T...> storage_{};
+  static constexpr auto const kStorageAlign = std::max({alignof(T)...});
+  static constexpr auto const kStorageSize =
+      (std::max({sizeof(T)...}) + kStorageAlign - 1U) / kStorageAlign *
+      kStorageAlign;
+  alignas(T...) std::byte storage_[kStorageSize]{};
 };
 
 template <typename T, typename... Ts>
