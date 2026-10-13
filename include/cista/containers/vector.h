@@ -320,6 +320,13 @@ struct basic_vector {
   }
 
   void resize(size_type const size) {
+    if (size < used_size_) {
+      for (auto i = size; i < used_size_; ++i) {
+        el_[i].~T();
+      }
+      used_size_ = size;
+      return;
+    }
     reserve(size);
     for (auto i = used_size_; i < size; ++i) {
       new (el_ + i) T{};
@@ -328,6 +335,13 @@ struct basic_vector {
   }
 
   void resize(size_type const size, T init) {
+    if (size < used_size_) {
+      for (auto i = size; i < used_size_; ++i) {
+        el_[i].~T();
+      }
+      used_size_ = size;
+      return;
+    }
     reserve(size);
     for (auto i = used_size_; i < size; ++i) {
       new (el_ + i) T{init};
