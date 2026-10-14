@@ -402,3 +402,37 @@ TEST_CASE("free self allocated deserialized vector") {
   CHECK(deserialized->data() == nullptr);
   CHECK(deserialized->size() == 0U);
 }
+
+namespace {
+int resize_test_live = 0;
+struct resize_test_counted {
+  resize_test_counted() { ++resize_test_live; }
+  resize_test_counted(resize_test_counted const&) { ++resize_test_live; }
+  resize_test_counted(resize_test_counted&&) noexcept { ++resize_test_live; }
+  resize_test_counted& operator=(resize_test_counted const&) = default;
+  resize_test_counted& operator=(resize_test_counted&&) noexcept = default;
+  ~resize_test_counted() { --resize_test_live; }
+};
+}  // namespace
+
+TEST_CASE("resize to a smaller size destroys the removed elements") {
+  resize_test_live = 0;
+  {
+    cista::raw::vector<resize_test_counted> v;
+    v.resize(10);
+    CHECK(resize_test_live == 10);
+
+    v.resize(3);
+    CHECK(v.size() == 3);
+    CHECK(resize_test_live == 3);
+
+    v.resize(1, resize_test_counted{});
+    CHECK(v.size() == 1);
+    CHECK(resize_test_live == 1);
+
+    v.resize(4);
+    CHECK(v.size() == 4);
+    CHECK(resize_test_live == 4);
+  }
+  CHECK(resize_test_live == 0);
+}
