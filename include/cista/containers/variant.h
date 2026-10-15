@@ -323,8 +323,8 @@ struct variant {
         break;
     }
 
-    if constexpr (B + 15U < sizeof...(T)) {
-      return apply<F, B + 16U>(std::forward<F>(f), std::forward<Vs>(vs)...);
+    if constexpr (B + 16U < sizeof...(T)) {
+      return apply<F, B + 16U>(std::forward<F>(f), idx, std::forward<Vs>(vs)...);
     }
 
 #ifndef _MSC_VER

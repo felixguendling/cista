@@ -1,6 +1,7 @@
 #include "doctest.h"
 
 #include <array>
+#include <utility>
 
 #ifdef SINGLE_HEADER
 #include "cista.h"
@@ -61,9 +62,27 @@ struct b {
   ~b() { ++entries[B_DTOR]; }
 };
 
+template <std::size_t... I>
+void check_apply(std::index_sequence<I...>) {
+  using variant_t = data::variant<std::integral_constant<std::size_t, I>...>;
+  auto const check = [](auto alternative) {
+    auto v = variant_t{alternative};
+    CHECK(v.apply([](auto const& el) { return el.value; }) ==
+          alternative.value);
+  };
+  (check(std::integral_constant<std::size_t, I>{}), ...);
+}
+
 }  // namespace variant_test
 
 using namespace variant_test;
+
+TEST_CASE("variant apply dispatch boundaries") {
+  SUBCASE("16 alternatives") { check_apply(std::make_index_sequence<16>{}); }
+  SUBCASE("17 alternatives") { check_apply(std::make_index_sequence<17>{}); }
+  SUBCASE("32 alternatives") { check_apply(std::make_index_sequence<32>{}); }
+  SUBCASE("33 alternatives") { check_apply(std::make_index_sequence<33>{}); }
+}
 
 TEST_CASE("variant basic methods") {
   data::variant<a, b> v{a{}}, u{b{}};
