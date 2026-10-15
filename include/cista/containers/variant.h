@@ -324,7 +324,8 @@ struct variant {
     }
 
     if constexpr (B + 16U < sizeof...(T)) {
-      return apply<F, B + 16U>(std::forward<F>(f), idx, std::forward<Vs>(vs)...);
+      return apply<F, B + 16U>(std::forward<F>(f), idx,
+                               std::forward<Vs>(vs)...);
     }
 
 #ifndef _MSC_VER
