@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cinttypes>
+#include <cstddef>
 #include <type_traits>
 #include <utility>
 
@@ -181,7 +182,9 @@ struct tuple {
     return reinterpret_cast<char const*>(&mem_) + get_offset<Ts...>(I);
   }
 
-  std::aligned_storage_t<get_total_size<Ts...>(), max_align_of<Ts...>()> mem_;
+  alignas(max_align_of<Ts...>())
+      std::byte mem_[(get_total_size<Ts...>() + max_align_of<Ts...>() - 1U) /
+                     max_align_of<Ts...>() * max_align_of<Ts...>()];
 };
 
 template <typename Head, typename... Tail>
