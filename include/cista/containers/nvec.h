@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cinttypes>
+#include <iterator>
 #include <string_view>
 
 #include "cista/containers/array.h"
@@ -371,6 +372,12 @@ struct const_meta_bucket {
     return !(a == b);
   }
 
+  friend difference_type operator-(const_meta_bucket const& a,
+                                   const_meta_bucket const& b) {
+    return static_cast<difference_type>(a.i_) -
+           static_cast<difference_type>(b.i_);
+  }
+
 private:
   IndexVec const& index() const { return *index_; }
   DataVec const& data() const { return *data_; }
@@ -472,6 +479,11 @@ struct meta_bucket {
 
   friend bool operator!=(meta_bucket const& a, meta_bucket const& b) {
     return !(a == b);
+  }
+
+  friend difference_type operator-(meta_bucket const& a, meta_bucket const& b) {
+    return static_cast<difference_type>(a.i_) -
+           static_cast<difference_type>(b.i_);
   }
 
 private:
@@ -635,11 +647,45 @@ using nvec = basic_nvec<K, vector<V>, vector<base_t<K>>, N, SizeType>;
 
 }  // namespace raw
 
+template <typename T>
+struct nvec_iterator_traits {
+  using difference_type = std::ptrdiff_t;
+  using value_type = T;
+  using pointer = void;
+  using reference = T;
+  using iterator_category = std::random_access_iterator_tag;
+};
+
 }  // namespace cista
+
+// Buckets are also the iterators over the buckets of the level above.
+namespace std {
+
+template <std::size_t Depth, typename DataVec, typename IndexVec,
+          typename SizeType>
+struct iterator_traits<cista::meta_bucket<Depth, DataVec, IndexVec, SizeType>>
+    : cista::nvec_iterator_traits<
+          cista::meta_bucket<Depth, DataVec, IndexVec, SizeType>> {};
+
+template <std::size_t Depth, typename DataVec, typename IndexVec,
+          typename SizeType>
+struct iterator_traits<
+    cista::const_meta_bucket<Depth, DataVec, IndexVec, SizeType>>
+    : cista::nvec_iterator_traits<
+          cista::const_meta_bucket<Depth, DataVec, IndexVec, SizeType>> {};
+
+template <typename DataVec, typename IndexVec, typename SizeType>
+struct iterator_traits<cista::bucket<DataVec, IndexVec, SizeType>>
+    : cista::nvec_iterator_traits<cista::bucket<DataVec, IndexVec, SizeType>> {
+};
+
+template <typename DataVec, typename IndexVec, typename SizeType>
+struct iterator_traits<cista::const_bucket<DataVec, IndexVec, SizeType>>
+    : cista::nvec_iterator_traits<
+          cista::const_bucket<DataVec, IndexVec, SizeType>> {};
 
 #if defined(__cpp_lib_ranges)
 // Treat nvec buckets as views so prvalues satisfy viewable_range.
-namespace std {
 namespace ranges {
 template <std::size_t Depth, typename DataVec, typename IndexVec,
           typename SizeType>
@@ -652,42 +698,6 @@ inline constexpr bool
     enable_view<cista::const_meta_bucket<Depth, DataVec, IndexVec, SizeType>> =
         true;
 }  // namespace ranges
-
-template <std::size_t Depth, typename DataVec, typename IndexVec,
-          typename SizeType>
-struct indirectly_readable_traits<
-    cista::meta_bucket<Depth, DataVec, IndexVec, SizeType>> {
-  using value_type = cista::meta_bucket<Depth, DataVec, IndexVec, SizeType>;
-  using reference = cista::meta_bucket<Depth, DataVec, IndexVec, SizeType>;
-  using rvalue_reference =
-      cista::meta_bucket<Depth, DataVec, IndexVec, SizeType>;
-};
-
-template <std::size_t Depth, typename DataVec, typename IndexVec,
-          typename SizeType>
-struct indirectly_readable_traits<
-    cista::const_meta_bucket<Depth, DataVec, IndexVec, SizeType>> {
-  using value_type =
-      cista::const_meta_bucket<Depth, DataVec, IndexVec, SizeType>;
-  using reference =
-      cista::const_meta_bucket<Depth, DataVec, IndexVec, SizeType>;
-  using rvalue_reference =
-      cista::const_meta_bucket<Depth, DataVec, IndexVec, SizeType>;
-};
-
-template <typename DataVec, typename IndexVec, typename SizeType>
-struct indirectly_readable_traits<cista::bucket<DataVec, IndexVec, SizeType>> {
-  using value_type = cista::bucket<DataVec, IndexVec, SizeType>;
-  using reference = cista::bucket<DataVec, IndexVec, SizeType>;
-  using rvalue_reference = cista::bucket<DataVec, IndexVec, SizeType>;
-};
-
-template <typename DataVec, typename IndexVec, typename SizeType>
-struct indirectly_readable_traits<
-    cista::const_bucket<DataVec, IndexVec, SizeType>> {
-  using value_type = cista::const_bucket<DataVec, IndexVec, SizeType>;
-  using reference = cista::const_bucket<DataVec, IndexVec, SizeType>;
-  using rvalue_reference = cista::const_bucket<DataVec, IndexVec, SizeType>;
-};
-}  // namespace std
 #endif
+
+}  // namespace std

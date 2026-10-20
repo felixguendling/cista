@@ -1,5 +1,9 @@
+#include <iterator>
 #include <memory>
 #include <set>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
 #if __has_include(<ranges>)
 #include <ranges>
@@ -103,6 +107,34 @@ TEST_CASE("nvec test") {
   CHECK_EQ(2U, v[2U][0U].size());
   CHECK_EQ(3U, v[2U][1U].size());
   CHECK_EQ(1U, v[2U][2U].size());
+}
+
+TEST_CASE("nvec iterator traits") {
+  auto v = cista::raw::nvec<unsigned, unsigned, 2U>{};
+  v.emplace_back(std::vector<std::vector<unsigned>>{{1U, 2U}, {}, {3U}});
+  auto w = cista::raw::nvec<unsigned, unsigned, 3U>{};
+  w.emplace_back(std::vector<std::vector<std::vector<unsigned>>>{
+      {{1U, 2U}, {3U}}, {{4U}}});
+
+  auto const check = [](auto level, std::vector<std::size_t> const& expected) {
+    using it_t = decltype(level.begin());
+    static_assert(std::is_same_v<typename std::iterator_traits<it_t>::reference,
+                                 decltype(*level.begin())>);
+    static_assert(
+        std::is_same_v<typename std::iterator_traits<it_t>::value_type,
+                       std::decay_t<decltype(*level.begin())>>);
+    CHECK_EQ(static_cast<std::ptrdiff_t>(expected.size()),
+             std::distance(level.begin(), level.end()));
+    auto sizes = std::vector<std::size_t>{};
+    for (auto it = level.begin(); it != level.end(); ++it) {
+      sizes.push_back((*it).size());
+    }
+    CHECK_EQ(expected, sizes);
+  };
+  check(v[0U], {2U, 0U, 1U});
+  check(std::as_const(v)[0U], {2U, 0U, 1U});
+  check(w[0U], {2U, 1U});
+  check(std::as_const(w)[0U], {2U, 1U});
 }
 
 #if defined(__cpp_lib_ranges)
