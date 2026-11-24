@@ -37,7 +37,8 @@ runs:
     # Workaround for package conflicts with a preinstalled LLVM 14. Only purge
     # what is installed: newer runner images don't ship it.
     - run: |
-        installed=$(dpkg-query -W -f='${db:Status-Abbrev} ${binary:Package}\n' \
+        # dpkg-query fails for unknown packages and bash runs with pipefail
+        installed=$( (dpkg-query -W -f='${db:Status-Abbrev} ${binary:Package}\n' \
           llvm \
           llvm-14 \
           python3-lldb-14 \
@@ -48,7 +49,7 @@ runs:
           libc++abi-14-dev \
           libunwind-14 \
           libunwind-14-dev \
-          2>/dev/null | awk '$1 == "ii" { print $2 }')
+          2>/dev/null || true) | awk '$1 == "ii" { print $2 }')
         if [ -n "$installed" ]; then
           sudo apt-get purge --auto-remove -y $installed
         fi
