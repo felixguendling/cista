@@ -49,13 +49,6 @@ struct pending_offset {
   offset_t pos_;
 };
 
-template <typename Ptr>
-constexpr void check_ptr_holds_offset() {
-  static_assert(sizeof(Ptr) == sizeof(offset_t),
-                "raw pointers can't hold the 64bit cista::offset_t "
-                "(CISTA_64BIT_OFFSET on a 32bit platform), use cista::offset");
-}
-
 struct vector_range {
   bool contains(void const* begin, void const* ptr) const noexcept {
     auto const ptr_int = reinterpret_cast<uintptr_t>(ptr);
@@ -160,7 +153,6 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
     static_assert(std::is_standard_layout_v<Type> &&
                   std::is_trivially_copyable_v<Type>);
   } else if constexpr (is_pointer_v<Type>) {
-    check_ptr_holds_offset<Type>();
     c.resolve_pointer(*origin, pos);
   } else if constexpr (is_indexed_v<Type>) {
     c.offsets_.emplace(origin, pos);
@@ -192,7 +184,6 @@ void serialize(Ctx& c,
                          : c.write(static_cast<T const*>(origin->el_), size,
                                    std::alignment_of_v<T>);
 
-  check_ptr_holds_offset<decltype(Type::el_)>();
   c.write(pos + cista_member_offset(Type, el_),
           convert_endian<Ctx::MODE>(
               start == NULLPTR_OFFSET
@@ -253,7 +244,6 @@ void serialize(Ctx& c, generic_string<Ptr> const* origin, offset_t const pos) {
     str_convert_endian(c, start, origin->data(),
                        static_cast<offset_t>(origin->size()));
   }
-  check_ptr_holds_offset<decltype(Type::h_.ptr_)>();
   c.write(pos + cista_member_offset(Type, h_.ptr_),
           convert_endian<Ctx::MODE>(
               start == NULLPTR_OFFSET
@@ -299,7 +289,6 @@ void serialize(Ctx& c, generic_cstring<Ptr> const* origin, offset_t const pos) {
   auto capacity = size + 1;
 
   auto const start = c.write(data, capacity);
-  check_ptr_holds_offset<decltype(Type::h_.ptr_)>();
   c.write(pos + cista_member_offset(Type, h_.ptr_),
           convert_endian<Ctx::MODE>(start - cista_member_offset(Type, h_.ptr_) -
                                     pos));
@@ -336,7 +325,6 @@ void serialize(Ctx& c, basic_unique_ptr<T, Ptr> const* origin,
           ? NULLPTR_OFFSET
           : c.write(origin->el_, serialized_size<T>(), std::alignment_of_v<T>);
 
-  check_ptr_holds_offset<decltype(Type::el_)>();
   c.write(pos + cista_member_offset(Type, el_),
           convert_endian<Ctx::MODE>(
               start == NULLPTR_OFFSET
@@ -373,8 +361,6 @@ void serialize(Ctx& c,
           : start +
                 static_cast<offset_t>(origin->capacity_ * serialized_size<T>());
 
-  check_ptr_holds_offset<decltype(Type::entries_)>();
-  check_ptr_holds_offset<decltype(Type::ctrl_)>();
   c.write(pos + cista_member_offset(Type, entries_),
           convert_endian<Ctx::MODE>(
               start == NULLPTR_OFFSET
@@ -608,7 +594,9 @@ struct deserialization_context {
 
   template <typename Ptr>
   void deserialize_ptr(Ptr** ptr) const {
-    check_ptr_holds_offset<Ptr*>();
+    static_assert(sizeof(Ptr*) == sizeof(offset_t),
+                  "raw pointers stay 32bit, so cista::raw doesn't work with "
+                  "CISTA_64BIT_OFFSET on 32bit platforms: use cista::offset");
     auto const offset =
         reinterpret_cast<offset_t>(::cista::convert_endian<MODE>(*ptr));
     static_assert(is_mode_disabled(MODE, mode::_CONST),
