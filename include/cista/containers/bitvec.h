@@ -232,13 +232,13 @@ struct basic_bitvec {
   std::optional<Key> get_next(std::atomic_size_t& next) const {
     while (true) {
       auto expected = next.load();
-      auto idx = next_set_bit(Key{static_cast<base_t<Key>>(expected)});
+      auto const idx = next_set_bit(Key{static_cast<base_t<Key>>(expected)});
       if (!idx.has_value()) {
         return std::nullopt;
       }
       if (next.compare_exchange_weak(
               expected, static_cast<std::size_t>(to_idx(*idx)) + 1U)) {
-        return idx;
+        return *idx;
       }
     }
   }
