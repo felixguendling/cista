@@ -81,6 +81,7 @@ struct serialize_me : public parent {
   } j_;
 };
 
+#ifndef CISTA_TEST_NO_RAW_SERIALIZATION
 TEST_CASE("cista_members serialization") {
   cista::byte_buf buf;
 
@@ -102,5 +103,6 @@ TEST_CASE("cista_members serialization") {
   CHECK(serialized->j_.c_ == 3);
   CHECK(serialized->j_.d_ == cista::raw::string{"testtes"});
 }
+#endif
 
 }  // namespace cista_members_printable

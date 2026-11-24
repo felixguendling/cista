@@ -32,21 +32,31 @@ void check_round_trip() {
 }
 }  // namespace
 
-TEST_CASE_TEMPLATE(
-    "integer vector serialization round trips", Vector, byte_vector,
-    cista::offset::vector<std::int8_t>, cista::offset::vector<std::uint16_t>,
-    cista::offset::vector<std::int16_t>, cista::offset::vector<std::uint32_t>,
-    cista::offset::vector<std::int32_t>, cista::offset::vector<std::uint64_t>,
-    cista::offset::vector<std::int64_t>, cista::offset::vector<char>,
-    cista::offset::vector<bool>, cista::raw::vector<std::uint8_t>,
-    cista::raw::vector<std::int8_t>, cista::raw::vector<std::uint16_t>,
-    cista::raw::vector<std::int16_t>, cista::raw::vector<std::uint32_t>,
-    cista::raw::vector<std::int32_t>, cista::raw::vector<std::uint64_t>,
-    cista::raw::vector<std::int64_t>, cista::raw::vector<char>,
-    cista::raw::vector<bool>) {
+TEST_CASE_TEMPLATE("integer vector serialization round trips", Vector,
+                   byte_vector, cista::offset::vector<std::int8_t>,
+                   cista::offset::vector<std::uint16_t>,
+                   cista::offset::vector<std::int16_t>,
+                   cista::offset::vector<std::uint32_t>,
+                   cista::offset::vector<std::int32_t>,
+                   cista::offset::vector<std::uint64_t>,
+                   cista::offset::vector<std::int64_t>,
+                   cista::offset::vector<char>, cista::offset::vector<bool>) {
   check_round_trip<Vector, cista::mode::NONE>();
   check_round_trip<Vector, cista::mode::SERIALIZE_BIG_ENDIAN>();
 }
+
+#ifndef CISTA_TEST_NO_RAW_SERIALIZATION
+TEST_CASE_TEMPLATE(
+    "raw integer vector serialization round trips", Vector,
+    cista::raw::vector<std::uint8_t>, cista::raw::vector<std::int8_t>,
+    cista::raw::vector<std::uint16_t>, cista::raw::vector<std::int16_t>,
+    cista::raw::vector<std::uint32_t>, cista::raw::vector<std::int32_t>,
+    cista::raw::vector<std::uint64_t>, cista::raw::vector<std::int64_t>,
+    cista::raw::vector<char>, cista::raw::vector<bool>) {
+  check_round_trip<Vector, cista::mode::NONE>();
+  check_round_trip<Vector, cista::mode::SERIALIZE_BIG_ENDIAN>();
+}
+#endif
 
 TEST_CASE_TEMPLATE("integer vector serialized byte order", T, std::uint16_t,
                    std::uint32_t, std::uint64_t) {

@@ -1,10 +1,5 @@
 #pragma once
 
-#if defined(__has_include) && (_MSVC_LANG >= 202002L || __cplusplus >= 202002L)
-#if __has_include(<bit>)
-#include <bit>
-#endif
-#endif
 #include <cstring>
 #include <type_traits>
 
@@ -13,17 +8,12 @@
 
 namespace cista {
 
-#if __cpp_lib_bit_cast
-inline offset_t to_offset(void const* ptr) noexcept {
-  return std::bit_cast<offset_t>(ptr);
+inline offset_t offset_between(void const* from, void const* to) noexcept {
+  using uoffset_t = std::make_unsigned_t<offset_t>;
+  return static_cast<offset_t>(
+      static_cast<uoffset_t>(reinterpret_cast<std::uintptr_t>(to)) -
+      static_cast<uoffset_t>(reinterpret_cast<std::uintptr_t>(from)));
 }
-#else
-inline offset_t to_offset(void const* ptr) noexcept {
-  offset_t r;
-  std::memcpy(&r, &ptr, sizeof(ptr));
-  return r;
-}
-#endif
 
 template <typename T, typename Enable = void>
 struct offset_ptr {
@@ -54,8 +44,7 @@ struct offset_ptr {
   ~offset_ptr() noexcept = default;
 
   offset_t ptr_to_offset(T const* p) const noexcept {
-    return p == nullptr ? NULLPTR_OFFSET
-                        : static_cast<offset_t>(to_offset(p) - to_offset(this));
+    return p == nullptr ? NULLPTR_OFFSET : offset_between(this, p);
   }
 
   explicit operator bool() const noexcept { return offset_ != NULLPTR_OFFSET; }
@@ -70,7 +59,8 @@ struct offset_ptr {
     auto const ptr =
         offset_ == NULLPTR_OFFSET
             ? nullptr
-            : reinterpret_cast<T*>(reinterpret_cast<intptr_t>(this) + offset_);
+            : reinterpret_cast<T*>(reinterpret_cast<std::uintptr_t>(this) +
+                                   static_cast<std::uintptr_t>(offset_));
     return ptr;
   }
 
@@ -107,7 +97,7 @@ struct offset_ptr {
   offset_ptr operator++(int) const noexcept { return offset_ptr{get() + 1}; }
   offset_ptr operator--(int) const noexcept { return offset_ptr{get() - 1}; }
 
-  offset_t offset_{NULLPTR_OFFSET};
+  alignas(sizeof(offset_t)) offset_t offset_{NULLPTR_OFFSET};
 };
 
 template <typename T>
@@ -137,8 +127,7 @@ struct offset_ptr<T, std::enable_if_t<std::is_same_v<void, T>>> {
   }
 
   offset_t ptr_to_offset(T const* p) const noexcept {
-    return p == nullptr ? NULLPTR_OFFSET
-                        : static_cast<offset_t>(to_offset(p) - to_offset(this));
+    return p == nullptr ? NULLPTR_OFFSET : offset_between(this, p);
   }
 
   operator bool() const noexcept { return offset_ != NULLPTR_OFFSET; }
@@ -148,7 +137,8 @@ struct offset_ptr<T, std::enable_if_t<std::is_same_v<void, T>>> {
     auto const ptr =
         offset_ == NULLPTR_OFFSET
             ? nullptr
-            : reinterpret_cast<T*>(reinterpret_cast<intptr_t>(this) + offset_);
+            : reinterpret_cast<T*>(reinterpret_cast<std::uintptr_t>(this) +
+                                   static_cast<std::uintptr_t>(offset_));
     return ptr;
   }
 
@@ -165,7 +155,7 @@ struct offset_ptr<T, std::enable_if_t<std::is_same_v<void, T>>> {
     return o.offset_ != NULLPTR_OFFSET;
   }
 
-  offset_t offset_{NULLPTR_OFFSET};
+  alignas(sizeof(offset_t)) offset_t offset_{NULLPTR_OFFSET};
 };
 
 template <class T>

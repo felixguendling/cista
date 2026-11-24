@@ -105,6 +105,7 @@ TEST_CASE("iterate empty hash_set test") {
   }
 }
 
+#ifndef CISTA_TEST_NO_RAW_SERIALIZATION
 TEST_CASE("serialize hash_set test") {
   using namespace cista;
   using namespace cista::raw;
@@ -157,6 +158,7 @@ TEST_CASE("serialize hash_set test") {
   CHECK(*deserialized->find(make_e2()) == make_e2());
   CHECK(*deserialized->find(make_e3()) == make_e3());
 }
+#endif
 
 TEST_CASE("hash_set self-assignment") {
   using namespace cista::raw;

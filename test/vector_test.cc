@@ -263,6 +263,7 @@ TEST_CASE("offset vector move preserves non owning source") {
   CHECK(moved[2] == 3U);
 }
 
+#ifndef CISTA_TEST_NO_RAW_SERIALIZATION
 TEST_CASE("to_vec") {
   namespace data = cista::raw;
 
@@ -306,6 +307,7 @@ TEST_CASE("to_indexed_vec") {
   CHECK(deserialized[0] == 1.0);
   CHECK(deserialized[1] == 2.0);
 }
+#endif
 
 TEST_CASE("complex_type_insert") {
   namespace data = cista::raw;
@@ -323,6 +325,7 @@ TEST_CASE("complex_type_insert") {
   REQUIRE(u.size() == 2048);
 }
 
+#ifndef CISTA_TEST_NO_RAW_SERIALIZATION
 TEST_CASE("erase then serialize") {
   using cista::raw::vector;
 
@@ -357,6 +360,7 @@ TEST_CASE("erase until empty then serialize") {
 
   CHECK(*deserialized == vector<int>{});
 }
+#endif
 
 TEST_CASE("erase loop") {
   using cista::raw::vector;
@@ -384,6 +388,7 @@ TEST_CASE("erase loop") {
   }
 }
 
+#ifndef CISTA_TEST_NO_RAW_SERIALIZATION
 TEST_CASE("free self allocated deserialized vector") {
   using cista::raw::vector;
 
@@ -404,6 +409,7 @@ TEST_CASE("free self allocated deserialized vector") {
   CHECK(deserialized->data() == nullptr);
   CHECK(deserialized->size() == 0U);
 }
+#endif
 
 namespace {
 int resize_test_live = 0;

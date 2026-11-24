@@ -21,6 +21,15 @@ jobs:
       matrix:
         mode: [ Debug, Release ]
         arch: [ amd64, x86 ]
+        offset64: [ OFF ]
+        include:
+          # 32bit build with the 64bit offset_t of 64bit platforms
+          - mode: Debug
+            arch: x86
+            offset64: ON
+          - mode: Release
+            arch: x86
+            offset64: ON
 
     env:
       CXX: cl.exe
@@ -37,7 +46,7 @@ jobs:
 
       - name: Build
         run: |
-          cmake -GNinja -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.mode }} -DCISTA_FMT=OFF
+          cmake -GNinja -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.mode }} -DCISTA_FMT=OFF -DCISTA_64BIT_OFFSET=${{ matrix.offset64 }}
           cmake --build build --target cista-test cista-test-single-header
 
       # ==== TESTS ====

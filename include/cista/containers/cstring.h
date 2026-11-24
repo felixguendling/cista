@@ -314,7 +314,7 @@ struct generic_cstring {
     Ptr ptr_{nullptr};
     std::uint32_t size_{0};
     bool self_allocated_{false};
-    char __fill__[sizeof(uintptr_t) == 8 ? 2 : 6]{0};
+    char __fill__[sizeof(Ptr) == 8 ? 2 : 6]{0};
     int8_t minus_one_{-1};  // The offset of this field needs to match the
                             // offset of stack::remaining_ below.
 
