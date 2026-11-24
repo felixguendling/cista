@@ -15,16 +15,19 @@ namespace std {
 template <typename Ctx, typename T>
 inline void serialize(Ctx& c, std::vector<T> const* origin,
                       cista::offset_t const offset) {
+  // Layout: offset_t to the data, followed by the size. A std::vector is only
+  // 12 bytes in 32bit release builds, which has to hold a 64bit offset_t.
   static_assert(sizeof(std::vector<T>) >=
-                sizeof(cista::NULLPTR_OFFSET) + sizeof(uint64_t));
+                sizeof(cista::offset_t) + sizeof(std::size_t));
 
   auto const start = origin->empty()
                          ? cista::NULLPTR_OFFSET
                          : c.write(origin->data(), origin->size() * sizeof(T),
                                    std::alignment_of_v<T>);
 
-  c.write(offset, static_cast<uint64_t>(origin->size()));
-  c.write(offset + static_cast<cista::offset_t>(sizeof(uint64_t)), start);
+  c.write(offset, start);
+  c.write(offset + static_cast<cista::offset_t>(sizeof(cista::offset_t)),
+          origin->size());
 
   for (auto i = 0u; i < origin->size(); ++i) {
     cista::serialize(
@@ -35,10 +38,10 @@ inline void serialize(Ctx& c, std::vector<T> const* origin,
 
 template <typename Ctx, typename T>
 inline void deserialize(Ctx const& c, std::vector<T>* el) {
-  auto const size = *reinterpret_cast<uint64_t*>(el);
-  auto const data = reinterpret_cast<T*>(
-      c.from_ + *reinterpret_cast<cista::offset_t*>(
-                    reinterpret_cast<uint8_t*>(el) + sizeof(uint64_t)));
+  auto const data =
+      reinterpret_cast<T*>(c.from_ + *reinterpret_cast<cista::offset_t*>(el));
+  auto const size = *reinterpret_cast<std::size_t*>(
+      reinterpret_cast<uint8_t*>(el) + sizeof(cista::offset_t));
 
   for (auto it = data; it != data + size; ++it) {
     cista::deserialize(c, it);
