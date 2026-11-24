@@ -1,3 +1,4 @@
+#include <array>
 #include <memory>
 #include <set>
 
@@ -435,4 +436,23 @@ TEST_CASE("resize to a smaller size destroys the removed elements") {
     CHECK(resize_test_live == 4);
   }
   CHECK(resize_test_live == 0);
+}
+
+TEST_CASE("copy and move an array of vectors") {
+  // 32bit MSVC copies/moves larger arrays through a helper that calls the
+  // copy/move constructor with a single argument.
+  using vec = cista::offset::vector<int>;
+
+  std::array<vec, 21U> a;
+  a[3].push_back(1);
+  a[20].push_back(2);
+
+  auto const copy = a;
+  CHECK(copy[3].size() == 1U);
+  CHECK(copy[20].at(0) == 2);
+  CHECK(a[3].size() == 1U);
+
+  auto const moved = std::move(a);
+  CHECK(moved[3].size() == 1U);
+  CHECK(moved[20].at(0) == 2);
 }
