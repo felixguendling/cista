@@ -1,3 +1,4 @@
+#include <any>
 #include <array>
 #include <memory>
 #include <set>
@@ -455,4 +456,12 @@ TEST_CASE("copy and move an array of vectors") {
   auto const moved = std::move(a);
   CHECK(moved[3].size() == 1U);
   CHECK(moved[20].at(0) == 2);
+}
+
+TEST_CASE("copy and move with allocator keep all elements") {
+  using vec = cista::raw::vector<std::any>;
+
+  auto a = vec{1, 2, 3};
+  CHECK(vec(a, vec::allocator_type{}).size() == 3U);
+  CHECK(vec(std::move(a), vec::allocator_type{}).size() == 3U);
 }
