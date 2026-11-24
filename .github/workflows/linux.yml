@@ -15,7 +15,8 @@ concurrency:
 
 jobs:
   formatting:
-    runs-on: ubuntu-26.04
+    # ubuntu-latest is Ubuntu 26.04 (resolute) as of November 2026
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
 
@@ -33,7 +34,8 @@ jobs:
           git status --porcelain
           git status --porcelain | xargs -I {} -0 test -z \"{}\"
   build:
-    runs-on: ubuntu-26.04
+    # ubuntu-latest is Ubuntu 26.04 (resolute) as of November 2026
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         config:
