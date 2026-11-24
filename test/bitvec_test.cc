@@ -122,6 +122,12 @@ TEST_CASE("bitvec atomic set") {
       for (auto j = i; j < kBits; j += kWorkers) {
         b.set<true>(j);
       }
+
+      for (auto j = i; j < kBits; j += kWorkers) {
+        if (j % 3U != 0U) {
+          b.set<true>(j, false);
+        }
+      }
     }};
   }
 
@@ -131,7 +137,7 @@ TEST_CASE("bitvec atomic set") {
     w.join();
   }
 
-  CHECK(b.count() == kBits);
+  CHECK(b.count() == (kBits + 2U) / 3U);
 }
 
 TEST_CASE("bitvec parallel") {

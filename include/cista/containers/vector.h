@@ -63,21 +63,22 @@ struct basic_vector {
     set(begin_it, end_it);
   }
 
-  basic_vector(basic_vector&& o, Allocator const& alloc = Allocator{}) noexcept
+  basic_vector(basic_vector&& o) noexcept
       : el_(o.el_),
         used_size_(o.used_size_),
         allocated_size_(o.allocated_size_),
         self_allocated_(o.self_allocated_) {
-    CISTA_UNUSED_PARAM(alloc)
     if (o.self_allocated_) {
       o.reset();
     }
   }
 
-  basic_vector(basic_vector const& o, Allocator const& alloc = Allocator{}) {
-    CISTA_UNUSED_PARAM(alloc)
-    set(o);
-  }
+  basic_vector(basic_vector&& o, Allocator const&) noexcept
+      : basic_vector(std::move(o)) {}
+
+  basic_vector(basic_vector const& o) { set(o); }
+
+  basic_vector(basic_vector const& o, Allocator const&) : basic_vector(o) {}
 
   basic_vector& operator=(basic_vector&& arr) noexcept {
     if (&arr != this) {
