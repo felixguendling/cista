@@ -617,7 +617,6 @@ struct deserialization_context {
 
   template <typename Ptr>
   void deserialize_ptr(Ptr** ptr) const {
-    // Raw pointer slots hold a pointer-sized offset (see write_ptr).
     auto const offset =
         reinterpret_cast<std::intptr_t>(::cista::convert_endian<MODE>(*ptr));
     static_assert(is_mode_disabled(MODE, mode::_CONST),
