@@ -11,8 +11,22 @@
 namespace cista {
 
 inline std::uint64_t fetch_or(std::uint64_t& block, std::uint64_t const mask) {
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(_M_IX86)
   return _InterlockedOr64(reinterpret_cast<std::int64_t*>(&block), mask);
+#elif defined(_MSC_VER)
+  // 32bit MSVC has no _InterlockedOr64 intrinsic.
+  auto const p = reinterpret_cast<std::int64_t volatile*>(&block);
+  auto expected = static_cast<std::int64_t>(block);
+  for (;;) {
+    auto const prev = _InterlockedCompareExchange64(
+        p,
+        static_cast<std::int64_t>(static_cast<std::uint64_t>(expected) | mask),
+        expected);
+    if (prev == expected) {
+      return static_cast<std::uint64_t>(prev);
+    }
+    expected = prev;
+  }
 #elif defined(__cpp_lib_atomic_ref)
   return std::atomic_ref{block}.fetch_or(mask);
 #else
@@ -21,8 +35,22 @@ inline std::uint64_t fetch_or(std::uint64_t& block, std::uint64_t const mask) {
 }
 
 inline std::uint64_t fetch_and(std::uint64_t& block, std::uint64_t const mask) {
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(_M_IX86)
   return _InterlockedAnd64(reinterpret_cast<std::int64_t*>(&block), mask);
+#elif defined(_MSC_VER)
+  // 32bit MSVC has no _InterlockedAnd64 intrinsic.
+  auto const p = reinterpret_cast<std::int64_t volatile*>(&block);
+  auto expected = static_cast<std::int64_t>(block);
+  for (;;) {
+    auto const prev = _InterlockedCompareExchange64(
+        p,
+        static_cast<std::int64_t>(static_cast<std::uint64_t>(expected) & mask),
+        expected);
+    if (prev == expected) {
+      return static_cast<std::uint64_t>(prev);
+    }
+    expected = prev;
+  }
 #elif defined(__cpp_lib_atomic_ref)
   return std::atomic_ref{block}.fetch_and(mask);
 #else
