@@ -15,9 +15,9 @@ concurrency:
 
 jobs:
   formatting:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install clang-format
         uses: ./.github/actions/install-llvm
@@ -33,33 +33,33 @@ jobs:
           git status --porcelain
           git status --porcelain | xargs -I {} -0 test -z \"{}\"
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     strategy:
       matrix:
         config:
-          - name: GCC 12 Release
-            cxx: g++-12
-            cc: gcc-12
+          - name: GCC 15 Release
+            cxx: g++-15
+            cc: gcc-15
             mode: Release
-          - name: GCC 12 Debug
-            cxx: g++-12
-            cc: gcc-12
+          - name: GCC 15 Debug
+            cxx: g++-15
+            cc: gcc-15
             mode: Debug
             valgrind: true
-          - name: Clang 17 Release
-            cxx: clang++-17
-            cc: clang-17
+          - name: Clang 22 Release
+            cxx: clang++-22
+            cc: clang-22
             mode: Release
             cxxflags: -stdlib=libc++
             ldflags: -lc++abi
-          - name: Clang 17 Debug
-            cxx: clang++-17
-            cc: clang-17
+          - name: Clang 22 Debug
+            cxx: clang++-22
+            cc: clang-22
             mode: Debug
             fuzz: true
-          - key: Clang 17 Sanitizer
-            cxx: clang++-17
-            cc: clang-17
+          - key: Clang 22 Sanitizer
+            cxx: clang++-22
+            cc: clang-22
             mode: Debug
             cflags: -fsanitize=address,undefined -fno-omit-frame-pointer
             cxxflags: -fsanitize=address,undefined -fno-omit-frame-pointer
@@ -67,7 +67,7 @@ jobs:
     env:
       UBSAN_OPTIONS: halt_on_error=1:abort_on_error=1
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Ninja
         env:
@@ -78,7 +78,7 @@ jobs:
       - name: Install Clang
         uses: ./.github/actions/install-llvm
         with:
-          packages: libstdc++-12-dev libc++-17-dev libc++abi-17-dev clang-tidy-17 libunwind-17-dev llvm-17 libfuzzer-17-dev llvm-17-dev libclang-rt-17-dev
+          packages: libstdc++-15-dev libc++-22-dev libc++abi-22-dev clang-tidy-22 libunwind-22-dev llvm-22 libfuzzer-22-dev llvm-22-dev libclang-rt-22-dev
 
       # ==== BUILD ====
       - name: CMake
@@ -93,7 +93,7 @@ jobs:
             -DCMAKE_CXX_LINKER_FLAGS=${{ matrix.config.ldflags }}" \
             -DCMAKE_CXX_EXE_LINKER_FLAGS="${{ matrix.config.ldflags }} \
             -DCMAKE_BUILD_TYPE=${{ matrix.config.mode }} \
-            -DCISTA_ZERO_OUT=${{ matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-12' }}
+            -DCISTA_ZERO_OUT=${{ matrix.config.mode == 'Debug' && matrix.config.cc == 'gcc-15' }}
       - name: Build
         run: cmake --build build --target cista-test cista-test-single-header
 
@@ -138,7 +138,7 @@ jobs:
 
       # ==== DISTRIBUTION ====
       - name: Upload Distribution
-        if: matrix.config.mode == 'Release' && matrix.config.cc == 'gcc-12'
+        if: matrix.config.mode == 'Release' && matrix.config.cc == 'gcc-15'
         uses: actions/upload-artifact@v4
         with:
           name: cista.h
@@ -146,7 +146,7 @@ jobs:
 
       # ==== RELEASE ====
       - name: Upload Release
-        if: github.event.action == 'published' && matrix.config.mode == 'Release' && matrix.config.cc == 'gcc-12'
+        if: github.event.action == 'published' && matrix.config.mode == 'Release' && matrix.config.cc == 'gcc-15'
         uses: actions/upload-release-asset@v1.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

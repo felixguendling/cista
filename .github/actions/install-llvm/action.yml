@@ -4,20 +4,20 @@ inputs:
   version:
     description: 'LLVM version'
     required: false
-    default: 17
+    default: 22
   packages:
     description: 'Packages to install'
     required: false
     default: >
-      clang-17
-      clang-tools-17
-      clang-format-17
-      clang-tidy-17
-      libc++-17-dev
-      libc++abi-17-dev
-      libclang-common-17-dev
-      libclang-rt-17-dev
-      libunwind-17-dev
+      clang-22
+      clang-tools-22
+      clang-format-22
+      clang-tidy-22
+      libc++-22-dev
+      libc++abi-22-dev
+      libclang-common-22-dev
+      libclang-rt-22-dev
+      libunwind-22-dev
 runs:
   using: "composite"
   steps:
@@ -34,9 +34,10 @@ runs:
       env:
         DEBIAN_FRONTEND: noninteractive
 
-    # workaround for package conflicts
+    # Workaround for package conflicts with a preinstalled LLVM 14. Only purge
+    # what is installed: newer runner images don't ship it.
     - run: |
-        sudo apt-get purge --auto-remove \
+        installed=$(dpkg-query -W -f='${db:Status-Abbrev} ${binary:Package}\n' \
           llvm \
           llvm-14 \
           python3-lldb-14 \
@@ -46,7 +47,11 @@ runs:
           libc++abi1-14 \
           libc++abi-14-dev \
           libunwind-14 \
-          libunwind-14-dev
+          libunwind-14-dev \
+          2>/dev/null | awk '$1 == "ii" { print $2 }')
+        if [ -n "$installed" ]; then
+          sudo apt-get purge --auto-remove -y $installed
+        fi
       shell: bash
       env:
         DEBIAN_FRONTEND: noninteractive
