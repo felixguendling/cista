@@ -271,4 +271,8 @@ TEST_CASE("std visit") {
         }
       },
       cista::variant<int, float>{1});
+
+  auto v = cista::variant<int, float>{1};
+  std::visit([](auto& x) { x += 1; }, v);
+  CHECK(std::visit([](auto x) { return static_cast<int>(x); }, v) == 2);
 }
