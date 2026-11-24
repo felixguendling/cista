@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cinttypes>
-#include <cstdint>
 #include <limits>
 
 namespace cista {

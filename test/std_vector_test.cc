@@ -61,6 +61,7 @@ cista::hash_t type_hash(std::vector<T> const&, cista::hash_t h) {
 
 }  // namespace std
 
+#ifndef CISTA_TEST_NO_RAW_SERIALIZATION
 TEST_CASE("vector test") {
   using serialize_me = std::vector<data::vector<std::vector<int64_t>>>;
 
@@ -92,6 +93,7 @@ TEST_CASE("vector test") {
   }
   serialized.~vector();
 }
+#endif
 
 TEST_CASE("vector tuple test") {
   namespace data = cista::offset;

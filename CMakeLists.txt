@@ -107,6 +107,10 @@ add_custom_command(
 )
 
 file(GLOB_RECURSE cista-test-files test/*.cc)
+if (CISTA_64BIT_OFFSET AND CMAKE_SIZEOF_VOID_P EQUAL 4)
+  list(FILTER cista-test-files EXCLUDE REGEX "/(cstring_serialize|downward_compat|pointer|raw_graph|raw_security|struct_serialize)_test\\.cc$")
+  add_compile_definitions(CISTA_TEST_NO_RAW_SERIALIZATION)
+endif()
 add_executable(cista-test-single-header EXCLUDE_FROM_ALL ${cista-test-files} ${CMAKE_CURRENT_BINARY_DIR}/cista.h)
 target_link_libraries(cista-test-single-header cista-doctest)
 target_include_directories(cista-test-single-header PRIVATE ${CMAKE_CURRENT_BINARY_DIR})

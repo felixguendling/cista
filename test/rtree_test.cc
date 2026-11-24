@@ -97,6 +97,7 @@ TEST_SUITE("rtree") {
     CHECK((rt.get_node(rt.m_.root_).count_ == 7));
   }
 
+#ifndef CISTA_TEST_NO_RAW_SERIALIZATION
   TEST_CASE("random insert") {
     int N = 100000;
     std::vector<cista::rtree<size_t>::rect> rand_rects_list;
@@ -140,6 +141,7 @@ TEST_SUITE("rtree") {
       CHECK(found_correct);
     }
   }
+#endif
 
   TEST_CASE("simple delete: depth 1") {
     int N = 10;

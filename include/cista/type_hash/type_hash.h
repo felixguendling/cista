@@ -184,11 +184,7 @@ template <typename T>
 hash_t type_hash() {
   auto done = std::map<hash_t, unsigned>{};
   auto const h = type_hash(T{}, BASE_HASH, done);
-  if constexpr (sizeof(offset_t) != 8U) {
-    return hash_combine(h, sizeof(offset_t));
-  } else {
-    return h;
-  }
+  return sizeof(offset_t) == 8U ? h : hash_combine(h, sizeof(offset_t));
 }
 
 }  // namespace cista
