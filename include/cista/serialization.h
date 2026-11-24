@@ -89,9 +89,6 @@ struct serialization_context {
     t_.write(static_cast<std::size_t>(pos), val);
   }
 
-  // Writes the offset of a pointer slot. offset_ptr slots (Slot = offset_t)
-  // store an offset_t. Raw pointer slots (Slot = a pointer type) keep the size
-  // of a pointer, which differs from offset_t if a custom offset_t is used.
   template <typename Slot>
   void write_ptr(offset_t const pos, offset_t const offset) {
     if constexpr (std::is_pointer_v<Slot>) {

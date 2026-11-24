@@ -15,8 +15,6 @@ namespace std {
 template <typename Ctx, typename T>
 inline void serialize(Ctx& c, std::vector<T> const* origin,
                       cista::offset_t const offset) {
-  // Layout: offset_t to the data, followed by the size. A std::vector is only
-  // 12 bytes in 32bit release builds, which has to hold a 64bit offset_t.
   static_assert(sizeof(std::vector<T>) >=
                 sizeof(cista::offset_t) + sizeof(std::size_t));
 
