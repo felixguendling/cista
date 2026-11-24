@@ -52,10 +52,15 @@ TEST_CASE("hash int struct != int") {
 }
 
 TEST_CASE("hash test struct field order") {
-  CHECK(2060989771674233508ULL == cista::type_hash<hash_test::s1>());
-  CHECK(8501584041991634637ULL == cista::type_hash<hash_test::s2>());
+  auto const is32 = sizeof(cista::offset_t) == 4U;
+  CHECK((is32 ? 17656074068566830560ULL : 2060989771674233508ULL) ==
+        cista::type_hash<hash_test::s1>());
+  CHECK((is32 ? 9596506313732747147ULL : 8501584041991634637ULL) ==
+        cista::type_hash<hash_test::s2>());
 }
 
 TEST_CASE("recursive type hash does work") {
-  CHECK(6208585983120472160ULL == cista::type_hash<rec_hash_test::A>());
+  CHECK((sizeof(cista::offset_t) == 4U
+             ? 14245511089706209772ULL
+             : 6208585983120472160ULL) == cista::type_hash<rec_hash_test::A>());
 }

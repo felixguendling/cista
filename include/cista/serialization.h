@@ -60,8 +60,8 @@ struct vector_range {
   }
 
   offset_t offset_of(void const* begin, void const* ptr) const noexcept {
-    return start_ + reinterpret_cast<intptr_t>(ptr) -
-           reinterpret_cast<intptr_t>(begin);
+    return start_ + static_cast<offset_t>(reinterpret_cast<uintptr_t>(ptr) -
+                                          reinterpret_cast<uintptr_t>(begin));
   }
 
   offset_t start_;
@@ -183,9 +183,7 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
   } else if constexpr (!std::is_scalar_v<Type>) {
     static_assert(to_tuple_works_v<Type>, "Please implement custom serializer");
     for_each_ptr_field(*origin, [&](auto& member) {
-      auto const member_offset =
-          static_cast<offset_t>(reinterpret_cast<intptr_t>(member) -
-                                reinterpret_cast<intptr_t>(origin));
+      auto const member_offset = offset_between(origin, member);
       serialize(c, member, pos + member_offset);
     });
   } else if constexpr (std::numeric_limits<Type>::is_integer) {
@@ -483,10 +481,7 @@ void serialize(Ctx& c, tuple<T...> const* origin,
                cista::offset_t const offset) {
   ::cista::apply(
       [&](auto&&... args) {
-        (serialize(c, &args,
-                   offset + (reinterpret_cast<intptr_t>(&args) -
-                             reinterpret_cast<intptr_t>(origin))),
-         ...);
+        (serialize(c, &args, offset + offset_between(origin, &args)), ...);
       },
       *origin);
 }

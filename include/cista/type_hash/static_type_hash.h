@@ -284,7 +284,12 @@ constexpr auto static_type_hash(
 
 template <typename T, std::size_t NMaxTypes = 256U>
 constexpr hash_t static_type_hash() noexcept {
-  return static_type_hash(null<T>(), hash_data<NMaxTypes>{}).h_;
+  auto const h = static_type_hash(null<T>(), hash_data<NMaxTypes>{}).h_;
+  if constexpr (sizeof(offset_t) != 8U) {
+    return hash_combine(h, sizeof(offset_t));
+  } else {
+    return h;
+  }
 }
 
 }  // namespace cista
