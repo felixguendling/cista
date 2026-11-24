@@ -1,10 +1,6 @@
 #pragma once
 
-#if defined(__has_include) && (_MSVC_LANG >= 202002L || __cplusplus >= 202002L)
-#if __has_include(<bit>)
-#include <bit>
-#endif
-#endif
+#include <cstdint>
 #include <cstring>
 #include <type_traits>
 
@@ -13,17 +9,12 @@
 
 namespace cista {
 
-#if __cpp_lib_bit_cast
+// Zero-extends the address when offset_t is wider than a pointer so that the
+// difference of two addresses is correct even if they are on both sides of
+// the 2GB boundary on 32bit systems.
 inline offset_t to_offset(void const* ptr) noexcept {
-  return std::bit_cast<offset_t>(ptr);
+  return static_cast<offset_t>(reinterpret_cast<std::uintptr_t>(ptr));
 }
-#else
-inline offset_t to_offset(void const* ptr) noexcept {
-  offset_t r{};
-  std::memcpy(&r, &ptr, sizeof(ptr));
-  return r;
-}
-#endif
 
 template <typename T, typename Enable = void>
 struct offset_ptr {
