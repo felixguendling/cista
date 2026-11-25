@@ -44,8 +44,8 @@ TEST_SUITE("rtree") {
     rt.get_node(rt.m_.root_).sort_by_axis(0, true, true);
     bool sorted = true;
     for (size_t i = 0; i < rt.get_node(rt.m_.root_).count_ - 1; ++i) {
-      if (rt.get_node(rt.m_.root_).rects_[i].min_[0] <
-          rt.get_node(rt.m_.root_).rects_[i + 1].min_[0]) {
+      if (rt.get_node(rt.m_.root_).rects_[i].max_[0] <
+          rt.get_node(rt.m_.root_).rects_[i + 1].max_[0]) {
         sorted = false;
       }
     }
