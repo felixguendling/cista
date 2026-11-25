@@ -124,6 +124,10 @@ if (CISTA_ZERO_OUT)
   target_compile_definitions(cista-test-single-header PRIVATE CISTA_ZERO_OUT=1)
 endif()
 
+add_library(cista-abi-test OBJECT EXCLUDE_FROM_ALL test/abi_layout_test.cc)
+target_link_libraries(cista-abi-test cista cista-doctest)
+target_compile_options(cista-abi-test PRIVATE ${cista-compile-flags})
+
 add_executable(cista-test EXCLUDE_FROM_ALL ${cista-test-files})
 target_compile_options(cista-test PRIVATE ${cista-compile-flags})
 target_link_libraries(cista-test cista-doctest cista)

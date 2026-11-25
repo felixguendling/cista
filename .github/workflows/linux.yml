@@ -33,6 +33,31 @@ jobs:
         run: |
           git status --porcelain
           git status --porcelain | xargs -I {} -0 test -z \"{}\"
+  abi:
+    name: abi (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: x86, os: ubuntu-latest, flags: -m32 -DCISTA_SKIP_ALIGNMENT_CHECK }
+          - { name: arm64, os: ubuntu-24.04-arm }
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install 32bit toolchain
+        if: matrix.name == 'x86'
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends g++-multilib
+
+      - name: Check the 64bit layout
+        run: |
+          cmake -S . -B build -DCISTA_FMT=OFF -DCISTA_64BIT_OFFSET=ON             -DCMAKE_CXX_FLAGS="${{ matrix.flags }}"
+          cmake --build build --target cista-abi-test
+
   build:
     # ubuntu-latest is Ubuntu 26.04 (resolute) as of November 2026
     runs-on: ubuntu-latest
