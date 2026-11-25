@@ -141,6 +141,18 @@ static_assert(at_64bit_offset<offsetof(user_type, l_), 128U>(),
 static_assert(at_64bit_offset<offsetof(user_type, m_), 176U>(),
               "user_type::m_");
 
+static_assert(cista::has_serialized_layout<user_type>(), "user_type layout");
+
+struct misaligned_type {
+  std::uint8_t a_;
+  std::int64_t b_;
+};
+
+static_assert(sizeof(cista::offset_t) <= sizeof(void*) ||
+                  alignof(std::int64_t) == 8U ||
+                  !cista::has_serialized_layout<misaligned_type>(),
+              "misaligned_type has to be detected");
+
 TEST_CASE("abi layout: serialize a user type") {
   auto buf = cista::byte_buf{};
   {

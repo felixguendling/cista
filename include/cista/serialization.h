@@ -39,7 +39,47 @@ struct is_verbatim_integer_vector<basic_vector<T, Ptr, Indexed, SizeType>, Mode>
     : std::bool_constant<std::is_integral_v<T> && !std::is_same_v<T, bool> &&
                          (sizeof(T) == 1 ||
                           !endian_conversion_necessary<Mode>())> {};
+
+template <typename T, typename... Members>
+constexpr bool has_serialized_layout(std::tuple<Members...>*) noexcept {
+  if constexpr (sizeof...(Members) == 0U) {
+    return true;
+  } else {
+    constexpr std::size_t const sizes[] = {
+        sizeof(std::remove_reference_t<Members>)...};
+    constexpr std::size_t const alignments[] = {
+        serialized_alignment<std::remove_reference_t<Members>>()...};
+    auto size = std::size_t{0U};
+    auto alignment = std::size_t{1U};
+    for (auto i = 0U; i != sizeof...(Members); ++i) {
+      size = (size + alignments[i] - 1U) / alignments[i] * alignments[i] +
+             sizes[i];
+      alignment = alignments[i] > alignment ? alignments[i] : alignment;
+    }
+    return alignof(T) >= alignment &&
+           sizeof(T) == (size + alignof(T) - 1U) / alignof(T) * alignof(T);
+  }
+}
 }  // namespace detail
+
+template <typename T>
+constexpr bool has_serialized_layout() noexcept {
+  if constexpr (sizeof(offset_t) > sizeof(void*) &&
+                !detail::has_cista_members_v<T> && to_tuple_works_v<T>) {
+    return detail::has_serialized_layout<T>(
+        static_cast<decltype(to_tuple(std::declval<T&>()))*>(nullptr));
+  } else {
+    return true;
+  }
+}
+
+template <typename T>
+constexpr void check_serialized_layout() noexcept {
+  static_assert(has_serialized_layout<T>(),
+                "CISTA_64BIT_OFFSET on a 32bit platform: members of this type "
+                "are not placed like on 64bit platforms (align 64bit integer "
+                "and double members with alignas(8))");
+}
 
 // =============================================================================
 // SERIALIZE
@@ -159,6 +199,7 @@ void serialize(Ctx& c, T const* origin, offset_t const pos) {
     serialize(c, static_cast<typename Type::value_type const*>(origin), pos);
   } else if constexpr (!std::is_scalar_v<Type>) {
     static_assert(to_tuple_works_v<Type>, "Please implement custom serializer");
+    check_serialized_layout<Type>();
     for_each_ptr_field(*origin, [&](auto& member) {
       auto const member_offset = offset_between(origin, member);
       serialize(c, member, pos + member_offset);
@@ -738,6 +779,7 @@ void recurse(Ctx& c, T* el, Fn&& fn) {
   if constexpr (is_indexed_v<Type>) {
     fn(static_cast<typename T::value_type*>(el));
   } else if constexpr (to_tuple_works_v<Type>) {
+    check_serialized_layout<Type>();
     for_each_ptr_field(*el, [&](auto& f) { fn(f); });
   } else if constexpr (is_mode_enabled(Ctx::MODE, mode::_PHASE_II) &&
                        std::is_pointer_v<Type>) {
