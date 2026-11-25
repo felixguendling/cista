@@ -9,6 +9,7 @@
 
 #include "cista/exception.h"
 #include "cista/hashing.h"
+#include "cista/offset_t.h"
 
 namespace cista {
 
@@ -356,11 +357,12 @@ struct variant {
   }
 
   index_t idx_{NO_VALUE};
-  static constexpr auto const kStorageAlign = std::max({alignof(T)...});
+  static constexpr auto const kStorageAlign =
+      std::max({serialized_alignment<T>()...});
   static constexpr auto const kStorageSize =
       (std::max({sizeof(T)...}) + kStorageAlign - 1U) / kStorageAlign *
       kStorageAlign;
-  alignas(T...) std::byte storage_[kStorageSize]{};
+  alignas(kStorageAlign) std::byte storage_[kStorageSize]{};
 };
 
 template <typename T, typename... Ts>

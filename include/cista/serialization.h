@@ -182,7 +182,7 @@ void serialize(Ctx& c,
   auto const start = origin->empty()
                          ? NULLPTR_OFFSET
                          : c.write(static_cast<T const*>(origin->el_), size,
-                                   std::alignment_of_v<T>);
+                                   serialized_alignment_v<T>);
 
   c.write(pos + cista_member_offset(Type, el_),
           convert_endian<Ctx::MODE>(
@@ -320,10 +320,10 @@ void serialize(Ctx& c, basic_unique_ptr<T, Ptr> const* origin,
                offset_t const pos) {
   using Type = basic_unique_ptr<T, Ptr>;
 
-  auto const start =
-      origin->el_ == nullptr
-          ? NULLPTR_OFFSET
-          : c.write(origin->el_, serialized_size<T>(), std::alignment_of_v<T>);
+  auto const start = origin->el_ == nullptr
+                         ? NULLPTR_OFFSET
+                         : c.write(origin->el_, serialized_size<T>(),
+                                   serialized_alignment_v<T>);
 
   c.write(pos + cista_member_offset(Type, el_),
           convert_endian<Ctx::MODE>(
@@ -353,11 +353,11 @@ void serialize(Ctx& c,
                         origin->capacity_ * serialized_size<T>() +
                         (origin->capacity_ + 1 + Type::WIDTH) *
                             sizeof(typename Type::ctrl_t)),
-                    std::alignment_of_v<T>);
+                    serialized_alignment_v<T>);
   auto const ctrl_start =
       start == NULLPTR_OFFSET
           ? c.write(Type::empty_group(), 16U * sizeof(typename Type::ctrl_t),
-                    std::alignment_of_v<typename Type::ctrl_t>)
+                    serialized_alignment_v<typename Type::ctrl_t>)
           : start +
                 static_cast<offset_t>(origin->capacity_ * serialized_size<T>());
 
@@ -519,7 +519,7 @@ void serialize(Target& t, T& value) {
 
   serialize(c, &value,
             c.write(&value, serialized_size<T>(),
-                    std::alignment_of_v<decay_t<decltype(value)>>));
+                    serialized_alignment_v<decay_t<decltype(value)>>));
 
   for (auto& p : c.pending_) {
     if (!c.resolve_pointer(p.origin_ptr_, p.pos_, false)) {

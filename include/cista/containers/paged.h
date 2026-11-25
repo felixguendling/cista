@@ -7,6 +7,7 @@
 #include "cista/bit_counting.h"
 #include "cista/containers/array.h"
 #include "cista/next_power_of_2.h"
+#include "cista/offset_t.h"
 #include "cista/verify.h"
 
 namespace cista {
@@ -16,9 +17,9 @@ struct page {
   bool valid() const { return capacity_ != 0U; }
   PageSizeType size() const noexcept { return size_; }
 
-  PageSizeType size_{0U};
-  PageSizeType capacity_{0U};
-  SizeType start_{0U};
+  alignas(serialized_alignment_v<PageSizeType>) PageSizeType size_{0U};
+  alignas(serialized_alignment_v<PageSizeType>) PageSizeType capacity_{0U};
+  alignas(serialized_alignment_v<SizeType>) SizeType start_{0U};
 };
 
 template <typename DataVec, typename SizeType = typename DataVec::size_type,

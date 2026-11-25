@@ -5,6 +5,7 @@
 #include <utility>
 
 #include "cista/exception.h"
+#include "cista/offset_t.h"
 
 namespace cista {
 
@@ -77,7 +78,7 @@ struct optional {
   }
 
   bool valid_{false};
-  alignas(std::alignment_of_v<T>) unsigned char storage_[sizeof(T)];
+  alignas(serialized_alignment_v<T>) unsigned char storage_[sizeof(T)];
 };
 
 }  // namespace cista

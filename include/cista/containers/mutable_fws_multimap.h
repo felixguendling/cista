@@ -15,6 +15,7 @@
 #include "cista/containers/vector.h"
 #include "cista/exception.h"
 #include "cista/next_power_of_2.h"
+#include "cista/offset_t.h"
 #include "cista/verify.h"
 
 namespace cista {
@@ -31,7 +32,7 @@ struct dynamic_fws_multimap_base {
       static_cast<size_type>(1ULL << Log2MaxEntriesPerBucket);
 
   struct index_type {
-    size_type begin_{};
+    alignas(serialized_alignment_v<size_type>) size_type begin_{};
     size_type size_{};
     size_type capacity_{};
   };
