@@ -252,7 +252,9 @@ TEST_SUITE("tuple") {
 #ifndef _WIN32
   template <typename... Ts>
   void check_size() {
-    CHECK(sizeof(std::tuple<Ts...>) == sizeof(cista::tuple<Ts...>));
+    if constexpr (sizeof(cista::offset_t) == sizeof(void*)) {
+      CHECK(sizeof(std::tuple<Ts...>) == sizeof(cista::tuple<Ts...>));
+    }
   }
 
   TEST_CASE("size check") {

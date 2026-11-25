@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "cista/decay.h"
+#include "cista/offset_t.h"
 
 namespace cista {
 
@@ -38,17 +39,18 @@ using tuple_element_t = typename tuple_element<I, Ts...>::type;
 template <typename T, typename... Ts>
 constexpr std::size_t max_align_of() {
   if constexpr (sizeof...(Ts) == 0U) {
-    return alignof(T);
+    return serialized_alignment<T>();
   } else {
-    return std::max(alignof(T), max_align_of<Ts...>());
+    return std::max(serialized_alignment<T>(), max_align_of<Ts...>());
   }
 }
 
 template <typename T, typename... Ts>
 constexpr std::size_t get_offset(std::size_t const current_idx,
                                  std::size_t current_offset = 0U) {
-  if (auto const misalign = current_offset % alignof(T); misalign != 0U) {
-    current_offset += (alignof(T) - misalign) % alignof(T);
+  constexpr auto const align = serialized_alignment<T>();
+  if (auto const misalign = current_offset % align; misalign != 0U) {
+    current_offset += (align - misalign) % align;
   }
 
   if (current_idx == 0U) {

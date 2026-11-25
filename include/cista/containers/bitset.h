@@ -12,6 +12,7 @@
 
 #include "cista/bit_counting.h"
 #include "cista/containers/array.h"
+#include "cista/offset_t.h"
 
 namespace cista {
 
@@ -325,7 +326,8 @@ struct bitset {
     return out << b.to_string();
   }
 
-  cista::array<block_t, num_blocks> blocks_{};
+  alignas(serialized_alignment_v<block_t>)
+      cista::array<block_t, num_blocks> blocks_{};
 };
 
 }  // namespace cista

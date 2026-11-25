@@ -9,6 +9,7 @@
 #include "cista/containers/vector.h"
 #include "cista/endian/conversion.h"
 #include "cista/io.h"
+#include "cista/offset_t.h"
 
 namespace cista {
 
@@ -121,7 +122,7 @@ struct basic_rtree {
       return true;
     }
 
-    coord_t min_{0}, max_{0};
+    alignas(serialized_alignment_v<coord_t>) coord_t min_{0}, max_{0};
   };
 
   struct node {

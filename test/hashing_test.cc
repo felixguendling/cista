@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <queue>
 #include <set>
 #include <string>
@@ -8,6 +9,7 @@
 #include "cista.h"
 #else
 #include "cista/containers/hash_map.h"
+#include "cista/containers/pair.h"
 #include "cista/containers/string.h"
 #include "cista/containers/vector.h"
 #include "cista/reflection/comparable.h"
@@ -101,4 +103,13 @@ TEST_CASE("automatic hashing and equality check") {
     CHECK(k.at(2).i_ == std::stoi(k.at(2).s_.str()));
     CHECK(k.at(0).i_ == v - 3);
   }
+}
+
+TEST_CASE("pair hash uses the full 64bit hash on every platform") {
+  auto const first = cista::hashing<std::int32_t>{}(1);
+  auto const expected = cista::hashing<std::int64_t>{}(2, first);
+  CHECK(cista::hashing<cista::pair<std::int32_t, std::int64_t>>{}(
+            cista::pair<std::int32_t, std::int64_t>{1, 2}) == expected);
+  CHECK(cista::hashing<std::pair<std::int32_t, std::int64_t>>{}(
+            std::pair<std::int32_t, std::int64_t>{1, 2}) == expected);
 }

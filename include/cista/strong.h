@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "cista/gpu_compat.h"
+#include "cista/offset_t.h"
 
 namespace cista {
 
@@ -147,7 +148,7 @@ struct strong {
     return o << t.v_;
   }
 
-  T v_;
+  alignas(serialized_alignment_v<T>) T v_;
 };
 
 template <typename T>
